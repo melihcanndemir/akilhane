@@ -270,12 +270,12 @@ export function Dashboard() {
               <CardContent>
                 <ChartContainer config={{}} className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
-                        <RechartsBarChart data={performanceData} layout="vertical" margin={{ left: 150 }}>
+                        <RechartsBarChart data={performanceData}>
                             <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis type="number" domain={[0, 100]} unit="%" />
-                            <YAxis dataKey="subject" type="category" width={140} tick={{fontSize: 12}} />
+                            <XAxis dataKey="subject" tick={{fontSize: 12}} />
+                            <YAxis domain={[0, 100]} unit="%" />
                             <ChartTooltip cursor={{ fill: 'hsl(var(--muted))' }} content={<ChartTooltipContent />} />
-                            <Bar dataKey="score" layout="vertical" radius={4}>
+                            <Bar dataKey="score" radius={4}>
                                 {performanceData.map((entry) => (
                                     <Cell key={`cell-${entry.subject}`} fill={entry.color} />
                                 ))}
@@ -290,7 +290,7 @@ export function Dashboard() {
               <CardHeader>
                 <CardTitle className="font-headline flex items-center gap-2"><Target className="w-5 h-5" />Zayıf Alanlar</CardTitle>
                  <CardDescription>Tüm derslerdeki yanlış cevaplarına göre.</CardDescription>
-              </CardHeader>
+              </Header>
               <CardContent>
                  <ChartContainer config={{}} className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
@@ -315,12 +315,12 @@ export function Dashboard() {
               <CardContent>
                 <ChartContainer config={{}} className="h-64">
                      <ResponsiveContainer width="100%" height="100%">
-                        <RechartsBarChart data={timeData}>
+                        <RechartsBarChart data={timeData} layout="vertical" margin={{ right: 20 }}>
                             <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="subject" tick={{fontSize: 12}} interval={0} />
-                            <YAxis unit="dk" />
+                            <XAxis type="number" unit="dk" />
+                            <YAxis dataKey="subject" type="category" width={140} tick={{fontSize: 12}}/>
                             <ChartTooltip cursor={{ fill: 'hsl(var(--muted))' }} content={<ChartTooltipContent />} />
-                            <Bar dataKey="time" radius={4}>
+                            <Bar dataKey="time" layout="vertical" radius={4}>
                                 {timeData.map((entry) => (
                                     <Cell key={`cell-${entry.subject}`} fill={entry.color} />
                                 ))}
