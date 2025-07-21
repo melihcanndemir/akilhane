@@ -164,9 +164,14 @@ export function Dashboard() {
   const handlePersonalizeClick = async () => {
     setIsLoading(true);
     setDifficultyResult(null);
+
+    // Pass the localStorage data to the flow
+    const performanceData = localStorage.getItem('performanceData') || '{}';
+
     const result = await personalizeQuestionDifficulty({
       userId: 'user-123', // Mock user ID
       subject: selectedSubject,
+      performanceData: performanceData,
     });
     setDifficultyResult(result);
     setIsLoading(false);

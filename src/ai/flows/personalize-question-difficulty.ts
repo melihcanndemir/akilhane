@@ -12,10 +12,34 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { getPerformanceHistoryForSubject } from '@/services/performance-service';
+import type { QuizResult } from '@/lib/types';
+
+
+const getPerformanceHistoryTool = ai.defineTool(
+  {
+    name: 'getPerformanceHistoryForSubject',
+    description: "Retrieves a user's past quiz performance for a specific subject. Returns an array of quiz results, each containing score, total questions, time spent, and topics answered incorrectly.",
+    inputSchema: z.object({
+      subject: z.string().describe('The subject to retrieve performance history for.'),
+      userId: z.string().describe('The ID of the user.'),
+    }),
+    outputSchema: z.array(z.object({
+        score: z.number(),
+        totalQuestions: z.number(),
+        timeSpent: z.number(),
+        date: z.string(),
+        weakTopics: z.record(z.string(), z.number()),
+    })),
+  },
+  async (input) => getPerformanceHistoryForSubject(input.subject, input.userId)
+);
+
 
 const PersonalizeQuestionDifficultyInputSchema = z.object({
   userId: z.string().describe('The ID of the user.'),
   subject: z.string().describe('The subject for which to personalize question difficulty (e.g., Finansal Tablo Analizi).'),
+  performanceData: z.string().describe("A stringified JSON object of the user's performance data from localStorage. The tool will handle this data.")
 });
 export type PersonalizeQuestionDifficultyInput = z.infer<typeof PersonalizeQuestionDifficultyInputSchema>;
 
@@ -27,6 +51,11 @@ export type PersonalizeQuestionDifficultyOutput = z.infer<typeof PersonalizeQues
 export async function personalizeQuestionDifficulty(
   input: PersonalizeQuestionDifficultyInput
 ): Promise<PersonalizeQuestionDifficultyOutput> {
+  // Store the performance data in our mock "service" so the tool can access it.
+  // In a real app, the tool would fetch this from a database.
+  const performanceHistory = JSON.parse(input.performanceData);
+  (getPerformanceHistoryForSubject as any).__setData(performanceHistory);
+  
   return personalizeQuestionDifficultyFlow(input);
 }
 
@@ -34,12 +63,19 @@ const prompt = ai.definePrompt({
   name: 'personalizeQuestionDifficultyPrompt',
   input: {schema: PersonalizeQuestionDifficultyInputSchema},
   output: {schema: PersonalizeQuestionDifficultyOutputSchema},
+  tools: [getPerformanceHistoryTool],
   prompt: `You are an AI that personalizes the difficulty of quiz questions for users based on their past performance in a given subject.
 
 You will receive the user's ID and the subject.
-Based on this information, you should analyze the user's historical performance in the subject and determine an appropriate difficulty level (Easy, Medium, or Hard).
+You MUST use the 'getPerformanceHistoryForSubject' tool to retrieve the user's past performance data for the specified subject.
 
-Consider the user's success rate, the types of questions they struggle with, and the time they spend on each question.
+Analyze the user's historical performance data to determine an appropriate difficulty level (Easy, Medium, or Hard).
+- If the user consistently scores above 80%, recommend 'Hard'.
+- If the user scores between 50% and 80%, recommend 'Medium'.
+- If the user scores below 50%, recommend 'Easy'.
+- If there is no performance history, recommend 'Easy'.
+
+Consider the user's success rate (score / totalQuestions), the types of questions they struggle with (weakTopics), and the time they spend on each question.
 Aim to provide a difficulty level that challenges the user without overwhelming them, allowing them to focus on their areas of weakness.
 
 Return the difficulty level as a string.
