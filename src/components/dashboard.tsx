@@ -264,7 +264,7 @@ export function Dashboard() {
                 </CardContent>
               </Card>
           )}
-          <div className={`grid md:grid-cols-1 lg:grid-cols-3 gap-6 ${!hasData ? 'grid' : ''}`}>
+          <div className={`grid md:grid-cols-1 lg:grid-cols-3 gap-6 ${!hasData ? 'hidden' : 'grid'}`}>
             <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle className="font-headline flex items-center gap-2"><LineChart className="w-5 h-5" />Derse Göre Ortalama Başarı (%)</CardTitle>
