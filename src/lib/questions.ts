@@ -8,6 +8,7 @@ export const questions: Question[] = [
     type: 'multiple-choice',
     difficulty: 'Easy',
     text: 'Cari Oran neyi ölçer?',
+    topic: 'Likidite Oranları',
     options: [
       { text: 'Kârlılığı', isCorrect: false },
       { text: 'Likiditeyi', isCorrect: true },
@@ -22,6 +23,7 @@ export const questions: Question[] = [
     type: 'calculation',
     difficulty: 'Medium',
     text: 'Bir şirketin Dönen Varlıkları 500.000 TL ve Kısa Vadeli Yükümlülükleri 250.000 TL ise Cari Oranı kaçtır?',
+    topic: 'Likidite Oranları',
     options: [
         { text: '2.0', isCorrect: true },
         { text: '0.5', isCorrect: false },
@@ -37,6 +39,7 @@ export const questions: Question[] = [
     type: 'true-false',
     difficulty: 'Easy',
     text: 'Öz Sermaye Kârlılığı (ROE), bir şirketin finansal kaldıracının bir ölçüsüdür.',
+    topic: 'Kârlılık Oranları',
     options: [
         { text: 'Doğru', isCorrect: false },
         { text: 'Yanlış', isCorrect: true },
@@ -49,6 +52,7 @@ export const questions: Question[] = [
     type: 'multiple-choice',
     difficulty: 'Hard',
     text: 'Aşağıdakilerden hangisi bir likidite oranı olarak kabul edilmez?',
+    topic: 'Kaldıraç Oranları',
     options: [
       { text: 'Asit-Test Oranı', isCorrect: false },
       { text: 'Cari Oran', isCorrect: false },
@@ -56,6 +60,22 @@ export const questions: Question[] = [
       { text: 'Borç/Öz Sermaye Oranı', isCorrect: true },
     ],
     explanation: 'Borç/Öz Sermaye Oranı bir likidite oranı değil, bir borç (veya kaldıraç) oranıdır. Bir şirketin finansal kaldıracını ölçer.',
+  },
+  {
+    id: 'fsa5',
+    subject: 'Finansal Tablo Analizi',
+    type: 'multiple-choice',
+    difficulty: 'Medium',
+    text: 'Stoklar olmadan şirketin kısa vadeli borçlarını ödeme yeteneğini hangi oran ölçer?',
+    topic: 'Likidite Oranları',
+    options: [
+      { text: 'Cari Oran', isCorrect: false },
+      { text: 'Asit-Test Oranı (Hızlı Oran)', isCorrect: true },
+      { text: 'Nakit Oranı', isCorrect: false },
+      { text: 'Alacak Devir Hızı', isCorrect: false },
+    ],
+    explanation: 'Asit-Test Oranı veya Hızlı Oran, (Dönen Varlıklar - Stoklar) / Kısa Vadeli Yükümlülükler formülüyle hesaplanır ve stoklar gibi daha az likit varlıkları hariç tutar.',
+    formula: 'Asit-Test Oranı = (Dönen Varlıklar - Stoklar) / Kısa Vadeli Yükümlülükler',
   },
 
   // Karar Destek Sistemleri
@@ -65,6 +85,7 @@ export const questions: Question[] = [
     type: 'multiple-choice',
     difficulty: 'Easy',
     text: 'Bir Karar Destek Sisteminin (KDS) temel amacı nedir?',
+    topic: 'KDS Temelleri',
     options: [
       { text: 'Tüm karar verme süreçlerini otomatikleştirmek', isCorrect: false },
       { text: 'Yöneticilerin yerini almak', isCorrect: false },
@@ -79,6 +100,7 @@ export const questions: Question[] = [
     type: 'true-false',
     difficulty: 'Medium',
     text: 'Doğrusal programlama, gereksinimleri doğrusal ilişkilerle temsil edilen bir matematiksel modelde en iyi sonucu bulmak için kullanılır.',
+    topic: 'Modelleme ve Analiz',
     options: [
         { text: 'Doğru', isCorrect: true },
         { text: 'Yanlış', isCorrect: false },
@@ -91,6 +113,7 @@ export const questions: Question[] = [
     type: 'multiple-choice',
     difficulty: 'Hard',
     text: 'Karar ağacı algoritmalarında bir veri setinin düzensizliğini veya rastgeleliğini ölçmek için hangi kavram kullanılır?',
+    topic: 'Veri Madenciliği',
     options: [
       { text: 'Bilgi Kazancı', isCorrect: false },
       { text: 'Entropi', isCorrect: true },
@@ -107,6 +130,7 @@ export const questions: Question[] = [
     type: 'multiple-choice',
     difficulty: 'Easy',
     text: 'Hangi CRM türü, satış, pazarlama ve müşteri hizmetleri gibi müşteriye dönük süreçlerin otomasyonuna odaklanır?',
+    topic: 'CRM Türleri',
     options: [
       { text: 'Analitik CRM', isCorrect: false },
       { text: 'Stratejik CRM', isCorrect: false },
@@ -121,6 +145,7 @@ export const questions: Question[] = [
     type: 'true-false',
     difficulty: 'Medium',
     text: 'Demografik segmentasyon, müşterileri tutumlarına, değerlerine ve ilgi alanlarına göre böler.',
+    topic: 'Müşteri Segmentasyonu',
     options: [
         { text: 'Doğru', isCorrect: false },
         { text: 'Yanlış', isCorrect: true },
@@ -133,6 +158,7 @@ export const questions: Question[] = [
     type: 'multiple-choice',
     difficulty: 'Hard',
     text: 'Bir markayı alışkanlıktan dolayı sürekli satın alan ancak ona çok az bağlılık hisseden bir müşteri, ne tür bir sadakat göstermektedir?',
+    topic: 'Müşteri Sadakati',
     options: [
       { text: 'Duygusal Sadakat', isCorrect: false },
       { text: 'Davranışsal Sadakat', isCorrect: true },

@@ -1,6 +1,6 @@
 'use client';
 import type { ChangeEvent } from 'react';
-import React, from 'react';
+import React from 'react';
 import {
   Card,
   CardContent,
@@ -15,7 +15,6 @@ import {
   BrainCircuit,
   HeartHandshake,
   LineChart,
-  BarChart,
   Clock,
   Target,
   Loader2,
@@ -50,6 +49,7 @@ import {
   personalizeQuestionDifficulty,
   type PersonalizeQuestionDifficultyOutput,
 } from '@/ai/flows/personalize-question-difficulty';
+import type { PerformanceData, Subject } from '@/lib/types';
 
 const subjects = [
   {
@@ -69,33 +69,97 @@ const subjects = [
   },
 ];
 
-const performanceData = [
-  { subject: 'Finansal Tablo Analizi', score: 78, color: 'hsl(var(--chart-1))' },
-  { subject: 'Karar Destek Sistemleri', score: 85, color: 'hsl(var(--chart-2))' },
-  { subject: 'Müşteri İlişkileri Yönetimi', score: 65, color: 'hsl(var(--chart-3))' },
+const initialPerformanceData = [
+  { subject: 'Finansal Tablo Analizi', score: 0, color: 'hsl(var(--chart-1))' },
+  { subject: 'Karar Destek Sistemleri', score: 0, color: 'hsl(var(--chart-2))' },
+  { subject: 'Müşteri İlişkileri Yönetimi', score: 0, color: 'hsl(var(--chart-3))' },
 ];
 
-const timeData = [
-  { subject: 'Finansal Tablo Analizi', time: 42, color: 'hsl(var(--chart-1))' },
-  { subject: 'Karar Destek Sistemleri', time: 35, color: 'hsl(var(--chart-2))' },
-  { subject: 'Müşteri İlişkileri Yönetimi', time: 55, color: 'hsl(var(--chart-3))' },
+const initialTimeData = [
+  { subject: 'Finansal Tablo Analizi', time: 0, color: 'hsl(var(--chart-1))' },
+  { subject: 'Karar Destek Sistemleri', time: 0, color: 'hsl(var(--chart-2))' },
+  { subject: 'Müşteri İlişkileri Yönetimi', time: 0, color: 'hsl(var(--chart-3))' },
 ];
 
-const weakAreasData = [
-    { name: 'Kaldıraç Oranları', value: 45, fill: 'hsl(var(--chart-5))' },
-    { name: 'Aktivite Oranları', value: 25, fill: 'hsl(var(--chart-4))' },
-    { name: 'Finansal Yapı Analizi', value: 30, fill: 'hsl(var(--chart-3))' },
+const initialWeakAreasData = [
+    { name: 'Konu A', value: 1, fill: 'hsl(var(--chart-5))' },
+    { name: 'Konu B', value: 1, fill: 'hsl(var(--chart-4))' },
+    { name: 'Konu C', value: 1, fill: 'hsl(var(--chart-3))' },
 ];
 
 export function Dashboard() {
   const [selectedSubject, setSelectedSubject] = React.useState<string>(
     subjects[0].name
   );
-  const [
-    difficultyResult,
-    setDifficultyResult,
-  ] = React.useState<PersonalizeQuestionDifficultyOutput | null>(null);
+  const [difficultyResult, setDifficultyResult] = React.useState<PersonalizeQuestionDifficultyOutput | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
+  
+  const [performanceData, setPerformanceData] = React.useState(initialPerformanceData);
+  const [timeData, setTimeData] = React.useState(initialTimeData);
+  const [weakAreasData, setWeakAreasData] = React.useState(initialWeakAreasData);
+  const [hasData, setHasData] = React.useState(false);
+
+  React.useEffect(() => {
+      try {
+        const storedDataString = localStorage.getItem('performanceData');
+        if (storedDataString) {
+            const storedData: PerformanceData = JSON.parse(storedDataString);
+            setHasData(true);
+
+            // Update Performance Chart Data
+            const newPerformanceData = subjects.map((subject, index) => {
+                const results = storedData[subject.name as Subject];
+                const avgScore = results && results.length > 0
+                    ? results.reduce((acc, r) => acc + (r.score / r.totalQuestions) * 100, 0) / results.length
+                    : 0;
+                return { subject: subject.name, score: Math.round(avgScore), color: `hsl(var(--chart-${index + 1}))` };
+            });
+            setPerformanceData(newPerformanceData);
+
+            // Update Time Chart Data
+            const newTimeData = subjects.map((subject, index) => {
+                const results = storedData[subject.name as Subject];
+                const avgTime = results && results.length > 0
+                    ? (results.reduce((acc, r) => acc + r.timeSpent, 0) / results.length) / 60 // average time in minutes
+                    : 0;
+                return { subject: subject.name, time: Math.round(avgTime), color: `hsl(var(--chart-${index + 1}))` };
+            });
+            setTimeData(newTimeData);
+
+            // Update Weak Areas Chart Data for selected subject
+            const subjectResults = storedData[selectedSubject as Subject];
+            if (subjectResults && subjectResults.length > 0) {
+                const allWeakTopics = subjectResults.reduce((acc, result) => {
+                    Object.entries(result.weakTopics).forEach(([topic, count]) => {
+                        acc[topic] = (acc[topic] || 0) + count;
+                    });
+                    return acc;
+                }, {} as Record<string, number>);
+
+                const sortedWeakTopics = Object.entries(allWeakTopics)
+                    .sort(([, a], [, b]) => b - a)
+                    .slice(0, 5); // Get top 5 weak topics
+
+                if (sortedWeakTopics.length > 0) {
+                     const newWeakAreasData = sortedWeakTopics.map(([name, value], index) => ({
+                        name,
+                        value,
+                        fill: `hsl(var(--chart-${(index % 5) + 1}))`,
+                    }));
+                    setWeakAreasData(newWeakAreasData);
+                } else {
+                    setWeakAreasData([{ name: 'Zayıf konu bulunamadı', value: 1, fill: 'hsl(var(--muted))' }]);
+                }
+            } else {
+                 setWeakAreasData([{ name: 'Bu ders için veri yok', value: 1, fill: 'hsl(var(--muted))' }]);
+            }
+
+        }
+      } catch (error) {
+          console.error("Could not load performance data from localStorage", error);
+      }
+  }, [selectedSubject]);
+
 
   const handlePersonalizeClick = async () => {
     setIsLoading(true);
@@ -174,18 +238,25 @@ export function Dashboard() {
 
         <section>
           <h2 className="text-2xl font-headline font-semibold mb-4">Performans Analizlerin</h2>
-          <div className="grid md:grid-cols-1 lg:grid-cols-3 gap-6">
+          {!hasData && (
+             <Card>
+                <CardContent className="pt-6">
+                  <p className="text-muted-foreground">Henüz hiç test çözmedin. İlk testini çözdükten sonra analizlerin burada görünecek.</p>
+                </CardContent>
+              </Card>
+          )}
+          <div className={`grid md:grid-cols-1 lg:grid-cols-3 gap-6 ${!hasData ? 'hidden' : ''}`}>
             <Card className="lg:col-span-2">
               <CardHeader>
-                <CardTitle className="font-headline flex items-center gap-2"><LineChart className="w-5 h-5" />Derse Göre Performans</CardTitle>
+                <CardTitle className="font-headline flex items-center gap-2"><LineChart className="w-5 h-5" />Derse Göre Ortalama Başarı (%)</CardTitle>
               </CardHeader>
               <CardContent>
                 <ChartContainer config={{}} className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
                         <RechartsBarChart data={performanceData} layout="vertical" margin={{ left: 150 }}>
                             <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis type="number" domain={[0, 100]} />
-                            <YAxis dataKey="subject" type="category" width={80} />
+                            <XAxis type="number" domain={[0, 100]} unit="%" />
+                            <YAxis dataKey="subject" type="category" width={140} tick={{fontSize: 12}} />
                             <ChartTooltip cursor={{ fill: 'hsl(var(--muted))' }} content={<ChartTooltipContent />} />
                             <Bar dataKey="score" layout="vertical" radius={4}>
                                 {performanceData.map((entry) => (
@@ -201,14 +272,14 @@ export function Dashboard() {
              <Card>
               <CardHeader>
                 <CardTitle className="font-headline flex items-center gap-2"><Target className="w-5 h-5" />Zayıf Alanlar</CardTitle>
-                 <CardDescription>Finansal Tablo Analizi testlerine göre.</CardDescription>
+                 <CardDescription>{selectedSubject} dersindeki yanlış cevaplarına göre.</CardDescription>
               </CardHeader>
               <CardContent>
                  <ChartContainer config={{}} className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                             <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-                            <Pie data={weakAreasData} dataKey="value" nameKey="name" innerRadius={50} outerRadius={80} paddingAngle={5}>
+                            <Pie data={weakAreasData} dataKey="value" nameKey="name" innerRadius={50} outerRadius={80} paddingAngle={5} labelLine={false}>
                                 {weakAreasData.map((entry) => (
                                     <Cell key={`cell-${entry.name}`} fill={entry.fill} />
                                 ))}
@@ -222,15 +293,15 @@ export function Dashboard() {
 
             <Card className="lg:col-span-3">
               <CardHeader>
-                <CardTitle className="font-headline flex items-center gap-2"><Clock className="w-5 h-5" />Derse Göre Harcanan Süre (dakika)</CardTitle>
+                <CardTitle className="font-headline flex items-center gap-2"><Clock className="w-5 h-5" />Derse Göre Ortalama Süre (dakika)</CardTitle>
               </CardHeader>
               <CardContent>
                 <ChartContainer config={{}} className="h-64">
                      <ResponsiveContainer width="100%" height="100%">
                         <RechartsBarChart data={timeData}>
                             <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="subject" />
-                            <YAxis />
+                            <XAxis dataKey="subject" tick={{fontSize: 12}} />
+                            <YAxis unit="dk" />
                             <ChartTooltip cursor={{ fill: 'hsl(var(--muted))' }} content={<ChartTooltipContent />} />
                             <Bar dataKey="time" radius={4}>
                                 {timeData.map((entry) => (

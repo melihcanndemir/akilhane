@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { questions as allQuestions } from '@/lib/questions';
-import type { Question, Answer, Subject } from '@/lib/types';
+import type { Question, Subject, PerformanceData, QuizResult } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -13,10 +13,11 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { CheckCircle2, XCircle, Clock, BookOpen, BrainCircuit, HeartHandshake, Calculator, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 
-// Function to shuffle array and get first N elements
 const shuffleArray = (array: any[]) => {
     return array.sort(() => Math.random() - 0.5);
 };
+
+const QUIZ_DURATION = 50 * 60; // 50 minutes in seconds
 
 export function Quiz() {
     const searchParams = useSearchParams();
@@ -28,7 +29,8 @@ export function Quiz() {
     const [showFeedback, setShowFeedback] = useState(false);
     const [score, setScore] = useState(0);
     const [isFinished, setIsFinished] = useState(false);
-    const [timeLeft, setTimeLeft] = useState(50 * 60); // 50 minutes in seconds
+    const [timeLeft, setTimeLeft] = useState(QUIZ_DURATION);
+    const [incorrectTopics, setIncorrectTopics] = useState<Record<string, number>>({});
 
     useEffect(() => {
         if (subject) {
@@ -37,7 +39,8 @@ export function Quiz() {
             setIsFinished(false);
             setCurrentQuestionIndex(0);
             setScore(0);
-            setTimeLeft(50 * 60);
+            setTimeLeft(QUIZ_DURATION);
+            setIncorrectTopics({});
         }
     }, [subject]);
 
@@ -46,7 +49,7 @@ export function Quiz() {
             const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
             return () => clearTimeout(timer);
         } else if (timeLeft === 0 && !isFinished) {
-            setIsFinished(true);
+            handleFinishQuiz();
         }
     }, [timeLeft, isFinished]);
     
@@ -61,6 +64,35 @@ export function Quiz() {
     const currentQuestion = questions[currentQuestionIndex];
     const isCorrect = currentQuestion?.options.find(opt => opt.text === selectedAnswer)?.isCorrect;
 
+    const handleFinishQuiz = () => {
+        if (!subject) return;
+
+        const timeSpent = QUIZ_DURATION - timeLeft;
+        const result: QuizResult = {
+            score,
+            totalQuestions: questions.length,
+            timeSpent,
+            date: new Date().toISOString(),
+            weakTopics: incorrectTopics,
+        };
+        
+        try {
+            const existingDataString = localStorage.getItem('performanceData');
+            const existingData: PerformanceData = existingDataString ? JSON.parse(existingDataString) : {};
+            
+            if (!existingData[subject]) {
+                existingData[subject] = [];
+            }
+            existingData[subject]?.push(result);
+
+            localStorage.setItem('performanceData', JSON.stringify(existingData));
+        } catch (error) {
+            console.error("Failed to save quiz results to localStorage", error);
+        }
+
+        setIsFinished(true);
+    };
+
     const handleNext = () => {
         if (!selectedAnswer) return;
 
@@ -68,6 +100,12 @@ export function Quiz() {
             setShowFeedback(true);
             if (isCorrect) {
                 setScore(score + 1);
+            } else {
+                const topic = currentQuestion.topic || 'Genel';
+                setIncorrectTopics(prev => ({
+                    ...prev,
+                    [topic]: (prev[topic] || 0) + 1,
+                }));
             }
         } else {
             setShowFeedback(false);
@@ -75,7 +113,7 @@ export function Quiz() {
             if (currentQuestionIndex < questions.length - 1) {
                 setCurrentQuestionIndex(currentQuestionIndex + 1);
             } else {
-                setIsFinished(true);
+                handleFinishQuiz();
             }
         }
     };
