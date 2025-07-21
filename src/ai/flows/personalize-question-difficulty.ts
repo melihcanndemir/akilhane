@@ -64,16 +64,17 @@ const prompt = ai.definePrompt({
   input: {schema: PersonalizeQuestionDifficultyInputSchema},
   output: {schema: PersonalizeQuestionDifficultyOutputSchema},
   tools: [getPerformanceHistoryTool],
-  prompt: `You are an AI that personalizes the difficulty of quiz questions.
+  prompt: `You are an AI that personalizes the difficulty of quiz questions for a student.
 
 You MUST use the 'getPerformanceHistoryForSubject' tool to get the user's past performance for the given subject.
 
-Analyze the user's average score. The 'score' field is the number of correct answers and 'totalQuestions' is the total number of questions.
+Analyze the user's average score from their most recent tests. Consider the last 3 tests for the analysis if available. The 'score' field is the number of correct answers and 'totalQuestions' is the total number of questions.
 
-- If there is no performance history, recommend 'Easy'.
-- If the average score is below 50%, recommend 'Easy'.
-- If the average score is between 50% and 80%, recommend 'Medium'.
-- If the average score is above 80%, recommend 'Hard'.
+Follow these rules strictly:
+- If there is no performance history for the subject, you MUST recommend 'Easy'.
+- If the average score from the recent tests is below 50%, you MUST recommend 'Easy'.
+- If the average score is between 50% and 80% (inclusive), you MUST recommend 'Medium'.
+- If the average score is above 80%, you MUST recommend 'Hard'.
 
 Return ONLY the difficulty level.
 
