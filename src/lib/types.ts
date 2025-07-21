@@ -17,6 +17,6 @@ export type Question = {
 };
 
 export type Subject =
-  | 'Financial Statement Analysis'
-  | 'Decision Support Systems'
-  | 'Customer Relationship Management';
+  | 'Finansal Tablo Analizi'
+  | 'Karar Destek Sistemleri'
+  | 'Müşteri İlişkileri Yönetimi';

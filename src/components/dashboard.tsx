@@ -53,38 +53,38 @@ import {
 
 const subjects = [
   {
-    name: 'Financial Statement Analysis',
+    name: 'Finansal Tablo Analizi',
     icon: <BookOpen className="w-8 h-8 text-primary" />,
-    href: '/quiz?subject=Financial Statement Analysis',
+    href: '/quiz?subject=Finansal Tablo Analizi',
   },
   {
-    name: 'Decision Support Systems',
+    name: 'Karar Destek Sistemleri',
     icon: <BrainCircuit className="w-8 h-8 text-primary" />,
-    href: '/quiz?subject=Decision Support Systems',
+    href: '/quiz?subject=Karar Destek Sistemleri',
   },
   {
-    name: 'Customer Relationship Management',
+    name: 'Müşteri İlişkileri Yönetimi',
     icon: <HeartHandshake className="w-8 h-8 text-primary" />,
-    href: '/quiz?subject=Customer Relationship Management',
+    href: '/quiz?subject=Müşteri İlişkileri Yönetimi',
   },
 ];
 
 const performanceData = [
-  { subject: 'Finance', score: 85, color: 'hsl(var(--chart-1))' },
-  { subject: 'Decision Sys.', score: 72, color: 'hsl(var(--chart-2))' },
-  { subject: 'CRM', score: 91, color: 'hsl(var(--chart-3))' },
+  { subject: 'Finans', score: 85, color: 'hsl(var(--chart-1))' },
+  { subject: 'Karar Sis.', score: 72, color: 'hsl(var(--chart-2))' },
+  { subject: 'MİY', score: 91, color: 'hsl(var(--chart-3))' },
 ];
 
 const timeData = [
-  { subject: 'Finance', time: 35, color: 'hsl(var(--chart-1))' },
-  { subject: 'Decision Sys.', time: 45, color: 'hsl(var(--chart-2))' },
-  { subject: 'CRM', time: 28, color: 'hsl(var(--chart-3))' },
+  { subject: 'Finans', time: 35, color: 'hsl(var(--chart-1))' },
+  { subject: 'Karar Sis.', time: 45, color: 'hsl(var(--chart-2))' },
+  { subject: 'MİY', time: 28, color: 'hsl(var(--chart-3))' },
 ];
 
 const weakAreasData = [
-    { name: 'Liquidity Ratios', value: 40, fill: 'hsl(var(--chart-5))' },
-    { name: 'Profitability', value: 30, fill: 'hsl(var(--chart-4))' },
-    { name: 'Debt Ratios', value: 30, fill: 'hsl(var(--chart-3))' },
+    { name: 'Likidite Oranları', value: 40, fill: 'hsl(var(--chart-5))' },
+    { name: 'Kârlılık', value: 30, fill: 'hsl(var(--chart-4))' },
+    { name: 'Borç Oranları', value: 30, fill: 'hsl(var(--chart-3))' },
 ];
 
 export function Dashboard() {
@@ -112,14 +112,14 @@ export function Dashboard() {
     <div className="bg-background">
       <header className="bg-card border-b p-4 shadow-sm">
         <div className="container mx-auto">
-          <h1 className="text-3xl font-headline font-bold text-primary">AÖF Exam Prep</h1>
-          <p className="text-muted-foreground">Welcome back! Let's get you ready for your exams.</p>
+          <h1 className="text-3xl font-headline font-bold text-primary">AÖF Sınav Hazırlık</h1>
+          <p className="text-muted-foreground">Tekrar hoş geldin! Seni sınavlara hazırlayalım.</p>
         </div>
       </header>
 
       <div className="container mx-auto p-4 md:p-8 space-y-8">
         <section>
-          <h2 className="text-2xl font-headline font-semibold mb-4">Choose a Subject to Practice</h2>
+          <h2 className="text-2xl font-headline font-semibold mb-4">Pratik Yapmak İçin Bir Ders Seç</h2>
           <div className="grid md:grid-cols-3 gap-6">
             {subjects.map((subject) => (
               <Link href={subject.href} key={subject.name} legacyBehavior>
@@ -130,7 +130,7 @@ export function Dashboard() {
                       <CardTitle className="font-headline text-xl">{subject.name}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <CardDescription>Start a new quiz session and test your knowledge.</CardDescription>
+                      <CardDescription>Yeni bir test oturumu başlat ve bilgini sına.</CardDescription>
                     </CardContent>
                   </Card>
                 </a>
@@ -143,14 +143,14 @@ export function Dashboard() {
           <Card>
             <CardHeader>
               <CardTitle className="font-headline text-2xl flex items-center gap-2">
-                <Cpu className="w-6 h-6" /> AI-Powered Personalization
+                <Cpu className="w-6 h-6" /> Yapay Zeka Destekli Kişiselleştirme
               </CardTitle>
-              <CardDescription>Let our AI determine the best difficulty for your next quiz based on your performance.</CardDescription>
+              <CardDescription>Performansına göre bir sonraki testin için en uygun zorluğu yapay zekamızın belirlemesine izin ver.</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col sm:flex-row items-center gap-4">
                 <Select value={selectedSubject} onValueChange={setSelectedSubject}>
                     <SelectTrigger className="w-full sm:w-[300px]">
-                        <SelectValue placeholder="Select a subject" />
+                        <SelectValue placeholder="Bir ders seçin" />
                     </SelectTrigger>
                     <SelectContent>
                         {subjects.map(subject => (
@@ -160,11 +160,11 @@ export function Dashboard() {
                 </Select>
               <Button onClick={handlePersonalizeClick} disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Personalize Difficulty
+                Zorluğu Kişiselleştir
               </Button>
               {difficultyResult && (
                 <p className="text-lg font-semibold">
-                  Recommended Difficulty: <span className="text-primary">{difficultyResult.difficulty}</span>
+                  Önerilen Zorluk: <span className="text-primary">{difficultyResult.difficulty}</span>
                 </p>
               )}
             </CardContent>
@@ -173,11 +173,11 @@ export function Dashboard() {
 
 
         <section>
-          <h2 className="text-2xl font-headline font-semibold mb-4">Your Performance Analytics</h2>
+          <h2 className="text-2xl font-headline font-semibold mb-4">Performans Analizlerin</h2>
           <div className="grid md:grid-cols-1 lg:grid-cols-3 gap-6">
             <Card className="lg:col-span-2">
               <CardHeader>
-                <CardTitle className="font-headline flex items-center gap-2"><LineChart className="w-5 h-5" />Performance by Subject</CardTitle>
+                <CardTitle className="font-headline flex items-center gap-2"><LineChart className="w-5 h-5" />Derse Göre Performans</CardTitle>
               </CardHeader>
               <CardContent>
                 <ChartContainer config={{}} className="h-64">
@@ -200,8 +200,8 @@ export function Dashboard() {
 
              <Card>
               <CardHeader>
-                <CardTitle className="font-headline flex items-center gap-2"><Target className="w-5 h-5" />Weakest Areas</CardTitle>
-                 <CardDescription>Based on Financial Statement Analysis quizzes.</CardDescription>
+                <CardTitle className="font-headline flex items-center gap-2"><Target className="w-5 h-5" />Zayıf Alanlar</CardTitle>
+                 <CardDescription>Finansal Tablo Analizi testlerine göre.</CardDescription>
               </CardHeader>
               <CardContent>
                  <ChartContainer config={{}} className="h-64">
@@ -222,7 +222,7 @@ export function Dashboard() {
 
             <Card className="lg:col-span-3">
               <CardHeader>
-                <CardTitle className="font-headline flex items-center gap-2"><Clock className="w-5 h-5" />Time Spent per Subject (minutes)</CardTitle>
+                <CardTitle className="font-headline flex items-center gap-2"><Clock className="w-5 h-5" />Derse Göre Harcanan Süre (dakika)</CardTitle>
               </CardHeader>
               <CardContent>
                 <ChartContainer config={{}} className="h-64">

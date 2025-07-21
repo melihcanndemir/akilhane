@@ -15,7 +15,7 @@ import {z} from 'genkit';
 
 const PersonalizeQuestionDifficultyInputSchema = z.object({
   userId: z.string().describe('The ID of the user.'),
-  subject: z.string().describe('The subject for which to personalize question difficulty (e.g., Financial Statement Analysis).'),
+  subject: z.string().describe('The subject for which to personalize question difficulty (e.g., Finansal Tablo Analizi).'),
 });
 export type PersonalizeQuestionDifficultyInput = z.infer<typeof PersonalizeQuestionDifficultyInputSchema>;
 

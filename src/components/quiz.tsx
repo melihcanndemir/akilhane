@@ -51,11 +51,11 @@ export function Quiz() {
     }, [timeLeft, isFinished]);
     
     if (!subject) {
-        return <div className="text-center p-8">Please select a subject to start the quiz.</div>;
+        return <div className="text-center p-8">Lütfen teste başlamak için bir ders seçin.</div>;
     }
 
     if (questions.length === 0 && !isFinished) {
-        return <div className="text-center p-8">Loading questions...</div>;
+        return <div className="text-center p-8">Sorular yükleniyor...</div>;
     }
     
     const currentQuestion = questions[currentQuestionIndex];
@@ -88,9 +88,9 @@ export function Quiz() {
 
     const getSubjectIcon = (subject: Subject) => {
         switch (subject) {
-            case 'Financial Statement Analysis': return <BookOpen className="w-6 h-6" />;
-            case 'Decision Support Systems': return <BrainCircuit className="w-6 h-6" />;
-            case 'Customer Relationship Management': return <HeartHandshake className="w-6 h-6" />;
+            case 'Finansal Tablo Analizi': return <BookOpen className="w-6 h-6" />;
+            case 'Karar Destek Sistemleri': return <BrainCircuit className="w-6 h-6" />;
+            case 'Müşteri İlişkileri Yönetimi': return <HeartHandshake className="w-6 h-6" />;
             default: return null;
         }
     };
@@ -100,16 +100,16 @@ export function Quiz() {
             <div className="flex items-center justify-center min-h-screen bg-background p-4">
                 <Card className="w-full max-w-2xl text-center">
                     <CardHeader>
-                        <CardTitle className="text-3xl font-headline">Quiz Finished!</CardTitle>
-                        <CardDescription>Here's how you did.</CardDescription>
+                        <CardTitle className="text-3xl font-headline">Test Bitti!</CardTitle>
+                        <CardDescription>İşte sonucun.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <p className="text-5xl font-bold text-primary">{score} / {questions.length}</p>
-                        <p className="text-xl text-muted-foreground">You scored {((score / questions.length) * 100).toFixed(2)}%</p>
+                        <p className="text-xl text-muted-foreground">Başarı oranın %{((score / questions.length) * 100).toFixed(2)}</p>
                     </CardContent>
                     <CardFooter>
                         <Link href="/" className="w-full">
-                            <Button className="w-full">Back to Dashboard</Button>
+                            <Button className="w-full">Anasayfaya Dön</Button>
                         </Link>
                     </CardFooter>
                 </Card>
@@ -136,7 +136,7 @@ export function Quiz() {
             <main className="flex-1 flex items-center justify-center p-4">
                 <Card className="w-full max-w-4xl">
                     <CardHeader>
-                        <CardTitle className="text-2xl font-headline">Question {currentQuestionIndex + 1} of {questions.length}</CardTitle>
+                        <CardTitle className="text-2xl font-headline">Soru {currentQuestionIndex + 1} / {questions.length}</CardTitle>
                         <CardDescription className="text-lg pt-2">{currentQuestion.text}</CardDescription>
                         {currentQuestion.formula && (
                            <div className="mt-2 p-3 bg-muted rounded-md flex items-center gap-2">
@@ -170,7 +170,7 @@ export function Quiz() {
                         {showFeedback && (
                             <Alert className={`mt-6 ${isCorrect ? 'border-green-500 text-green-700' : 'border-red-500 text-red-700'}`}>
                                 {isCorrect ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
-                                <AlertTitle>{isCorrect ? 'Correct!' : 'Incorrect'}</AlertTitle>
+                                <AlertTitle>{isCorrect ? 'Doğru!' : 'Yanlış'}</AlertTitle>
                                 <AlertDescription>
                                     {currentQuestion.explanation}
                                 </AlertDescription>
@@ -179,7 +179,7 @@ export function Quiz() {
                     </CardContent>
                     <CardFooter>
                          <Button onClick={handleNext} disabled={!selectedAnswer} className="w-full">
-                            {showFeedback ? (currentQuestionIndex < questions.length - 1 ? "Next Question" : "Finish Quiz") : "Submit Answer"}
+                            {showFeedback ? (currentQuestionIndex < questions.length - 1 ? "Sonraki Soru" : "Testi Bitir") : "Cevabı Gönder"}
                             <ChevronRight className="w-4 h-4 ml-2" />
                         </Button>
                     </CardFooter>
