@@ -19,7 +19,7 @@ import type { QuizResult } from '@/lib/types';
 const getPerformanceHistoryTool = ai.defineTool(
   {
     name: 'getPerformanceHistoryForSubject',
-    description: "Retrieves a user's past quiz performance for a specific subject. Returns an array of quiz results, each containing score, total questions, time spent, and topics answered incorrectly.",
+    description: "Retrieves a user's past quiz performance for a specific subject. Returns an array of quiz results, each containing score and total questions.",
     inputSchema: z.object({
       subject: z.string().describe('The subject to retrieve performance history for.'),
       userId: z.string().describe('The ID of the user.'),
@@ -64,21 +64,18 @@ const prompt = ai.definePrompt({
   input: {schema: PersonalizeQuestionDifficultyInputSchema},
   output: {schema: PersonalizeQuestionDifficultyOutputSchema},
   tools: [getPerformanceHistoryTool],
-  prompt: `You are an AI that personalizes the difficulty of quiz questions for users based on their past performance in a given subject.
+  prompt: `You are an AI that personalizes the difficulty of quiz questions.
 
-You will receive the user's ID and the subject.
-You MUST use the 'getPerformanceHistoryForSubject' tool to retrieve the user's past performance data for the specified subject.
+You MUST use the 'getPerformanceHistoryForSubject' tool to get the user's past performance for the given subject.
 
-Analyze the user's historical performance data to determine an appropriate difficulty level (Easy, Medium, or Hard).
-- If the user consistently scores above 80%, recommend 'Hard'.
-- If the user scores between 50% and 80%, recommend 'Medium'.
-- If the user scores below 50%, recommend 'Easy'.
+Analyze the user's average score. The 'score' field is the number of correct answers and 'totalQuestions' is the total number of questions.
+
 - If there is no performance history, recommend 'Easy'.
+- If the average score is below 50%, recommend 'Easy'.
+- If the average score is between 50% and 80%, recommend 'Medium'.
+- If the average score is above 80%, recommend 'Hard'.
 
-Consider the user's success rate (score / totalQuestions), the types of questions they struggle with (weakTopics), and the time they spend on each question.
-Aim to provide a difficulty level that challenges the user without overwhelming them, allowing them to focus on their areas of weakness.
-
-Return the difficulty level as a string.
+Return ONLY the difficulty level.
 
 User ID: {{{userId}}}
 Subject: {{{subject}}}`,
