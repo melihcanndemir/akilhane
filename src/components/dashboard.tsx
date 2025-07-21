@@ -20,6 +20,7 @@ import {
   Target,
   Loader2,
   Cpu,
+  Sun,
 } from 'lucide-react';
 import {
   ChartContainer,
