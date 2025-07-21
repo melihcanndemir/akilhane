@@ -51,6 +51,7 @@ import {
   type PersonalizeQuestionDifficultyOutput,
 } from '@/ai/flows/personalize-question-difficulty';
 import type { PerformanceData, Subject } from '@/lib/types';
+import { ThemeToggle } from './theme-toggle';
 
 const subjects = [
   {
@@ -185,11 +186,14 @@ export function Dashboard() {
   };
 
   return (
-    <div className="bg-background">
+    <div className="bg-background text-foreground">
       <header className="bg-card border-b p-4 shadow-sm">
-        <div className="container mx-auto">
-          <h1 className="text-3xl font-headline font-bold text-primary">AÖF Sınav Hazırlık</h1>
-          <p className="text-muted-foreground">Tekrar hoş geldin! Seni sınavlara hazırlayalım.</p>
+        <div className="container mx-auto flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-headline font-bold text-primary">AÖF Sınav Hazırlık</h1>
+            <p className="text-muted-foreground">Tekrar hoş geldin! Seni sınavlara hazırlayalım.</p>
+          </div>
+          <ThemeToggle />
         </div>
       </header>
 
@@ -201,9 +205,9 @@ export function Dashboard() {
               <Link
                 href={subject.href}
                 key={subject.name}
-                className="block"
+                className="block group"
               >
-                <Card className="hover:shadow-lg hover:border-primary transition-all duration-300 h-full">
+                <Card className="group-hover:shadow-lg group-hover:border-primary transition-all duration-300 h-full">
                   <CardHeader className="flex flex-row items-center gap-4">
                     {subject.icon}
                     <CardTitle className="font-headline text-xl">
