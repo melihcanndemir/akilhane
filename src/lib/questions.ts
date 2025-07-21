@@ -168,3 +168,5 @@ export const questions: Question[] = [
     explanation: 'Davranışsal sadakat, markaya güçlü bir duygusal bağdan ziyade alışkanlık veya kolaylık tarafından yönlendirilebilen tekrarlı satın alma eylemini ifade eder.',
   },
 ];
+
+// git
