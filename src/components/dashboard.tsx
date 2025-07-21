@@ -1,3 +1,4 @@
+
 'use client';
 import type { ChangeEvent } from 'react';
 import React from 'react';
@@ -70,21 +71,21 @@ const subjects = [
 ];
 
 const initialPerformanceData = [
-  { subject: 'Finansal Tablo Analizi', score: 0, color: 'hsl(var(--chart-1))' },
-  { subject: 'Karar Destek Sistemleri', score: 0, color: 'hsl(var(--chart-2))' },
-  { subject: 'Müşteri İlişkileri Yönetimi', score: 0, color: 'hsl(var(--chart-3))' },
+  { subject: 'Finansal Tablo Analizi', score: 75, color: 'hsl(var(--chart-1))' },
+  { subject: 'Karar Destek Sistemleri', score: 50, color: 'hsl(var(--chart-2))' },
+  { subject: 'Müşteri İlişkileri Yönetimi', score: 90, color: 'hsl(var(--chart-3))' },
 ];
 
 const initialTimeData = [
-  { subject: 'Finansal Tablo Analizi', time: 0, color: 'hsl(var(--chart-1))' },
-  { subject: 'Karar Destek Sistemleri', time: 0, color: 'hsl(var(--chart-2))' },
-  { subject: 'Müşteri İlişkileri Yönetimi', time: 0, color: 'hsl(var(--chart-3))' },
+  { subject: 'Finansal Tablo Analizi', time: 15, color: 'hsl(var(--chart-1))' },
+  { subject: 'Karar Destek Sistemleri', time: 25, color: 'hsl(var(--chart-2))' },
+  { subject: 'Müşteri İlişkileri Yönetimi', time: 10, color: 'hsl(var(--chart-3))' },
 ];
 
 const initialWeakAreasData = [
-    { name: 'Konu A', value: 1, fill: 'hsl(var(--chart-5))' },
-    { name: 'Konu B', value: 1, fill: 'hsl(var(--chart-4))' },
-    { name: 'Konu C', value: 1, fill: 'hsl(var(--chart-3))' },
+    { name: 'Likidite Oranları', value: 8, fill: 'hsl(var(--chart-5))' },
+    { name: 'Kaldıraç Oranları', value: 5, fill: 'hsl(var(--chart-4))' },
+    { name: 'Veri Madenciliği', value: 3, fill: 'hsl(var(--chart-3))' },
 ];
 
 export function Dashboard() {
@@ -164,7 +165,7 @@ export function Dashboard() {
           console.error("Could not load performance data from localStorage", error);
           setHasData(false);
       }
-  }, []); // Run only once on component mount
+  }, []);
 
 
   const handlePersonalizeClick = async () => {
@@ -290,7 +291,7 @@ export function Dashboard() {
               <CardHeader>
                 <CardTitle className="font-headline flex items-center gap-2"><Target className="w-5 h-5" />Zayıf Alanlar</CardTitle>
                  <CardDescription>Tüm derslerdeki yanlış cevaplarına göre.</CardDescription>
-              </Header>
+              </CardHeader>
               <CardContent>
                  <ChartContainer config={{}} className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
