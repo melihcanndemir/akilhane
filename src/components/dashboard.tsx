@@ -20,7 +20,6 @@ import {
   Target,
   Loader2,
   Cpu,
-  Sun,
 } from 'lucide-react';
 import {
   ChartContainer,
@@ -73,21 +72,19 @@ const subjects = [
 ];
 
 const initialPerformanceData = [
-  { subject: 'Finansal Tablo Analizi', score: 75, color: 'hsl(var(--chart-1))' },
-  { subject: 'Karar Destek Sistemleri', score: 50, color: 'hsl(var(--chart-2))' },
-  { subject: 'Müşteri İlişkileri Yönetimi', score: 90, color: 'hsl(var(--chart-3))' },
+  { subject: 'Finansal Tablo Analizi', score: 0, color: 'hsl(var(--chart-1))' },
+  { subject: 'Karar Destek Sistemleri', score: 0, color: 'hsl(var(--chart-2))' },
+  { subject: 'Müşteri İlişkileri Yönetimi', score: 0, color: 'hsl(var(--chart-3))' },
 ];
 
 const initialTimeData = [
-  { subject: 'Finansal Tablo Analizi', time: 15, color: 'hsl(var(--chart-1))' },
-  { subject: 'Karar Destek Sistemleri', time: 25, color: 'hsl(var(--chart-2))' },
-  { subject: 'Müşteri İlişkileri Yönetimi', time: 10, color: 'hsl(var(--chart-3))' },
+  { subject: 'Finansal Tablo Analizi', time: 0, color: 'hsl(var(--chart-1))' },
+  { subject: 'Karar Destek Sistemleri', time: 0, color: 'hsl(var(--chart-2))' },
+  { subject: 'Müşteri İlişkileri Yönetimi', time: 0, color: 'hsl(var(--chart-3))' },
 ];
 
 const initialWeakAreasData = [
-    { name: 'Likidite Oranları', value: 8, fill: 'hsl(var(--chart-5))' },
-    { name: 'Kaldıraç Oranları', value: 5, fill: 'hsl(var(--chart-4))' },
-    { name: 'Veri Madenciliği', value: 3, fill: 'hsl(var(--chart-3))' },
+    { name: 'Başlamak için test çöz', value: 1, fill: 'hsl(var(--muted))' },
 ];
 
 export function Dashboard() {
@@ -174,11 +171,10 @@ export function Dashboard() {
     setIsLoading(true);
     setDifficultyResult(null);
 
-    // Pass the localStorage data to the flow
     const performanceData = localStorage.getItem('performanceData') || '{}';
 
     const result = await personalizeQuestionDifficulty({
-      userId: 'user-123', // Mock user ID
+      userId: 'user-123',
       subject: selectedSubject,
       performanceData: performanceData,
     });
@@ -268,7 +264,7 @@ export function Dashboard() {
                 </CardContent>
               </Card>
           )}
-          <div className={`grid md:grid-cols-1 lg:grid-cols-3 gap-6 ${!hasData ? 'hidden' : ''}`}>
+          <div className={`grid md:grid-cols-1 lg:grid-cols-3 gap-6 ${!hasData ? 'grid' : ''}`}>
             <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle className="font-headline flex items-center gap-2"><LineChart className="w-5 h-5" />Derse Göre Ortalama Başarı (%)</CardTitle>
