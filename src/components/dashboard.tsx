@@ -125,40 +125,36 @@ export function Dashboard() {
                 return { subject: subject.name, time: Math.round(avgTime), color: `hsl(var(--chart-${index + 1}))` };
             });
             setTimeData(newTimeData);
-
-            // Update Weak Areas Chart Data for selected subject
-            const subjectResults = storedData[selectedSubject as Subject];
-            if (subjectResults && subjectResults.length > 0) {
-                const allWeakTopics = subjectResults.reduce((acc, result) => {
+            
+            // Update Weak Areas Chart Data for ALL subjects
+            const allWeakTopics: Record<string, number> = {};
+            Object.values(storedData).forEach(subjectResults => {
+                subjectResults.forEach(result => {
                     Object.entries(result.weakTopics).forEach(([topic, count]) => {
-                        acc[topic] = (acc[topic] || 0) + count;
+                        allWeakTopics[topic] = (allWeakTopics[topic] || 0) + count;
                     });
-                    return acc;
-                }, {} as Record<string, number>);
+                });
+            });
 
-                const sortedWeakTopics = Object.entries(allWeakTopics)
-                    .sort(([, a], [, b]) => b - a)
-                    .slice(0, 5); // Get top 5 weak topics
+            const sortedWeakTopics = Object.entries(allWeakTopics)
+                .sort(([, a], [, b]) => b - a)
+                .slice(0, 5); // Get top 5 weak topics
 
-                if (sortedWeakTopics.length > 0) {
-                     const newWeakAreasData = sortedWeakTopics.map(([name, value], index) => ({
-                        name,
-                        value,
-                        fill: `hsl(var(--chart-${(index % 5) + 1}))`,
-                    }));
-                    setWeakAreasData(newWeakAreasData);
-                } else {
-                    setWeakAreasData([{ name: 'Zayıf konu bulunamadı', value: 1, fill: 'hsl(var(--muted))' }]);
-                }
+            if (sortedWeakTopics.length > 0) {
+                 const newWeakAreasData = sortedWeakTopics.map(([name, value], index) => ({
+                    name,
+                    value,
+                    fill: `hsl(var(--chart-${(index % 5) + 1}))`,
+                }));
+                setWeakAreasData(newWeakAreasData);
             } else {
-                 setWeakAreasData([{ name: 'Bu ders için veri yok', value: 1, fill: 'hsl(var(--muted))' }]);
+                setWeakAreasData([{ name: 'Zayıf konu bulunamadı', value: 1, fill: 'hsl(var(--muted))' }]);
             }
-
         }
       } catch (error) {
           console.error("Could not load performance data from localStorage", error);
       }
-  }, [selectedSubject]);
+  }, []); // Run only once on component mount
 
 
   const handlePersonalizeClick = async () => {
@@ -283,7 +279,7 @@ export function Dashboard() {
              <Card>
               <CardHeader>
                 <CardTitle className="font-headline flex items-center gap-2"><Target className="w-5 h-5" />Zayıf Alanlar</CardTitle>
-                 <CardDescription>{selectedSubject} dersindeki yanlış cevaplarına göre.</CardDescription>
+                 <CardDescription>Tüm derslerdeki yanlış cevaplarına göre.</CardDescription>
               </CardHeader>
               <CardContent>
                  <ChartContainer config={{}} className="h-64">
