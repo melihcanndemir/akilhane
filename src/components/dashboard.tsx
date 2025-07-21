@@ -70,21 +70,21 @@ const subjects = [
 ];
 
 const performanceData = [
-  { subject: 'Finans', score: 85, color: 'hsl(var(--chart-1))' },
-  { subject: 'Karar Sis.', score: 72, color: 'hsl(var(--chart-2))' },
-  { subject: 'MİY', score: 91, color: 'hsl(var(--chart-3))' },
+  { subject: 'Finansal Tablo Analizi', score: 78, color: 'hsl(var(--chart-1))' },
+  { subject: 'Karar Destek Sistemleri', score: 85, color: 'hsl(var(--chart-2))' },
+  { subject: 'Müşteri İlişkileri Yönetimi', score: 65, color: 'hsl(var(--chart-3))' },
 ];
 
 const timeData = [
-  { subject: 'Finans', time: 35, color: 'hsl(var(--chart-1))' },
-  { subject: 'Karar Sis.', time: 45, color: 'hsl(var(--chart-2))' },
-  { subject: 'MİY', time: 28, color: 'hsl(var(--chart-3))' },
+  { subject: 'Finansal Tablo Analizi', time: 42, color: 'hsl(var(--chart-1))' },
+  { subject: 'Karar Destek Sistemleri', time: 35, color: 'hsl(var(--chart-2))' },
+  { subject: 'Müşteri İlişkileri Yönetimi', time: 55, color: 'hsl(var(--chart-3))' },
 ];
 
 const weakAreasData = [
-    { name: 'Likidite Oranları', value: 40, fill: 'hsl(var(--chart-5))' },
-    { name: 'Kârlılık', value: 30, fill: 'hsl(var(--chart-4))' },
-    { name: 'Borç Oranları', value: 30, fill: 'hsl(var(--chart-3))' },
+    { name: 'Kaldıraç Oranları', value: 45, fill: 'hsl(var(--chart-5))' },
+    { name: 'Aktivite Oranları', value: 25, fill: 'hsl(var(--chart-4))' },
+    { name: 'Finansal Yapı Analizi', value: 30, fill: 'hsl(var(--chart-3))' },
 ];
 
 export function Dashboard() {
@@ -182,7 +182,7 @@ export function Dashboard() {
               <CardContent>
                 <ChartContainer config={{}} className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
-                        <RechartsBarChart data={performanceData} layout="vertical" margin={{ left: 20 }}>
+                        <RechartsBarChart data={performanceData} layout="vertical" margin={{ left: 150 }}>
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis type="number" domain={[0, 100]} />
                             <YAxis dataKey="subject" type="category" width={80} />
