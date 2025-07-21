@@ -191,18 +191,24 @@ export function Dashboard() {
           <h2 className="text-2xl font-headline font-semibold mb-4">Pratik Yapmak İçin Bir Ders Seç</h2>
           <div className="grid md:grid-cols-3 gap-6">
             {subjects.map((subject) => (
-              <Link href={subject.href} key={subject.name} legacyBehavior>
-                <a className="block">
-                  <Card className="hover:shadow-lg hover:border-primary transition-all duration-300 h-full">
-                    <CardHeader className="flex flex-row items-center gap-4">
-                      {subject.icon}
-                      <CardTitle className="font-headline text-xl">{subject.name}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <CardDescription>Yeni bir test oturumu başlat ve bilgini sına.</CardDescription>
-                    </CardContent>
-                  </Card>
-                </a>
+              <Link
+                href={subject.href}
+                key={subject.name}
+                className="block"
+              >
+                <Card className="hover:shadow-lg hover:border-primary transition-all duration-300 h-full">
+                  <CardHeader className="flex flex-row items-center gap-4">
+                    {subject.icon}
+                    <CardTitle className="font-headline text-xl">
+                      {subject.name}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CardDescription>
+                      Yeni bir test oturumu başlat ve bilgini sına.
+                    </CardDescription>
+                  </CardContent>
+                </Card>
               </Link>
             ))}
           </div>
