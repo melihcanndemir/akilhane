@@ -104,7 +104,12 @@ export function Dashboard() {
         const storedDataString = localStorage.getItem('performanceData');
         if (storedDataString) {
             const storedData: PerformanceData = JSON.parse(storedDataString);
-            setHasData(true);
+            if (Object.keys(storedData).length > 0) {
+              setHasData(true);
+            } else {
+              setHasData(false);
+              return;
+            }
 
             // Update Performance Chart Data
             const newPerformanceData = subjects.map((subject, index) => {
@@ -129,11 +134,13 @@ export function Dashboard() {
             // Update Weak Areas Chart Data for ALL subjects
             const allWeakTopics: Record<string, number> = {};
             Object.values(storedData).forEach(subjectResults => {
-                subjectResults.forEach(result => {
-                    Object.entries(result.weakTopics).forEach(([topic, count]) => {
-                        allWeakTopics[topic] = (allWeakTopics[topic] || 0) + count;
-                    });
-                });
+                if (subjectResults) {
+                  subjectResults.forEach(result => {
+                      Object.entries(result.weakTopics).forEach(([topic, count]) => {
+                          allWeakTopics[topic] = (allWeakTopics[topic] || 0) + count;
+                      });
+                  });
+                }
             });
 
             const sortedWeakTopics = Object.entries(allWeakTopics)
@@ -150,9 +157,12 @@ export function Dashboard() {
             } else {
                 setWeakAreasData([{ name: 'Zayıf konu bulunamadı', value: 1, fill: 'hsl(var(--muted))' }]);
             }
+        } else {
+            setHasData(false);
         }
       } catch (error) {
           console.error("Could not load performance data from localStorage", error);
+          setHasData(false);
       }
   }, []); // Run only once on component mount
 
@@ -307,7 +317,7 @@ export function Dashboard() {
                      <ResponsiveContainer width="100%" height="100%">
                         <RechartsBarChart data={timeData}>
                             <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="subject" tick={{fontSize: 12}} />
+                            <XAxis dataKey="subject" tick={{fontSize: 12}} interval={0} />
                             <YAxis unit="dk" />
                             <ChartTooltip cursor={{ fill: 'hsl(var(--muted))' }} content={<ChartTooltipContent />} />
                             <Bar dataKey="time" radius={4}>
