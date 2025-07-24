@@ -44,7 +44,11 @@ export default function MobileNav() {
           <div className="hidden md:flex items-center gap-1">
             {navLinks.map(({ href, label, icon: Icon }) => (
               <Link key={href} href={href}>
-                <Button variant="ghost" size="sm" className="flex items-center gap-1.5">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="flex items-center gap-1.5 hover:bg-primary/10 dark:hover:bg-primary/20"
+                >
                   <Icon className="w-4 h-4" />
                   {label}
                 </Button>
@@ -81,7 +85,7 @@ export default function MobileNav() {
                       key={href}
                       href={href}
                       onClick={() => setIsOpen(false)}
-                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted"
+                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors"
                     >
                       <Icon className="w-5 h-5" />
                       <span className="font-medium">{label}</span>

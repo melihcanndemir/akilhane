@@ -67,6 +67,10 @@
   }
 }
 
+.dark body {
+  /* Gradient kaldırıldı, temanın kendi koyu rengi kullanılacak */
+}
+
 /* Compact Mode Styles */
 .compact-mode {
   --spacing-xs: 0.25rem;
@@ -235,6 +239,34 @@
 
 .ai-tutor-markdown code {
   @apply bg-muted/50 px-1 py-0.5 rounded text-xs font-mono;
+}
+
+.glass-card {
+  /* Açık tema: Daha opak ve parlak beyaz taban */
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(12px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(160%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1), 0 0 12px 0 rgba(59, 130, 246, 0.15) !important;
+  border-radius: 16px !important;
+}
+
+.dark .glass-card {
+  /* Koyu tema: Daha açık ve saydam bir füme tonu */
+  background: rgba(40, 48, 64, 0.65) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25) !important;
+}
+
+.glass-card-inner {
+  background: rgba(255, 255, 255, 0.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 12px !important;
+}
+
+.dark .glass-card-inner {
+  background: rgba(50, 58, 74, 0.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
 .glass-sheet {

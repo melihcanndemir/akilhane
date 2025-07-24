@@ -234,7 +234,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       {/* Responsive Navigation Bar */}
       <MobileNav />
 
@@ -251,7 +251,7 @@ export default function SettingsPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Notifications */}
-            <Card>
+            <Card className="glass-card">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Bell className="w-5 h-5" />
@@ -313,7 +313,7 @@ export default function SettingsPage() {
             </Card>
 
             {/* Appearance */}
-            <Card>
+            <Card className="glass-card">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Palette className="w-5 h-5" />
@@ -365,7 +365,7 @@ export default function SettingsPage() {
             </Card>
 
             {/* Study Preferences */}
-            <Card>
+            <Card className="glass-card">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BookOpen className="w-5 h-5" />
@@ -512,7 +512,7 @@ export default function SettingsPage() {
             </Card>
 
             {/* Data Management */}
-            <Card>
+            <Card className="glass-card">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Database className="w-5 h-5" />
