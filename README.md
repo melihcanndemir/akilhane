@@ -55,12 +55,89 @@ Bu proje, modern ve ölçeklenebilir bir mimari üzerine kurulmuştur.
 -   **Modüler ve Bileşen Tabanlı Arayüz:** **Radix UI** ve **Tailwind CSS** kullanılarak hem erişilebilir hem de yeniden kullanılabilir, modern bir UI kütüphanesi oluşturulmuştur.
 
 <details>
+<summary><b>🗺️ Proje Genel Mimarisi (Mermaid Şeması)</b></summary>
+<br>
+
+Aşağıda, platformun ana modülleri ve veri akışlarını gösteren yüksek seviyeli bir mimari şema yer almaktadır:
+
+```mermaid
+flowchart TD
+  subgraph UI
+    Dashboard
+    Quiz
+    Flashcard
+    SubjectManager
+    QuestionManager
+    AIChat
+    VoiceAssistant
+    AnalyticsDashboard
+  end
+
+  subgraph API
+    APIRoute
+    PerformanceService
+    QuizService
+    SubjectService
+    AIService
+  end
+
+  subgraph AI
+    Genkit
+    GoogleGemini
+    CustomFlows
+  end
+
+  subgraph DB
+    UsersTable
+    SubjectsTable
+    QuestionsTable
+    QuizResultsTable
+    PerformanceAnalyticsTable
+    AIRecommendationsTable
+    FlashcardProgressTable
+  end
+
+  UI --> APIRoute
+  APIRoute --> PerformanceService
+  APIRoute --> QuizService
+  APIRoute --> SubjectService
+  APIRoute --> AIService
+
+  PerformanceService --> QuizResultsTable
+  PerformanceService --> PerformanceAnalyticsTable
+  QuizService --> QuestionsTable
+  QuizService --> QuizResultsTable
+  SubjectService --> SubjectsTable
+  AIService --> Genkit
+  Genkit --> GoogleGemini
+  Genkit --> CustomFlows
+
+  AIService --> AIRecommendationsTable
+  Flashcard --> FlashcardProgressTable
+
+  UsersTable <---> QuizResultsTable
+  UsersTable <---> PerformanceAnalyticsTable
+  UsersTable <---> AIRecommendationsTable
+  UsersTable <---> FlashcardProgressTable
+  SubjectsTable <---> QuestionsTable
+
+  Quiz --> VoiceAssistant
+  Quiz --> AIChat
+  Flashcard --> VoiceAssistant
+  Dashboard --> AnalyticsDashboard
+```
+
+> **Not:** Bu şema, platformun temel veri ve iş akışlarını yüksek seviyede özetler. Detaylı alt modül ilişkileri için kodu inceleyebilirsiniz.
+
+</details>
+
+<details>
 <summary><b>📦 Kurulum ve Çalıştırma Adımları</b></summary>
 <br>
 
 1.  **Projeyi klonlayın:**
     ```bash
-    git clone https://github.com/your-username/akilhane.git
+    git clone https://github.com/melihcanndemir/akilhane.git
     cd akilhane
     ```
 2.  **Bağımlılıkları yükleyin:**
