@@ -79,7 +79,7 @@ const mockRecentResults: QuizResult[] = [
   {
     id: 'res1',
     subject: 'Matematik',
-    score: 85,
+    score: 18, // 20 sorudan 18 doğru = %90
     totalQuestions: 20,
     timeSpent: 1200, // 20 mins
     weakTopics: ['Türev'],
@@ -88,7 +88,7 @@ const mockRecentResults: QuizResult[] = [
   {
     id: 'res2',
     subject: 'Tarih',
-    score: 95,
+    score: 9, // 10 sorudan 9 doğru = %90
     totalQuestions: 10,
     timeSpent: 300, // 5 mins
     weakTopics: [],
@@ -97,7 +97,7 @@ const mockRecentResults: QuizResult[] = [
   {
     id: 'res3',
     subject: 'Fizik',
-    score: 55,
+    score: 12, // 15 sorudan 12 doğru = %80
     totalQuestions: 15,
     timeSpent: 950, // ~16 mins
     weakTopics: ['Optik', 'Dinamik'],
@@ -113,6 +113,7 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [showAnalytics, setShowAnalytics] = useState(false);
   
+  // Örnek veri butonunu geri getir
   const [useMockData, setUseMockData] = useState(() => {
     if (typeof window === 'undefined') {
       return true;
@@ -132,6 +133,7 @@ export default function Dashboard() {
   const loadDashboardData = async () => {
     setIsLoading(true);
     
+    // Örnek veri kullanımını geri getir
     if (useMockData) {
       setPerformanceData(mockPerformanceData);
       setRecentResults(mockRecentResults);
@@ -189,12 +191,14 @@ export default function Dashboard() {
   };
 
   const getScoreColor = (score: number) => {
+    // Yüzde değerlerini doğru bir şekilde değerlendir
     if (score >= 80) return 'text-blue-600';
     if (score >= 60) return 'text-yellow-600';
     return 'text-red-600';
   };
 
   const getScoreBadge = (score: number) => {
+    // Yüzde değerlerini doğru bir şekilde değerlendir
     if (score >= 80) return <Badge className="bg-blue-100 text-blue-800">Mükemmel</Badge>;
     if (score >= 60) return <Badge className="bg-yellow-100 text-yellow-800">İyi</Badge>;
     return <Badge className="bg-red-100 text-red-800">Geliştirilmeli</Badge>;
@@ -230,40 +234,42 @@ export default function Dashboard() {
               <h1 className="text-3xl font-headline font-bold text-blue-600">Dashboard</h1>
               <p className="text-muted-foreground">Sınav hazırlık performansınızı takip edin</p>
             </div>
-            <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4">
-               <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2">
                 <Switch id="mock-data-switch" checked={useMockData} onCheckedChange={setUseMockData} />
                 <Label htmlFor="mock-data-switch">Örnek Veri</Label>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex space-x-2">
                 <Link href="/question-manager">
-                  <Button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700">
+                  <Button size="sm" className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700">
                     <Plus className="w-4 h-4" />
-                    <span className="hidden sm:inline">Soru Ekle</span>
+                    <span className="hidden sm:inline">Ekle</span>
                   </Button>
                 </Link>
                 <Link href="/settings">
-                  <Button variant="outline" className="flex items-center gap-2">
+                  <Button size="sm" variant="outline" className="flex items-center gap-2">
                     <Settings className="w-4 h-4" />
                     <span className="hidden sm:inline">Ayarlar</span>
                   </Button>
                 </Link>
                 <Button 
+                  size="sm"
                   variant="outline" 
                   className="flex items-center gap-2"
                   onClick={() => setShowAnalytics(!showAnalytics)}
                 >
                   <BarChart3 className="w-4 h-4" />
-                  <span className="hidden sm:inline">{showAnalytics ? 'Dashboard' : 'Analitik'}</span>
+                  <span className="hidden sm:inline">{showAnalytics ? 'Kapat' : 'Analitik'}</span>
                 </Button>
               </div>
-            </div>
           </div>
 
           {/* Analytics Dashboard */}
           {showAnalytics && (
             <div className="mb-8">
-              <AnalyticsDashboard useMockData={useMockData} />
+              <AnalyticsDashboard 
+                key={`analytics-${useMockData ? 'mock' : 'real'}`} 
+                useMockData={useMockData} 
+              />
             </div>
           )}
 
@@ -408,31 +414,37 @@ export default function Dashboard() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {recentResults.map((result) => (
-                      <div key={result.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <div className={`p-2 rounded-full ${result.score >= 60 ? 'bg-blue-100' : 'bg-red-100'}`}>
-                            {result.score >= 60 ? (
-                              <CheckCircle className="w-4 h-4 text-blue-600" />
-                            ) : (
-                              <XCircle className="w-4 h-4 text-red-600" />
-                            )}
+                    {recentResults.map((result) => {
+                      const percentage = result.totalQuestions > 0 
+                        ? Math.round((result.score / result.totalQuestions) * 100) 
+                        : 0;
+
+                      return (
+                        <div key={result.id} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <div className={`p-2 rounded-full ${percentage >= 60 ? 'bg-blue-100' : 'bg-red-100'}`}>
+                              {percentage >= 60 ? (
+                                <CheckCircle className="w-4 h-4 text-blue-600" />
+                              ) : (
+                                <XCircle className="w-4 h-4 text-red-600" />
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-medium">{result.subject}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {result.totalQuestions} soru • {formatTime(result.timeSpent)}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-medium">{result.subject}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {result.totalQuestions} soru • {formatTime(result.timeSpent)}
-                            </p>
+                          <div className="text-right">
+                            <div className={`font-bold text-lg ${getScoreColor(percentage)}`}>
+                              {percentage}%
+                            </div>
+                            {getScoreBadge(percentage)}
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className={`font-bold text-lg ${getScoreColor(result.score)}`}>
-                            {result.score}%
-                          </div>
-                          {getScoreBadge(result.score)}
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>

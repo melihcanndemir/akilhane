@@ -146,10 +146,10 @@ let mockPerformanceData: PerformanceData = {};
 (getPerformanceHistoryForSubject as any).__setData = (data: PerformanceData) => {
   mockPerformanceData = data;
 };
-
 // Fallback function for when database is not available
 export async function getPerformanceHistoryForSubjectFallback(subject: string, userId: string): Promise<QuizResult[]> {
   console.log(`[Service] Using fallback for performance history - subject: ${subject}, user: ${userId}`);
   const subjectKey = subject as Subject;
   return mockPerformanceData[subjectKey] || [];
 }
+

@@ -30,6 +30,7 @@ interface Flashcard {
   nextReview?: Date;
   reviewCount: number;
   confidence: number; // 1-5 scale
+  options?: Array<{ text: string; isCorrect: boolean }>; // Added for multiple choice questions
 }
 
 interface FlashcardProps {
@@ -76,7 +77,8 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject }) => {
           reviewCount: 0,
           confidence: 3, // Default confidence
           lastReviewed: undefined,
-          nextReview: new Date() // Ready for review
+          nextReview: new Date(), // Ready for review
+          options: q.options // Şıkları ekle
         }));
 
         setFlashcards(flashcardData);
@@ -517,6 +519,20 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject }) => {
                 <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
                   {currentCard.question}
                 </h2>
+                
+                {/* Şıkları göster - Eğer options varsa ve soru içinde "aşağıdakilerden" veya "hangisi" gibi ifadeler geçiyorsa */}
+                {currentCard.options && (currentCard.question.toLowerCase().includes('aşağıdakilerden') || 
+                                        currentCard.question.toLowerCase().includes('hangisi')) && (
+                  <div className="w-full text-left mb-4">
+                    <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                      {currentCard.options.map((option, index) => (
+                        <div key={index} className="mb-2 last:mb-0">
+                          <span className="font-medium">{String.fromCharCode(65 + index)})</span> {option.text}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   Cevabı görmek için tıklayın

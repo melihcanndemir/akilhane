@@ -42,6 +42,7 @@ interface AnalyticsDashboardProps {
   useMockData: boolean;
 }
 
+// useMockData parametresini geri getir
 export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardProps) {
   const [analytics, setAnalytics] = useState<AnalyticsData>({
     totalQuestions: 0,
@@ -82,7 +83,6 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
       const userId = localStorage.getItem('userId');
       if (!userId) {
         setIsLoading(false);
-        // Maybe set some default "please login" state
         return;
       }
       
@@ -101,18 +101,24 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
       }
     };
 
-    let interval: NodeJS.Timeout;
-
+    // useMockData değiştiğinde hemen veri yükle
+    setIsLoading(true);
+    
     if (useMockData) {
+      console.log("Loading mock analytics data");
       generateMockData();
-      interval = setInterval(generateMockData, 5000);
     } else {
+      console.log("Loading real analytics data");
       fetchRealData();
-      interval = setInterval(fetchRealData, 5000);
     }
+    
+    return () => {};
+  }, [useMockData]); // useMockData'yı dependency olarak ekle
 
-    return () => clearInterval(interval);
-  }, [useMockData]);
+  // Debug için konsola yazdırma ekleyelim
+  useEffect(() => {
+    console.log("Analytics data updated:", analytics);
+  }, [analytics]);
 
   const getScoreColor = (score: number) => {
     if (score >= 90) return 'text-green-600';
@@ -260,29 +266,57 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <h4 className="text-sm font-medium mb-2 text-green-700">Güçlü Konular</h4>
-              <div className="space-y-2">
-                {analytics.strongTopics.map((topic, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <span className="text-sm">{topic}</span>
-                    <Badge className="bg-green-100 text-green-800">Güçlü</Badge>
-                  </div>
-                ))}
+            {analytics.strongTopics.length === 0 && analytics.weakTopics.length === 0 ? (
+              <div className="text-center text-muted-foreground py-4">
+                <p>Yeterli veri toplandığında konu analiziniz burada görünecek.</p>
               </div>
-            </div>
+            ) : (
+              <>
+                {/* Strong Topics */}
+                <div>
+                  <h4 className="text-sm font-medium mb-2 text-green-700">Güçlü Konular</h4>
+                  {analytics.strongTopics && analytics.strongTopics.length > 0 ? (
+                    <div className="space-y-2">
+                      {analytics.strongTopics
+                        // Bir konu zayıf konularda varsa, güçlü konularda gösterme
+                        .filter(topic => !analytics.weakTopics.includes(topic))
+                        .map((topic, index) => (
+                          <div key={index} className="flex items-center justify-between">
+                            <span className="text-sm">{topic}</span>
+                            <Badge className="bg-green-100 text-green-800">Güçlü</Badge>
+                          </div>
+                        ))}
+                    </div>
+                  ) : (
+                    <div className="text-center p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Henüz güçlü konu tespit edilmedi.</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-500">Daha fazla test çözerek güçlü konularınızı belirleyin.</p>
+                    </div>
+                  )}
+                </div>
 
-            <div>
-              <h4 className="text-sm font-medium mb-2 text-red-700">Geliştirilmesi Gerekenler</h4>
-              <div className="space-y-2">
-                {analytics.weakTopics.map((topic, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <span className="text-sm">{topic}</span>
-                    <Badge className="bg-red-100 text-red-800">Zayıf</Badge>
-                  </div>
-                ))}
-              </div>
-            </div>
+                {/* Weak Topics */}
+                <div>
+                  <h4 className="text-sm font-medium mb-2 text-red-700">Geliştirilmesi Gerekenler</h4>
+                  {analytics.weakTopics && analytics.weakTopics.length > 0 ? (
+                    <div className="space-y-2">
+                      {analytics.weakTopics.map((topic, index) => (
+                        <div key={index} className="flex items-center justify-between">
+                          <span className="text-sm">{topic}</span>
+                          <Badge className="bg-red-100 text-red-800">Zayıf</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                      <Award className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                      <p className="font-semibold text-green-800 dark:text-green-200">Harika İş!</p>
+                      <p className="text-sm text-green-700 dark:text-green-300">Geliştirilmesi gereken konu bulunamadı.</p>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
