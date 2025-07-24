@@ -30,7 +30,7 @@ export default function MobileNav() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+    <nav className="border-b border-slate-900/10 dark:border-slate-50/10 bg-background/75 backdrop-blur-2xl supports-[backdrop-filter]:bg-background/25 sticky top-0 z-50">
       <div className="container mx-auto px-4 md:px-8">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2">
@@ -61,7 +61,10 @@ export default function MobileNav() {
                   <Menu className="h-6 w-6" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right">
+              <SheetContent 
+                side="right"
+                className="glass-sheet"
+              >
                 <SheetTitle className="sr-only">Menu</SheetTitle>
                 <SheetDescription className="sr-only">
                   Ana navigasyon menüsü

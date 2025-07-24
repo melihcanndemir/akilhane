@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
       .select({
         subject: quizResults.subject,
         score: quizResults.score,
+        totalQuestions: quizResults.totalQuestions,
         weakTopics: quizResults.weakTopics,
       })
       .from(quizResults)
@@ -30,15 +31,16 @@ export async function GET(request: NextRequest) {
     }
 
     // 2. Process the data in code
-    const performanceMap = new Map<string, { scores: number[]; weakTopics: WeakTopic }>();
+    const performanceMap = new Map<string, { scores: number[]; totalQuestions: number[]; weakTopics: WeakTopic }>();
 
     for (const result of userResults) {
       if (!performanceMap.has(result.subject)) {
-        performanceMap.set(result.subject, { scores: [], weakTopics: {} });
+        performanceMap.set(result.subject, { scores: [], totalQuestions: [], weakTopics: {} });
       }
       
       const entry = performanceMap.get(result.subject)!;
       entry.scores.push(result.score);
+      entry.totalQuestions.push(result.totalQuestions);
       
       try {
         const topics = JSON.parse(result.weakTopics || '{}');
@@ -52,7 +54,11 @@ export async function GET(request: NextRequest) {
 
     // 3. Format the output
     const performanceData = Array.from(performanceMap.entries()).map(([subject, data]) => {
-      const averageScore = data.scores.reduce((a, b) => a + b, 0) / data.scores.length;
+      const percentages = data.scores.map((score, index) => {
+        const total = data.totalQuestions[index];
+        return total > 0 ? (score / total) * 100 : 0;
+      });
+      const averageScore = percentages.reduce((a, b) => a + b, 0) / percentages.length;
       const sortedWeakTopics = Object.entries(data.weakTopics)
         .sort(([, a], [, b]) => b - a)
         .map(([topic]) => topic);
