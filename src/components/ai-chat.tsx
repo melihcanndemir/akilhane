@@ -13,11 +13,13 @@ import {
   Settings,
   Mic,
   Volume2,
-  GraduationCap
+  GraduationCap,
+  Send
 } from 'lucide-react';
 import Link from 'next/link';
 import { ThemeToggle } from '@/components/theme-toggle';
 import VoiceAssistant from './voice-assistant';
+import MobileNav from './mobile-nav';
 
 interface ChatMessage {
   id: string;
@@ -169,65 +171,16 @@ const AiChatComponent: React.FC<AiChatProps> = ({ subject, context }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800">
-      {/* Navigation Bar */}
-      <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 md:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-2">
-              <Home className="w-6 h-6 text-primary" />
-              <span className="font-headline font-bold text-xl text-primary">AkılHane</span>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <Link href="/">
-                <Button variant="ghost" size="sm">
-                  <Home className="w-4 h-4 mr-2" />
-                  Ana Sayfa
-                </Button>
-              </Link>
-              <Link href="/question-manager">
-                <Button variant="ghost" size="sm">
-                  <Database className="w-4 h-4 mr-2" />
-                  Soru Yöneticisi
-                </Button>
-              </Link>
-              <Link href="/subject-manager">
-                <Button variant="ghost" size="sm">
-                  <GraduationCap className="w-4 h-4 mr-2" />
-                  Ders Yöneticisi
-                </Button>
-              </Link>
-              <Link href="/quiz">
-                <Button variant="ghost" size="sm">
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  Test Çöz
-                </Button>
-              </Link>
-              <Link href="/flashcard">
-                <Button variant="ghost" size="sm">
-                  <Brain className="w-4 h-4 mr-2" />
-                  Flashcard
-                </Button>
-              </Link>
-              <Link href="/ai-chat">
-                <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700">
-                  <Users className="w-4 h-4 mr-2" />
-                  AI Asistan
-                </Button>
-              </Link>
-              <ThemeToggle />
-            </div>
-          </div>
-        </div>
-      </nav>
+      {/* Responsive Navigation Bar */}
+      <MobileNav />
 
       <div className="p-4">
         <div className="max-w-4xl mx-auto h-screen flex flex-col">
           {/* Header */}
           <div className="bg-white dark:bg-gray-800 rounded-t-lg shadow-lg p-4 border-b">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
                   <span className="text-white font-bold text-lg">🤖</span>
                 </div>
                 <div>
@@ -239,7 +192,7 @@ const AiChatComponent: React.FC<AiChatProps> = ({ subject, context }) => {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 {/* Voice Mode Toggle */}
                 {showVoiceAssistant && (
                   <button
@@ -340,7 +293,7 @@ const AiChatComponent: React.FC<AiChatProps> = ({ subject, context }) => {
               className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-t border-blue-200 dark:border-blue-700"
             >
               <div className="p-4">
-                <div className="grid md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* Suggested Topics */}
                   <div>
                     <h4 className="font-medium text-blue-700 dark:text-blue-300 mb-2">
@@ -399,13 +352,13 @@ const AiChatComponent: React.FC<AiChatProps> = ({ subject, context }) => {
 
           {/* Input */}
           <div className="bg-white dark:bg-gray-800 rounded-b-lg shadow-lg p-4 border-t">
-            <div className="flex gap-3">
+            <div className="flex items-center gap-3">
               <div className="flex-1">
                 <textarea
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Mesajını yaz... (Enter ile gönder, Shift+Enter ile yeni satır)"
+                  placeholder="Mesajını yaz..."
                   className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400"
                   rows={2}
                   disabled={isLoading}
@@ -414,17 +367,17 @@ const AiChatComponent: React.FC<AiChatProps> = ({ subject, context }) => {
               <button
                 onClick={sendMessage}
                 disabled={!inputMessage.trim() || isLoading}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                className="bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center p-3 sm:px-6 sm:py-3 sm:gap-2"
               >
                 {isLoading ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Gönderiliyor...
+                    <span className="hidden sm:inline">Gönderiliyor...</span>
                   </>
                 ) : (
                   <>
-                    <span>📤</span>
-                    Gönder
+                    <Send className="w-5 h-5" />
+                    <span className="hidden sm:inline">Gönder</span>
                   </>
                 )}
               </button>

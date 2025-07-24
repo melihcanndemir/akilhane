@@ -1,6 +1,6 @@
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { db } from '../connection';
-import { quizResults, performanceAnalytics } from '../schema';
+import { quizResults, performanceAnalytics, users } from '../schema';
 import type { QuizResult, Subject } from '@/lib/types';
 
 export class QuizRepository {
@@ -16,10 +16,17 @@ export class QuizRepository {
     weakTopics: Record<string, number>
   ): Promise<void> {
     try {
-      const id = `quiz_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
+      // First, ensure the user exists. If not, create a guest user.
+      await db
+        .insert(users)
+        .values({
+          id: userId,
+          name: 'Misafir Kullanıcı',
+          email: `${userId}@guest.com`,
+        })
+        .onConflictDoNothing();
+        
       await db.insert(quizResults).values({
-        id,
         userId,
         subject,
         score,

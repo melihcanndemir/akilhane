@@ -18,14 +18,14 @@ import {
   BarChart3,
   FileText,
   Users,
-  Home,
-  Database,
-  GraduationCap,
-  Play
+  Database
 } from 'lucide-react';
 import Link from 'next/link';
-import { ThemeToggle } from '@/components/theme-toggle';
 import AnalyticsDashboard from './analytics-dashboard';
+import MobileNav from './mobile-nav'; // Import the new component
+import LoadingSpinner from './loading-spinner';
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
 
 interface PerformanceData {
   subject: string;
@@ -45,47 +45,147 @@ interface QuizResult {
   createdAt: string;
 }
 
+interface TotalStats {
+  totalTests: number;
+  averageScore: number;
+  totalTimeSpent: number;
+}
+
+const mockPerformanceData: PerformanceData[] = [
+  {
+    subject: 'Matematik',
+    averageScore: 75,
+    totalTests: 12,
+    weakTopics: ['Türev', 'İntegral', 'Limit'],
+    lastUpdated: new Date().toISOString(),
+  },
+  {
+    subject: 'Fizik',
+    averageScore: 62,
+    totalTests: 8,
+    weakTopics: ['Optik', 'Dinamik'],
+    lastUpdated: new Date().toISOString(),
+  },
+  {
+    subject: 'Tarih',
+    averageScore: 91,
+    totalTests: 15,
+    weakTopics: ['Osmanlı Yükselme Dönemi'],
+    lastUpdated: new Date().toISOString(),
+  },
+];
+
+const mockRecentResults: QuizResult[] = [
+  {
+    id: 'res1',
+    subject: 'Matematik',
+    score: 85,
+    totalQuestions: 20,
+    timeSpent: 1200, // 20 mins
+    weakTopics: ['Türev'],
+    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'res2',
+    subject: 'Tarih',
+    score: 95,
+    totalQuestions: 10,
+    timeSpent: 300, // 5 mins
+    weakTopics: [],
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'res3',
+    subject: 'Fizik',
+    score: 55,
+    totalQuestions: 15,
+    timeSpent: 950, // ~16 mins
+    weakTopics: ['Optik', 'Dinamik'],
+    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+];
+
+
 export default function Dashboard() {
   const [performanceData, setPerformanceData] = useState<PerformanceData[]>([]);
   const [recentResults, setRecentResults] = useState<QuizResult[]>([]);
+  const [totalStats, setTotalStats] = useState<TotalStats>({ totalTests: 0, averageScore: 0, totalTimeSpent: 0 });
   const [isLoading, setIsLoading] = useState(true);
   const [showAnalytics, setShowAnalytics] = useState(false);
+  
+  const [useMockData, setUseMockData] = useState(() => {
+    if (typeof window === 'undefined') {
+      return true;
+    }
+    const saved = localStorage.getItem('useMockData');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
 
   useEffect(() => {
+    // Save preference to localStorage whenever it changes
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('useMockData', JSON.stringify(useMockData));
+    }
     loadDashboardData();
-  }, []);
+  }, [useMockData]);
 
   const loadDashboardData = async () => {
-    try {
-      setIsLoading(true);
-      
-      // Load performance analytics
-      const performanceResponse = await fetch('/api/analytics/performance');
-      if (performanceResponse.ok) {
-        const performanceData = await performanceResponse.json();
-        setPerformanceData(performanceData);
-      } else {
-        console.log('Performance API not available, using empty data');
-        setPerformanceData([]);
-      }
+    setIsLoading(true);
+    
+    if (useMockData) {
+      setPerformanceData(mockPerformanceData);
+      setRecentResults(mockRecentResults);
+      // Mock total stats as well for consistency
+      setTotalStats({
+        totalTests: 15,
+        averageScore: 77,
+        totalTimeSpent: 2450,
+      });
+      setIsLoading(false);
+      return;
+    }
 
-      // Load recent quiz results
-      const resultsResponse = await fetch('/api/results?limit=5');
-      if (resultsResponse.ok) {
-        const resultsData = await resultsResponse.json();
-        setRecentResults(resultsData);
-      } else {
-        console.log('Results API not available, using empty data');
+    try {
+      // For real data, we need the user ID
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        // If no user, show empty state
+        setPerformanceData([]);
         setRecentResults([]);
+        setTotalStats({ totalTests: 0, averageScore: 0, totalTimeSpent: 0 });
+        setIsLoading(false);
+        return;
       }
+      
+      const headers = new Headers({ 'x-user-id': userId });
+
+      const [performanceResponse, resultsResponse, statsResponse] = await Promise.all([
+        fetch('/api/analytics/performance', { headers }),
+        fetch('/api/results?limit=5', { headers }),
+        fetch('/api/analytics/quick-stats', { headers }),
+      ]);
+
+      const perfData = performanceResponse.ok ? await performanceResponse.json() : [];
+      const resData = resultsResponse.ok ? await resultsResponse.json() : [];
+      const statsData = statsResponse.ok ? await statsResponse.json() : { totalTests: 0, averageScore: 0, totalTimeSpent: 0 };
+      
+      setPerformanceData(perfData);
+      setRecentResults(resData);
+      setTotalStats(statsData);
+
     } catch (error) {
-      console.error('Error loading dashboard data:', error);
-      // Set empty data on error
+      console.error('Error loading real dashboard data:', error);
+      // If any fetch fails, clear all data
       setPerformanceData([]);
       setRecentResults([]);
+      setTotalStats({ totalTests: 0, averageScore: 0, totalTimeSpent: 0 });
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleStatCardClick = (sectionId: string) => {
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const getScoreColor = (score: number) => {
@@ -108,12 +208,10 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background p-4 md:p-8">
-        <div className="container mx-auto">
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-            <p className="text-muted-foreground">Dashboard yükleniyor...</p>
-          </div>
+      <div className="min-h-screen bg-background flex flex-col">
+        <MobileNav />
+        <div className="flex-grow flex items-center justify-center">
+          <LoadingSpinner />
         </div>
       </div>
     );
@@ -121,106 +219,51 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation Bar */}
-      <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 md:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-2">
-              <Home className="w-6 h-6 text-blue-600" />
-              <span className="font-headline font-bold text-xl text-blue-600">AkılHane</span>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <Link href="/login">
-                <Button variant="outline" size="sm">
-                  <Users className="w-4 h-4 mr-2" />
-                  Giriş Yap
-                </Button>
-              </Link>
-              <Link href="/demo">
-                <Button variant="outline" size="sm">
-                  <Play className="w-4 h-4 mr-2" />
-                  Demo
-                </Button>
-              </Link>
-              <Link href="/">
-                <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700">
-                  <Home className="w-4 h-4 mr-2" />
-                  Ana Sayfa
-                </Button>
-              </Link>
-              <Link href="/question-manager">
-                <Button variant="ghost" size="sm">
-                  <Database className="w-4 h-4 mr-2" />
-                  Soru Yöneticisi
-                </Button>
-              </Link>
-              <Link href="/subject-manager">
-                <Button variant="ghost" size="sm">
-                  <GraduationCap className="w-4 h-4 mr-2" />
-                  Ders Yöneticisi
-                </Button>
-              </Link>
-              <Link href="/quiz">
-                <Button variant="ghost" size="sm">
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  Test Çöz
-                </Button>
-              </Link>
-              <Link href="/flashcard">
-                <Button variant="ghost" size="sm">
-                  <Brain className="w-4 h-4 mr-2" />
-                  Flashcard
-                </Button>
-              </Link>
-              <Link href="/ai-chat">
-                <Button variant="ghost" size="sm">
-                  <Users className="w-4 h-4 mr-2" />
-                  AI Asistan
-                </Button>
-              </Link>
-              <ThemeToggle />
-            </div>
-          </div>
-        </div>
-      </nav>
+      {/* Responsive Navigation Bar */}
+      <MobileNav />
 
       <div className="p-4 md:p-8">
         <div className="container mx-auto space-y-8">
           {/* Header */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <h1 className="text-3xl font-headline font-bold text-blue-600">Dashboard</h1>
               <p className="text-muted-foreground">Sınav hazırlık performansınızı takip edin</p>
             </div>
-            <div className="flex gap-2">
-              <Link href="/question-manager">
-                <Button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700">
-                  <Plus className="w-4 h-4" />
-                  Soru Ekle
+            <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4">
+               <div className="flex items-center space-x-2">
+                <Switch id="mock-data-switch" checked={useMockData} onCheckedChange={setUseMockData} />
+                <Label htmlFor="mock-data-switch">Örnek Veri</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Link href="/question-manager">
+                  <Button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700">
+                    <Plus className="w-4 h-4" />
+                    <span className="hidden sm:inline">Soru Ekle</span>
+                  </Button>
+                </Link>
+                <Link href="/settings">
+                  <Button variant="outline" className="flex items-center gap-2">
+                    <Settings className="w-4 h-4" />
+                    <span className="hidden sm:inline">Ayarlar</span>
+                  </Button>
+                </Link>
+                <Button 
+                  variant="outline" 
+                  className="flex items-center gap-2"
+                  onClick={() => setShowAnalytics(!showAnalytics)}
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  <span className="hidden sm:inline">{showAnalytics ? 'Dashboard' : 'Analitik'}</span>
                 </Button>
-              </Link>
-              <Link href="/settings">
-                <Button variant="outline" className="flex items-center gap-2">
-                  <Settings className="w-4 h-4" />
-                  Ayarlar
-                </Button>
-              </Link>
-              <Button 
-                variant="outline" 
-                className="flex items-center gap-2"
-                onClick={() => setShowAnalytics(!showAnalytics)}
-              >
-                <BarChart3 className="w-4 h-4" />
-                {showAnalytics ? 'Dashboard' : 'Analitik'}
-              </Button>
+              </div>
             </div>
           </div>
 
           {/* Analytics Dashboard */}
           {showAnalytics && (
             <div className="mb-8">
-              <AnalyticsDashboard />
+              <AnalyticsDashboard useMockData={useMockData} />
             </div>
           )}
 
@@ -233,10 +276,10 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {recentResults.length > 0 ? recentResults.reduce((acc, result) => acc + result.totalQuestions, 0) : 0}
+                  {totalStats.totalTests}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Son 30 günde
+                  Tüm zamanlar
                 </p>
               </CardContent>
             </Card>
@@ -248,12 +291,10 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {recentResults.length > 0 
-                    ? Math.round(recentResults.reduce((acc, result) => acc + result.score, 0) / recentResults.length)
-                    : 0}%
+                  {totalStats.averageScore}%
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Genel performans
+                  Tüm zamanlar
                 </p>
               </CardContent>
             </Card>
@@ -265,17 +306,18 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {recentResults.length > 0 
-                    ? formatTime(recentResults.reduce((acc, result) => acc + result.timeSpent, 0))
-                    : '0:00'}
+                  {formatTime(totalStats.totalTimeSpent)}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Çalışma süresi
+                  Tüm zamanlar
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card 
+              onClick={() => handleStatCardClick('performance-analytics-section')}
+              className="cursor-pointer hover:bg-muted/50 transition-colors"
+            >
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Zayıf Konular</CardTitle>
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
@@ -287,7 +329,7 @@ export default function Dashboard() {
                     : 0}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Geliştirilmesi gereken
+                  İncelemek için tıkla
                 </p>
               </CardContent>
             </Card>
@@ -295,7 +337,7 @@ export default function Dashboard() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Performance Analytics */}
-            <Card>
+            <Card id="performance-analytics-section">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BarChart3 className="w-5 h-5" />
@@ -347,7 +389,7 @@ export default function Dashboard() {
             </Card>
 
             {/* Recent Results */}
-            <Card>
+            <Card id="recent-results-section">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="w-5 h-5" />

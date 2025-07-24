@@ -28,6 +28,7 @@ import Link from 'next/link';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { useTheme } from 'next-themes';
 import { useToast } from '@/hooks/use-toast';
+import MobileNav from '@/components/mobile-nav';
 
 interface Subject {
   id: number;
@@ -50,7 +51,6 @@ export default function SettingsPage() {
   });
 
   const [appearance, setAppearance] = useState({
-    theme: theme || 'system',
     fontSize: 'medium',
     compactMode: false,
   });
@@ -63,94 +63,91 @@ export default function SettingsPage() {
     autoSubmit: false,
   });
 
-  // Fetch subjects from API
+  // Custom values state
+  const [customQuestionsValue, setCustomQuestionsValue] = useState('');
+  const [customTimeValue, setCustomTimeValue] = useState('');
+
+
   useEffect(() => {
-    const fetchSubjects = async () => {
+    const initializeSettings = async () => {
+      setLoading(true);
+      
+      let loadedStudyPrefs = studyPreferences;
+      let loadedNotifications = notifications;
+      let loadedAppearance = appearance;
+      let loadedTheme = theme || 'system';
+
+      // 1. Load settings from localStorage first
+      const saved = localStorage.getItem('userSettings');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed.studyPreferences) loadedStudyPrefs = { ...loadedStudyPrefs, ...parsed.studyPreferences };
+          if (parsed.notifications) loadedNotifications = { ...loadedNotifications, ...parsed.notifications };
+          if (parsed.appearance) {
+            loadedAppearance = { ...loadedAppearance, ...parsed.appearance };
+            loadedTheme = parsed.appearance.theme || loadedTheme;
+          }
+        } catch (e) {
+          console.error("Failed to parse settings from localStorage", e);
+        }
+      }
+
+      // 2. Fetch subjects from the API
       try {
         const response = await fetch('/api/subjects');
         if (response.ok) {
-          const data = await response.json();
-          setSubjects(data);
-          // Set first active subject as default if no default is set
-          if (!studyPreferences.defaultSubject && data.length > 0) {
-            const firstActiveSubject = data.find((subject: Subject) => subject.is_active);
+          const subjectData = await response.json();
+          setSubjects(subjectData);
+
+          // 3. Set default subject if needed, based on loaded or initial prefs
+          if (!loadedStudyPrefs.defaultSubject && subjectData.length > 0) {
+            const firstActiveSubject = subjectData.find((s: Subject) => s.is_active);
             if (firstActiveSubject) {
-              setStudyPreferences(prev => ({
-                ...prev,
-                defaultSubject: firstActiveSubject.name
-              }));
+              loadedStudyPrefs.defaultSubject = firstActiveSubject.name;
             }
           }
         }
       } catch (error) {
         console.error('Error fetching subjects:', error);
-      } finally {
-        setLoading(false);
       }
+
+      // 4. Reconcile custom values for the UI
+      const standardQuestionOptions = [5, 10, 15, 20];
+      if (loadedStudyPrefs.questionsPerQuiz && !standardQuestionOptions.includes(loadedStudyPrefs.questionsPerQuiz)) {
+        setCustomQuestionsValue(loadedStudyPrefs.questionsPerQuiz.toString());
+        loadedStudyPrefs.questionsPerQuiz = -1; // Set UI to "custom"
+      }
+
+      const standardTimeOptions = [15, 30, 45, 60];
+      if (loadedStudyPrefs.timeLimit && !standardTimeOptions.includes(loadedStudyPrefs.timeLimit)) {
+        setCustomTimeValue(loadedStudyPrefs.timeLimit.toString());
+        loadedStudyPrefs.timeLimit = -1; // Set UI to "custom"
+      }
+
+      // 5. Set all states at once
+      setNotifications(loadedNotifications);
+      setAppearance(loadedAppearance);
+      setStudyPreferences(loadedStudyPrefs);
+      setTheme(loadedTheme); // Set the theme globally
+      
+      // 6. Apply visual styles from settings
+      const root = document.documentElement;
+      if (loadedAppearance.compactMode) root.classList.add('compact-mode');
+      else root.classList.remove('compact-mode');
+      
+      switch (loadedAppearance.fontSize) {
+        case 'small': root.style.fontSize = '14px'; break;
+        case 'medium': root.style.fontSize = '16px'; break;
+        case 'large': root.style.fontSize = '18px'; break;
+        default: root.style.fontSize = '16px'; break;
+      }
+      
+      setLoading(false);
     };
 
-    fetchSubjects();
-  }, []);
-
-  useEffect(() => {
-    const saved = localStorage.getItem('userSettings');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed.notifications) setNotifications(parsed.notifications);
-        if (parsed.appearance) {
-          setAppearance(parsed.appearance);
-          // Apply compact mode immediately
-          const root = document.documentElement;
-          if (parsed.appearance.compactMode) {
-            root.classList.add('compact-mode');
-          } else {
-            root.classList.remove('compact-mode');
-          }
-          // Apply font size immediately
-          switch (parsed.appearance.fontSize) {
-            case 'small':
-              root.style.fontSize = '14px';
-              break;
-            case 'medium':
-              root.style.fontSize = '16px';
-              break;
-            case 'large':
-              root.style.fontSize = '18px';
-              break;
-          }
-        }
-        if (parsed.studyPreferences) setStudyPreferences(parsed.studyPreferences);
-      } catch {}
-    }
-  }, []);
-
-  // Apply appearance settings in real-time
-  useEffect(() => {
-    // Apply font size
-    const root = document.documentElement;
-    switch (appearance.fontSize) {
-      case 'small':
-        root.style.fontSize = '14px';
-        break;
-      case 'medium':
-        root.style.fontSize = '16px';
-        break;
-      case 'large':
-        root.style.fontSize = '18px';
-        break;
-    }
-  }, [appearance.fontSize]);
-
-  // Apply compact mode
-  useEffect(() => {
-    const root = document.documentElement;
-    if (appearance.compactMode) {
-      root.classList.add('compact-mode');
-    } else {
-      root.classList.remove('compact-mode');
-    }
-  }, [appearance.compactMode]);
+    initializeSettings();
+  }, [setTheme]); // Using setTheme in dependency array as it's a stable function from the hook.
 
   const handleExportData = () => {
     // Export user data
@@ -210,72 +207,36 @@ export default function SettingsPage() {
   };
 
   const handleSaveSettings = () => {
+    const settingsToSave = {
+      ...studyPreferences,
+    };
+
+    if (settingsToSave.questionsPerQuiz === -1) {
+      settingsToSave.questionsPerQuiz = parseInt(customQuestionsValue) || 10; // default to 10 if invalid
+    }
+    if (settingsToSave.timeLimit === -1) {
+      settingsToSave.timeLimit = parseInt(customTimeValue) || 30; // default to 30 if invalid
+    }
+
     const settings = {
       notifications,
-      appearance,
-      studyPreferences,
+      appearance: {
+        ...appearance,
+        theme: theme, // Get the current theme from the hook
+      },
+      studyPreferences: settingsToSave,
     };
     localStorage.setItem('userSettings', JSON.stringify(settings));
     toast({
       title: 'Ayarlar kaydedildi',
       description: 'Tüm ayarlarınız başarıyla kaydedildi.',
-      status: 'success',
     });
   };
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation Bar */}
-      <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 md:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-2">
-              <Home className="w-6 h-6 text-primary" />
-              <span className="font-headline font-bold text-xl text-primary">AkılHane</span>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <Link href="/">
-                <Button variant="ghost" size="sm">
-                  <Home className="w-4 h-4 mr-2" />
-                  Ana Sayfa
-                </Button>
-              </Link>
-              <Link href="/question-manager">
-                <Button variant="ghost" size="sm">
-                  <Database className="w-4 h-4 mr-2" />
-                  Soru Yöneticisi
-                </Button>
-              </Link>
-              <Link href="/subject-manager">
-                <Button variant="ghost" size="sm">
-                  <GraduationCap className="w-4 h-4 mr-2" />
-                  Ders Yöneticisi
-                </Button>
-              </Link>
-              <Link href="/quiz">
-                <Button variant="ghost" size="sm">
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  Test Çöz
-                </Button>
-              </Link>
-              <Link href="/flashcard">
-                <Button variant="ghost" size="sm">
-                  <Brain className="w-4 h-4 mr-2" />
-                  Flashcard
-                </Button>
-              </Link>
-              <Link href="/ai-chat">
-                <Button variant="ghost" size="sm">
-                  <Users className="w-4 h-4 mr-2" />
-                  AI Asistan
-                </Button>
-              </Link>
-              <ThemeToggle />
-            </div>
-          </div>
-        </div>
-      </nav>
+      {/* Responsive Navigation Bar */}
+      <MobileNav />
 
       <div className="p-4 md:p-8">
         <div className="container mx-auto space-y-8">
@@ -365,10 +326,7 @@ export default function SettingsPage() {
               <CardContent className="space-y-4">
                 <div>
                   <Label htmlFor="theme">Tema</Label>
-                  <Select value={appearance.theme} onValueChange={(value) => {
-                    setAppearance({...appearance, theme: value});
-                    setTheme(value);
-                  }}>
+                  <Select value={theme} onValueChange={setTheme}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -466,31 +424,67 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <Label htmlFor="questions-per-quiz">Test Başına Soru Sayısı</Label>
-                  <Select value={studyPreferences.questionsPerQuiz.toString()} onValueChange={(value) => setStudyPreferences({...studyPreferences, questionsPerQuiz: parseInt(value)})}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="5">5 Soru</SelectItem>
-                      <SelectItem value="10">10 Soru</SelectItem>
-                      <SelectItem value="15">15 Soru</SelectItem>
-                      <SelectItem value="20">20 Soru</SelectItem>
-                    </SelectContent>
-                  </Select>
+                   <div className="flex gap-2">
+                    <Select 
+                      value={studyPreferences.questionsPerQuiz === -1 ? 'custom' : studyPreferences.questionsPerQuiz.toString()} 
+                      onValueChange={(value) => {
+                        setStudyPreferences({...studyPreferences, questionsPerQuiz: value === 'custom' ? -1 : parseInt(value)});
+                        if (value !== 'custom') setCustomQuestionsValue('');
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="5">5 Soru</SelectItem>
+                        <SelectItem value="10">10 Soru</SelectItem>
+                        <SelectItem value="15">15 Soru</SelectItem>
+                        <SelectItem value="20">20 Soru</SelectItem>
+                        <SelectItem value="custom">Özel...</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {studyPreferences.questionsPerQuiz === -1 && (
+                      <Input
+                        type="number"
+                        placeholder="Örn: 25"
+                        value={customQuestionsValue}
+                        onChange={(e) => setCustomQuestionsValue(e.target.value)}
+                        className="w-28"
+                      />
+                    )}
+                  </div>
                 </div>
                 <div>
                   <Label htmlFor="time-limit">Zaman Limiti (dakika)</Label>
-                  <Select value={studyPreferences.timeLimit.toString()} onValueChange={(value) => setStudyPreferences({...studyPreferences, timeLimit: parseInt(value)})}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="15">15 Dakika</SelectItem>
-                      <SelectItem value="30">30 Dakika</SelectItem>
-                      <SelectItem value="45">45 Dakika</SelectItem>
-                      <SelectItem value="60">60 Dakika</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex gap-2">
+                    <Select 
+                      value={studyPreferences.timeLimit === -1 ? 'custom' : studyPreferences.timeLimit.toString()} 
+                       onValueChange={(value) => {
+                        setStudyPreferences({...studyPreferences, timeLimit: value === 'custom' ? -1 : parseInt(value)});
+                        if (value !== 'custom') setCustomTimeValue('');
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="15">15 Dakika</SelectItem>
+                        <SelectItem value="30">30 Dakika</SelectItem>
+                        <SelectItem value="45">45 Dakika</SelectItem>
+                        <SelectItem value="60">60 Dakika</SelectItem>
+                        <SelectItem value="custom">Özel...</SelectItem>
+                      </SelectContent>
+                    </Select>
+                     {studyPreferences.timeLimit === -1 && (
+                      <Input
+                        type="number"
+                        placeholder="Örn: 50"
+                        value={customTimeValue}
+                        onChange={(e) => setCustomTimeValue(e.target.value)}
+                        className="w-28"
+                      />
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
@@ -529,7 +523,7 @@ export default function SettingsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Button onClick={handleExportData} variant="outline" className="flex-1">
                     <Download className="w-4 h-4 mr-2" />
                     Verileri Dışa Aktar

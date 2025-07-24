@@ -40,7 +40,7 @@ const demoSteps: DemoStep[] = [
     title: "AI Destekli Quiz",
     description: "Kişiselleştirilmiş sorular ve anlık AI açıklamalar",
     action: "Quiz'i Dene",
-    icon: <Brain className="h-6 w-6" />,
+    icon: <Brain className="h-6 w-6 text-white" />,
     color: "from-blue-500 to-indigo-600"
   },
   {
@@ -48,7 +48,7 @@ const demoSteps: DemoStep[] = [
     title: "Sesli Asistan",
     description: "Türkçe sesli komutlarla etkileşim",
     action: "Sesli Asistan'ı Dene",
-    icon: <Mic className="h-6 w-6" />,
+    icon: <Mic className="h-6 w-6 text-white" />,
     color: "from-green-500 to-emerald-600"
   },
   {
@@ -56,7 +56,7 @@ const demoSteps: DemoStep[] = [
     title: "Flashcard Sistemi",
     description: "Akıllı tekrar algoritması ile öğrenme",
     action: "Flashcard'ları Dene",
-    icon: <BookOpen className="h-6 w-6" />,
+    icon: <BookOpen className="h-6 w-6 text-white" />,
     color: "from-purple-500 to-pink-600"
   },
   {
@@ -64,7 +64,7 @@ const demoSteps: DemoStep[] = [
     title: "Performans Analizi",
     description: "Detaylı istatistikler ve AI önerileri",
     action: "Analizleri Gör",
-    icon: <BarChart3 className="h-6 w-6" />,
+    icon: <BarChart3 className="h-6 w-6 text-white" />,
     color: "from-orange-500 to-red-600"
   }
 ];
@@ -290,13 +290,13 @@ export default function DemoPage() {
                   className="bg-white text-blue-600 hover:bg-gray-100"
                 >
                   <Users className="h-4 w-4 mr-2" />
-                  Ücretsiz Kayıt Ol
+                  Ücretsiz Kayt Ol
                 </Button>
                 <Button
                   onClick={() => router.push('/')}
-                  variant="outline"
+                  variant="secondary"
                   size="lg"
-                  className="border-white text-white hover:bg-white hover:text-blue-600"
+                  className="bg-white text-blue-600 hover:bg-gray-100"
                 >
                   <ArrowRight className="h-4 w-4 mr-2" />
                   Ana Sayfaya Git
