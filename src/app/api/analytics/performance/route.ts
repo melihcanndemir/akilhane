@@ -1,25 +1,75 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/database/connection';
-import { subjects, questions } from '@/lib/database/schema';
-import { eq, and, gte } from 'drizzle-orm';
+import { quizResults } from '@/lib/database/schema';
+import { sql, avg, count } from 'drizzle-orm';
+
+interface WeakTopic {
+  [key: string]: number;
+}
 
 export async function GET(request: NextRequest) {
+  const userId = request.headers.get('x-user-id');
+
+  if (!userId) {
+    return NextResponse.json([]);
+  }
+
   try {
-    // Get performance data from database
-    const allSubjects = await db.select().from(subjects).where(eq(subjects.isActive, 1));
-    
-    // For now, return mock data structure - this will be enhanced when we add quiz results table
-    const performanceData = allSubjects.map(subject => ({
-      subject: subject.name,
-      averageScore: Math.floor(Math.random() * 40) + 60, // Mock score between 60-100
-      totalTests: Math.floor(Math.random() * 10) + 1, // Mock test count
-      weakTopics: ['Konu 1', 'Konu 2', 'Konu 3'], // Mock weak topics
-      lastUpdated: new Date().toISOString()
-    }));
+    // 1. Get all results for the user
+    const userResults = await db
+      .select({
+        subject: quizResults.subject,
+        score: quizResults.score,
+        weakTopics: quizResults.weakTopics,
+      })
+      .from(quizResults)
+      .where(sql`${quizResults.userId} = ${userId}`);
+
+    if (userResults.length === 0) {
+      return NextResponse.json([]);
+    }
+
+    // 2. Process the data in code
+    const performanceMap = new Map<string, { scores: number[]; weakTopics: WeakTopic }>();
+
+    for (const result of userResults) {
+      if (!performanceMap.has(result.subject)) {
+        performanceMap.set(result.subject, { scores: [], weakTopics: {} });
+      }
+      
+      const entry = performanceMap.get(result.subject)!;
+      entry.scores.push(result.score);
+      
+      try {
+        const topics = JSON.parse(result.weakTopics || '{}');
+        for (const topic in topics) {
+          entry.weakTopics[topic] = (entry.weakTopics[topic] || 0) + topics[topic];
+        }
+      } catch (e) {
+        // Ignore if weakTopics is not valid JSON
+      }
+    }
+
+    // 3. Format the output
+    const performanceData = Array.from(performanceMap.entries()).map(([subject, data]) => {
+      const averageScore = data.scores.reduce((a, b) => a + b, 0) / data.scores.length;
+      const sortedWeakTopics = Object.entries(data.weakTopics)
+        .sort(([, a], [, b]) => b - a)
+        .map(([topic]) => topic);
+        
+      return {
+        subject: subject,
+        averageScore: Math.round(averageScore),
+        totalTests: data.scores.length,
+        weakTopics: sortedWeakTopics.slice(0, 3), // Return top 3 weak topics
+        lastUpdated: new Date().toISOString(),
+      };
+    });
 
     return NextResponse.json(performanceData);
+    
   } catch (error) {
     console.error('Error fetching performance data:', error);
-    return NextResponse.json([], { status: 200 });
+    return NextResponse.json({ error: 'Failed to fetch performance data' }, { status: 500 });
   }
 } 

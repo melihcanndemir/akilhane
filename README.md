@@ -1,209 +1,132 @@
-# AkılHane - AI Destekli Eğitim Platformu
+<div align="center">
+  <img src="https://i.imgur.com/your-logo-image-url.png" alt="AkılHane Logo" width="150">
+  <h1>AkılHane - AI Destekli Eğitim Platformu</h1>
+  <p>
+    <strong>Öğrenme deneyiminizi kişiselleştiren, yapay zeka destekli yeni nesil eğitim platformu.</strong>
+  </p>
+  <p>
+    <a href="https://your-live-demo-url.com"><strong>Canlı Demoyu Ziyaret Et »</strong></a>
+  </p>
+  <br>
+</div>
 
-Modern teknolojiler kullanılarak geliştirilmiş, AI destekli kapsamlı eğitim platformu. Yerli ve milli eğitim teknolojisi çözümü.
+<!-- Optional: Add a GIF of the app in action -->
+<!-- <div align="center">
+  <img src="https://i.imgur.com/your-demo-gif-url.gif" alt="AkılHane Demo GIF">
+</div> -->
 
-## 🚀 Özellikler
+## ✨ Neden AkılHane?
 
-- **AI Destekli Öğrenme**: Google AI (Gemini 2.0) entegrasyonu
-- **Kişiselleştirilmiş Zorluk**: Performansa göre otomatik zorluk ayarlama
-- **Performans Analizi**: Detaylı istatistikler ve grafikler
-- **SQLite Veritabanı**: Yerel veri saklama ve yönetimi
-- **Modern UI/UX**: Tailwind CSS ve Radix UI
-- **Responsive Design**: Tüm cihazlarda uyumlu
-- **PWA Desteği**: Progressive Web App özellikleri
-- **Çevrimdışı Çalışma**: İnternet olmadan da kullanım
-- **Sesli Asistan**: Web Speech API entegrasyonu
-- **Markdown Desteği**: Zengin içerik formatı
+AkılHane, standart eğitim platformlarının ötesine geçerek her öğrencinin bireysel ihtiyaçlarına odaklanır. Sadece soru çözmekle kalmaz, **zayıf yönlerinizi tespit eder, size özel çalışma stratejileri sunar ve öğrenme sürecinizi akıllı bir asistanla destekler.** Amacımız, eğitimi daha verimli, erişilebilir ve kişisel hale getirmektir.
 
-## 🛠️ Teknoloji Stack
+Bu proje, **BTK Akademi & Google Cloud & Girişimcilik Vakfı Hackathon'25** için geliştirilmiştir.
 
-- **Frontend**: Next.js 15, React 18, TypeScript
-- **Styling**: Tailwind CSS, Radix UI
-- **Database**: SQLite (better-sqlite3), Drizzle ORM
-- **AI**: Google AI (Gemini 2.0), Genkit Framework
-- **Charts**: Recharts
-- **Animations**: Framer Motion
-- **PWA**: next-pwa, Service Worker
-- **Markdown**: React Markdown, Remark GFM
+## 🚀 Ana Özellikler
 
-## 🤖 AI Araçları ve Geliştirme Süreci
+-   🧠 **Kişiselleştirilmiş Öğrenme Asistanı:** Performansınıza göre size özel testler ve konular öneren akıllı sistem.
+-   튜 **AI Tutor ile Anında Yardım:** Anlamadığınız sorularda size ipuçları veren, adım adım çözüm sunan ve konuyu özetleyen yapay zeka öğretmeni.
+-   💬 **Etkileşimli AI Sohbet:** Ders konuları hakkında yapay zeka ile sohbet etme ve derinlemesine bilgi alma imkanı.
+-   🃏 **Akıllı Flashcard'lar:** Spaced Repetition (Aralıklı Tekrar) algoritması ile çalışan, öğrenmenizi optimize eden dijital kartlar.
+-   📊 **Detaylı Performans Analizi:** Gelişiminizi takip edebileceğiniz görsel grafikler ve istatistikler.
+-   🎤 **Sesli Asistan Desteği:** "Soru oku", "cevabı göster" gibi komutlarla uygulamayı sesle kontrol etme.
+-   📱 **PWA (Progressive Web App):** Çevrimdışı çalışma ve mobil cihazınıza uygulama gibi kurma desteği.
+-   ⚙️ **Kapsamlı Yönetim Panelleri:** Hem dersleri hem de soruları kolayca yönetebileceğiniz arayüzler.
 
-### 🧠 Kullanılan AI Modelleri
-- **Google Gemini 2.5 Pro**: Ana AI modeli, eğitim içeriği üretimi
-- **OpenAI ChatGPT 4.1**: Kod geliştirme ve problem çözme
-- **Anthropic Claude 4.0 Sonnet**: Karmaşık algoritma ve mimari tasarım
+## 🛠️ Kullanılan Teknolojiler
 
-### 🛠️ Geliştirme Araçları
-- **Cursor AI IDE**: AI destekli kod geliştirme ortamı
-- **Firebase Studio**: Veritabanı yönetimi ve analitik
-- **GitHub Copilot**: Kod tamamlama ve öneriler
+<div align="center">
+  <a href="https://nextjs.org/" target="_blank"><img src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white" alt="NextJS"></a>
+  <a href="https://react.dev/" target="_blank"><img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React"></a>
+  <a href="https://www.typescriptlang.org/" target="_blank"><img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript"></a>
+  <a href="https://tailwindcss.com/" target="_blank"><img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="TailwindCSS"></a>
+  <a href="https://cloud.google.com/vertex-ai/docs/generative-ai/gemini/gemini-api" target="_blank"><img src="https://img.shields.io/badge/Google_Gemini-8A2BE2?style=for-the-badge&logo=google-gemini&logoColor=white" alt="Google Gemini"></a>
+  <a href="https://firebase.google.com/docs/genkit" target="_blank"><img src="https://img.shields.io/badge/Genkit-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" alt="Genkit"></a>
+  <a href="https://orm.drizzle.team/" target="_blank"><img src="https://img.shields.io/badge/Drizzle_ORM-C5F74F?style=for-the-badge" alt="Drizzle ORM"></a>
+  <a href="https://www.sqlite.org/index.html" target="_blank"><img src="https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite&logoColor=white" alt="SQLite"></a>
+</div>
 
-### 🔧 AI Entegrasyonu
-- **Genkit Framework**: Google AI entegrasyonu
-- **Web Speech API**: Sesli asistan özellikleri
-- **Markdown Processing**: AI çıktılarının zengin formatlanması
+## 🏗️ Teknik Derinlik ve Mimari
 
-## 📱 PWA Özellikleri
+Bu proje, modern ve ölçeklenebilir bir mimari üzerine kurulmuştur.
 
-### ✅ Mevcut Özellikler
-- **Ana Ekrana Ekleme**: Mobil ve masaüstü cihazlarda kurulum
-- **Çevrimdışı Çalışma**: İnternet bağlantısı olmadan da kullanım
-- **Hızlı Yükleme**: Cache stratejileri ile optimize edilmiş performans
-- **Push Bildirimleri**: Gerçek zamanlı bildirimler
-- **Responsive Design**: Tüm cihaz boyutlarında uyumlu
+-   **Full-Stack Next.js 15:** Hem sunucu taraflı render etme (SSR) hem de istemci taraflı (CSR) yeteneklerini bir arada kullanarak yüksek performans ve esneklik sağlar.
+-   **Type-Safe Veritabanı:** **Drizzle ORM** ve **SQLite** kullanarak tamamen tip güvenli bir veritabanı katmanı oluşturulmuştur. Bu, SQL injection gibi zafiyetleri engeller ve geliştirme sürecini hızlandırır.
+-   **Gelişmiş AI Akışları:** **Genkit Framework** kullanılarak sadece basit API çağrıları yapılmamış, birden fazla AI modelini (Google Gemini, vb.) ve veri kaynaklarını birleştiren karmaşık "flow"lar tasarlanmıştır. Bu, AI çıktılarının daha güvenilir ve amaca yönelik olmasını sağlar.
+-   **Modüler ve Bileşen Tabanlı Arayüz:** **Radix UI** ve **Tailwind CSS** kullanılarak hem erişilebilir hem de yeniden kullanılabilir, modern bir UI kütüphanesi oluşturulmuştur.
 
-### 🔧 Teknik Detaylar
-- **Service Worker**: Network-first cache stratejisi
-- **Manifest**: Tam PWA manifest dosyası
-- **Install Prompt**: Akıllı kurulum önerisi
-- **Offline Page**: Çevrimdışı durumda özel sayfa
+<details>
+<summary><b>📦 Kurulum ve Çalıştırma Adımları</b></summary>
+<br>
 
-## 📦 Kurulum
-
-1. **Bağımlılıkları yükleyin:**
+1.  **Projeyi klonlayın:**
+    ```bash
+    git clone https://github.com/your-username/akilhane.git
+    cd akilhane
+    ```
+2.  **Bağımlılıkları yükleyin:**
 ```bash
 npm install
 ```
-
-2. **Veritabanını başlatın:**
+3.  **`.env.local` dosyasını oluşturun:** `.env.example` dosyasını kopyalayarak kendi Google AI anahtarınızı ekleyin.
+    ```
+    GOOGLE_API_KEY=your_google_api_key_here
+    ```
+4.  **Veritabanını hazırlayın ve başlatın:**
 ```bash
 npm run db:generate
 npm run db:init
 ```
-
-3. **Geliştirme sunucusunu başlatın:**
+5.  **Geliştirme sunucusunu başlatın:**
 ```bash
 npm run dev
 ```
+6.  Tarayıcınızda `http://localhost:9002` adresini açın.
 
-4. **Tarayıcıda açın:**
-```
-http://localhost:9002
-```
+</details>
 
-## 📱 PWA Kurulumu
+<details>
+<summary><b>🗄️ Veritabanı Yönetimi</b></summary>
+<br>
 
-### Mobil Cihazlar
-1. Tarayıcıda `http://localhost:9002` adresini açın
-2. "Ana Ekrana Ekle" seçeneğini seçin
-3. Uygulama ana ekranınıza eklenecek
-
-### Masaüstü
-1. Chrome/Edge'de siteyi açın
-2. Adres çubuğundaki kurulum ikonuna tıklayın
-3. "Kur" butonuna tıklayın
-
-## 🗄️ Veritabanı İşlemleri
-
-### Migration Oluşturma
+-   **Migration Oluşturma:** Şemada değişiklik yaptığınızda yeni bir migration dosyası oluşturur.
 ```bash
 npm run db:generate
 ```
-
-### Migration Uygulama
+-   **Migration'ları Uygulama:** Oluşturulan migration'ları veritabanına uygular.
 ```bash
 npm run db:migrate
 ```
-
-### Veritabanı Studio
+-   **Veritabanı Studio:** Veritabanını görsel bir arayüzde incelemek için.
 ```bash
 npm run db:studio
 ```
+</details>
 
-### Veritabanı Başlatma
-```bash
-npm run db:init
-```
+<details>
+<summary><b>📊 Veritabanı Şeması</b></summary>
+<br>
 
-## 📊 Veritabanı Şeması
+-   **users**: Kullanıcı bilgileri
+-   **subjects**: Ders konuları ve detayları
+-   **questions**: Soru bankası, seçenekler ve açıklamalar
+-   **quiz_results**: Kullanıcıların test sonuçları
+-   **performance_analytics**: Konu bazlı performans analizleri
+-   **ai_recommendations**: Kişiselleştirilmiş AI ders/konu önerileri
+-   **flashcard_progress**: Flashcard'ların öğrenilme durumu
 
-### Tablolar:
-- **users**: Kullanıcı bilgileri
-- **subjects**: Ders konuları
-- **questions**: Soru bankası
-- **quiz_results**: Quiz sonuçları
-- **performance_analytics**: Performans analizleri
-- **ai_recommendations**: AI önerileri
-- **flashcard_progress**: Flashcard ilerleme
-
-## 🔧 API Endpoints
-
-### Quiz İşlemleri
-- `POST /api/quiz` - Quiz sonucu kaydetme
-- `GET /api/quiz?userId={id}&subject={subject}` - Quiz sonuçlarını getirme
-
-### AI İşlemleri
-- `POST /api/ai-tutor` - AI Tutor yardımı
-- `POST /api/ai-chat` - AI Chat konuşması
-
-### Veritabanı İşlemleri
-- `POST /api/init-db` - Veritabanı başlatma
-- `GET /api/init-db` - Veritabanı sağlık kontrolü
-
-## 🎯 Kullanım
-
-1. **Ana Sayfa**: Ders seçimi ve genel bakış
-2. **Quiz**: İnteraktif soru-cevap sistemi
-3. **Flashcard**: Konu tekrarı için kartlar
-4. **AI Chat**: Yapay zeka ile konuşma
-5. **AI Tutor**: Kişiselleştirilmiş öğrenme yardımı
-6. **Analizler**: Performans grafikleri ve istatistikler
-
-## 🎤 Sesli Asistan Özellikleri
-
-### Sesli Komutlar
-- **"Soru oku"** - Mevcut soruyu sesli okur
-- **"Cevap oku"** - Doğru cevabı sesli okur
-- **"AI oku"** - AI Tutor çıktısını sesli okur
-- **"Sonraki"** - Sonraki soruya geçer
-- **"Önceki"** - Önceki soruya geçer
-- **"Karıştır"** - Soruları karıştırır
-- **"Açıkla"** - AI açıklama ister
-
-### Özellikler
-- **Türkçe Ses Tanıma**: Web Speech API
-- **Türkçe Ses Sentezi**: Doğal dil akışı
-- **Markdown Temizleme**: Sesli okuma için optimize
-- **Çoklu Mod**: Asistan ve yazma modu
-
-## 🔒 Güvenlik
-
-- TypeScript strict mode
-- Input validation
-- SQL injection koruması (Drizzle ORM)
-- Error handling
-- AI rate limiting
-
-## 📈 Performans
-
-- WAL mode (Write-Ahead Logging)
-- Database indexing
-- Optimized queries
-- Caching strategies
-- PWA cache optimization
-- AI response caching
-
-## 🚀 Production
-
-```bash
-npm run build
-npm start
-```
-
-## 📝 Lisans
-
-Bu proje eğitim amaçlı geliştirilmiştir.
+</details>
 
 ## 🤝 Katkıda Bulunma
 
-1. Fork yapın
-2. Feature branch oluşturun
-3. Commit yapın
-4. Push yapın
-5. Pull Request açın
+Bu proje eğitime ve teknolojiye meraklı herkesin katkısına açıktır.
+
+1.  Bu repoyu **fork**'layın.
+2.  Yeni bir **feature branch** oluşturun (`git checkout -b feature/AmazingFeature`).
+3.  Değişikliklerinizi **commit**'leyin (`git commit -m 'Add some AmazingFeature'`).
+4.  Branch'inizi **push**'layın (`git push origin feature/AmazingFeature`).
+5.  Bir **Pull Request** açın.
 
 ---
-
-**Geliştirici**: AkılHane - Yerli ve Milli AI Destekli Eğitim Teknolojisi Platformu
-
-**AI Destekli Geliştirme**: Bu proje modern AI araçları kullanılarak geliştirilmiştir.
+<div align="center">
+  <p><strong>AkılHane</strong> - Bilginin ve Zekanın Buluştuğu Yer.</p>
+</div>

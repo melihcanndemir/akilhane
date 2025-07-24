@@ -8,10 +8,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Plus, Edit, Trash2, Search, Filter, BookOpen, Brain, Users, Home, Database, GraduationCap } from 'lucide-react';
 import type { Question } from '@/lib/types';
 import Link from 'next/link';
-import { ThemeToggle } from '@/components/theme-toggle';
+import MobileNav from '@/components/mobile-nav';
+import { useToast } from '@/hooks/use-toast';
+import LoadingSpinner from '@/components/loading-spinner';
 
 interface Subject {
   id: string;
@@ -43,6 +46,9 @@ export default function QuestionManager() {
   const [selectedSubject, setSelectedSubject] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDifficulty, setFilterDifficulty] = useState<string>('all');
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingQuestion, setEditingQuestion] = useState<any | null>(null);
+  const { toast } = useToast();
 
   // Form state
   const [formData, setFormData] = useState({
@@ -116,7 +122,7 @@ export default function QuestionManager() {
 
       // Validate form
       if (!formData.text || !formData.topic || !formData.explanation) {
-        alert('Lütfen tüm zorunlu alanları doldurun');
+        toast({ title: 'Hata!', description: 'Lütfen tüm zorunlu alanları doldurun', variant: 'destructive' });
         return;
       }
 
@@ -124,13 +130,13 @@ export default function QuestionManager() {
       if (formData.type === 'Çoktan Seçmeli') {
         const validOptions = formData.options.filter(opt => opt.text.trim() !== '');
         if (validOptions.length < 2) {
-          alert('En az 2 seçenek gerekli');
+          toast({ title: 'Hata!', description: 'En az 2 seçenek gerekli', variant: 'destructive' });
           return;
         }
 
         const correctOptions = validOptions.filter(opt => opt.isCorrect);
         if (correctOptions.length !== 1) {
-          alert('Tam olarak 1 doğru cevap seçmelisiniz');
+          toast({ title: 'Hata!', description: 'Tam olarak 1 doğru cevap seçmelisiniz', variant: 'destructive' });
           return;
         }
       }
@@ -152,19 +158,124 @@ export default function QuestionManager() {
       });
 
       if (response.ok) {
-        alert('Soru başarıyla oluşturuldu!');
+        toast({ title: 'Başarılı!', description: 'Soru başarıyla oluşturuldu!' });
         resetForm();
         loadQuestions();
       } else {
         const error = await response.json();
-        alert(`Hata: ${error.error}`);
+        toast({ title: 'Hata!', description: `Soru oluşturulamadı: ${error.error}`, variant: 'destructive' });
       }
     } catch (error) {
       console.error('Error creating question:', error);
-      alert('Soru oluşturulurken hata oluştu');
+      toast({ title: 'Hata!', description: 'Soru oluşturulurken bir hata oluştu', variant: 'destructive' });
     } finally {
       setIsCreating(false);
     }
+  };
+
+  const handleDeleteQuestion = async (questionId: string) => {
+    if (!confirm('Bu soruyu kalıcı olarak silmek istediğinizden emin misiniz?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/questions/${questionId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete question');
+      }
+
+      toast({
+        title: 'Başarılı!',
+        description: 'Soru başarıyla silindi.',
+      });
+      loadQuestions(); // Refresh the list
+    } catch (error) {
+      console.error('Error deleting question:', error);
+      toast({
+        title: 'Hata!',
+        description: 'Soru silinirken bir hata oluştu.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleUpdateQuestion = async () => {
+    if (!editingQuestion) return;
+
+    try {
+      const response = await fetch(`/api/questions/${editingQuestion.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...editingQuestion,
+          options: editingQuestion.options,
+          correctAnswer: editingQuestion.options.find((opt: any) => opt.isCorrect)?.text || '',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update question');
+      }
+
+      toast({
+        title: 'Başarılı!',
+        description: 'Soru başarıyla güncellendi.',
+      });
+      setIsEditDialogOpen(false);
+      setEditingQuestion(null);
+      loadQuestions(); // Refresh the list
+    } catch (error) {
+      console.error('Error updating question:', error);
+      toast({
+        title: 'Hata!',
+        description: 'Soru güncellenirken bir hata oluştu.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const openEditDialog = (question: Question) => {
+    // Ensure options are in a mutable format
+    const mutableQuestion = {
+        ...question,
+        options: Array.isArray(question.options) ? [...question.options] : JSON.parse(question.options || '[]')
+    };
+    setEditingQuestion(mutableQuestion);
+    setIsEditDialogOpen(true);
+  };
+  
+  const handleEditOptionChange = (index: number, field: 'text' | 'isCorrect', value: string | boolean) => {
+    if (!editingQuestion) return;
+    const newOptions = [...editingQuestion.options];
+    newOptions[index] = { ...newOptions[index], [field]: value };
+
+    // If setting an option to correct, uncheck others for multiple choice
+    if (field === 'isCorrect' && value === true && editingQuestion.type === 'multiple-choice') {
+        newOptions.forEach((opt, i) => {
+            if (i !== index) {
+                opt.isCorrect = false;
+            }
+        });
+    }
+
+    setEditingQuestion({ ...editingQuestion, options: newOptions });
+  };
+
+  const handleEditAddOption = () => {
+    if (!editingQuestion) return;
+    const newOptions = [...editingQuestion.options, { text: '', isCorrect: false }];
+    setEditingQuestion({ ...editingQuestion, options: newOptions });
+  };
+
+  const handleEditRemoveOption = (index: number) => {
+    if (!editingQuestion || editingQuestion.options.length <= 2) return;
+    const newOptions = editingQuestion.options.filter((_: any, i: number) => i !== index);
+    setEditingQuestion({ ...editingQuestion, options: newOptions });
   };
 
   const resetForm = () => {
@@ -207,64 +318,15 @@ export default function QuestionManager() {
 
   const filteredQuestions = questions.filter(question => {
     const matchesSearch = question.text.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         question.topic.toLowerCase().includes(searchTerm.toLowerCase());
+                         (question.topic || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDifficulty = filterDifficulty === 'all' || question.difficulty === filterDifficulty;
     return matchesSearch && matchesDifficulty;
   });
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation Bar */}
-      <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 md:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-2">
-              <Home className="w-6 h-6 text-primary" />
-              <span className="font-headline font-bold text-xl text-primary">AkılHane</span>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <Link href="/">
-                <Button variant="ghost" size="sm">
-                  <Home className="w-4 h-4 mr-2" />
-                  Ana Sayfa
-                </Button>
-              </Link>
-              <Link href="/question-manager">
-                <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700">
-                  <Database className="w-4 h-4 mr-2" />
-                  Soru Yöneticisi
-                </Button>
-              </Link>
-              <Link href="/subject-manager">
-                <Button variant="ghost" size="sm">
-                  <GraduationCap className="w-4 h-4 mr-2" />
-                  Ders Yöneticisi
-                </Button>
-              </Link>
-              <Link href="/quiz">
-                <Button variant="ghost" size="sm">
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  Test Çöz
-                </Button>
-              </Link>
-              <Link href="/flashcard">
-                <Button variant="ghost" size="sm">
-                  <Brain className="w-4 h-4 mr-2" />
-                  Flashcard
-                </Button>
-              </Link>
-              <Link href="/ai-chat">
-                <Button variant="ghost" size="sm">
-                  <Users className="w-4 h-4 mr-2" />
-                  AI Asistan
-                </Button>
-              </Link>
-              <ThemeToggle />
-            </div>
-          </div>
-        </div>
-      </nav>
+      {/* Responsive Navigation Bar */}
+      <MobileNav />
 
       <div className="p-4 md:p-8">
         <div className="container mx-auto space-y-8">
@@ -560,10 +622,7 @@ export default function QuestionManager() {
                     </Link>
                   </div>
                 ) : isLoading ? (
-                  <div className="flex flex-col items-center justify-center py-12">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-muted-foreground font-medium">Sorular yükleniyor...</p>
-                  </div>
+                  <LoadingSpinner />
                 ) : !selectedSubject ? (
                   <div className="flex flex-col items-center justify-center py-12 text-center">
                     <Database className="w-16 h-16 text-muted-foreground/50 mb-4" />
@@ -600,26 +659,29 @@ export default function QuestionManager() {
                     {filteredQuestions.map((question) => (
                       <div key={question.id} className="border rounded-lg p-4">
                         <div className="flex items-start justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <span className="bg-primary/10 text-primary px-2 py-1 rounded text-xs">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="bg-primary/10 text-primary px-2 py-1 rounded text-xs font-medium">
                               {question.difficulty === 'Easy' ? 'Kolay' : question.difficulty === 'Medium' ? 'Orta' : question.difficulty === 'Hard' ? 'Zor' : question.difficulty}
                             </span>
-                            <span className="bg-secondary/10 text-secondary-foreground px-2 py-1 rounded text-xs">
+                            <span className="bg-secondary/10 text-secondary-foreground px-2 py-1 rounded text-xs font-medium">
                               {question.topic}
                             </span>
+                             <span className="bg-accent/20 text-accent-foreground px-2 py-1 rounded text-xs font-medium">
+                                {question.type === 'multiple-choice' ? 'Çoktan Seçmeli' : question.type === 'true-false' ? 'Doğru/Yanlış' : question.type === 'calculation' ? 'Hesaplama' : question.type === 'case-study' ? 'Vaka Çalışması' : question.type}
+                            </span>
                           </div>
-                          <div className="flex gap-1">
-                            <Button variant="outline" size="sm">
+                          <div className="flex gap-1 flex-shrink-0">
+                            <Button variant="outline" size="icon" onClick={() => openEditDialog(question)} className="h-8 w-8">
                               <Edit className="w-4 h-4" />
                             </Button>
-                            <Button variant="outline" size="sm">
+                            <Button variant="outline" size="icon" onClick={() => handleDeleteQuestion(question.id)} className="text-red-500 hover:text-red-600 h-8 w-8">
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
                         </div>
                         <p className="text-sm font-medium mb-2">{question.text}</p>
                         <p className="text-xs text-muted-foreground">
-                          {question.options.length} seçenek • {question.type === 'multiple-choice' ? 'Çoktan Seçmeli' : question.type === 'true-false' ? 'Doğru/Yanlış' : question.type === 'calculation' ? 'Hesaplama' : question.type === 'case-study' ? 'Vaka Çalışması' : question.type}
+                          {question.options.length} seçenek
                         </p>
                       </div>
                     ))}
@@ -630,6 +692,87 @@ export default function QuestionManager() {
           </div>
         </div>
       </div>
+      
+      {/* Edit Question Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[625px]">
+          <DialogHeader>
+            <DialogTitle>Soruyu Düzenle</DialogTitle>
+          </DialogHeader>
+          {editingQuestion && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-text" className="text-right">Soru Metni</Label>
+                <Textarea
+                  id="edit-text"
+                  value={editingQuestion.text}
+                  onChange={(e) => setEditingQuestion({ ...editingQuestion, text: e.target.value })}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-topic" className="text-right">Konu</Label>
+                <Input
+                  id="edit-topic"
+                  value={editingQuestion.topic}
+                  onChange={(e) => setEditingQuestion({ ...editingQuestion, topic: e.target.value })}
+                  className="col-span-3"
+                />
+              </div>
+               {editingQuestion.type === 'multiple-choice' && (
+                  <div className="grid grid-cols-4 items-start gap-4">
+                    <Label className="text-right pt-2">Seçenekler</Label>
+                    <div className="col-span-3 space-y-2">
+                      {editingQuestion.options.map((option: any, index: number) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <Checkbox
+                            checked={option.isCorrect}
+                            onCheckedChange={(checked) => handleEditOptionChange(index, 'isCorrect', checked as boolean)}
+                          />
+                          <Input
+                            value={option.text}
+                            onChange={(e) => handleEditOptionChange(index, 'text', e.target.value)}
+                            placeholder={`Seçenek ${index + 1}`}
+                            className="flex-1"
+                          />
+                          {editingQuestion.options.length > 2 && (
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-8 w-8 flex-shrink-0"
+                              onClick={() => handleEditRemoveOption(index)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                      <Button variant="outline" size="sm" onClick={handleEditAddOption} className="mt-2">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Seçenek Ekle
+                      </Button>
+                    </div>
+                  </div>
+                )}
+               <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-explanation" className="text-right">Açıklama</Label>
+                <Textarea
+                  id="edit-explanation"
+                  value={editingQuestion.explanation}
+                  onChange={(e) => setEditingQuestion({ ...editingQuestion, explanation: e.target.value })}
+                  className="col-span-3"
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter className="gap-2">
+            <DialogClose asChild>
+                <Button variant="outline">İptal</Button>
+            </DialogClose>
+            <Button onClick={handleUpdateQuestion}>Değişiklikleri Kaydet</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 } 

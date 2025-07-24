@@ -19,6 +19,9 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import VoiceAssistant from './voice-assistant';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import MobileNav from './mobile-nav';
+import { QuizResult } from './quiz-result'; // Import the new component
+import LoadingSpinner from './loading-spinner';
 
 interface Question {
   id: string;
@@ -52,6 +55,13 @@ const QuizComponent: React.FC<QuizProps> = ({ subject }) => {
   const [tutorStep, setTutorStep] = useState<'hint' | 'explanation' | 'step-by-step' | 'concept-review'>('hint');
   const [isSaving, setIsSaving] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [quizFinished, setQuizFinished] = useState(false); // New state
+  const [finalResult, setFinalResult] = useState({ // New state for result data
+    score: 0,
+    totalQuestions: 0,
+    timeSpent: 0,
+    weakTopics: {}
+  });
 
   // Generate a unique user ID for this session
   const userId = React.useMemo(() => {
@@ -164,52 +174,59 @@ const QuizComponent: React.FC<QuizProps> = ({ subject }) => {
       if (!response.ok) {
         throw new Error('Failed to save quiz result');
       }
-
-      // Also save to localStorage for backward compatibility
-      const existingData = JSON.parse(typeof window !== 'undefined' ? localStorage.getItem('performanceData') || '{}' : '{}');
-      const subjectKey = subject as any;
-      
-      if (!existingData[subjectKey]) {
-        existingData[subjectKey] = [];
-      }
-      
-      existingData[subjectKey].push({
-        score,
-        totalQuestions,
-        timeSpent: totalTime,
-        date: new Date().toISOString(),
-        weakTopics,
-      });
-      
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('performanceData', JSON.stringify(existingData));
-      }
       
       console.log('✅ Quiz result saved successfully');
-    } catch (error) {
-      console.error('❌ Error saving quiz result:', error);
-      // Fallback to localStorage only
-      const existingData = JSON.parse(typeof window !== 'undefined' ? localStorage.getItem('performanceData') || '{}' : '{}');
-      const subjectKey = subject as any;
-      
-      if (!existingData[subjectKey]) {
-        existingData[subjectKey] = [];
-      }
-      
-      existingData[subjectKey].push({
+      setFinalResult({ // Set the final result on success
         score,
         totalQuestions,
         timeSpent: totalTime,
-        date: new Date().toISOString(),
         weakTopics,
       });
-      
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('performanceData', JSON.stringify(existingData));
-      }
+      setQuizFinished(true); // Show the result screen
+    } catch (error) {
+      console.error('❌ Error saving quiz result:', error);
+      // Even if saving fails, show the result screen to the user
+      setFinalResult({
+        score,
+        totalQuestions,
+        timeSpent: totalTime,
+        weakTopics,
+      });
+      setQuizFinished(true);
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleRetake = () => {
+    // Reset all quiz-related state
+    setQuestions([]);
+    setCurrentQuestionIndex(0);
+    setSelectedAnswer(null);
+    setShowResult(false);
+    setScore(0);
+    setTotalQuestions(0);
+    setTimeSpent(0);
+    setStartTime(null);
+    setAiTutorHelp(null);
+    setIsSaving(false);
+    setQuizFinished(false);
+    setFinalResult({ score: 0, totalQuestions: 0, timeSpent: 0, weakTopics: {} });
+
+    // Reload questions
+    const loadQuestions = async () => {
+      try {
+        const response = await fetch(`/api/questions?subject=${encodeURIComponent(subject)}&random=true&count=10`);
+        if (!response.ok) throw new Error('Failed to reload questions');
+        const subjectQuestions = await response.json();
+        setQuestions(subjectQuestions);
+        setTotalQuestions(subjectQuestions.length);
+        setStartTime(new Date());
+      } catch (error) {
+        alert(`Sorular yeniden yüklenirken bir hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`);
+      }
+    };
+    loadQuestions();
   };
 
   const getWeakTopics = () => {
@@ -304,68 +321,35 @@ const QuizComponent: React.FC<QuizProps> = ({ subject }) => {
 
   if (questions.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-lg text-muted-foreground">Sorular yükleniyor...</p>
-        </div>
+      <div className="flex flex-col min-h-screen">
+        <MobileNav />
+        <main className="flex-grow flex items-center justify-center">
+            <LoadingSpinner />
+        </main>
+      </div>
+    );
+  }
+
+  // Show result screen when quiz is finished
+  if (quizFinished) {
+    return (
+      <div className="min-h-screen bg-background">
+        <MobileNav />
+        <QuizResult
+          score={finalResult.score}
+          totalQuestions={finalResult.totalQuestions}
+          timeSpent={finalResult.timeSpent}
+          weakTopics={finalResult.weakTopics}
+          onRetake={handleRetake}
+        />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation Bar */}
-      <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 md:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-2">
-              <Home className="w-6 h-6 text-primary" />
-              <span className="font-headline font-bold text-xl text-primary">AkılHane</span>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <Link href="/">
-                <Button variant="ghost" size="sm">
-                  <Home className="w-4 h-4 mr-2" />
-                  Ana Sayfa
-                </Button>
-              </Link>
-              <Link href="/question-manager">
-                <Button variant="ghost" size="sm">
-                  <Database className="w-4 h-4 mr-2" />
-                  Soru Yöneticisi
-                </Button>
-              </Link>
-              <Link href="/subject-manager">
-                <Button variant="ghost" size="sm">
-                  <GraduationCap className="w-4 h-4 mr-2" />
-                  Ders Yöneticisi
-                </Button>
-              </Link>
-              <Link href="/quiz">
-                <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700">
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  Test Çöz
-                </Button>
-              </Link>
-              <Link href="/flashcard">
-                <Button variant="ghost" size="sm">
-                  <Brain className="w-4 h-4 mr-2" />
-                  Flashcard
-                </Button>
-              </Link>
-              <Link href="/ai-chat">
-                <Button variant="ghost" size="sm">
-                  <Users className="w-4 h-4 mr-2" />
-                  AI Asistan
-                </Button>
-              </Link>
-              <ThemeToggle />
-            </div>
-          </div>
-        </div>
-      </nav>
+      {/* Responsive Navigation Bar */}
+      <MobileNav />
 
       <div className="container mx-auto p-4 md:p-8">
         {/* Header */}

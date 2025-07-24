@@ -17,6 +17,7 @@ import {
 import Link from 'next/link';
 import { ThemeToggle } from '@/components/theme-toggle';
 import VoiceAssistant from './voice-assistant';
+import MobileNav from './mobile-nav';
 
 interface Flashcard {
   id: string;
@@ -267,13 +268,6 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject }) => {
   const filteredCards = getCardsForStudyMode();
   const currentCard = filteredCards[currentIndex];
 
-  // Get AI recommendation when flashcards are loaded
-  useEffect(() => {
-    if (flashcards.length > 0 && !aiRecommendation) {
-      getAiRecommendation();
-    }
-  }, [flashcards, aiRecommendation]);
-
   if (!currentCard) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-8">
@@ -319,97 +313,48 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      {/* Navigation Bar */}
-      <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 md:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-2">
-              <Home className="w-6 h-6 text-primary" />
-              <span className="font-headline font-bold text-xl text-primary">AkılHane</span>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <Link href="/">
-                <Button variant="ghost" size="sm">
-                  <Home className="w-4 h-4 mr-2" />
-                  Ana Sayfa
-                </Button>
-              </Link>
-              <Link href="/question-manager">
-                <Button variant="ghost" size="sm">
-                  <Database className="w-4 h-4 mr-2" />
-                  Soru Yöneticisi
-                </Button>
-              </Link>
-              <Link href="/subject-manager">
-                <Button variant="ghost" size="sm">
-                  <GraduationCap className="w-4 h-4 mr-2" />
-                  Ders Yöneticisi
-                </Button>
-              </Link>
-              <Link href="/quiz">
-                <Button variant="ghost" size="sm">
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  Test Çöz
-                </Button>
-              </Link>
-              <Link href="/flashcard">
-                <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700">
-                  <Brain className="w-4 h-4 mr-2" />
-                  Flashcard
-                </Button>
-              </Link>
-              <Link href="/ai-chat">
-                <Button variant="ghost" size="sm">
-                  <Users className="w-4 h-4 mr-2" />
-                  AI Asistan
-                </Button>
-              </Link>
-              <ThemeToggle />
-            </div>
-          </div>
-        </div>
-      </nav>
+      {/* Responsive Navigation Bar */}
+      <MobileNav />
 
-      <div className="p-8">
+      <div className="p-4 sm:p-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="mb-8">
-            <div className="flex items-center gap-4 mb-4">
+            <div className="flex flex-wrap items-center gap-4 mb-4">
               <Link href="/flashcard">
                 <Button variant="outline" size="sm" className="flex items-center gap-2">
                   <ArrowLeft className="w-4 h-4" />
                   Geri
                 </Button>
               </Link>
-              <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">
                 Flashcard Sistemi - {subject}
               </h1>
             </div>
           </div>
           
           {/* Stats */}
-          <div className="grid grid-cols-4 gap-4 mb-6">
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md text-center">
               <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.total}</div>
               <div className="text-sm text-gray-600 dark:text-gray-300">Toplam</div>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md text-center">
               <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.reviewed}</div>
               <div className="text-sm text-gray-600 dark:text-gray-300">İncelenen</div>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md text-center">
               <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{stats.mastered}</div>
               <div className="text-sm text-gray-600 dark:text-gray-300">Öğrenilen</div>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md text-center">
               <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{stats.needsReview}</div>
               <div className="text-sm text-gray-600 dark:text-gray-300">Tekrar Gerekli</div>
             </div>
           </div>
 
           {/* Study Mode Selector */}
-          <div className="flex justify-center gap-4 mb-6">
+          <div className="flex flex-wrap justify-center gap-2 sm:gap-4 mb-6">
             <button
               onClick={() => {
                 setStudyMode('review');
@@ -542,7 +487,7 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject }) => {
         {/* Flashcard */}
         <div className="flex justify-center mb-8">
           <motion.div
-            className="w-full max-w-2xl h-96 cursor-pointer perspective-1000"
+            className="w-full max-w-2xl h-80 sm:h-96 cursor-pointer perspective-1000"
             onClick={handleFlip}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -657,7 +602,7 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject }) => {
         )}
 
         {/* Navigation */}
-        <div className="flex justify-center gap-4">
+        <div className="flex flex-wrap justify-center gap-2 sm:gap-4">
           <button
             onClick={previousCard}
             disabled={currentIndex === 0}

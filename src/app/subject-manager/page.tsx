@@ -17,6 +17,10 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { ThemeToggle } from '@/components/theme-toggle';
+import MobileNav from '@/components/mobile-nav';
+import { useToast } from '@/hooks/use-toast';
+import { BrainCircuit } from 'lucide-react';
+import LoadingSpinner from '@/components/loading-spinner';
 
 interface Subject {
   id: string;
@@ -75,81 +79,22 @@ export default function SubjectManagerPage() {
   };
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800">
-      {/* Navigation Bar */}
-      <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 md:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-2">
-              <Home className="w-6 h-6 text-primary" />
-              <span className="font-headline font-bold text-xl text-primary">AkılHane</span>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <Link href="/">
-                <Button variant="ghost" size="sm">
-                  <Home className="w-4 h-4 mr-2" />
-                  Ana Sayfa
-                </Button>
-              </Link>
-              <Link href="/question-manager">
-                <Button variant="ghost" size="sm">
-                  <Database className="w-4 h-4 mr-2" />
-                  Soru Yöneticisi
-                </Button>
-              </Link>
-              <Link href="/subject-manager">
-                <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700">
-                  <GraduationCap className="w-4 h-4 mr-2" />
-                  Ders Yöneticisi
-                </Button>
-              </Link>
-              <Link href="/quiz">
-                <Button variant="ghost" size="sm">
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  Test Çöz
-                </Button>
-              </Link>
-              <Link href="/flashcard">
-                <Button variant="ghost" size="sm">
-                  <Brain className="w-4 h-4 mr-2" />
-                  Flashcard
-                </Button>
-              </Link>
-              <Link href="/ai-chat">
-                <Button variant="ghost" size="sm">
-                  <Users className="w-4 h-4 mr-2" />
-                  AI Asistan
-                </Button>
-              </Link>
-              <Link href="/settings">
-                <Button variant="ghost" size="sm">
-                  <Settings className="w-4 h-4 mr-2" />
-                  Ayarlar
-                </Button>
-              </Link>
-              <ThemeToggle />
-            </div>
-          </div>
-        </div>
-      </nav>
+      {/* Responsive Navigation Bar */}
+      <MobileNav />
 
       <div className="p-4">
         <div className="max-w-7xl mx-auto">
           {/* Header Info */}
           <Card className="mb-6">
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
-                    <GraduationCap className="w-6 h-6 text-white" />
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                   </div>
                   <div>
-                    <CardTitle className="text-2xl flex items-center gap-2">
+                    <CardTitle className="text-xl sm:text-2xl flex items-center gap-2">
                       Ders Yöneticisi
-                      <Badge variant="secondary" className="ml-2">
-                        <Sparkles className="w-3 h-3 mr-1" />
-                        BETA
-                      </Badge>
                     </CardTitle>
                     <p className="text-muted-foreground">
                       Dersleri ekleyin, düzenleyin ve yönetin. Her ders için sorular ekleyebilirsiniz.
@@ -167,20 +112,22 @@ export default function SubjectManagerPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <BookOpen className="w-4 h-4 text-blue-600" />
-                  <span>Dersler: <strong>{isLoading ? '...' : stats.totalSubjects}</strong></span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                    <BookOpen className="w-6 h-6 text-blue-500 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Toplam Ders</p>
+                      {isLoading ? <LoadingSpinner className="p-0 h-6 w-6" /> : <p className="text-xl font-bold">{stats.totalSubjects}</p>}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                    <Brain className="w-6 h-6 text-purple-500 flex-shrink-0" />
+                     <div>
+                      <p className="text-sm text-muted-foreground">Toplam Kategori</p>
+                       {isLoading ? <LoadingSpinner className="p-0 h-6 w-6" /> : <p className="text-xl font-bold">{stats.totalCategories}</p>}
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Database className="w-4 h-4 text-green-600" />
-                  <span>Toplam Soru: <strong>{isLoading ? '...' : stats.totalQuestions}</strong></span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Brain className="w-4 h-4 text-purple-600" />
-                  <span>Kategoriler: <strong>{isLoading ? '...' : stats.totalCategories}</strong></span>
-                </div>
-              </div>
             </CardContent>
           </Card>
 

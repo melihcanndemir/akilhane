@@ -38,7 +38,11 @@ interface AnalyticsData {
   }>;
 }
 
-export default function AnalyticsDashboard() {
+interface AnalyticsDashboardProps {
+  useMockData: boolean;
+}
+
+export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardProps) {
   const [analytics, setAnalytics] = useState<AnalyticsData>({
     totalQuestions: 0,
     correctAnswers: 0,
@@ -56,7 +60,6 @@ export default function AnalyticsDashboard() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate real-time data updates
     const generateMockData = () => {
       const mockData: AnalyticsData = {
         totalQuestions: Math.floor(Math.random() * 500) + 100,
@@ -69,21 +72,47 @@ export default function AnalyticsDashboard() {
         improvement: Math.floor(Math.random() * 20) + 5,
         weakTopics: ['Finansal Analiz', 'Muhasebe', 'İstatistik'],
         strongTopics: ['Matematik', 'Ekonomi', 'Yönetim'],
-        recentActivity: [
-          { type: 'Quiz', score: 85, timestamp: '2 saat önce' },
-          { type: 'Flashcard', score: 90, timestamp: '4 saat önce' },
-          { type: 'AI Chat', score: 95, timestamp: '6 saat önce' }
-        ]
+        recentActivity: []
       };
       setAnalytics(mockData);
       setIsLoading(false);
     };
 
-    generateMockData();
-    const interval = setInterval(generateMockData, 5000); // Update every 5 seconds
+    const fetchRealData = async () => {
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        setIsLoading(false);
+        // Maybe set some default "please login" state
+        return;
+      }
+      
+      try {
+        const headers = new Headers({ 'x-user-id': userId });
+        const response = await fetch('/api/analytics/dashboard', { headers });
+        if (!response.ok) {
+          throw new Error('Failed to fetch analytics');
+        }
+        const data = await response.json();
+        setAnalytics(prev => ({...prev, ...data}));
+      } catch (error) {
+        console.error("Error fetching analytics data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    let interval: NodeJS.Timeout;
+
+    if (useMockData) {
+      generateMockData();
+      interval = setInterval(generateMockData, 5000);
+    } else {
+      fetchRealData();
+      interval = setInterval(fetchRealData, 5000);
+    }
 
     return () => clearInterval(interval);
-  }, []);
+  }, [useMockData]);
 
   const getScoreColor = (score: number) => {
     if (score >= 90) return 'text-green-600';
@@ -137,17 +166,17 @@ export default function AnalyticsDashboard() {
       </div>
 
       {/* Main Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Total Questions */}
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Toplam Soru</CardTitle>
+            <CardTitle className="text-sm font-medium">Toplam Cevaplanan Soru</CardTitle>
             <Target className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analytics.totalQuestions}</div>
+            <div className="text-2xl font-bold">{analytics.totalQuestions.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
-              +{Math.floor(Math.random() * 10) + 5} bugün
+              Tüm zamanlar
             </p>
           </CardContent>
         </Card>
@@ -160,38 +189,22 @@ export default function AnalyticsDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{analytics.averageScore}%</div>
-            <div className="flex items-center gap-2 mt-1">
-              {getScoreBadge(analytics.averageScore)}
-              <span className="text-xs text-green-600">+{analytics.improvement}%</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Study Streak */}
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Çalışma Serisi</CardTitle>
-            <Zap className="h-4 w-4 text-yellow-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analytics.streak} gün</div>
             <p className="text-xs text-muted-foreground">
-              <Award className="w-3 h-3 inline mr-1" />
-              Rekor: 21 gün
+              Genel başarı oranı
             </p>
           </CardContent>
         </Card>
 
-        {/* Global Rank */}
+        {/* Study Time */}
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Global Sıralama</CardTitle>
-            <Users className="h-4 w-4 text-purple-600" />
+            <CardTitle className="text-sm font-medium">Toplam Çalışma Süresi</CardTitle>
+            <Clock className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">#{analytics.rank}</div>
+            <div className="text-2xl font-bold">{formatTime(analytics.studyTime)}</div>
             <p className="text-xs text-muted-foreground">
-              {analytics.totalUsers.toLocaleString()} kullanıcı arasında
+              Tüm zamanlar
             </p>
           </CardContent>
         </Card>
@@ -221,11 +234,11 @@ export default function AnalyticsDashboard() {
             </div>
             
             <div>
-              <div className="flex justify-between text-sm mb-2">
+               <div className="flex justify-between text-sm mb-2">
                 <span>Doğru Cevap Oranı</span>
-                <span>{Math.round((analytics.correctAnswers / analytics.totalQuestions) * 100)}%</span>
+                <span>{analytics.totalQuestions > 0 ? Math.round((analytics.correctAnswers / analytics.totalQuestions) * 100) : 0}%</span>
               </div>
-              <Progress value={(analytics.correctAnswers / analytics.totalQuestions) * 100} className="h-2" />
+              <Progress value={analytics.totalQuestions > 0 ? (analytics.correctAnswers / analytics.totalQuestions) * 100 : 0} className="h-2" />
             </div>
 
             <div>
@@ -274,7 +287,8 @@ export default function AnalyticsDashboard() {
         </Card>
       </div>
 
-      {/* Recent Activity */}
+      {/* Recent Activity - This part can be re-enabled when activity logging is implemented */}
+      {/* 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -304,6 +318,7 @@ export default function AnalyticsDashboard() {
           </div>
         </CardContent>
       </Card>
+      */}
     </div>
   );
 } 
