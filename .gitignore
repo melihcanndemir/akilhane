@@ -3,12 +3,8 @@
 # dependencies
 /node_modules
 /.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
+.pnp.js
+.yarn/install-state.gz
 
 # testing
 /coverage
@@ -28,7 +24,9 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
+
+# local env files
+.env*.local
 
 # vercel
 .vercel
@@ -37,9 +35,15 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-.genkit/*
-.env*
+# Database files
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+exam-training.db
+exam-training.db-journal
+exam-training.db-wal
+exam-training.db-shm
 
-# firebase
-firebase-debug.log
-firestore-debug.log
+# Drizzle
+/drizzle

@@ -10,19 +10,19 @@
     --card-foreground: 231 48% 15%;
     --popover: 231 48% 100%;
     --popover-foreground: 231 48% 15%;
-    --primary: 231 48% 48%;
+    --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
     --secondary: 231 48% 90%;
     --secondary-foreground: 231 48% 25%;
     --muted: 231 48% 90%;
     --muted-foreground: 231 48% 40%;
-    --accent: 340 100% 63%;
+    --accent: 217 91% 60%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --border: 231 48% 88%;
     --input: 231 48% 88%;
-    --ring: 231 48% 48%;
+    --ring: 217 91% 60%;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
@@ -37,19 +37,19 @@
     --card-foreground: 0 0% 98%;
     --popover: 231 20% 12%;
     --popover-foreground: 0 0% 98%;
-    --primary: 231 48% 58%;
+    --primary: 217 91% 70%;
     --primary-foreground: 0 0% 100%;
     --secondary: 231 20% 20%;
     --secondary-foreground: 0 0% 98%;
     --muted: 231 20% 20%;
     --muted-foreground: 0 0% 63.9%;
-    --accent: 340 100% 73%;
+    --accent: 217 91% 70%;
     --accent-foreground: 0 0% 0%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
     --border: 231 20% 25%;
     --input: 231 20% 25%;
-    --ring: 231 48% 58%;
+    --ring: 217 91% 70%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
@@ -67,4 +67,172 @@
   }
 }
 
-// git
+/* Compact Mode Styles */
+.compact-mode {
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 0.75rem;
+  --spacing-lg: 1rem;
+  --spacing-xl: 1.25rem;
+}
+
+.compact-mode .p-4 {
+  padding: var(--spacing-sm) !important;
+}
+
+.compact-mode .p-8 {
+  padding: var(--spacing-md) !important;
+}
+
+.compact-mode .space-y-4 > * + * {
+  margin-top: var(--spacing-sm) !important;
+}
+
+.compact-mode .space-y-8 > * + * {
+  margin-top: var(--spacing-md) !important;
+}
+
+.compact-mode .gap-4 {
+  gap: var(--spacing-sm) !important;
+}
+
+.compact-mode .gap-8 {
+  gap: var(--spacing-md) !important;
+}
+
+.compact-mode .h-16 {
+  height: 3rem !important;
+}
+
+.compact-mode .text-3xl {
+  font-size: 1.5rem !important;
+}
+
+.compact-mode .w-8 {
+  width: 1.5rem !important;
+}
+
+.compact-mode .h-8 {
+  height: 1.5rem !important;
+}
+
+/* Markdown Styles */
+.markdown {
+  @apply text-foreground;
+}
+
+.markdown h1 {
+  @apply text-2xl font-bold mb-4 text-foreground;
+}
+
+.markdown h2 {
+  @apply text-xl font-semibold mb-3 text-foreground;
+}
+
+.markdown h3 {
+  @apply text-lg font-medium mb-2 text-foreground;
+}
+
+.markdown h4 {
+  @apply text-base font-medium mb-2 text-foreground;
+}
+
+.markdown h5 {
+  @apply text-sm font-medium mb-1 text-foreground;
+}
+
+.markdown h6 {
+  @apply text-xs font-medium mb-1 text-foreground;
+}
+
+.markdown p {
+  @apply mb-3 text-muted-foreground leading-relaxed;
+}
+
+.markdown ul {
+  @apply mb-3 pl-6 list-disc text-muted-foreground;
+}
+
+.markdown ol {
+  @apply mb-3 pl-6 list-decimal text-muted-foreground;
+}
+
+.markdown li {
+  @apply mb-1;
+}
+
+.markdown blockquote {
+  @apply border-l-4 border-primary/30 pl-4 py-2 mb-3 bg-muted/30 rounded-r-lg;
+}
+
+.markdown code {
+  @apply bg-muted px-2 py-1 rounded text-sm font-mono text-foreground;
+}
+
+.markdown pre {
+  @apply bg-muted p-4 rounded-lg mb-3 overflow-x-auto;
+}
+
+.markdown pre code {
+  @apply bg-transparent p-0;
+}
+
+.markdown strong {
+  @apply font-semibold text-foreground;
+}
+
+.markdown em {
+  @apply italic text-muted-foreground;
+}
+
+.markdown a {
+  @apply text-primary hover:underline;
+}
+
+.markdown table {
+  @apply w-full border-collapse mb-3;
+}
+
+.markdown th {
+  @apply border border-border px-3 py-2 text-left font-medium bg-muted;
+}
+
+.markdown td {
+  @apply border border-border px-3 py-2;
+}
+
+.markdown hr {
+  @apply border-border my-4;
+}
+
+/* AI Tutor specific styles */
+.ai-tutor-markdown {
+  @apply text-sm leading-relaxed;
+}
+
+.ai-tutor-markdown h1,
+.ai-tutor-markdown h2,
+.ai-tutor-markdown h3 {
+  @apply text-base font-semibold mb-2 text-foreground;
+}
+
+.ai-tutor-markdown p {
+  @apply mb-2 text-muted-foreground;
+}
+
+.ai-tutor-markdown ul,
+.ai-tutor-markdown ol {
+  @apply mb-2 pl-4;
+}
+
+.ai-tutor-markdown li {
+  @apply mb-1 text-muted-foreground;
+}
+
+.ai-tutor-markdown strong {
+  @apply font-semibold text-foreground;
+}
+
+.ai-tutor-markdown code {
+  @apply bg-muted/50 px-1 py-0.5 rounded text-xs font-mono;
+}

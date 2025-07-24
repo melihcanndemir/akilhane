@@ -260,5 +260,3 @@ export {
   CarouselPrevious,
   CarouselNext,
 }
-
-// git

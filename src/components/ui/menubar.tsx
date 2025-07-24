@@ -254,5 +254,3 @@ export {
   MenubarSub,
   MenubarShortcut,
 }
-
-// git

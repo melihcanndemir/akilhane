@@ -54,7 +54,7 @@ export async function personalizeQuestionDifficulty(
   // Store the performance data in our mock "service" so the tool can access it.
   // In a real app, the tool would fetch this from a database.
   const performanceHistory = JSON.parse(input.performanceData);
-  (getPerformanceHistoryForSubject as any).__setData(performanceHistory);
+  (getPerformanceHistoryForSubject as unknown as { __setData: (data: unknown) => void }).__setData(performanceHistory);
   
   return personalizeQuestionDifficultyFlow(input);
 }
@@ -93,5 +93,3 @@ const personalizeQuestionDifficultyFlow = ai.defineFlow(
     return output!;
   }
 );
-
-// git

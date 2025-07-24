@@ -1,230 +1,575 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { questions as allQuestions } from '@/lib/questions';
-import type { Question, Subject, PerformanceData, QuizResult } from '@/lib/types';
+import { motion, AnimatePresence } from 'framer-motion';
+import { getAiTutorHelp, type AiTutorOutput } from '../ai/flows/ai-tutor';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import { Progress } from '@/components/ui/progress';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { CheckCircle2, XCircle, Clock, BookOpen, BrainCircuit, HeartHandshake, Calculator, ChevronRight } from 'lucide-react';
+import { 
+  BookOpen, 
+  Brain, 
+  Users, 
+  Home, 
+  Database,
+  Settings,
+  GraduationCap,
+  ArrowLeft
+} from 'lucide-react';
 import Link from 'next/link';
+import { ThemeToggle } from '@/components/theme-toggle';
+import VoiceAssistant from './voice-assistant';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
-const shuffleArray = (array: any[]) => {
-    return array.sort(() => Math.random() - 0.5);
-};
-
-const QUIZ_DURATION = 50 * 60; // 50 minutes in seconds
-
-export function Quiz() {
-    const searchParams = useSearchParams();
-    const subject = searchParams.get('subject') as Subject | null;
-
-    const [questions, setQuestions] = useState<Question[]>([]);
-    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-    const [showFeedback, setShowFeedback] = useState(false);
-    const [score, setScore] = useState(0);
-    const [isFinished, setIsFinished] = useState(false);
-    const [timeLeft, setTimeLeft] = useState(QUIZ_DURATION);
-    const [incorrectTopics, setIncorrectTopics] = useState<Record<string, number>>({});
-
-    useEffect(() => {
-        if (subject) {
-            const filteredQuestions = allQuestions.filter(q => q.subject === subject);
-            setQuestions(shuffleArray(filteredQuestions).slice(0, 5)); // Using 5 questions for demo
-            setIsFinished(false);
-            setCurrentQuestionIndex(0);
-            setScore(0);
-            setTimeLeft(QUIZ_DURATION);
-            setIncorrectTopics({});
-        }
-    }, [subject]);
-
-    useEffect(() => {
-        if (timeLeft > 0 && !isFinished) {
-            const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-            return () => clearTimeout(timer);
-        } else if (timeLeft === 0 && !isFinished) {
-            handleFinishQuiz();
-        }
-    }, [timeLeft, isFinished]);
-    
-    if (!subject) {
-        return <div className="text-center p-8">Lütfen teste başlamak için bir ders seçin.</div>;
-    }
-
-    if (questions.length === 0 && !isFinished) {
-        return <div className="text-center p-8">Sorular yükleniyor...</div>;
-    }
-    
-    const currentQuestion = questions[currentQuestionIndex];
-    const isCorrect = currentQuestion?.options.find(opt => opt.text === selectedAnswer)?.isCorrect;
-
-    const handleFinishQuiz = () => {
-        if (!subject) return;
-
-        const timeSpent = QUIZ_DURATION - timeLeft;
-        const result: QuizResult = {
-            score,
-            totalQuestions: questions.length,
-            timeSpent,
-            date: new Date().toISOString(),
-            weakTopics: incorrectTopics,
-        };
-        
-        try {
-            const existingDataString = localStorage.getItem('performanceData');
-            const existingData: PerformanceData = existingDataString ? JSON.parse(existingDataString) : {};
-            
-            if (!existingData[subject]) {
-                existingData[subject] = [];
-            }
-            existingData[subject]?.push(result);
-
-            localStorage.setItem('performanceData', JSON.stringify(existingData));
-        } catch (error) {
-            console.error("Failed to save quiz results to localStorage", error);
-        }
-
-        setIsFinished(true);
-    };
-
-    const handleNext = () => {
-        if (!selectedAnswer) return;
-
-        if (!showFeedback) {
-            setShowFeedback(true);
-            if (isCorrect) {
-                setScore(score + 1);
-            } else {
-                const topic = currentQuestion.topic || 'Genel';
-                setIncorrectTopics(prev => ({
-                    ...prev,
-                    [topic]: (prev[topic] || 0) + 1,
-                }));
-            }
-        } else {
-            setShowFeedback(false);
-            setSelectedAnswer(null);
-            if (currentQuestionIndex < questions.length - 1) {
-                setCurrentQuestionIndex(currentQuestionIndex + 1);
-            } else {
-                handleFinishQuiz();
-            }
-        }
-    };
-    
-    const formatTime = (seconds: number) => {
-        const minutes = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    };
-
-    const getSubjectIcon = (subject: Subject) => {
-        switch (subject) {
-            case 'Finansal Tablo Analizi': return <BookOpen className="w-6 h-6" />;
-            case 'Karar Destek Sistemleri': return <BrainCircuit className="w-6 h-6" />;
-            case 'Müşteri İlişkileri Yönetimi': return <HeartHandshake className="w-6 h-6" />;
-            default: return null;
-        }
-    };
-
-    if (isFinished) {
-        return (
-            <div className="flex items-center justify-center min-h-screen bg-background p-4">
-                <Card className="w-full max-w-2xl text-center">
-                    <CardHeader>
-                        <CardTitle className="text-3xl font-headline">Test Bitti!</CardTitle>
-                        <CardDescription>İşte sonucun.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <p className="text-5xl font-bold text-primary">{score} / {questions.length}</p>
-                        <p className="text-xl text-muted-foreground">Başarı oranın %{((score / questions.length) * 100).toFixed(2)}</p>
-                    </CardContent>
-                    <CardFooter>
-                        <Link href="/" className="w-full">
-                            <Button className="w-full">Anasayfaya Dön</Button>
-                        </Link>
-                    </CardFooter>
-                </Card>
-            </div>
-        );
-    }
-    
-    return (
-        <div className="flex flex-col min-h-screen bg-background">
-            <header className="sticky top-0 bg-card/80 backdrop-blur-sm border-b p-4 z-10">
-                <div className="container mx-auto flex justify-between items-center">
-                    <div className="flex items-center gap-2 text-primary font-semibold">
-                        {getSubjectIcon(subject)}
-                        <span className="hidden sm:inline">{subject}</span>
-                    </div>
-                    <div className="flex items-center gap-2 font-semibold text-lg text-primary">
-                        <Clock className="w-6 h-6" />
-                        <span>{formatTime(timeLeft)}</span>
-                    </div>
-                </div>
-                <Progress value={(currentQuestionIndex + 1) / questions.length * 100} className="w-full h-2 mt-2" />
-            </header>
-
-            <main className="flex-1 flex items-center justify-center p-4">
-                <Card className="w-full max-w-4xl">
-                    <CardHeader>
-                        <CardTitle className="text-2xl font-headline">Soru {currentQuestionIndex + 1} / {questions.length}</CardTitle>
-                        <CardDescription className="text-lg pt-2">{currentQuestion.text}</CardDescription>
-                        {currentQuestion.formula && (
-                           <div className="mt-2 p-3 bg-muted rounded-md flex items-center gap-2">
-                               <Calculator className="w-5 h-5 text-muted-foreground" />
-                               <p className="font-code text-sm">{currentQuestion.formula}</p>
-                           </div>
-                        )}
-                    </CardHeader>
-                    <CardContent>
-                        <RadioGroup
-                            value={selectedAnswer ?? ''}
-                            onValueChange={setSelectedAnswer}
-                            disabled={showFeedback}
-                        >
-                            {currentQuestion.options.map((option, index) => {
-                                const feedbackColor = showFeedback
-                                    ? option.isCorrect
-                                        ? 'border-green-500 bg-green-500/10'
-                                        : (selectedAnswer === option.text ? 'border-red-500 bg-red-500/10' : 'border-border')
-                                    : 'border-border';
-
-                                return (
-                                    <Label key={index} className={`flex items-center p-4 rounded-lg border-2 transition-all ${feedbackColor} ${!showFeedback ? 'hover:border-primary cursor-pointer' : ''}`}>
-                                        <RadioGroupItem value={option.text} id={`r${index}`} className="mr-4" />
-                                        <span>{option.text}</span>
-                                    </Label>
-                                );
-                            })}
-                        </RadioGroup>
-
-                        {showFeedback && (
-                            <Alert className={`mt-6 ${isCorrect ? 'border-green-500 text-green-700' : 'border-red-500 text-red-700'}`}>
-                                {isCorrect ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
-                                <AlertTitle>{isCorrect ? 'Doğru!' : 'Yanlış'}</AlertTitle>
-                                <AlertDescription>
-                                    {currentQuestion.explanation}
-                                </AlertDescription>
-                            </Alert>
-                        )}
-                    </CardContent>
-                    <CardFooter>
-                         <Button onClick={handleNext} disabled={!selectedAnswer} className="w-full">
-                            {showFeedback ? (currentQuestionIndex < questions.length - 1 ? "Sonraki Soru" : "Testi Bitir") : "Cevabı Gönder"}
-                            <ChevronRight className="w-4 h-4 ml-2" />
-                        </Button>
-                    </CardFooter>
-                </Card>
-            </main>
-        </div>
-    );
+interface Question {
+  id: string;
+  subject: string;
+  type: string;
+  difficulty: string;
+  text: string;
+  topic: string;
+  options: Array<{
+    text: string;
+    isCorrect: boolean;
+  }>;
+  explanation: string;
 }
 
-// git
+interface QuizProps {
+  subject: string;
+}
+
+const QuizComponent: React.FC<QuizProps> = ({ subject }) => {
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [showResult, setShowResult] = useState(false);
+  const [score, setScore] = useState(0);
+  const [totalQuestions, setTotalQuestions] = useState(0);
+  const [timeSpent, setTimeSpent] = useState(0);
+  const [startTime, setStartTime] = useState<Date | null>(null);
+  const [aiTutorHelp, setAiTutorHelp] = useState<AiTutorOutput | null>(null);
+  const [isLoadingTutor, setIsLoadingTutor] = useState(false);
+  const [tutorStep, setTutorStep] = useState<'hint' | 'explanation' | 'step-by-step' | 'concept-review'>('hint');
+  const [isSaving, setIsSaving] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+
+  // Generate a unique user ID for this session
+  const userId = React.useMemo(() => {
+    if (typeof window !== 'undefined') {
+      const storedUserId = localStorage.getItem('userId');
+      if (storedUserId) return storedUserId;
+      
+      const newUserId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      localStorage.setItem('userId', newUserId);
+      return newUserId;
+    }
+    return `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }, []);
+
+  // Load questions
+  useEffect(() => {
+    const loadQuestions = async () => {
+      try {
+        console.log('Loading questions for subject:', subject);
+        const response = await fetch(`/api/questions?subject=${encodeURIComponent(subject)}&random=true&count=10`);
+        
+        if (!response.ok) {
+          throw new Error(`Failed to load questions: ${response.status}`);
+        }
+        
+        const subjectQuestions = await response.json() as Array<{ id: string; subject: string; type: string; difficulty: string; text: string; topic: string; options: Array<{ text: string; isCorrect: boolean }>; explanation: string }>;
+        console.log('Loaded questions:', subjectQuestions.length);
+        
+        if (subjectQuestions.length === 0) {
+          throw new Error('No questions found for this subject');
+        }
+        
+        setQuestions(subjectQuestions);
+        setTotalQuestions(subjectQuestions.length);
+        setStartTime(new Date());
+      } catch (error) {
+        console.error('Error loading questions:', error);
+        // Show error message to user
+        alert(`Soru yüklenirken hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`);
+      }
+    };
+
+    loadQuestions();
+  }, [subject]);
+
+  // Timer
+  useEffect(() => {
+    if (startTime) {
+      const timer = setInterval(() => {
+        setTimeSpent(Math.floor((Date.now() - startTime.getTime()) / 1000));
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+  }, [startTime]);
+
+  const currentQuestion = questions[currentQuestionIndex];
+
+  const handleAnswerSelect = (index: number) => {
+    if (!showResult) {
+      setSelectedAnswer(index);
+    }
+  };
+
+  const handleSubmit = () => {
+    if (selectedAnswer !== null) {
+      const isCorrect = currentQuestion.options[selectedAnswer].isCorrect;
+      if (isCorrect) {
+        setScore(score + 1);
+      }
+      setShowResult(true);
+    }
+  };
+
+  const handleNext = () => {
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setSelectedAnswer(null);
+      setShowResult(false);
+      setAiTutorHelp(null);
+    }
+  };
+
+  const handleFinish = async () => {
+    const endTime = new Date();
+    const totalTime = startTime ? Math.floor((endTime.getTime() - startTime.getTime()) / 1000) : 0;
+    
+    // Get weak topics
+    const weakTopics = getWeakTopics();
+    
+    setIsSaving(true);
+    
+    try {
+      // Save to database via API
+      const response = await fetch('/api/quiz', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          subject,
+          score,
+          totalQuestions,
+          timeSpent: totalTime,
+          weakTopics,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save quiz result');
+      }
+
+      // Also save to localStorage for backward compatibility
+      const existingData = JSON.parse(typeof window !== 'undefined' ? localStorage.getItem('performanceData') || '{}' : '{}');
+      const subjectKey = subject as any;
+      
+      if (!existingData[subjectKey]) {
+        existingData[subjectKey] = [];
+      }
+      
+      existingData[subjectKey].push({
+        score,
+        totalQuestions,
+        timeSpent: totalTime,
+        date: new Date().toISOString(),
+        weakTopics,
+      });
+      
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('performanceData', JSON.stringify(existingData));
+      }
+      
+      console.log('✅ Quiz result saved successfully');
+    } catch (error) {
+      console.error('❌ Error saving quiz result:', error);
+      // Fallback to localStorage only
+      const existingData = JSON.parse(typeof window !== 'undefined' ? localStorage.getItem('performanceData') || '{}' : '{}');
+      const subjectKey = subject as any;
+      
+      if (!existingData[subjectKey]) {
+        existingData[subjectKey] = [];
+      }
+      
+      existingData[subjectKey].push({
+        score,
+        totalQuestions,
+        timeSpent: totalTime,
+        date: new Date().toISOString(),
+        weakTopics,
+      });
+      
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('performanceData', JSON.stringify(existingData));
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const getWeakTopics = () => {
+    const weakTopics: Record<string, number> = {};
+    
+    // This is a simplified version - in a real app, you'd track wrong answers per question
+    if (currentQuestion && selectedAnswer !== null) {
+      const isCorrect = currentQuestion.options[selectedAnswer].isCorrect;
+      if (!isCorrect) {
+        weakTopics[currentQuestion.topic] = (weakTopics[currentQuestion.topic] || 0) + 1;
+      }
+    }
+    
+    return weakTopics;
+  };
+
+  // Handle voice commands
+  const handleVoiceCommand = (command: string) => {
+    console.log('🎤 Voice command received:', command);
+    
+    switch (command) {
+      case 'next':
+        if (currentQuestionIndex < questions.length - 1) {
+          handleNext();
+        }
+        break;
+      case 'previous':
+        if (currentQuestionIndex > 0) {
+          setCurrentQuestionIndex(currentQuestionIndex - 1);
+          setSelectedAnswer(null);
+          setShowResult(false);
+        }
+        break;
+      case 'shuffle':
+        // Shuffle questions
+        const shuffled = [...questions].sort(() => Math.random() - 0.5);
+        setQuestions(shuffled);
+        setCurrentQuestionIndex(0);
+        setSelectedAnswer(null);
+        setShowResult(false);
+        break;
+      default:
+        console.log('Unknown voice command:', command);
+    }
+  };
+
+  // Convert difficulty from English to Turkish for AI Tutor
+  const convertDifficulty = (difficulty: string): 'Kolay' | 'Orta' | 'Zor' => {
+    switch (difficulty.toLowerCase()) {
+      case 'easy':
+        return 'Kolay';
+      case 'medium':
+        return 'Orta';
+      case 'hard':
+        return 'Zor';
+      default:
+        return 'Orta'; // Default fallback
+    }
+  };
+
+  const requestAiTutorHelp = async (step: 'hint' | 'explanation' | 'step-by-step' | 'concept-review') => {
+    if (!currentQuestion) return;
+    
+    setIsLoadingTutor(true);
+    setTutorStep(step);
+    
+    try {
+      const result = await getAiTutorHelp({
+        question: currentQuestion.text,
+        subject: currentQuestion.subject,
+        topic: currentQuestion.topic,
+        difficulty: convertDifficulty(currentQuestion.difficulty),
+        options: currentQuestion.options,
+        correctAnswer: currentQuestion.options.find(opt => opt.isCorrect)?.text || '',
+        explanation: currentQuestion.explanation,
+        userAnswer: selectedAnswer !== null ? currentQuestion.options[selectedAnswer].text : undefined,
+        step,
+      });
+      
+      setAiTutorHelp(result);
+    } catch (error) {
+      console.error('Error getting AI tutor help:', error);
+      // Show user-friendly error message
+      setAiTutorHelp({
+        help: 'Şu anda AI asistanına erişilemiyor. Lütfen daha sonra tekrar deneyin.',
+        confidence: 0
+      });
+    } finally {
+      setIsLoadingTutor(false);
+    }
+  };
+
+  if (questions.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-lg text-muted-foreground">Sorular yükleniyor...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Navigation Bar */}
+      <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto px-4 md:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-2">
+              <Home className="w-6 h-6 text-primary" />
+              <span className="font-headline font-bold text-xl text-primary">AkılHane</span>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <Link href="/">
+                <Button variant="ghost" size="sm">
+                  <Home className="w-4 h-4 mr-2" />
+                  Ana Sayfa
+                </Button>
+              </Link>
+              <Link href="/question-manager">
+                <Button variant="ghost" size="sm">
+                  <Database className="w-4 h-4 mr-2" />
+                  Soru Yöneticisi
+                </Button>
+              </Link>
+              <Link href="/subject-manager">
+                <Button variant="ghost" size="sm">
+                  <GraduationCap className="w-4 h-4 mr-2" />
+                  Ders Yöneticisi
+                </Button>
+              </Link>
+              <Link href="/quiz">
+                <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700">
+                  <BookOpen className="w-4 h-4 mr-2" />
+                  Test Çöz
+                </Button>
+              </Link>
+              <Link href="/flashcard">
+                <Button variant="ghost" size="sm">
+                  <Brain className="w-4 h-4 mr-2" />
+                  Flashcard
+                </Button>
+              </Link>
+              <Link href="/ai-chat">
+                <Button variant="ghost" size="sm">
+                  <Users className="w-4 h-4 mr-2" />
+                  AI Asistan
+                </Button>
+              </Link>
+              <ThemeToggle />
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <div className="container mx-auto p-4 md:p-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-4 mb-4">
+            <Link href="/">
+              <Button variant="outline" size="sm" className="flex items-center gap-2">
+                <ArrowLeft className="w-4 h-4" />
+                Ana Sayfaya Dön
+              </Button>
+            </Link>
+            <h1 className="text-3xl font-headline font-bold text-primary">
+              {subject} Quiz
+            </h1>
+          </div>
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <span>Soru {currentQuestionIndex + 1} / {totalQuestions}</span>
+            <span>⏱️ {Math.floor(timeSpent / 60)}:{(timeSpent % 60).toString().padStart(2, '0')}</span>
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="mb-8">
+          <div className="w-full bg-muted rounded-full h-2">
+            <div
+              className="bg-primary h-2 rounded-full transition-all duration-300"
+              style={{ width: `${((currentQuestionIndex + 1) / totalQuestions) * 100}%` }}
+            ></div>
+          </div>
+        </div>
+
+        {/* Question */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentQuestionIndex}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+            className="bg-card rounded-lg p-6 mb-8 shadow-lg"
+          >
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">
+                  {currentQuestion.topic}
+                </span>
+                <span className="bg-secondary/10 text-secondary-foreground px-3 py-1 rounded-full text-sm">
+                  {currentQuestion.difficulty}
+                </span>
+              </div>
+              
+              <h2 className="text-xl font-semibold mb-4">{currentQuestion.text}</h2>
+            </div>
+
+            {/* Options */}
+            <div className="space-y-3 mb-6">
+              {currentQuestion.options.map((option, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleAnswerSelect(index)}
+                  disabled={showResult}
+                  className={`w-full p-4 text-left rounded-lg border-2 transition-all duration-200 ${
+                    selectedAnswer === index
+                      ? showResult
+                        ? option.isCorrect
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
+                          : 'border-red-500 bg-red-50 dark:bg-red-950'
+                        : 'border-primary bg-primary/5'
+                      : 'border-border hover:border-primary/50'
+                  } ${showResult && option.isCorrect ? 'border-blue-500 bg-blue-50 dark:bg-blue-950' : ''}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                      selectedAnswer === index
+                        ? showResult
+                          ? option.isCorrect
+                            ? 'border-blue-500 bg-blue-500 text-white'
+                            : 'border-red-500 bg-red-500 text-white'
+                          : 'border-primary bg-primary text-white'
+                        : 'border-border'
+                    }`}>
+                      {selectedAnswer === index && (
+                        <span className="text-xs">✓</span>
+                      )}
+                    </div>
+                    <span className="font-medium">{option.text}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Explanation */}
+            {showResult && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="bg-muted/50 rounded-lg p-4 mb-6"
+              >
+                <h3 className="font-semibold mb-2">Açıklama:</h3>
+                <p className="text-muted-foreground">{currentQuestion.explanation}</p>
+              </motion.div>
+            )}
+
+            {/* AI Tutor Help */}
+            {showResult && (
+              <div className="mb-6">
+                <h3 className="font-semibold mb-3">AI Tutor Yardımı:</h3>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {(['hint', 'explanation', 'step-by-step', 'concept-review'] as const).map((step) => (
+                    <button
+                      key={step}
+                      onClick={() => requestAiTutorHelp(step)}
+                      disabled={isLoadingTutor}
+                      className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors disabled:opacity-50"
+                    >
+                      {step === 'hint' && '💡 İpucu'}
+                      {step === 'explanation' && '📚 Açıklama'}
+                      {step === 'step-by-step' && '🔍 Adım Adım'}
+                      {step === 'concept-review' && '🎯 Konu Tekrarı'}
+                    </button>
+                  ))}
+                </div>
+                
+                {isLoadingTutor && (
+                  <div className="text-center py-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                    <p className="text-sm text-muted-foreground">AI yardımı hazırlanıyor...</p>
+                  </div>
+                )}
+                
+                {aiTutorHelp && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-card border rounded-lg p-4"
+                  >
+                    <h4 className="font-semibold mb-2">
+                      {tutorStep === 'hint' && '💡 İpucu'}
+                      {tutorStep === 'explanation' && '📚 Açıklama'}
+                      {tutorStep === 'step-by-step' && '🔍 Adım Adım'}
+                      {tutorStep === 'concept-review' && '🎯 Konu Tekrarı'}
+                    </h4>
+                    <div className="ai-tutor-markdown">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {aiTutorHelp.help}
+                      </ReactMarkdown>
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-4">
+              {!showResult ? (
+                <button
+                  onClick={handleSubmit}
+                  disabled={selectedAnswer === null}
+                  className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Cevabı Gönder
+                </button>
+              ) : currentQuestionIndex < questions.length - 1 ? (
+                <button
+                  onClick={handleNext}
+                  className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                >
+                  Sonraki Soru
+                </button>
+              ) : (
+                <button
+                  onClick={handleFinish}
+                  disabled={isSaving}
+                  className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50"
+                >
+                  {isSaving ? 'Kaydediliyor...' : 'Testi Bitir'}
+                </button>
+              )}
+            </div>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Score Display */}
+        <div className="text-center">
+          <p className="text-lg font-semibold">
+            Puan: {score} / {totalQuestions}
+          </p>
+          <p className="text-muted-foreground">
+            Başarı Oranı: {totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0}%
+          </p>
+        </div>
+      </div>
+
+      {/* Voice Assistant */}
+      <VoiceAssistant
+        onCommand={handleVoiceCommand}
+        currentQuestion={currentQuestion?.text}
+        currentAnswer={currentQuestion?.options.find(opt => opt.isCorrect)?.text}
+        aiTutorOutput={aiTutorHelp?.help}
+        isListening={isListening}
+        onListeningChange={setIsListening}
+      />
+    </div>
+  );
+};
+
+export default QuizComponent;

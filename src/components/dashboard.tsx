@@ -1,342 +1,442 @@
-
 'use client';
-import type { ChangeEvent } from 'react';
-import React from 'react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import {
-  BookOpen,
-  BrainCircuit,
-  HeartHandshake,
-  LineChart,
-  Clock,
-  Target,
-  Loader2,
-  Cpu,
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { 
+  BookOpen, 
+  Brain, 
+  Target, 
+  TrendingUp, 
+  Clock, 
+  CheckCircle, 
+  XCircle,
+  Plus,
+  Settings,
+  BarChart3,
+  FileText,
+  Users,
+  Home,
+  Database,
+  GraduationCap,
+  Play
 } from 'lucide-react';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
-} from '@/components/ui/chart';
-import {
-  Bar,
-  BarChart as RechartsBarChart,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from 'recharts';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  personalizeQuestionDifficulty,
-  type PersonalizeQuestionDifficultyOutput,
-} from '@/ai/flows/personalize-question-difficulty';
-import type { PerformanceData, Subject } from '@/lib/types';
-import { ThemeToggle } from './theme-toggle';
+import Link from 'next/link';
+import { ThemeToggle } from '@/components/theme-toggle';
+import AnalyticsDashboard from './analytics-dashboard';
 
-const subjects = [
-  {
-    name: 'Finansal Tablo Analizi',
-    icon: <BookOpen className="w-8 h-8 text-primary" />,
-    href: '/quiz?subject=Finansal Tablo Analizi',
-  },
-  {
-    name: 'Karar Destek Sistemleri',
-    icon: <BrainCircuit className="w-8 h-8 text-primary" />,
-    href: '/quiz?subject=Karar Destek Sistemleri',
-  },
-  {
-    name: 'Müşteri İlişkileri Yönetimi',
-    icon: <HeartHandshake className="w-8 h-8 text-primary" />,
-    href: '/quiz?subject=Müşteri İlişkileri Yönetimi',
-  },
-];
+interface PerformanceData {
+  subject: string;
+  averageScore: number;
+  totalTests: number;
+  weakTopics: string[];
+  lastUpdated: string;
+}
 
-const initialPerformanceData = [
-  { subject: 'Finansal Tablo Analizi', score: 0, color: 'hsl(var(--chart-1))' },
-  { subject: 'Karar Destek Sistemleri', score: 0, color: 'hsl(var(--chart-2))' },
-  { subject: 'Müşteri İlişkileri Yönetimi', score: 0, color: 'hsl(var(--chart-3))' },
-];
+interface QuizResult {
+  id: string;
+  subject: string;
+  score: number;
+  totalQuestions: number;
+  timeSpent: number;
+  weakTopics: string[];
+  createdAt: string;
+}
 
-const initialTimeData = [
-  { subject: 'Finansal Tablo Analizi', time: 0, color: 'hsl(var(--chart-1))' },
-  { subject: 'Karar Destek Sistemleri', time: 0, color: 'hsl(var(--chart-2))' },
-  { subject: 'Müşteri İlişkileri Yönetimi', time: 0, color: 'hsl(var(--chart-3))' },
-];
+export default function Dashboard() {
+  const [performanceData, setPerformanceData] = useState<PerformanceData[]>([]);
+  const [recentResults, setRecentResults] = useState<QuizResult[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showAnalytics, setShowAnalytics] = useState(false);
 
-const initialWeakAreasData = [
-    { name: 'Başlamak için test çöz', value: 1, fill: 'hsl(var(--muted))' },
-];
-
-export function Dashboard() {
-  const [selectedSubject, setSelectedSubject] = React.useState<string>(
-    subjects[0].name
-  );
-  const [difficultyResult, setDifficultyResult] = React.useState<PersonalizeQuestionDifficultyOutput | null>(null);
-  const [isLoading, setIsLoading] = React.useState(false);
-  
-  const [performanceData, setPerformanceData] = React.useState(initialPerformanceData);
-  const [timeData, setTimeData] = React.useState(initialTimeData);
-  const [weakAreasData, setWeakAreasData] = React.useState(initialWeakAreasData);
-  const [hasData, setHasData] = React.useState(false);
-
-  React.useEffect(() => {
-      try {
-        const storedDataString = localStorage.getItem('performanceData');
-        if (storedDataString) {
-            const storedData: PerformanceData = JSON.parse(storedDataString);
-            if (Object.keys(storedData).length > 0) {
-              setHasData(true);
-            } else {
-              setHasData(false);
-              return;
-            }
-
-            // Update Performance Chart Data
-            const newPerformanceData = subjects.map((subject, index) => {
-                const results = storedData[subject.name as Subject];
-                const avgScore = results && results.length > 0
-                    ? results.reduce((acc, r) => acc + (r.score / r.totalQuestions) * 100, 0) / results.length
-                    : 0;
-                return { subject: subject.name, score: Math.round(avgScore), color: `hsl(var(--chart-${index + 1}))` };
-            });
-            setPerformanceData(newPerformanceData);
-
-            // Update Time Chart Data
-            const newTimeData = subjects.map((subject, index) => {
-                const results = storedData[subject.name as Subject];
-                const avgTime = results && results.length > 0
-                    ? (results.reduce((acc, r) => acc + r.timeSpent, 0) / results.length) / 60 // average time in minutes
-                    : 0;
-                return { subject: subject.name, time: Math.round(avgTime), color: `hsl(var(--chart-${index + 1}))` };
-            });
-            setTimeData(newTimeData);
-            
-            // Update Weak Areas Chart Data for ALL subjects
-            const allWeakTopics: Record<string, number> = {};
-            Object.values(storedData).forEach(subjectResults => {
-                if (subjectResults) {
-                  subjectResults.forEach(result => {
-                      Object.entries(result.weakTopics).forEach(([topic, count]) => {
-                          allWeakTopics[topic] = (allWeakTopics[topic] || 0) + count;
-                      });
-                  });
-                }
-            });
-
-            const sortedWeakTopics = Object.entries(allWeakTopics)
-                .sort(([, a], [, b]) => b - a)
-                .slice(0, 5); // Get top 5 weak topics
-
-            if (sortedWeakTopics.length > 0) {
-                 const newWeakAreasData = sortedWeakTopics.map(([name, value], index) => ({
-                    name,
-                    value,
-                    fill: `hsl(var(--chart-${(index % 5) + 1}))`,
-                }));
-                setWeakAreasData(newWeakAreasData);
-            } else {
-                setWeakAreasData([{ name: 'Zayıf konu bulunamadı', value: 1, fill: 'hsl(var(--muted))' }]);
-            }
-        } else {
-            setHasData(false);
-        }
-      } catch (error) {
-          console.error("Could not load performance data from localStorage", error);
-          setHasData(false);
-      }
+  useEffect(() => {
+    loadDashboardData();
   }, []);
 
+  const loadDashboardData = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Load performance analytics
+      const performanceResponse = await fetch('/api/analytics/performance');
+      if (performanceResponse.ok) {
+        const performanceData = await performanceResponse.json();
+        setPerformanceData(performanceData);
+      } else {
+        console.log('Performance API not available, using empty data');
+        setPerformanceData([]);
+      }
 
-  const handlePersonalizeClick = async () => {
-    setIsLoading(true);
-    setDifficultyResult(null);
-
-    const performanceData = localStorage.getItem('performanceData') || '{}';
-
-    const result = await personalizeQuestionDifficulty({
-      userId: 'user-123',
-      subject: selectedSubject,
-      performanceData: performanceData,
-    });
-    setDifficultyResult(result);
-    setIsLoading(false);
+      // Load recent quiz results
+      const resultsResponse = await fetch('/api/results?limit=5');
+      if (resultsResponse.ok) {
+        const resultsData = await resultsResponse.json();
+        setRecentResults(resultsData);
+      } else {
+        console.log('Results API not available, using empty data');
+        setRecentResults([]);
+      }
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+      // Set empty data on error
+      setPerformanceData([]);
+      setRecentResults([]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  return (
-    <div className="bg-background text-foreground">
-      <header className="bg-card border-b p-4 shadow-sm">
-        <div className="container mx-auto flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-headline font-bold text-primary">AÖF Sınav Hazırlık</h1>
-            <p className="text-muted-foreground">Tekrar hoş geldin! Seni sınavlara hazırlayalım.</p>
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return 'text-blue-600';
+    if (score >= 60) return 'text-yellow-600';
+    return 'text-red-600';
+  };
+
+  const getScoreBadge = (score: number) => {
+    if (score >= 80) return <Badge className="bg-blue-100 text-blue-800">Mükemmel</Badge>;
+    if (score >= 60) return <Badge className="bg-yellow-100 text-yellow-800">İyi</Badge>;
+    return <Badge className="bg-red-100 text-red-800">Geliştirilmeli</Badge>;
+  };
+
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background p-4 md:p-8">
+        <div className="container mx-auto">
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+            <p className="text-muted-foreground">Dashboard yükleniyor...</p>
           </div>
-          <ThemeToggle />
         </div>
-      </header>
+      </div>
+    );
+  }
 
-      <div className="container mx-auto p-4 md:p-8 space-y-8">
-        <section>
-          <h2 className="text-2xl font-headline font-semibold mb-4">Pratik Yapmak İçin Bir Ders Seç</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            {subjects.map((subject) => (
-              <Link
-                href={subject.href}
-                key={subject.name}
-                className="block group"
-              >
-                <Card className="group-hover:shadow-lg group-hover:border-primary transition-all duration-300 h-full">
-                  <CardHeader className="flex flex-row items-center gap-4">
-                    {subject.icon}
-                    <CardTitle className="font-headline text-xl">
-                      {subject.name}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription>
-                      Yeni bir test oturumu başlat ve bilgini sına.
-                    </CardDescription>
-                  </CardContent>
-                </Card>
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Navigation Bar */}
+      <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto px-4 md:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-2">
+              <Home className="w-6 h-6 text-blue-600" />
+              <span className="font-headline font-bold text-xl text-blue-600">AkılHane</span>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <Link href="/login">
+                <Button variant="outline" size="sm">
+                  <Users className="w-4 h-4 mr-2" />
+                  Giriş Yap
+                </Button>
               </Link>
-            ))}
+              <Link href="/demo">
+                <Button variant="outline" size="sm">
+                  <Play className="w-4 h-4 mr-2" />
+                  Demo
+                </Button>
+              </Link>
+              <Link href="/">
+                <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700">
+                  <Home className="w-4 h-4 mr-2" />
+                  Ana Sayfa
+                </Button>
+              </Link>
+              <Link href="/question-manager">
+                <Button variant="ghost" size="sm">
+                  <Database className="w-4 h-4 mr-2" />
+                  Soru Yöneticisi
+                </Button>
+              </Link>
+              <Link href="/subject-manager">
+                <Button variant="ghost" size="sm">
+                  <GraduationCap className="w-4 h-4 mr-2" />
+                  Ders Yöneticisi
+                </Button>
+              </Link>
+              <Link href="/quiz">
+                <Button variant="ghost" size="sm">
+                  <BookOpen className="w-4 h-4 mr-2" />
+                  Test Çöz
+                </Button>
+              </Link>
+              <Link href="/flashcard">
+                <Button variant="ghost" size="sm">
+                  <Brain className="w-4 h-4 mr-2" />
+                  Flashcard
+                </Button>
+              </Link>
+              <Link href="/ai-chat">
+                <Button variant="ghost" size="sm">
+                  <Users className="w-4 h-4 mr-2" />
+                  AI Asistan
+                </Button>
+              </Link>
+              <ThemeToggle />
+            </div>
           </div>
-        </section>
+        </div>
+      </nav>
 
-        <section>
+      <div className="p-4 md:p-8">
+        <div className="container mx-auto space-y-8">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-headline font-bold text-blue-600">Dashboard</h1>
+              <p className="text-muted-foreground">Sınav hazırlık performansınızı takip edin</p>
+            </div>
+            <div className="flex gap-2">
+              <Link href="/question-manager">
+                <Button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700">
+                  <Plus className="w-4 h-4" />
+                  Soru Ekle
+                </Button>
+              </Link>
+              <Link href="/settings">
+                <Button variant="outline" className="flex items-center gap-2">
+                  <Settings className="w-4 h-4" />
+                  Ayarlar
+                </Button>
+              </Link>
+              <Button 
+                variant="outline" 
+                className="flex items-center gap-2"
+                onClick={() => setShowAnalytics(!showAnalytics)}
+              >
+                <BarChart3 className="w-4 h-4" />
+                {showAnalytics ? 'Dashboard' : 'Analitik'}
+              </Button>
+            </div>
+          </div>
+
+          {/* Analytics Dashboard */}
+          {showAnalytics && (
+            <div className="mb-8">
+              <AnalyticsDashboard />
+            </div>
+          )}
+
+          {/* Quick Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Toplam Test</CardTitle>
+                <BookOpen className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {recentResults.length > 0 ? recentResults.reduce((acc, result) => acc + result.totalQuestions, 0) : 0}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Son 30 günde
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Ortalama Skor</CardTitle>
+                <Target className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {recentResults.length > 0 
+                    ? Math.round(recentResults.reduce((acc, result) => acc + result.score, 0) / recentResults.length)
+                    : 0}%
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Genel performans
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Toplam Süre</CardTitle>
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {recentResults.length > 0 
+                    ? formatTime(recentResults.reduce((acc, result) => acc + result.timeSpent, 0))
+                    : '0:00'}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Çalışma süresi
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Zayıf Konular</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {performanceData.length > 0 
+                    ? performanceData.reduce((acc, data) => acc + data.weakTopics.length, 0)
+                    : 0}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Geliştirilmesi gereken
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Performance Analytics */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5" />
+                  Performans Analizi
+                </CardTitle>
+                <CardDescription>
+                  Ders bazında performans durumunuz
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {performanceData.length === 0 ? (
+                  <div className="text-center py-8">
+                    <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">Henüz performans verisi yok</p>
+                    <p className="text-sm text-muted-foreground">İlk testinizi çözerek başlayın</p>
+                  </div>
+                ) : (
+                  performanceData.map((data) => (
+                    <div key={data.subject} className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-medium">{data.subject}</h3>
+                        <span className={`font-bold ${getScoreColor(data.averageScore)}`}>
+                          {data.averageScore}%
+                        </span>
+                      </div>
+                      <Progress value={data.averageScore} className="h-2" />
+                      <div className="flex items-center justify-between text-sm text-muted-foreground">
+                        <span>{data.totalTests} test</span>
+                        <span>{data.weakTopics.length} zayıf konu</span>
+                      </div>
+                      {data.weakTopics.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {data.weakTopics.slice(0, 3).map((topic, index) => (
+                            <Badge key={index} variant="secondary" className="text-xs">
+                              {topic}
+                            </Badge>
+                          ))}
+                          {data.weakTopics.length > 3 && (
+                            <Badge variant="secondary" className="text-xs">
+                              +{data.weakTopics.length - 3}
+                            </Badge>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Recent Results */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  Son Sonuçlar
+                </CardTitle>
+                <CardDescription>
+                  En son çözdüğünüz testler
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {recentResults.length === 0 ? (
+                  <div className="text-center py-8">
+                    <CheckCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">Henüz test sonucu yok</p>
+                    <p className="text-sm text-muted-foreground">İlk testinizi çözerek başlayın</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {recentResults.map((result) => (
+                      <div key={result.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-full ${result.score >= 60 ? 'bg-blue-100' : 'bg-red-100'}`}>
+                            {result.score >= 60 ? (
+                              <CheckCircle className="w-4 h-4 text-blue-600" />
+                            ) : (
+                              <XCircle className="w-4 h-4 text-red-600" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-medium">{result.subject}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {result.totalQuestions} soru • {formatTime(result.timeSpent)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className={`font-bold text-lg ${getScoreColor(result.score)}`}>
+                            {result.score}%
+                          </div>
+                          {getScoreBadge(result.score)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Quick Actions */}
           <Card>
             <CardHeader>
-              <CardTitle className="font-headline text-2xl flex items-center gap-2">
-                <Cpu className="w-6 h-6" /> Yapay Zeka Destekli Kişiselleştirme
-              </CardTitle>
-              <CardDescription>Performansına göre bir sonraki testin için en uygun zorluğu yapay zekamızın belirlemesine izin ver.</CardDescription>
+              <CardTitle>Hızlı Erişim</CardTitle>
+              <CardDescription>
+                Sık kullandığınız özelliklere hızlı erişim
+              </CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col sm:flex-row items-center gap-4">
-                <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-                    <SelectTrigger className="w-full sm:w-[300px]">
-                        <SelectValue placeholder="Bir ders seçin" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {subjects.map(subject => (
-                            <SelectItem key={subject.name} value={subject.name}>{subject.name}</SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-              <Button onClick={handlePersonalizeClick} disabled={isLoading}>
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Zorluğu Kişiselleştir
-              </Button>
-              {difficultyResult && (
-                <p className="text-lg font-semibold">
-                  Önerilen Zorluk: <span className="text-primary">{difficultyResult.difficulty}</span>
-                </p>
-              )}
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <Link href="/quiz">
+                  <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center gap-2">
+                    <BookOpen className="w-6 h-6" />
+                    <span>Test Çöz</span>
+                  </Button>
+                </Link>
+                <Link href="/flashcard">
+                  <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center gap-2">
+                    <Brain className="w-6 h-6" />
+                    <span>Flashcard</span>
+                  </Button>
+                </Link>
+                <Link href="/ai-chat">
+                  <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center gap-2">
+                    <Users className="w-6 h-6" />
+                    <span>AI Asistan</span>
+                  </Button>
+                </Link>
+                <Link href="/question-manager">
+                  <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center gap-2">
+                    <Database className="w-6 h-6" />
+                    <span>Soru Yöneticisi</span>
+                  </Button>
+                </Link>
+              </div>
             </CardContent>
           </Card>
-        </section>
-
-
-        <section>
-          <h2 className="text-2xl font-headline font-semibold mb-4">Performans Analizlerin</h2>
-          {!hasData && (
-             <Card>
-                <CardContent className="pt-6">
-                  <p className="text-muted-foreground">Henüz hiç test çözmedin. İlk testini çözdükten sonra analizlerin burada görünecek.</p>
-                </CardContent>
-              </Card>
-          )}
-          <div className={`grid md:grid-cols-1 lg:grid-cols-3 gap-6 ${!hasData ? 'hidden' : 'grid'}`}>
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle className="font-headline flex items-center gap-2"><LineChart className="w-5 h-5" />Derse Göre Ortalama Başarı (%)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer config={{}} className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <RechartsBarChart data={performanceData}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="subject" tick={{fontSize: 12}} />
-                            <YAxis domain={[0, 100]} unit="%" />
-                            <ChartTooltip cursor={{ fill: 'hsl(var(--muted))' }} content={<ChartTooltipContent />} />
-                            <Bar dataKey="score" radius={4}>
-                                {performanceData.map((entry) => (
-                                    <Cell key={`cell-${entry.subject}`} fill={entry.color} />
-                                ))}
-                            </Bar>
-                        </RechartsBarChart>
-                    </ResponsiveContainer>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-
-             <Card>
-              <CardHeader>
-                <CardTitle className="font-headline flex items-center gap-2"><Target className="w-5 h-5" />Zayıf Alanlar</CardTitle>
-                 <CardDescription>Tüm derslerdeki yanlış cevaplarına göre.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                 <ChartContainer config={{}} className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                            <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-                            <Pie data={weakAreasData} dataKey="value" nameKey="name" innerRadius={50} outerRadius={80} paddingAngle={5} labelLine={false}>
-                                {weakAreasData.map((entry) => (
-                                    <Cell key={`cell-${entry.name}`} fill={entry.fill} />
-                                ))}
-                            </Pie>
-                             <ChartLegend content={<ChartLegendContent nameKey="name" />} />
-                        </PieChart>
-                    </ResponsiveContainer>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-
-            <Card className="lg:col-span-3">
-              <CardHeader>
-                <CardTitle className="font-headline flex items-center gap-2"><Clock className="w-5 h-5" />Derse Göre Ortalama Süre (dakika)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer config={{}} className="h-64">
-                     <ResponsiveContainer width="100%" height="100%">
-                        <RechartsBarChart data={timeData} layout="vertical" margin={{ right: 20 }}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis type="number" unit="dk" />
-                            <YAxis dataKey="subject" type="category" width={140} tick={{fontSize: 12}}/>
-                            <ChartTooltip cursor={{ fill: 'hsl(var(--muted))' }} content={<ChartTooltipContent />} />
-                            <Bar dataKey="time" layout="vertical" radius={4}>
-                                {timeData.map((entry) => (
-                                    <Cell key={`cell-${entry.subject}`} fill={entry.color} />
-                                ))}
-                            </Bar>
-                        </RechartsBarChart>
-                    </ResponsiveContainer>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
+        </div>
       </div>
     </div>
   );
 }
 
-// git

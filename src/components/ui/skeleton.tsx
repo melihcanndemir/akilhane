@@ -13,5 +13,3 @@ function Skeleton({
 }
 
 export { Skeleton }
-
-// git
