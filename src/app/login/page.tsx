@@ -100,7 +100,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo ve Başlık */}
         <motion.div
@@ -127,7 +127,7 @@ export default function LoginPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <Card className="shadow-xl border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+          <Card className="shadow-xl border-0 glass-card">
             <CardHeader className="text-center">
               <CardTitle className="text-2xl font-bold">
                 {isLogin ? 'Hoş Geldiniz' : 'Hesap Oluşturun'}
@@ -217,7 +217,7 @@ export default function LoginPage() {
               {/* Google ile Giriş */}
               <Button
                 variant="outline"
-                className="w-full"
+                className="w-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
                 onClick={handleGoogleSignIn}
                 disabled={isGoogleLoading}
               >
@@ -261,7 +261,7 @@ export default function LoginPage() {
               <div className="space-y-3">
                 <Button
                   variant="ghost"
-                  className="w-full"
+                  className="w-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
                   onClick={handleGuestMode}
                 >
                   <Users className="h-4 w-4 mr-2" />
@@ -270,7 +270,7 @@ export default function LoginPage() {
 
                 <Button
                   variant="ghost"
-                  className="w-full"
+                  className="w-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
                   onClick={handleLiveDemo}
                 >
                   <Play className="h-4 w-4 mr-2" />
@@ -313,11 +313,11 @@ export default function LoginPage() {
           transition={{ delay: 0.2 }}
           className="mt-8 grid grid-cols-2 gap-4"
         >
-          <div className="text-center p-4 bg-white/60 dark:bg-gray-800/60 rounded-lg backdrop-blur-sm">
+          <div className="text-center p-4 rounded-lg glass-card-inner">
             <GraduationCap className="h-6 w-6 mx-auto mb-2 text-blue-600" />
             <p className="text-sm font-medium">AI Destekli Öğrenme</p>
           </div>
-          <div className="text-center p-4 bg-white/60 dark:bg-gray-800/60 rounded-lg backdrop-blur-sm">
+          <div className="text-center p-4 rounded-lg glass-card-inner">
             <Target className="h-6 w-6 mx-auto mb-2 text-indigo-600" />
             <p className="text-sm font-medium">Kişiselleştirilmiş</p>
           </div>

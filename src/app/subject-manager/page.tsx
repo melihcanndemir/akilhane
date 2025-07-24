@@ -78,14 +78,14 @@ export default function SubjectManagerPage() {
     }
   };
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen">
       {/* Responsive Navigation Bar */}
       <MobileNav />
 
       <div className="p-4">
         <div className="max-w-7xl mx-auto">
           {/* Header Info */}
-          <Card className="mb-6">
+          <Card className="mb-6 glass-card">
             <CardHeader>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
@@ -113,14 +113,14 @@ export default function SubjectManagerPage() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                  <div className="flex items-center gap-2 p-4 rounded-lg glass-card-inner">
                     <BookOpen className="w-6 h-6 text-blue-500 flex-shrink-0" />
                     <div>
                       <p className="text-sm text-muted-foreground">Toplam Ders</p>
                       {isLoading ? <LoadingSpinner className="p-0 h-6 w-6" /> : <p className="text-xl font-bold">{stats.totalSubjects}</p>}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                  <div className="flex items-center gap-2 p-4 rounded-lg glass-card-inner">
                     <Brain className="w-6 h-6 text-purple-500 flex-shrink-0" />
                      <div>
                       <p className="text-sm text-muted-foreground">Toplam Kategori</p>

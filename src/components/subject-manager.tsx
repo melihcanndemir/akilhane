@@ -306,7 +306,7 @@ export default function SubjectManager({ onStatsUpdate }: SubjectManagerProps) {
       </div>
 
       {/* Filters */}
-      <Card>
+      <Card className="glass-card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Filter className="w-5 h-5" />
@@ -378,7 +378,7 @@ export default function SubjectManager({ onStatsUpdate }: SubjectManagerProps) {
       {/* Subjects List */}
       <div className="grid gap-6">
         {filteredSubjects.length === 0 ? (
-          <Card>
+          <Card className="glass-card">
             <CardContent className="text-center py-8">
               <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">Henüz ders bulunmuyor</h3>
@@ -393,7 +393,7 @@ export default function SubjectManager({ onStatsUpdate }: SubjectManagerProps) {
           </Card>
         ) : (
           filteredSubjects.map((subject) => (
-            <Card key={subject.id} className="hover:shadow-md transition-shadow">
+            <Card key={subject.id} className="glass-card transition-shadow">
               <CardHeader>
                 <div className="flex flex-col sm:flex-row items-start justify-between gap-2">
                   <div className="flex-1">
@@ -468,7 +468,7 @@ export default function SubjectManager({ onStatsUpdate }: SubjectManagerProps) {
       {/* Add Subject Dialog */}
       {isAddDialogOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <Card className="w-full max-w-md">
+          <Card className="w-full max-w-md glass-card">
             <CardHeader>
               <CardTitle>Yeni Ders Ekle</CardTitle>
             </CardHeader>
@@ -535,7 +535,7 @@ export default function SubjectManager({ onStatsUpdate }: SubjectManagerProps) {
       {/* Edit Subject Dialog */}
       {isEditDialogOpen && editingSubject && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <Card className="w-full max-w-md">
+          <Card className="w-full max-w-md glass-card">
             <CardHeader>
               <CardTitle>Ders Düzenle</CardTitle>
             </CardHeader>

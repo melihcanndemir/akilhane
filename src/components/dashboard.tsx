@@ -222,7 +222,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       {/* Responsive Navigation Bar */}
       <MobileNav />
 
@@ -246,7 +246,11 @@ export default function Dashboard() {
                   </Button>
                 </Link>
                 <Link href="/settings">
-                  <Button size="sm" variant="outline" className="flex items-center gap-2">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="flex items-center gap-2 hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors"
+                  >
                     <Settings className="w-4 h-4" />
                     <span className="hidden sm:inline">Ayarlar</span>
                   </Button>
@@ -254,7 +258,7 @@ export default function Dashboard() {
                 <Button 
                   size="sm"
                   variant="outline" 
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors"
                   onClick={() => setShowAnalytics(!showAnalytics)}
                 >
                   <BarChart3 className="w-4 h-4" />
@@ -275,7 +279,7 @@ export default function Dashboard() {
 
           {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card>
+            <Card className="glass-card">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Toplam Test</CardTitle>
                 <BookOpen className="h-4 w-4 text-muted-foreground" />
@@ -290,7 +294,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="glass-card">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Ortalama Skor</CardTitle>
                 <Target className="h-4 w-4 text-muted-foreground" />
@@ -305,7 +309,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="glass-card">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Toplam Süre</CardTitle>
                 <Clock className="h-4 w-4 text-muted-foreground" />
@@ -322,7 +326,7 @@ export default function Dashboard() {
 
             <Card 
               onClick={() => handleStatCardClick('performance-analytics-section')}
-              className="cursor-pointer hover:bg-muted/50 transition-colors"
+              className="cursor-pointer hover:bg-muted/50 transition-colors glass-card"
             >
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Zayıf Konular</CardTitle>
@@ -343,7 +347,7 @@ export default function Dashboard() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Performance Analytics */}
-            <Card id="performance-analytics-section">
+            <Card id="performance-analytics-section" className="glass-card">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BarChart3 className="w-5 h-5" />
@@ -395,7 +399,7 @@ export default function Dashboard() {
             </Card>
 
             {/* Recent Results */}
-            <Card id="recent-results-section">
+            <Card id="recent-results-section" className="glass-card">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="w-5 h-5" />
@@ -452,7 +456,7 @@ export default function Dashboard() {
           </div>
 
           {/* Quick Actions */}
-          <Card>
+          <Card className="glass-card">
             <CardHeader>
               <CardTitle>Hızlı Erişim</CardTitle>
               <CardDescription>
@@ -462,25 +466,25 @@ export default function Dashboard() {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <Link href="/quiz">
-                  <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center gap-2">
+                  <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center gap-2 hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors">
                     <BookOpen className="w-6 h-6" />
                     <span>Test Çöz</span>
                   </Button>
                 </Link>
                 <Link href="/flashcard">
-                  <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center gap-2">
+                  <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center gap-2 hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors">
                     <Brain className="w-6 h-6" />
                     <span>Flashcard</span>
                   </Button>
                 </Link>
                 <Link href="/ai-chat">
-                  <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center gap-2">
+                  <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center gap-2 hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors">
                     <Users className="w-6 h-6" />
                     <span>AI Asistan</span>
                   </Button>
                 </Link>
                 <Link href="/question-manager">
-                  <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center gap-2">
+                  <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center gap-2 hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors">
                     <Database className="w-6 h-6" />
                     <span>Soru Yöneticisi</span>
                   </Button>
