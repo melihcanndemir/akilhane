@@ -84,12 +84,20 @@ export default function MobileNav() {
             ) : isAuthenticated && user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="flex items-center gap-2 hover:bg-primary/10 dark:hover:bg-primary/20">
-                    <User className="w-4 h-4" />
-                    {user?.email?.split('@')[0] || user?.user_metadata?.full_name || 'Kullanıcı'}
+                  <Button variant="ghost" size="sm" className="flex items-center gap-2 hover:bg-primary/10 dark:hover:bg-primary/20 max-w-[200px]">
+                    <User className="w-4 h-4 flex-shrink-0" />
+                    <span className="truncate">
+                      {user?.email?.split('@')[0] || user?.user_metadata?.full_name || 'Kullanıcı'}
+                    </span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-background/95 border border-border">
+                <DropdownMenuContent align="end" className="bg-background/95 border border-border w-64">
+                  {/* User Email Display */}
+                  <div className="px-2 py-1.5 text-xs text-muted-foreground border-b border-border">
+                    <div className="break-words break-all">
+                      {user?.email}
+                    </div>
+                  </div>
                   <DropdownMenuItem asChild>
                     <Link href="/settings" className="flex items-center gap-2">
                       <Settings className="w-4 h-4" />
@@ -160,9 +168,9 @@ export default function MobileNav() {
                       <div className="space-y-3">
                         {/* User Information */}
                         <div className="glass-card-inner p-3 rounded-lg shadow-lg">
-                          <div className="flex items-center gap-2 text-sm text-foreground">
-                            <User className="w-4 h-4" />
-                            <span className="font-medium">{user.email}</span>
+                          <div className="flex items-start gap-2 text-sm text-foreground">
+                            <User className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                            <span className="font-medium break-words break-all min-w-0">{user.email}</span>
                           </div>
                           {user.user_metadata?.full_name && (
                             <div className="text-xs text-muted-foreground mt-1">
