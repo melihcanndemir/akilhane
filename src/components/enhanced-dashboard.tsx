@@ -86,6 +86,12 @@ export default function EnhancedDashboard() {
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [useDemoData, setUseDemoData] = useState(true);
+  const [userSettings, setUserSettings] = useState({
+    studyPreferences: {
+      questionsPerQuiz: 10,
+      timeLimit: 30,
+    }
+  });
 
   // Safely initialize the demo data state
   useEffect(() => {
@@ -97,6 +103,33 @@ export default function EnhancedDashboard() {
       loadUserData();
     }
   }, [user?.id, loading, useDemoData]);
+
+  // Load user settings
+  useEffect(() => {
+    const loadSettings = () => {
+      try {
+        const settings = localStorageService.getUserSettings();
+        setUserSettings(settings);
+      } catch (error) {
+        console.error('Error loading user settings:', error);
+      }
+    };
+    
+    loadSettings();
+
+    // Listen for storage changes to update settings in real-time
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'userSettings') {
+        loadSettings();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
   const loadUserData = async () => {
     if (!user) return;
@@ -689,42 +722,44 @@ export default function EnhancedDashboard() {
             </div>
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer hover:scale-105 transition-transform duration-200">
                 <Link href="/quiz">
-                  <CardContent className="p-6 text-center">
-                    <Zap className="h-8 w-8 mx-auto mb-3 text-blue-600" />
-                    <h3 className="font-semibold mb-2">Hızlı Test</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">10 soruluk hızlı test çöz</p>
+                  <CardContent className="p-8 text-center">
+                    <Zap className="h-10 w-10 mx-auto mb-4 text-blue-600" />
+                    <h3 className="font-semibold mb-3 text-lg">Hızlı Test</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {userSettings.studyPreferences.questionsPerQuiz} soruluk hızlı test çöz
+                    </p>
                   </CardContent>
                 </Link>
               </Card>
 
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer hover:scale-105 transition-transform duration-200">
                 <Link href="/flashcard">
-                  <CardContent className="p-6 text-center">
-                    <Brain className="h-8 w-8 mx-auto mb-3 text-green-600" />
-                    <h3 className="font-semibold mb-2">Flashcard</h3>
+                  <CardContent className="p-8 text-center">
+                    <Brain className="h-10 w-10 mx-auto mb-4 text-green-600" />
+                    <h3 className="font-semibold mb-3 text-lg">Flashcard</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Akıllı kartlarla çalış</p>
                   </CardContent>
                 </Link>
               </Card>
 
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer hover:scale-105 transition-transform duration-200">
                 <Link href="/ai-chat">
-                  <CardContent className="p-6 text-center">
-                    <BookOpen className="h-8 w-8 mx-auto mb-3 text-purple-600" />
-                    <h3 className="font-semibold mb-2">AI Tutor</h3>
+                  <CardContent className="p-8 text-center">
+                    <BookOpen className="h-10 w-10 mx-auto mb-4 text-purple-600" />
+                    <h3 className="font-semibold mb-3 text-lg">AI Tutor</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Yapay zeka ile sohbet et</p>
                   </CardContent>
                 </Link>
               </Card>
 
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer hover:scale-105 transition-transform duration-200">
                 <Link href="/subject-manager">
-                  <CardContent className="p-6 text-center">
-                    <Database className="h-8 w-8 mx-auto mb-3 text-indigo-600" />
-                    <h3 className="font-semibold mb-2">Konu Yönetimi</h3>
+                  <CardContent className="p-8 text-center">
+                    <Database className="h-10 w-10 mx-auto mb-4 text-indigo-600" />
+                    <h3 className="font-semibold mb-3 text-lg">Konu Yönetimi</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Konuları düzenle</p>
                   </CardContent>
                 </Link>
