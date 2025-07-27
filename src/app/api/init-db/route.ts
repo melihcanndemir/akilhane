@@ -1,13 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { initializeDatabase, checkDatabaseHealth } from '@/lib/database/connection';
 
-export async function POST(request: NextRequest) {
+// Force this route to be dynamic
+export const dynamic = 'force-dynamic';
+
+export async function POST() {
   try {
     // Initialize database
     initializeDatabase();
     
     // Check database health
-    const isHealthy = checkDatabaseHealth();
+    const isHealthy = await checkDatabaseHealth();
     
     if (!isHealthy) {
       return NextResponse.json(
@@ -32,10 +35,10 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Check database health
-    const isHealthy = checkDatabaseHealth();
+    const isHealthy = await checkDatabaseHealth();
     
     return NextResponse.json(
       { 

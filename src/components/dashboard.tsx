@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import AnalyticsDashboard from './analytics-dashboard';
-import MobileNav from './mobile-nav'; // Import the new component
+import MobileNav from './mobile-nav';
 import LoadingSpinner from './loading-spinner';
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
@@ -79,7 +79,7 @@ const mockRecentResults: QuizResult[] = [
   {
     id: 'res1',
     subject: 'Matematik',
-    score: 18, // 20 sorudan 18 doğru = %90
+    score: 18, // 18 out of 20 questions correct = 90%
     totalQuestions: 20,
     timeSpent: 1200, // 20 mins
     weakTopics: ['Türev'],
@@ -88,7 +88,7 @@ const mockRecentResults: QuizResult[] = [
   {
     id: 'res2',
     subject: 'Tarih',
-    score: 9, // 10 sorudan 9 doğru = %90
+    score: 9, // 9 out of 10 questions correct = 90%
     totalQuestions: 10,
     timeSpent: 300, // 5 mins
     weakTopics: [],
@@ -97,7 +97,7 @@ const mockRecentResults: QuizResult[] = [
   {
     id: 'res3',
     subject: 'Fizik',
-    score: 12, // 15 sorudan 12 doğru = %80
+    score: 12, // 12 out of 15 questions correct = 80%
     totalQuestions: 15,
     timeSpent: 950, // ~16 mins
     weakTopics: ['Optik', 'Dinamik'],
@@ -113,7 +113,7 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [showAnalytics, setShowAnalytics] = useState(false);
   
-  // Örnek veri butonunu geri getir
+  // return the useMockData parameter
   const [useMockData, setUseMockData] = useState(() => {
     if (typeof window === 'undefined') {
       return true;
@@ -133,7 +133,7 @@ export default function Dashboard() {
   const loadDashboardData = async () => {
     setIsLoading(true);
     
-    // Örnek veri kullanımını geri getir
+    // return the useMockData parameter
     if (useMockData) {
       setPerformanceData(mockPerformanceData);
       setRecentResults(mockRecentResults);
@@ -191,14 +191,14 @@ export default function Dashboard() {
   };
 
   const getScoreColor = (score: number) => {
-    // Yüzde değerlerini doğru bir şekilde değerlendir
+    // Evaluate percentage values correctly
     if (score >= 80) return 'text-blue-600';
     if (score >= 60) return 'text-yellow-600';
     return 'text-red-600';
   };
 
   const getScoreBadge = (score: number) => {
-    // Yüzde değerlerini doğru bir şekilde değerlendir
+    // Evaluate percentage values correctly
     if (score >= 80) return <Badge className="bg-blue-100 text-blue-800">Mükemmel</Badge>;
     if (score >= 60) return <Badge className="bg-yellow-100 text-yellow-800">İyi</Badge>;
     return <Badge className="bg-red-100 text-red-800">Geliştirilmeli</Badge>;

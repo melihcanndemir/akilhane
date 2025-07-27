@@ -1,173 +1,370 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Search, 
-  Filter, 
-  BookOpen, 
-  Eye,
-  EyeOff
-} from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { Plus, Edit, Trash2, Eye, EyeOff } from 'lucide-react';
+import { shouldUseDemoData, demoSubjects } from '@/data/demo-data';
+import { SubjectService } from '@/services/supabase-service';
+import { supabase } from '@/lib/supabase';
 
 interface Subject {
   id: string;
   name: string;
   description: string;
   category: string;
-  difficulty: 'Başlangıç' | 'Orta' | 'İleri';
+  difficulty: string;
   questionCount: number;
   isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
 }
 
-const difficultyColors = {
-  'Başlangıç': 'bg-green-100 text-green-800',
-  'Orta': 'bg-yellow-100 text-yellow-800',
-  'İleri': 'bg-red-100 text-red-800'
-};
+// LocalStorage service for subjects
+class SubjectLocalStorageService {
+  private static readonly STORAGE_KEY = 'exam_training_subjects';
 
-const categories = [
-  'Matematik',
-  'Ekonomi',
-  'Finans',
-  'Muhasebe',
-  'İstatistik',
-  'Yönetim',
-  'Pazarlama',
-  'Hukuk',
-  'Bilgisayar',
-  'Diğer'
-];
+  static getSubjects(): Subject[] {
+    if (typeof window === 'undefined') return [];
+    try {
+      const stored = localStorage.getItem(this.STORAGE_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  }
 
-interface SubjectManagerProps {
-  onStatsUpdate?: () => void;
+  static saveSubjects(subjects: Subject[]): void {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(subjects));
+    } catch (error) {
+      console.error('Error saving subjects to localStorage:', error);
+    }
+  }
+
+  static addSubject(subject: Omit<Subject, 'id'>): Subject {
+    const newSubject: Subject = {
+      ...subject,
+      id: `subj_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    };
+
+    const subjects = this.getSubjects();
+    subjects.push(newSubject);
+    this.saveSubjects(subjects);
+    return newSubject;
+  }
+
+  static updateSubject(id: string, updates: Partial<Subject>): Subject | null {
+    const subjects = this.getSubjects();
+    const index = subjects.findIndex(s => s.id === id);
+    if (index === -1) return null;
+
+    const existingSubject = subjects[index];
+    if (existingSubject) {
+      subjects[index] = {
+        id: existingSubject.id,
+        name: existingSubject.name,
+        description: existingSubject.description,
+        category: existingSubject.category,
+        difficulty: existingSubject.difficulty,
+        questionCount: existingSubject.questionCount,
+        isActive: existingSubject.isActive,
+        ...updates,
+      };
+      this.saveSubjects(subjects);
+      return subjects[index];
+    }
+    return null;
+  }
+
+  static deleteSubject(id: string): boolean {
+    const subjects = this.getSubjects();
+    const filtered = subjects.filter(s => s.id !== id);
+    if (filtered.length === subjects.length) return false;
+    
+    this.saveSubjects(filtered);
+    return true;
+  }
+
+  static toggleActive(id: string): Subject | null {
+    const subjects = this.getSubjects();
+    const index = subjects.findIndex(s => s.id === id);
+    if (index === -1) return null;
+
+    const existingSubject = subjects[index];
+    if (existingSubject) {
+      subjects[index] = {
+        id: existingSubject.id,
+        name: existingSubject.name,
+        description: existingSubject.description,
+        category: existingSubject.category,
+        difficulty: existingSubject.difficulty,
+        questionCount: existingSubject.questionCount,
+        isActive: !existingSubject.isActive,
+      };
+      this.saveSubjects(subjects);
+      return subjects[index];
+    }
+    return null;
+  }
 }
 
-export default function SubjectManager({ onStatsUpdate }: SubjectManagerProps) {
+const SubjectManager = () => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
-  const [newSubject, setNewSubject] = useState({
+  const [formData, setFormData] = useState({
     name: '',
     description: '',
-    category: 'Matematik',
-    difficulty: 'Orta' as 'Başlangıç' | 'Orta' | 'İleri'
+    category: '',
+    difficulty: 'Orta'
   });
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedDifficulty, setSelectedDifficulty] = useState('all');
+  const [useSupabase, setUseSupabase] = useState(false);
   const { toast } = useToast();
-
-  useEffect(() => {
-    loadSubjects();
-  }, []);
 
   const loadSubjects = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/subjects');
       
-      if (!response.ok) {
-        throw new Error('Failed to load subjects');
+      // Use demo data for demo mode
+      if (shouldUseDemoData()) {
+        console.log('🎯 Subject Manager - Using Demo Data');
+        setSubjects(demoSubjects);
+        setUseSupabase(false);
+        return;
+      }
+
+      // Fetch data from API
+      console.log('🔐 Subject Manager - Fetching from API...');
+      const response = await fetch('/api/subjects');
+      const apiSubjects = await response.json();
+      
+      // If API returns demo data and demo mode is off, show empty state
+      if (apiSubjects.length > 0 && apiSubjects[0].createdBy === 'demo_user_btk_2025' && !shouldUseDemoData()) {
+        console.log('❌ Subject Manager - API returned demo data but demo mode is off, showing empty state');
+        setSubjects([]);
+        setUseSupabase(false);
+        return;
       }
       
-      const data = await response.json();
-      setSubjects(data);
-    } catch (error) {
-      console.error('Error loading subjects:', error);
-      toast({
-        title: "Hata",
-        description: "Dersler yüklenirken bir hata oluştu.",
-        variant: "destructive",
+      // If API returns real data, use it
+      if (apiSubjects.length > 0 && apiSubjects[0].createdBy !== 'demo_user_btk_2025') {
+        console.log('✅ Subject Manager - Using API data');
+        setSubjects(apiSubjects);
+        setUseSupabase(true);
+        return;
+      }
+
+      // If API returns empty, check localStorage
+      console.log('🔍 Subject Manager - API empty, checking localStorage...');
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        console.log('❌ No session found, using localStorage');
+        setUseSupabase(false);
+        const localSubjects = SubjectLocalStorageService.getSubjects();
+        
+        // Calculate real question count
+        const getQuestionsFromStorage = () => {
+          if (typeof window === 'undefined') return [];
+          try {
+            const stored = localStorage.getItem('exam_training_questions');
+            return stored ? JSON.parse(stored) : [];
+          } catch {
+            return [];
+          }
+        };
+        
+        const questions = getQuestionsFromStorage();
+        
+        // Calculate real question count for each subject
+        const updatedSubjects = localSubjects.map(subject => {
+          const questionCount = questions.filter((q: any) => q.subject === subject.name).length;
+          console.log(`🔍 Debug - Subject: ${subject.name}, Question count: ${questionCount}`);
+          return {
+            ...subject,
+            questionCount
+          };
+        });
+        
+        setSubjects(updatedSubjects);
+        return;
+      }
+
+      console.log('✅ Session found, using Supabase');
+      setUseSupabase(true);
+      
+      // Fetch data from Supabase
+      const supabaseSubjects = await SubjectService.getSubjects();
+      const mappedSupabaseSubjects: Subject[] = supabaseSubjects.map(s => ({
+        id: s.id,
+        name: s.name,
+        description: s.description,
+        category: s.category,
+        difficulty: s.difficulty,
+        questionCount: s.question_count,
+        isActive: s.is_active
+      }));
+      
+      // Merge localStorage and Supabase data
+      console.log('🔄 Merging localStorage and Supabase data...');
+      const localSubjects = SubjectLocalStorageService.getSubjects();
+      const mergedSubjects = [...localSubjects];
+      
+      // Check each subject in Supabase
+      mappedSupabaseSubjects.forEach(supabaseSubject => {
+        const existingIndex = mergedSubjects.findIndex(local => local.id === supabaseSubject.id);
+        if (existingIndex !== -1) {
+          // If same ID exists, update with Supabase data
+          mergedSubjects[existingIndex] = supabaseSubject;
+        } else {
+          // If new subject, add it
+          mergedSubjects.push(supabaseSubject);
+        }
       });
+      
+      // Calculate real question count
+      const getQuestionsFromStorage = () => {
+        if (typeof window === 'undefined') return [];
+        try {
+          const stored = localStorage.getItem('exam_training_questions');
+          return stored ? JSON.parse(stored) : [];
+        } catch {
+          return [];
+        }
+      };
+      
+      const questions = getQuestionsFromStorage();
+      
+      // Calculate real question count for each subject
+      const updatedMergedSubjects = mergedSubjects.map(subject => {
+        const questionCount = questions.filter((q: any) => q.subject === subject.name).length;
+        return {
+          ...subject,
+          questionCount
+        };
+      });
+      
+      setSubjects(updatedMergedSubjects);
+    } catch (error) {
+      console.error('❌ Error loading subjects:', error);
+      setSubjects([]);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleAddSubject = async () => {
-    if (!newSubject.name.trim() || !newSubject.description.trim()) {
-      toast({
-        title: "Hata",
-        description: "Lütfen tüm alanları doldurun.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
-      const response = await fetch('/api/subjects', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newSubject),
-      });
+      if (!formData.name || !formData.description || !formData.category) {
+        toast({
+          title: "Hata",
+          description: "Lütfen tüm alanları doldurun.",
+          variant: "destructive",
+        });
+        return;
+      }
 
-      if (!response.ok) {
-        throw new Error('Failed to create subject');
+      const newSubject = {
+        name: formData.name,
+        description: formData.description,
+        category: formData.category,
+        difficulty: formData.difficulty,
+        questionCount: 0,
+        isActive: true
+      };
+
+      if (useSupabase) {
+        const result = await SubjectService.createSubject({
+          name: formData.name,
+          description: formData.description,
+          category: formData.category,
+          difficulty: formData.difficulty,
+          question_count: 0,
+          is_active: true
+        });
+        
+        if (result) {
+          const mappedSubject: Subject = {
+            id: result.id,
+            name: result.name,
+            description: result.description,
+            category: result.category,
+            difficulty: result.difficulty,
+            questionCount: result.question_count,
+            isActive: result.is_active
+          };
+          setSubjects(prev => [mappedSubject, ...prev]);
+        }
+      } else {
+        const result = SubjectLocalStorageService.addSubject(newSubject);
+        setSubjects(prev => [result, ...prev]);
       }
 
       toast({
         title: "Başarılı",
-        description: "Ders başarıyla oluşturuldu.",
+        description: "Ders başarıyla eklendi.",
       });
 
-      setNewSubject({
-        name: '',
-        description: '',
-        category: 'Matematik',
-        difficulty: 'Orta'
-      });
-      setIsAddDialogOpen(false);
-      loadSubjects();
-      onStatsUpdate?.();
+      setFormData({ name: '', description: '', category: '', difficulty: 'Orta' });
+      setIsDialogOpen(false);
     } catch (error) {
-      console.error('Error creating subject:', error);
+      console.error('Error adding subject:', error);
       toast({
         title: "Hata",
-        description: "Ders oluşturulurken bir hata oluştu.",
+        description: "Ders eklenirken bir hata oluştu.",
         variant: "destructive",
       });
     }
   };
 
-  const handleEditSubject = async () => {
-    if (!editingSubject || !editingSubject.name.trim() || !editingSubject.description.trim()) {
-      toast({
-        title: "Hata",
-        description: "Lütfen tüm alanları doldurun.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleEditSubject = async (subject: Subject) => {
     try {
-      const response = await fetch(`/api/subjects/${editingSubject.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(editingSubject),
-      });
+      if (!formData.name || !formData.description || !formData.category) {
+        toast({
+          title: "Hata",
+          description: "Lütfen tüm alanları doldurun.",
+          variant: "destructive",
+        });
+        return;
+      }
 
-      if (!response.ok) {
-        throw new Error('Failed to update subject');
+      if (useSupabase) {
+        const result = await SubjectService.updateSubject(subject.id, {
+          name: formData.name,
+          description: formData.description,
+          category: formData.category,
+          difficulty: formData.difficulty
+        });
+        
+        if (result) {
+          const mappedSubject: Subject = {
+            id: result.id,
+            name: result.name,
+            description: result.description,
+            category: result.category,
+            difficulty: result.difficulty,
+            questionCount: result.question_count,
+            isActive: result.is_active
+          };
+          setSubjects(prev => prev.map(s => s.id === subject.id ? mappedSubject : s));
+        }
+      } else {
+        const result = SubjectLocalStorageService.updateSubject(subject.id, {
+          name: formData.name,
+          description: formData.description,
+          category: formData.category,
+          difficulty: formData.difficulty
+        });
+        
+        if (result) {
+          setSubjects(prev => prev.map(s => s.id === subject.id ? result : s));
+        }
       }
 
       toast({
@@ -175,10 +372,9 @@ export default function SubjectManager({ onStatsUpdate }: SubjectManagerProps) {
         description: "Ders başarıyla güncellendi.",
       });
 
+      setFormData({ name: '', description: '', category: '', difficulty: 'Orta' });
       setEditingSubject(null);
-      setIsEditDialogOpen(false);
-      loadSubjects();
-      onStatsUpdate?.();
+      setIsDialogOpen(false);
     } catch (error) {
       console.error('Error updating subject:', error);
       toast({
@@ -189,36 +385,24 @@ export default function SubjectManager({ onStatsUpdate }: SubjectManagerProps) {
     }
   };
 
-  const handleDeleteSubject = async (subjectId: string) => {
-    if (!confirm('Bu dersi silmek istediğinizden emin misiniz?')) {
-      return;
-    }
-
+  const handleDeleteSubject = async (id: string) => {
     try {
-      const response = await fetch(`/api/subjects/${subjectId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        if (errorData.error?.includes('existing questions')) {
-          toast({
-            title: "Hata",
-            description: "Bu dersin soruları olduğu için silinemez.",
-            variant: "destructive",
-          });
-          return;
+      if (useSupabase) {
+        const success = await SubjectService.deleteSubject(id);
+        if (success) {
+          setSubjects(prev => prev.filter(s => s.id !== id));
         }
-        throw new Error('Failed to delete subject');
+      } else {
+        const success = SubjectLocalStorageService.deleteSubject(id);
+        if (success) {
+          setSubjects(prev => prev.filter(s => s.id !== id));
+        }
       }
 
       toast({
         title: "Başarılı",
         description: "Ders başarıyla silindi.",
       });
-
-      loadSubjects();
-      onStatsUpdate?.();
     } catch (error) {
       console.error('Error deleting subject:', error);
       toast({
@@ -229,29 +413,38 @@ export default function SubjectManager({ onStatsUpdate }: SubjectManagerProps) {
     }
   };
 
-  const handleToggleActive = async (subjectId: string) => {
+  const handleToggleActive = async (id: string) => {
     try {
-      const response = await fetch(`/api/subjects/${subjectId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ action: 'toggle-active' }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to toggle subject status');
+      if (useSupabase) {
+        const subject = subjects.find(s => s.id === id);
+        if (subject) {
+          const result = await SubjectService.toggleActive(id, !subject.isActive);
+          if (result) {
+            const mappedSubject: Subject = {
+              id: result.id,
+              name: result.name,
+              description: result.description,
+              category: result.category,
+              difficulty: result.difficulty,
+              questionCount: result.question_count,
+              isActive: result.is_active
+            };
+            setSubjects(prev => prev.map(s => s.id === id ? mappedSubject : s));
+          }
+        }
+      } else {
+        const result = SubjectLocalStorageService.toggleActive(id);
+        if (result) {
+          setSubjects(prev => prev.map(s => s.id === id ? result : s));
+        }
       }
 
       toast({
         title: "Başarılı",
         description: "Ders durumu güncellendi.",
       });
-
-      loadSubjects();
-      onStatsUpdate?.();
     } catch (error) {
-      console.error('Error toggling subject status:', error);
+      console.error('Error toggling subject:', error);
       toast({
         title: "Hata",
         description: "Ders durumu güncellenirken bir hata oluştu.",
@@ -261,30 +454,34 @@ export default function SubjectManager({ onStatsUpdate }: SubjectManagerProps) {
   };
 
   const openEditDialog = (subject: Subject) => {
-    setEditingSubject({ ...subject });
-    setIsEditDialogOpen(true);
+    setEditingSubject(subject);
+    setFormData({
+      name: subject.name,
+      description: subject.description,
+      category: subject.category,
+      difficulty: subject.difficulty
+    });
+    setIsDialogOpen(true);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('tr-TR');
+  const openAddDialog = () => {
+    setEditingSubject(null);
+    setFormData({ name: '', description: '', category: '', difficulty: 'Orta' });
+    setIsDialogOpen(true);
   };
 
-  const filteredSubjects = subjects.filter(subject => {
-    const matchesSearch = subject.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         subject.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || subject.category === selectedCategory;
-    const matchesDifficulty = selectedDifficulty === 'all' || subject.difficulty === selectedDifficulty;
-    
-    return matchesSearch && matchesCategory && matchesDifficulty;
-  });
+  useEffect(() => {
+    console.log('🚀 SubjectManager useEffect triggered');
+    loadSubjects();
+  }, []);
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background p-4 md:p-8">
-        <div className="container mx-auto">
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-            <p className="text-muted-foreground">Dersler yükleniyor...</p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-300">Dersler yükleniyor...</p>
           </div>
         </div>
       </div>
@@ -292,140 +489,137 @@ export default function SubjectManager({ onStatsUpdate }: SubjectManagerProps) {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-headline font-bold text-primary">Ders Yöneticisi</h1>
-          <p className="text-muted-foreground">Dersleri yönetin ve organize edin</p>
-        </div>
-        <Button onClick={() => setIsAddDialogOpen(true)} className="flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          Yeni Ders Ekle
-        </Button>
-      </div>
-
-      {/* Filters */}
-      <Card className="glass-card">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="w-5 h-5" />
-            Filtreler
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <Label htmlFor="search">Arama</Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="search"
-                  placeholder="Ders ara..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="category">Kategori</Label>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Tüm kategoriler" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tüm kategoriler</SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="difficulty">Zorluk</Label>
-              <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Tüm zorluklar" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tüm zorluklar</SelectItem>
-                  <SelectItem value="Başlangıç">Başlangıç</SelectItem>
-                  <SelectItem value="Orta">Orta</SelectItem>
-                  <SelectItem value="İleri">İleri</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-end">
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  setSearchTerm('');
-                  setSelectedCategory('all');
-                  setSelectedDifficulty('all');
-                }}
-                className="w-full"
-              >
-                Filtreleri Temizle
-              </Button>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-8">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <h1 className="text-4xl font-bold text-gray-800 dark:text-white">
+              📚 Ders Yöneticisi
+            </h1>
+            {shouldUseDemoData() && (
+              <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+                🎯 BTK Demo
+              </Badge>
+            )}
+            {useSupabase && (
+              <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200">
+                ☁️ Cloud Storage
+              </Badge>
+            )}
+            {!useSupabase && !shouldUseDemoData() && (
+              <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">
+                💾 LocalStorage
+              </Badge>
+            )}
           </div>
-        </CardContent>
-      </Card>
+          <p className="text-gray-600 dark:text-gray-300 text-lg">
+            Dersleri yönetin ve organize edin
+          </p>
+        </div>
 
-      {/* Subjects List */}
-      <div className="grid gap-6">
-        {filteredSubjects.length === 0 ? (
-          <Card className="glass-card">
-            <CardContent className="text-center py-8">
-              <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Henüz ders bulunmuyor</h3>
-              <p className="text-muted-foreground mb-4">
-                İlk dersinizi ekleyerek başlayın
-              </p>
-              <Button onClick={() => setIsAddDialogOpen(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                İlk Dersi Ekle
+        {/* Add Subject Button */}
+        <div className="mb-6 flex justify-center">
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={openAddDialog} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                <Plus className="w-5 h-5 mr-2" />
+                Yeni Ders Ekle
               </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          filteredSubjects.map((subject) => (
-            <Card key={subject.id} className="glass-card transition-shadow">
-              <CardHeader>
-                <div className="flex flex-col sm:flex-row items-start justify-between gap-2">
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingSubject ? 'Dersi Düzenle' : 'Yeni Ders Ekle'}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="name">Ders Adı</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Örn: Matematik"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="description">Açıklama</Label>
+                  <Input
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Ders açıklaması"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="category">Kategori</Label>
+                  <Input
+                    id="category"
+                    value={formData.category}
+                    onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                    placeholder="Örn: Fen Bilimleri"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="difficulty">Zorluk Seviyesi</Label>
+                  <Select value={formData.difficulty} onValueChange={(value) => setFormData(prev => ({ ...prev, difficulty: value }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Kolay">Kolay</SelectItem>
+                      <SelectItem value="Orta">Orta</SelectItem>
+                      <SelectItem value="Zor">Zor</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex gap-2 pt-4">
+                  <Button onClick={editingSubject ? () => handleEditSubject(editingSubject) : handleAddSubject} className="flex-1">
+                    {editingSubject ? 'Güncelle' : 'Ekle'}
+                  </Button>
+                  <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="flex-1">
+                    İptal
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {/* Subjects Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {subjects.map((subject) => (
+            <div
+              key={subject.id}
+              className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border-2 ${
+                subject.isActive ? 'border-green-200 dark:border-green-800' : 'border-gray-200 dark:border-gray-700'
+              }`}
+            >
+              <div className="p-6">
+                <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
-                    <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <CardTitle className="text-xl">{subject.name}</CardTitle>
-                      <Badge className={difficultyColors[subject.difficulty]}>
-                        {subject.difficulty}
-                      </Badge>
-                      <Badge variant={subject.isActive ? "default" : "secondary"}>
-                        {subject.isActive ? "Aktif" : "Pasif"}
-                      </Badge>
-                    </div>
-                    <CardDescription className="text-base">
+                    <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
+                      {subject.name}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm mb-3">
                       {subject.description}
-                    </CardDescription>
+                    </p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex gap-2">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => handleToggleActive(subject.id)}
+                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                     >
-                      {subject.isActive ? (
-                        <EyeOff className="w-4 h-4" />
-                      ) : (
-                        <Eye className="w-4 h-4" />
-                      )}
+                      {subject.isActive ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => openEditDialog(subject)}
+                      className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-200"
                     >
                       <Edit className="w-4 h-4" />
                     </Button>
@@ -433,179 +627,70 @@ export default function SubjectManager({ onStatsUpdate }: SubjectManagerProps) {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDeleteSubject(subject.id)}
-                      className="text-red-600 hover:text-red-700"
+                      className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-200"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                  <div>
-                    <span className="font-medium">Kategori:</span>
-                    <p className="text-muted-foreground">{subject.category}</p>
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">Kategori:</span>
+                    <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200">
+                      {subject.category}
+                    </Badge>
                   </div>
-                  <div>
-                    <span className="font-medium">Soru Sayısı:</span>
-                    <p className="text-muted-foreground">{subject.questionCount}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">Zorluk:</span>
+                    <Badge 
+                      className={
+                        subject.difficulty === 'Kolay' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' :
+                        subject.difficulty === 'Orta' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200' :
+                        'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
+                      }
+                    >
+                      {subject.difficulty}
+                    </Badge>
                   </div>
-                  <div>
-                    <span className="font-medium">Oluşturulma:</span>
-                    <p className="text-muted-foreground">{formatDate(subject.createdAt)}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">Soru Sayısı:</span>
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {subject.questionCount}
+                    </span>
                   </div>
-                  <div>
-                    <span className="font-medium">Güncelleme:</span>
-                    <p className="text-muted-foreground">{formatDate(subject.updatedAt)}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">Durum:</span>
+                    <Badge 
+                      className={subject.isActive ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' : 'bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-200'}
+                    >
+                      {subject.isActive ? 'Aktif' : 'Pasif'}
+                    </Badge>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          ))
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {subjects.length === 0 && (
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">📚</div>
+            <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Henüz ders eklenmemiş
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-6">
+              İlk dersinizi ekleyerek başlayın!
+            </p>
+            <Button onClick={openAddDialog} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white">
+              <Plus className="w-5 h-5 mr-2" />
+              İlk Dersi Ekle
+            </Button>
+          </div>
         )}
       </div>
-
-      {/* Add Subject Dialog */}
-      {isAddDialogOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <Card className="w-full max-w-md glass-card">
-            <CardHeader>
-              <CardTitle>Yeni Ders Ekle</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="name">Ders Adı</Label>
-                <Input
-                  id="name"
-                  value={newSubject.name}
-                  onChange={(e) => setNewSubject({ ...newSubject, name: e.target.value })}
-                  placeholder="Ders adını girin"
-                />
-              </div>
-              <div>
-                <Label htmlFor="description">Açıklama</Label>
-                <Textarea
-                  id="description"
-                  value={newSubject.description}
-                  onChange={(e) => setNewSubject({ ...newSubject, description: e.target.value })}
-                  placeholder="Ders açıklamasını girin"
-                />
-              </div>
-              <div>
-                <Label htmlFor="category">Kategori</Label>
-                <Select value={newSubject.category} onValueChange={(value) => setNewSubject({ ...newSubject, category: value })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="difficulty">Zorluk</Label>
-                <Select value={newSubject.difficulty} onValueChange={(value: 'Başlangıç' | 'Orta' | 'İleri') => setNewSubject({ ...newSubject, difficulty: value })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Başlangıç">Başlangıç</SelectItem>
-                    <SelectItem value="Orta">Orta</SelectItem>
-                    <SelectItem value="İleri">İleri</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex gap-2 pt-4">
-                <Button onClick={handleAddSubject} className="flex-1">
-                  Ekle
-                </Button>
-                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)} className="flex-1">
-                  İptal
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Edit Subject Dialog */}
-      {isEditDialogOpen && editingSubject && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <Card className="w-full max-w-md glass-card">
-            <CardHeader>
-              <CardTitle>Ders Düzenle</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="edit-name">Ders Adı</Label>
-                <Input
-                  id="edit-name"
-                  value={editingSubject.name}
-                  onChange={(e) => setEditingSubject({ ...editingSubject, name: e.target.value })}
-                  placeholder="Ders adını girin"
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-description">Açıklama</Label>
-                <Textarea
-                  id="edit-description"
-                  value={editingSubject.description}
-                  onChange={(e) => setEditingSubject({ ...editingSubject, description: e.target.value })}
-                  placeholder="Ders açıklamasını girin"
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-category">Kategori</Label>
-                <Select value={editingSubject.category} onValueChange={(value) => setEditingSubject({ ...editingSubject, category: value })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="edit-difficulty">Zorluk</Label>
-                <Select value={editingSubject.difficulty} onValueChange={(value: 'Başlangıç' | 'Orta' | 'İleri') => setEditingSubject({ ...editingSubject, difficulty: value })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Başlangıç">Başlangıç</SelectItem>
-                    <SelectItem value="Orta">Orta</SelectItem>
-                    <SelectItem value="İleri">İleri</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="edit-active"
-                  checked={editingSubject.isActive}
-                  onCheckedChange={(checked) => setEditingSubject({ ...editingSubject, isActive: checked })}
-                />
-                <Label htmlFor="edit-active">Aktif</Label>
-              </div>
-              <div className="flex gap-2 pt-4">
-                <Button onClick={handleEditSubject} className="flex-1">
-                  Güncelle
-                </Button>
-                <Button variant="outline" onClick={() => setIsEditDialogOpen(false)} className="flex-1">
-                  İptal
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
     </div>
   );
-} 
+};
+
+export default SubjectManager; 

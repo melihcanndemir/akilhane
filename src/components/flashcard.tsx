@@ -5,19 +5,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getFlashcardRecommendation, type FlashcardRecommendationOutput } from '../ai/flows/flashcard-recommendation';
 import { Button } from '@/components/ui/button';
 import { 
-  BookOpen, 
-  Brain, 
-  Users, 
-  Home, 
-  Database,
-  Settings,
-  GraduationCap,
   ArrowLeft
 } from 'lucide-react';
 import Link from 'next/link';
-import { ThemeToggle } from '@/components/theme-toggle';
 import VoiceAssistant from './voice-assistant';
-import MobileNav from './mobile-nav';
+import { getDemoFlashcards } from '@/data/demo-data';
+import MobileNav from '@/components/mobile-nav';
 
 interface Flashcard {
   id: string;
@@ -35,9 +28,14 @@ interface Flashcard {
 
 interface FlashcardProps {
   subject: string;
+  isDemoMode?: boolean;
 }
 
-const FlashcardComponent: React.FC<FlashcardProps> = ({ subject }) => {
+const FlashcardComponent: React.FC<FlashcardProps> = ({ subject, isDemoMode = false }) => {
+  // Check demo mode from localStorage
+  const demoModeActive = isDemoMode || 
+                        (typeof window !== 'undefined' && localStorage.getItem('btk_demo_mode') === 'true');
+
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
@@ -54,47 +52,81 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject }) => {
   const [isLoadingRecommendation, setIsLoadingRecommendation] = useState(false);
   const [isListening, setIsListening] = useState(false);
 
-  // Load flashcards from database
+  // Load flashcards from localStorage or demo data
   useEffect(() => {
     const loadFlashcards = async () => {
       try {
-        console.log('Loading flashcards for subject:', subject);
-        const response = await fetch(`/api/questions?subject=${encodeURIComponent(subject)}`);
+        console.log('🎯 Flashcard Component - Loading flashcards for subject:', subject);
+        console.log('🎯 Flashcard Component - Demo mode:', demoModeActive);
+
+        if (demoModeActive) {
+          // Demo mode - load demo flashcards
+          const demoFlashcards = getDemoFlashcards(subject);
+          console.log('🎯 Flashcard Component - Demo flashcards found:', demoFlashcards.length);
+          
+          setFlashcards(demoFlashcards);
+          setStats({
+            total: demoFlashcards.length,
+            reviewed: demoFlashcards.filter(f => f.reviewCount > 0).length,
+            mastered: demoFlashcards.filter(f => f.confidence >= 4).length,
+            needsReview: demoFlashcards.filter(f => f.confidence < 4).length
+          });
+          return;
+        }
+
+        // USE DIRECT LOCALSTORAGE
+        console.log('🎯 Flashcard Component - Loading from localStorage...');
         
-        if (!response.ok) {
-          throw new Error(`Failed to load questions: ${response.status}`);
+        // Get questions from LocalStorage
+        const getQuestionsFromStorage = (): any[] => {
+          if (typeof window === 'undefined') return [];
+          try {
+            const stored = localStorage.getItem('exam_training_questions');
+            const questions = stored ? JSON.parse(stored) : [];
+            return questions.filter((q: any) => q.subject === subject);
+          } catch {
+            return [];
+          }
+        };
+
+        const questions = getQuestionsFromStorage();
+        
+        if (questions.length === 0) {
+          throw new Error('Bu ders için henüz soru bulunmuyor');
         }
         
-        const questions = await response.json();
-        
-        const flashcardData: Flashcard[] = questions.map((q: { id: string; text: string; options: Array<{ text: string; isCorrect: boolean }>; explanation: string; topic?: string; difficulty: string }) => ({
+        const flashcardData: Flashcard[] = questions.map((q: any) => ({
           id: q.id,
           question: q.text,
-          answer: q.options.find((opt: { text: string; isCorrect: boolean }) => opt.isCorrect)?.text || '',
+          answer: q.options ? q.options.find((opt: any) => opt.isCorrect)?.text || 'Cevap bulunamadı' : q.explanation,
           explanation: q.explanation,
           topic: q.topic || 'Genel',
           difficulty: q.difficulty,
           reviewCount: 0,
           confidence: 3, // Default confidence
-          lastReviewed: undefined,
-          nextReview: new Date(), // Ready for review
-          options: q.options // Şıkları ekle
+          options: q.options
         }));
-
+        
+        console.log('🎯 Flashcard Component - Loaded flashcards:', flashcardData.length);
+        
         setFlashcards(flashcardData);
         setStats({
           total: flashcardData.length,
-          reviewed: 0,
-          mastered: 0,
-          needsReview: flashcardData.length
+          reviewed: flashcardData.filter(f => f.reviewCount > 0).length,
+          mastered: flashcardData.filter(f => f.confidence >= 4).length,
+          needsReview: flashcardData.filter(f => f.confidence < 4).length
         });
       } catch (error) {
         console.error('Error loading flashcards:', error);
+        // Show user-friendly error message
+        alert(`Flashcard yüklenirken hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`);
       }
     };
 
-    loadFlashcards();
-  }, [subject]);
+    if (subject) {
+      loadFlashcards();
+    }
+  }, [subject, demoModeActive]);
 
   const handleFlip = () => {
     setIsFlipped(!isFlipped);

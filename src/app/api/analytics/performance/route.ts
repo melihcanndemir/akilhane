@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/database/connection';
 import { quizResults } from '@/lib/database/schema';
-import { sql, avg, count } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
+
+// Force this route to be dynamic
+export const dynamic = 'force-dynamic';
 
 interface WeakTopic {
   [key: string]: number;
@@ -56,7 +59,7 @@ export async function GET(request: NextRequest) {
     const performanceData = Array.from(performanceMap.entries()).map(([subject, data]) => {
       const percentages = data.scores.map((score, index) => {
         const total = data.totalQuestions[index];
-        return total > 0 ? (score / total) * 100 : 0;
+        return total && total > 0 ? (score / total) * 100 : 0;
       });
       const averageScore = percentages.reduce((a, b) => a + b, 0) / percentages.length;
       const sortedWeakTopics = Object.entries(data.weakTopics)

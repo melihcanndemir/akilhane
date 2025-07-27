@@ -1,9 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { QuestionRepository } from '@/lib/database/repositories/question-repository';
 import { initializeDatabase } from '@/lib/database/connection';
+import { shouldUseDemoData, getDemoQuestions, getAllDemoQuestions } from '@/data/demo-data';
+import { checkAuth } from '@/lib/supabase';
+
+// Force this route to be dynamic
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
+    // Demo mode control
+    if (shouldUseDemoData()) {
+      return NextResponse.json(
+        { error: 'Demo modunda yeni soru eklenemez' },
+        { status: 403 }
+      );
+    }
+
+    // 🔍 Session control
+    console.log('🔐 Questions API - Checking authentication for POST...');
+    const { isLoggedIn } = await checkAuth();
+    
+    if (!isLoggedIn) {
+      console.log('❌ Questions API - No session found for POST');
+      return NextResponse.json(
+        { error: 'Oturum açmanız gerekiyor!' },
+        { status: 401 }
+      );
+    }
+
+    console.log('✅ Questions API - Session found for POST');
+    
     // Initialize database if not already done
     initializeDatabase();
 
@@ -78,49 +105,78 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const subjectId = searchParams.get('subjectId');
+    const limit = searchParams.get('limit');
+    const difficulty = searchParams.get('difficulty');
+
+    // Demo mode control
+    if (shouldUseDemoData()) {
+      let demoQuestions;
+      
+      if (subjectId) {
+        demoQuestions = getDemoQuestions(subjectId);
+      } else {
+        demoQuestions = getAllDemoQuestions();
+      }
+
+      // Apply filters
+      if (difficulty) {
+        demoQuestions = demoQuestions.filter((q: any) => q.difficulty === difficulty);
+      }
+
+      if (limit) {
+        demoQuestions = demoQuestions.slice(0, parseInt(limit));
+      }
+
+      return NextResponse.json(demoQuestions, { status: 200 });
+    }
+
+    // 🔍 Session control
+    console.log('🔐 Questions API - Checking authentication for GET...');
+    const { isLoggedIn } = await checkAuth();
+    
+    if (!isLoggedIn) {
+      console.log('❌ Questions API - No session found for GET, returning empty data');
+      return NextResponse.json([], { status: 200 });
+    }
+
+    console.log('✅ Questions API - Session found for GET');
+    
     // Initialize database if not already done
     initializeDatabase();
 
-    const { searchParams } = new URL(request.url);
-    const subject = searchParams.get('subject');
-    const topic = searchParams.get('topic');
-    const difficulty = searchParams.get('difficulty') as 'Easy' | 'Medium' | 'Hard' | null;
-    const search = searchParams.get('search');
-    const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined;
-    const random = searchParams.get('random') === 'true';
-    const count = searchParams.get('count') ? parseInt(searchParams.get('count')!) : 10;
-
-    if (!subject) {
-      return NextResponse.json(
-        { error: 'Subject parameter is required' },
-        { status: 400 }
-      );
+    // Get questions from database
+    let questions;
+    
+    if (subjectId) {
+      questions = await QuestionRepository.getQuestionsBySubject(subjectId);
+    } else {
+      questions = await QuestionRepository.getRandomQuestions('', limit ? parseInt(limit) : 10);
     }
 
-    let questions;
+    // Apply filters
+    if (difficulty) {
+      questions = questions.filter((q: any) => q.difficulty === difficulty);
+    }
 
-    if (random) {
-      // Get random questions for quiz
-      questions = await QuestionRepository.getRandomQuestions(subject, count, difficulty || undefined);
-    } else if (search) {
-      // Search questions
-      questions = await QuestionRepository.searchQuestions(subject, search, limit);
-    } else if (topic) {
-      // Get questions by topic
-      questions = await QuestionRepository.getQuestionsByTopic(subject, topic, limit);
-    } else if (difficulty) {
-      // Get questions by difficulty
-      questions = await QuestionRepository.getQuestionsByDifficulty(subject, difficulty, limit);
-    } else {
-      // Get all questions for subject
-      questions = await QuestionRepository.getQuestionsBySubject(subject, limit);
+    if (limit) {
+      questions = questions.slice(0, parseInt(limit));
     }
 
     return NextResponse.json(questions, { status: 200 });
   } catch (error) {
     console.error('❌ Error getting questions:', error);
     
-    // Return empty array instead of error for better UX
-    return NextResponse.json([], { status: 200 });
+    // If there is an error, return demo data
+    const { searchParams } = new URL(request.url);
+    const subjectId = searchParams.get('subjectId');
+    let demoQuestions = getAllDemoQuestions();
+    
+    if (subjectId) {
+      demoQuestions = getDemoQuestions(subjectId);
+    }
+    
+    return NextResponse.json(demoQuestions, { status: 200 });
   }
 } 

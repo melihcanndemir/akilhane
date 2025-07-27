@@ -1,0 +1,174 @@
+// components/ai/ai-chat-client.tsx
+'use client';
+
+import React, { useState, useRef, useEffect } from 'react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { getAiChatResponse, AiChatInput } from '@/ai/flows/ai-chat'; 
+import { User, Sparkles, BrainCircuit, Lightbulb, Loader2 } from 'lucide-react';
+
+interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+interface Suggestions {
+  suggestedTopics: string[];
+  followUpQuestions: string[];
+  learningTips: string[];
+}
+
+export default function AiChatClient() {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentSubject] = useState('Genel'); 
+  const [suggestions, setSuggestions] = useState<Suggestions | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+  
+  useEffect(() => {
+    setMessages([
+      {
+        id: 'init',
+        role: 'assistant',
+        content: `Merhaba! Ben AkılHane AI Tutor'ınız. ${currentSubject} dersiyle ilgili aklınıza takılan her şeyi sorabilirsiniz. Hadi başlayalım!`
+      }
+    ]);
+  }, [currentSubject]);
+
+  const handleSendMessage = async (messageContent: string) => {
+    if (!messageContent.trim() || isLoading) return;
+
+    const newUserMessage: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: messageContent,
+    };
+
+    const updatedMessages = [...messages, newUserMessage];
+
+    setMessages(updatedMessages);
+    setIsLoading(true);
+    setSuggestions(null);
+
+    const chatInput: AiChatInput = {
+      message: messageContent,
+      subject: currentSubject,
+      conversationHistory: updatedMessages.map(m => ({
+        role: m.role,
+        content: m.content,
+        timestamp: new Date().toISOString()
+      })),
+    };
+
+    try {
+      const result = await getAiChatResponse(chatInput);
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: result.response,
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+      setSuggestions({
+        suggestedTopics: result.suggestedTopics,
+        followUpQuestions: result.followUpQuestions,
+        learningTips: result.learningTips,
+      });
+    } catch (error) {
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: 'Üzgünüm, bir hata oluştu. Lütfen tekrar deneyin.',
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSendMessage(input);
+    setInput('');
+  };
+  
+  const handleSuggestionClick = (suggestion: string) => {
+    handleSendMessage(suggestion);
+  };
+
+  return (
+    <div className="flex justify-center items-center min-h-screen bg-gray-50 dark:bg-gray-900 p-2 sm:p-4">
+      <Card className="w-full max-w-5xl h-[95vh] flex flex-col shadow-2xl">
+        <CardHeader className="border-b">
+          <CardTitle className="flex items-center gap-3 text-lg md:text-xl">
+            <Sparkles className="text-blue-500" />
+            <span>AI Tutor - {currentSubject}</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex-1 overflow-y-auto p-3 md:p-6 space-y-6">
+          {messages.map(message => (
+            <div key={message.id} className={`flex items-start gap-3 md:gap-4 ${message.role === 'user' ? 'justify-end' : ''}`}>
+              {message.role === 'assistant' && (
+                <Avatar className="w-8 h-8 md:w-10 md:h-10 border-2 border-blue-200">
+                  <AvatarFallback className="bg-blue-100 dark:bg-blue-800"><Sparkles className="text-blue-500" /></AvatarFallback>
+                </Avatar>
+              )}
+              <div className={`max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl rounded-2xl px-4 py-3 shadow-sm ${ message.role === 'user' ? 'bg-blue-500 text-white rounded-br-none' : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-bl-none'}`}>
+                <p className="whitespace-pre-wrap text-sm md:text-base">{message.content}</p>
+              </div>
+              {message.role === 'user' && (
+                <Avatar className="w-8 h-8 md:w-10 md:h-10 border-2 border-gray-300">
+                  <AvatarFallback><User /></AvatarFallback>
+                </Avatar>
+              )}
+            </div>
+          ))}
+          {isLoading && (
+             <div className="flex items-start gap-4">
+                <Avatar className="w-10 h-10 border-2 border-blue-200"><AvatarFallback className="bg-blue-100 dark:bg-blue-800"><Sparkles className="text-blue-500" /></AvatarFallback></Avatar>
+                <div className="rounded-2xl px-4 py-3 "><Loader2 className="h-6 w-6 animate-spin text-blue-500" /></div>
+            </div>
+          )}
+          {suggestions && !isLoading && (
+            <div className='space-y-4 pt-4'>
+                {suggestions.followUpQuestions?.length > 0 && (
+                     <div>
+                        <h4 className="text-sm font-semibold mb-2 flex items-center gap-2"><Lightbulb className="w-4 h-4 text-yellow-500"/>Şunları Sorabilirsin:</h4>
+                        <div className="flex flex-wrap gap-2">
+                            {suggestions.followUpQuestions.map((q, i) => ( <Badge key={i} variant="outline" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSuggestionClick(q)}>{q}</Badge> ))}
+                        </div>
+                     </div>
+                )}
+                 {suggestions.suggestedTopics?.length > 0 && (
+                     <div>
+                        <h4 className="text-sm font-semibold mb-2 flex items-center gap-2"><BrainCircuit className="w-4 h-4 text-purple-500"/>İlgili Konular:</h4>
+                        <div className="flex flex-wrap gap-2">
+                            {suggestions.suggestedTopics.map((t, i) => ( <Badge key={i} variant="secondary" className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600" onClick={() => handleSuggestionClick(`Bana "${t}" konusunu anlatır mısın?`)}>{t}</Badge>))}
+                        </div>
+                     </div>
+                )}
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </CardContent>
+        <div className="border-t p-4 bg-white dark:bg-gray-950">
+          <form onSubmit={handleFormSubmit} className="flex items-center gap-2 md:gap-4">
+            <Input value={input} onChange={e => setInput(e.target.value)} placeholder="AI Tutor'a bir soru sor..." className="flex-1" disabled={isLoading} />
+            <Button type="submit" disabled={isLoading || !input.trim()}>
+              {isLoading ? (<Loader2 className="h-4 w-4 animate-spin" />) : ('Gönder')}
+            </Button>
+          </form>
+        </div>
+      </Card>
+    </div>
+  );
+}

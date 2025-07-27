@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import QuizComponent from '@/components/quiz';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BookOpen, Play, GraduationCap, Loader2, ArrowLeft } from 'lucide-react';
+import { shouldUseDemoData } from '@/data/demo-data';
 
 interface Subject {
   id: string;
@@ -17,7 +18,42 @@ interface Subject {
   questionCount: number;
 }
 
-export default function QuizPage() {
+// LocalStorage service for subjects
+class SubjectLocalStorageService {
+  private static readonly STORAGE_KEY = 'exam_training_subjects';
+
+  static getSubjects(): Subject[] {
+    if (typeof window === 'undefined') return [];
+    try {
+      const stored = localStorage.getItem(this.STORAGE_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  }
+}
+
+// LocalStorage service for questions
+class QuestionLocalStorageService {
+  private static readonly STORAGE_KEY = 'exam_training_questions';
+
+  static getQuestions(): any[] {
+    if (typeof window === 'undefined') return [];
+    try {
+      const stored = localStorage.getItem(this.STORAGE_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  static getQuestionsBySubject(subject: string): any[] {
+    const questions = this.getQuestions();
+    return questions.filter(q => q.subject === subject);
+  }
+}
+
+function QuizPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const subject = searchParams.get('subject');
@@ -26,41 +62,98 @@ export default function QuizPage() {
   const [selectedSubject, setSelectedSubject] = useState('');
 
   useEffect(() => {
-    const fetchSubjects = async () => {
+    const loadSubjects = async () => {
       try {
-        const response = await fetch('/api/subjects');
-        if (response.ok) {
-          const data = await response.json();
-          // Sadece aktif ve soru içeren dersleri filtrele
-          const activeSubjectsWithQuestions = data.filter((subject: Subject) => 
-            subject.isActive && subject.questionCount > 0
-          );
-          setSubjects(activeSubjectsWithQuestions);
+        setLoading(true);
+        console.log('🎯 Quiz Page - Loading subjects from localStorage...');
+        
+        // Demo mode control
+        const isDemoMode = shouldUseDemoData();
+        
+        console.log('🎯 Quiz Page - Demo mode check:', { isDemoMode });
+        
+        if (isDemoMode) {
+          // Demo subjects
+          const demoSubjects: Subject[] = [
+            {
+              id: 'subj_matematik_001',
+              name: 'Matematik',
+              category: 'Fen Bilimleri',
+              difficulty: 'Orta',
+              isActive: true,
+              questionCount: 245,
+            },
+            {
+              id: 'subj_fizik_002',
+              name: 'Fizik',
+              category: 'Fen Bilimleri',
+              difficulty: 'Orta',
+              isActive: true,
+              questionCount: 198,
+            },
+            {
+              id: 'subj_kimya_003',
+              name: 'Kimya',
+              category: 'Fen Bilimleri',
+              difficulty: 'İleri',
+              isActive: true,
+              questionCount: 167,
+            }
+          ];
+          setSubjects(demoSubjects);
+          return;
         }
+
+        // Directly use localStorage
+        const localSubjects = SubjectLocalStorageService.getSubjects();
+        
+        // Calculate question count for each subject
+        const subjectsWithQuestionCount = localSubjects.map(subject => {
+          const questions = QuestionLocalStorageService.getQuestionsBySubject(subject.name);
+          return {
+            ...subject,
+            questionCount: questions.length
+          };
+        });
+        
+        // Filter only active courses with questions
+        const activeSubjectsWithQuestions = subjectsWithQuestionCount.filter(subject => 
+          subject.isActive && subject.questionCount > 0
+        );
+        
+        console.log('🎯 Quiz Page - Loaded subjects:', activeSubjectsWithQuestions);
+        setSubjects(activeSubjectsWithQuestions);
       } catch (error) {
-        console.error('Error fetching subjects:', error);
+        console.error('🎯 Quiz Page - Error loading subjects:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchSubjects();
-  }, []);
+    loadSubjects();
+  }, [searchParams]);
 
   const handleStartQuiz = () => {
     if (selectedSubject) {
-      router.push(`/quiz?subject=${encodeURIComponent(selectedSubject)}`);
+      // Add demo mode parameter to quiz URL
+      const isDemoMode = shouldUseDemoData();
+      
+      const quizUrl = `/quiz?subject=${encodeURIComponent(selectedSubject)}${isDemoMode ? '&demo=true' : ''}`;
+      router.push(quizUrl);
     }
   };
 
-  if (subject) {
-    return <QuizComponent subject={subject} />;
+  if (subject && subject.length > 0) {
+    // Demo mode control
+    const isDemoMode = shouldUseDemoData();
+    
+    return <QuizComponent subject={subject} isDemoMode={isDemoMode} />;
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-8">
       <div className="max-w-4xl mx-auto">
-        {/* Geri Butonu */}
+        {/* Back button */}
         <div className="mb-6">
           <Button 
             onClick={() => window.location.href = '/'} 
@@ -157,7 +250,12 @@ export default function QuizPage() {
                   className="cursor-pointer hover:shadow-lg transition-shadow"
                   onClick={() => {
                     setSelectedSubject(subject.name);
-                    handleStartQuiz();
+                    
+                    // Add demo mode parameter to quiz URL
+                    const isDemoMode = shouldUseDemoData();
+                    
+                    const quizUrl = `/quiz?subject=${encodeURIComponent(subject.name)}${isDemoMode ? '&demo=true' : ''}`;
+                    router.push(quizUrl);
                   }}
                 >
                   <CardContent className="p-4">
@@ -183,5 +281,13 @@ export default function QuizPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function QuizPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <QuizPageContent />
+    </Suspense>
   );
 }

@@ -5,9 +5,7 @@ export default {
   out: './drizzle',
   dialect: 'sqlite',
   dbCredentials: {
-    url: process.env.NODE_ENV === 'production' 
-      ? '/data/exam-training.db' 
-      : './exam-training.db',
+    url: './exam-training.db',
   },
   verbose: true,
   strict: true,

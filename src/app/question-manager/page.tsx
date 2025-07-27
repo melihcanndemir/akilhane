@@ -9,23 +9,122 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { Plus, Edit, Trash2, Search, Filter, BookOpen, Brain, Users, Home, Database, GraduationCap } from 'lucide-react';
+import { Plus, Edit, Trash2, Filter, BookOpen, Database, GraduationCap } from 'lucide-react';
 import type { Question } from '@/lib/types';
 import Link from 'next/link';
 import MobileNav from '@/components/mobile-nav';
 import { useToast } from '@/hooks/use-toast';
 import LoadingSpinner from '@/components/loading-spinner';
+import { shouldUseDemoData } from '@/data/demo-data';
+import { QuestionService, SubjectService } from '@/services/supabase-service';
+import { supabase } from '@/lib/supabase';
 
 interface Subject {
   id: string;
   name: string;
   description: string;
   category: string;
-  difficulty: 'Başlangıç' | 'Orta' | 'İleri';
+  difficulty: string;
   questionCount: number;
   isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+}
+
+// LocalStorage service for questions (fallback)
+class QuestionLocalStorageService {
+  private static readonly STORAGE_KEY = 'exam_training_questions';
+
+  static getQuestions(): Question[] {
+    if (typeof window === 'undefined') return [];
+    try {
+      const stored = localStorage.getItem(this.STORAGE_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  static saveQuestions(questions: Question[]): void {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(questions));
+    } catch (error) {
+      console.error('Error saving questions to localStorage:', error);
+    }
+  }
+
+  static addQuestion(question: Omit<Question, 'id'>): Question {
+    const newQuestion: Question = {
+      ...question,
+      id: `question_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    };
+
+    const questions = this.getQuestions();
+    questions.push(newQuestion);
+    this.saveQuestions(questions);
+    return newQuestion;
+  }
+
+  static updateQuestion(id: string, updates: Partial<Question>): boolean {
+    const questions = this.getQuestions();
+    const index = questions.findIndex(q => q.id === id);
+    if (index === -1) return false;
+
+    const existingQuestion = questions[index];
+    if (existingQuestion) {
+      questions[index] = {
+        id: existingQuestion.id,
+        subject: existingQuestion.subject,
+        type: existingQuestion.type,
+        difficulty: existingQuestion.difficulty,
+        text: existingQuestion.text,
+        options: existingQuestion.options,
+        explanation: existingQuestion.explanation,
+        topic: existingQuestion.topic || '',
+        formula: existingQuestion.formula || '',
+        ...updates,
+      };
+    }
+    this.saveQuestions(questions);
+    return true;
+  }
+
+  static deleteQuestion(id: string): boolean {
+    const questions = this.getQuestions();
+    const filtered = questions.filter(q => q.id !== id);
+    if (filtered.length === questions.length) return false;
+    
+    this.saveQuestions(filtered);
+    return true;
+  }
+
+  static getQuestionsBySubject(subject: string): Question[] {
+    const questions = this.getQuestions();
+    return questions.filter(q => q.subject === subject);
+  }
+}
+
+// LocalStorage service for subjects (fallback)
+class SubjectLocalStorageService {
+  private static readonly STORAGE_KEY = 'exam_training_subjects';
+
+  static getSubjects(): Subject[] {
+    if (typeof window === 'undefined') return [];
+    try {
+      const stored = localStorage.getItem(this.STORAGE_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  static saveSubjects(subjects: Subject[]): void {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(subjects));
+    } catch (error) {
+      console.error('Error saving subjects to localStorage:', error);
+    }
+  }
 }
 
 const questionTypes = [
@@ -81,21 +180,98 @@ export default function QuestionManager() {
   const loadSubjects = async () => {
     try {
       setIsLoadingSubjects(true);
-      console.log('Loading subjects...');
-      const response = await fetch('/api/subjects');
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Subjects loaded:', data);
-        setSubjects(data);
-        if (data.length > 0) {
-          setSelectedSubject(data[0].name);
-          setFormData(prev => ({ ...prev, subject: data[0].name }));
+      
+      // Use demo data for demo mode
+      if (shouldUseDemoData()) {
+        // Demo subjects
+        const demoSubjects: Subject[] = [
+          {
+            id: 'subj_matematik_001',
+            name: 'Matematik',
+            description: 'Temel matematik konuları: Cebir, Geometri, Analiz',
+            category: 'Fen Bilimleri',
+            difficulty: 'Orta',
+            questionCount: 245,
+            isActive: true,
+          },
+          {
+            id: 'subj_fizik_002',
+            name: 'Fizik',
+            description: 'Mekanik, Termodinamik, Elektrik ve Manyetizma',
+            category: 'Fen Bilimleri',
+            difficulty: 'Orta',
+            questionCount: 198,
+            isActive: true,
+          },
+          {
+            id: 'subj_kimya_003',
+            name: 'Kimya',
+            description: 'Genel Kimya, Organik ve Anorganik Kimya',
+            category: 'Fen Bilimleri',
+            difficulty: 'Zor',
+            questionCount: 167,
+            isActive: true,
+          }
+        ];
+        setSubjects(demoSubjects);
+        if (demoSubjects.length > 0 && demoSubjects[0]) {
+          const firstSubject = demoSubjects[0];
+          setSelectedSubject(firstSubject.name);
+          setFormData(prev => ({ ...prev, subject: firstSubject.name }));
         }
-      } else {
-        console.error('Failed to load subjects:', response.status);
+        return;
+      }
+
+      // First check authentication
+      console.log('🔐 Question Manager - Checking authentication...');
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        console.log('❌ No session found, using localStorage');
+        const localSubjects = SubjectLocalStorageService.getSubjects();
+        setSubjects(localSubjects);
+        if (localSubjects.length > 0 && localSubjects[0]) {
+          const firstSubject = localSubjects[0];
+          setSelectedSubject(firstSubject.name);
+          setFormData(prev => ({ ...prev, subject: firstSubject.name }));
+        }
+        return;
+      }
+
+      console.log('✅ Question Manager - Session found, using Supabase');
+      
+      const supabaseSubjects = await SubjectService.getSubjects();
+      const mappedSubjects: Subject[] = supabaseSubjects.map(s => ({
+        id: s.id,
+        name: s.name,
+        description: s.description,
+        category: s.category,
+        difficulty: s.difficulty,
+        questionCount: s.question_count,
+        isActive: s.is_active
+      }));
+      
+      setSubjects(mappedSubjects);
+      
+      // Sync Supabase subjects to localStorage
+      console.log('📦 Syncing Supabase subjects to localStorage...');
+      SubjectLocalStorageService.saveSubjects(mappedSubjects);
+      
+      if (mappedSubjects.length > 0 && mappedSubjects[0]) {
+        const firstSubject = mappedSubjects[0];
+        setSelectedSubject(firstSubject.name);
+        setFormData(prev => ({ ...prev, subject: firstSubject.name }));
       }
     } catch (error) {
       console.error('Error loading subjects:', error);
+      // Fallback to localStorage
+      const localSubjects = SubjectLocalStorageService.getSubjects();
+      setSubjects(localSubjects);
+      if (localSubjects.length > 0 && localSubjects[0]) {
+        const firstSubject = localSubjects[0];
+        setSelectedSubject(firstSubject.name);
+        setFormData(prev => ({ ...prev, subject: firstSubject.name }));
+      }
     } finally {
       setIsLoadingSubjects(false);
     }
@@ -104,13 +280,76 @@ export default function QuestionManager() {
   const loadQuestions = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/questions?subject=${encodeURIComponent(selectedSubject)}`);
-      if (response.ok) {
-        const data = await response.json();
-        setQuestions(data);
+      
+      // Use demo data for demo mode
+      if (shouldUseDemoData()) {
+        // Demo questions
+        const demoQuestions: Question[] = [
+          {
+            id: 'demo_q_1',
+            subject: 'Matematik' as any, // Type assertion for demo
+            type: 'multiple-choice',
+            difficulty: 'Medium',
+            text: '2x + 5 = 13 denkleminin çözümü nedir?',
+            options: [
+              { text: 'x = 4', isCorrect: true },
+              { text: 'x = 3', isCorrect: false },
+              { text: 'x = 5', isCorrect: false },
+              { text: 'x = 6', isCorrect: false }
+            ],
+            explanation: '2x + 5 = 13 → 2x = 8 → x = 4',
+            topic: 'Cebir'
+          },
+          {
+            id: 'demo_q_2',
+            subject: 'Fizik' as any, // Type assertion for demo
+            type: 'multiple-choice',
+            difficulty: 'Medium',
+            text: 'Hangi kuvvet türü temas gerektirmez?',
+            options: [
+              { text: 'Sürtünme kuvveti', isCorrect: false },
+              { text: 'Yerçekimi kuvveti', isCorrect: true },
+              { text: 'Normal kuvvet', isCorrect: false },
+              { text: 'Tepki kuvveti', isCorrect: false }
+            ],
+            explanation: 'Yerçekimi kuvveti uzaktan etki eden bir kuvvettir.',
+            topic: 'Mekanik'
+          }
+        ];
+        setQuestions(demoQuestions);
+        return;
       }
+
+      // Check Supabase usage
+      console.log('🎯 Question Manager - Loading questions for subject:', selectedSubject);
+      
+      const supabaseQuestions = await QuestionService.getQuestionsBySubject(selectedSubject);
+      const mappedQuestions: Question[] = supabaseQuestions.map(q => ({
+        id: q.id,
+        subject: q.subject,
+        type: q.type as 'multiple-choice' | 'true-false' | 'calculation' | 'case-study',
+        difficulty: q.difficulty as 'Easy' | 'Medium' | 'Hard',
+        text: q.text,
+        options: JSON.parse(q.options),
+        explanation: q.explanation,
+        topic: q.topic,
+        formula: q.formula || ''
+      }));
+      
+      setQuestions(mappedQuestions);
+      
+      // Sync Supabase questions to localStorage
+      console.log('📦 Syncing Supabase questions to localStorage...');
+      const allQuestions = QuestionLocalStorageService.getQuestions();
+      const updatedQuestions = allQuestions.filter(q => q.subject !== selectedSubject);
+      updatedQuestions.push(...mappedQuestions);
+      QuestionLocalStorageService.saveQuestions(updatedQuestions);
+      
     } catch (error) {
       console.error('Error loading questions:', error);
+      // Fallback to localStorage
+      const localQuestions = QuestionLocalStorageService.getQuestionsBySubject(selectedSubject);
+      setQuestions(localQuestions);
     } finally {
       setIsLoading(false);
     }
@@ -142,28 +381,81 @@ export default function QuestionManager() {
       }
 
       const validOptions = formData.options.filter(opt => opt.text.trim() !== '');
-      const correctOptions = validOptions.filter(opt => opt.isCorrect);
-      const correctAnswer = formData.type === 'Çoktan Seçmeli' ? correctOptions[0].text : '';
 
-      const response = await fetch('/api/questions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formData,
+      // Demo mode control
+      if (shouldUseDemoData()) {
+        QuestionLocalStorageService.addQuestion({
+          subject: formData.subject,
+          type: formData.type === 'Çoktan Seçmeli' ? 'multiple-choice' : 
+                formData.type === 'Doğru/Yanlış' ? 'true-false' :
+                formData.type === 'Hesaplama' ? 'calculation' : 'case-study',
+          difficulty: formData.difficulty === 'Kolay' ? 'Easy' : 
+                     formData.difficulty === 'Orta' ? 'Medium' : 'Hard',
+          text: formData.text,
           options: validOptions,
-          correctAnswer,
-        }),
+          explanation: formData.explanation,
+          formula: formData.formula,
+          topic: formData.topic
+        });
+
+        toast({ title: 'Başarılı!', description: 'Soru başarıyla oluşturuldu!' });
+        resetForm();
+        loadQuestions();
+        return;
+      }
+
+      // Check authentication
+      console.log('🔐 Question Manager - Checking authentication for create...');
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        console.log('❌ No session found, using localStorage for create');
+        QuestionLocalStorageService.addQuestion({
+          subject: formData.subject,
+          type: formData.type === 'Çoktan Seçmeli' ? 'multiple-choice' : 
+                formData.type === 'Doğru/Yanlış' ? 'true-false' :
+                formData.type === 'Hesaplama' ? 'calculation' : 'case-study',
+          difficulty: formData.difficulty === 'Kolay' ? 'Easy' : 
+                     formData.difficulty === 'Orta' ? 'Medium' : 'Hard',
+          text: formData.text,
+          options: validOptions,
+          explanation: formData.explanation,
+          formula: formData.formula,
+          topic: formData.topic
+        });
+
+        toast({ title: 'Başarılı!', description: 'Soru başarıyla oluşturuldu!' });
+        resetForm();
+        loadQuestions();
+        return;
+      }
+
+      // Check Supabase usage
+      console.log('✅ Question Manager - Session found, using Supabase for create');
+      
+      const result = await QuestionService.createQuestion({
+        subject_id: subjects.find(s => s.name === formData.subject)?.id || '',
+        subject: formData.subject,
+        topic: formData.topic,
+        type: formData.type === 'Çoktan Seçmeli' ? 'multiple-choice' : 
+              formData.type === 'Doğru/Yanlış' ? 'true-false' :
+              formData.type === 'Hesaplama' ? 'calculation' : 'case-study',
+        difficulty: formData.difficulty === 'Kolay' ? 'Easy' : 
+                   formData.difficulty === 'Orta' ? 'Medium' : 'Hard',
+        text: formData.text,
+        options: JSON.stringify(validOptions),
+        correct_answer: validOptions.find(opt => opt.isCorrect)?.text || '',
+        explanation: formData.explanation,
+        formula: formData.formula,
+        is_active: true
       });
 
-      if (response.ok) {
+      if (result) {
         toast({ title: 'Başarılı!', description: 'Soru başarıyla oluşturuldu!' });
         resetForm();
         loadQuestions();
       } else {
-        const error = await response.json();
-        toast({ title: 'Hata!', description: `Soru oluşturulamadı: ${error.error}`, variant: 'destructive' });
+        throw new Error('Failed to create question');
       }
     } catch (error) {
       console.error('Error creating question:', error);
@@ -179,24 +471,58 @@ export default function QuestionManager() {
     }
 
     try {
-      const response = await fetch(`/api/questions/${questionId}`, {
-        method: 'DELETE',
-      });
+      // Demo mode control
+      if (shouldUseDemoData()) {
+        const success = QuestionLocalStorageService.deleteQuestion(questionId);
+        if (!success) {
+          throw new Error('Failed to delete question');
+        }
 
-      if (!response.ok) {
-        throw new Error('Failed to delete question');
+        toast({
+          title: 'Başarılı!',
+          description: 'Soru başarıyla silindi.',
+        });
+        loadQuestions(); // Refresh the list
+        return;
       }
 
-      toast({
-        title: 'Başarılı!',
-        description: 'Soru başarıyla silindi.',
-      });
-      loadQuestions(); // Refresh the list
+      // Check authentication
+      console.log('🔐 Question Manager - Checking authentication for delete...');
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        console.log('❌ No session found, using localStorage for delete');
+        const success = QuestionLocalStorageService.deleteQuestion(questionId);
+        if (!success) {
+          throw new Error('Failed to delete question');
+        }
+
+        toast({
+          title: 'Başarılı!',
+          description: 'Soru başarıyla silindi.',
+        });
+        loadQuestions(); // Refresh the list
+        return;
+      }
+
+      // Check Supabase usage
+      console.log('✅ Question Manager - Session found, using Supabase for delete');
+      
+      const success = await QuestionService.deleteQuestion(questionId);
+      if (success) {
+        toast({
+          title: 'Başarılı!',
+          description: 'Soru başarıyla silindi.',
+        });
+        loadQuestions(); // Refresh the list
+      } else {
+        throw new Error('Failed to delete question');
+      }
     } catch (error) {
       console.error('Error deleting question:', error);
       toast({
         title: 'Hata!',
-        description: 'Soru silinirken bir hata oluştu.',
+        description: 'Soru silinirken bir hata oluştu',
         variant: 'destructive',
       });
     }
@@ -206,29 +532,72 @@ export default function QuestionManager() {
     if (!editingQuestion) return;
 
     try {
-      const response = await fetch(`/api/questions/${editingQuestion.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...editingQuestion,
-          options: editingQuestion.options,
-          correctAnswer: editingQuestion.options.find((opt: any) => opt.isCorrect)?.text || '',
-        }),
-      });
+      // Demo mode control
+      if (shouldUseDemoData()) {
+        const success = QuestionLocalStorageService.updateQuestion(editingQuestion.id, editingQuestion);
+        if (!success) {
+          throw new Error('Failed to update question');
+        }
 
-      if (!response.ok) {
-        throw new Error('Failed to update question');
+        toast({
+          title: 'Başarılı!',
+          description: 'Soru başarıyla güncellendi.',
+        });
+        setIsEditDialogOpen(false);
+        setEditingQuestion(null);
+        loadQuestions(); // Refresh the list
+        return;
       }
 
-      toast({
-        title: 'Başarılı!',
-        description: 'Soru başarıyla güncellendi.',
+      // Check authentication
+      console.log('🔐 Question Manager - Checking authentication for update...');
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        console.log('❌ No session found, using localStorage for update');
+        const success = QuestionLocalStorageService.updateQuestion(editingQuestion.id, editingQuestion);
+        if (!success) {
+          throw new Error('Failed to update question');
+        }
+
+        toast({
+          title: 'Başarılı!',
+          description: 'Soru başarıyla güncellendi.',
+        });
+        setIsEditDialogOpen(false);
+        setEditingQuestion(null);
+        loadQuestions(); // Refresh the list
+        return;
+      }
+
+      // Check Supabase usage
+      console.log('✅ Question Manager - Session found, using Supabase for update');
+      
+      const validOptions = editingQuestion.options.filter((opt: any) => opt.text.trim() !== '');
+      
+      const success = await QuestionService.updateQuestion(editingQuestion.id, {
+        subject: editingQuestion.subject,
+        topic: editingQuestion.topic,
+        type: editingQuestion.type,
+        difficulty: editingQuestion.difficulty,
+        text: editingQuestion.text,
+        options: JSON.stringify(validOptions),
+        correct_answer: validOptions.find((opt: any) => opt.isCorrect)?.text || '',
+        explanation: editingQuestion.explanation,
+        formula: editingQuestion.formula
       });
-      setIsEditDialogOpen(false);
-      setEditingQuestion(null);
-      loadQuestions(); // Refresh the list
+
+      if (success) {
+        toast({
+          title: 'Başarılı!',
+          description: 'Soru başarıyla güncellendi.',
+        });
+        setIsEditDialogOpen(false);
+        setEditingQuestion(null);
+        loadQuestions(); // Refresh the list
+      } else {
+        throw new Error('Failed to update question');
+      }
     } catch (error) {
       console.error('Error updating question:', error);
       toast({
@@ -298,8 +667,11 @@ export default function QuestionManager() {
 
   const handleOptionChange = (index: number, field: 'text' | 'isCorrect', value: string | boolean) => {
     const newOptions = [...formData.options];
-    newOptions[index] = { ...newOptions[index], [field]: value };
-    setFormData({ ...formData, options: newOptions });
+    const currentOption = newOptions[index];
+    if (currentOption) {
+      newOptions[index] = { text: currentOption.text, isCorrect: currentOption.isCorrect, [field]: value };
+      setFormData({ ...formData, options: newOptions });
+    }
   };
 
   const addOption = () => {
@@ -335,6 +707,17 @@ export default function QuestionManager() {
             <div>
               <h1 className="text-3xl font-headline font-bold text-primary">Soru Yöneticisi</h1>
               <p className="text-muted-foreground">Soru ekle, düzenle ve yönet</p>
+            </div>
+            <div className="flex gap-2">
+              {shouldUseDemoData() ? (
+                <div className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                  BTK Demo
+                </div>
+              ) : (
+                <div className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                  ☁️ Cloud Storage
+                </div>
+              )}
             </div>
           </div>
 
@@ -663,10 +1046,10 @@ export default function QuestionManager() {
                             <span className="bg-primary/10 text-primary px-2 py-1 rounded text-xs font-medium">
                               {question.difficulty === 'Easy' ? 'Kolay' : question.difficulty === 'Medium' ? 'Orta' : question.difficulty === 'Hard' ? 'Zor' : question.difficulty}
                             </span>
-                            <span className="bg-secondary/10 text-secondary-foreground px-2 py-1 rounded text-xs font-medium">
+                            <span className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 px-2 py-1 rounded text-xs font-medium">
                               {question.topic}
                             </span>
-                             <span className="bg-accent/20 text-accent-foreground px-2 py-1 rounded text-xs font-medium">
+                             <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded text-xs font-medium">
                                 {question.type === 'multiple-choice' ? 'Çoktan Seçmeli' : question.type === 'true-false' ? 'Doğru/Yanlış' : question.type === 'calculation' ? 'Hesaplama' : question.type === 'case-study' ? 'Vaka Çalışması' : question.type}
                             </span>
                           </div>

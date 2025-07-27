@@ -3,15 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Mic, MicOff, Volume2, VolumeX, Play, Pause, Brain } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-
-// Type definitions for Web Speech API
-declare global {
-  interface Window {
-    SpeechRecognition: any;
-    webkitSpeechRecognition: any;
-  }
-}
+import { motion } from 'framer-motion';
 
 interface SpeechRecognitionEvent {
   resultIndex: number;
@@ -22,14 +14,14 @@ interface SpeechRecognitionErrorEvent {
   error: string;
 }
 
-interface SpeechRecognition extends EventTarget {
+interface CustomSpeechRecognition extends EventTarget {
   continuous: boolean;
   interimResults: boolean;
   lang: string;
-  onstart: ((this: SpeechRecognition, ev: Event) => any) | null;
-  onresult: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => any) | null;
-  onerror: ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => any) | null;
-  onend: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onstart: ((this: CustomSpeechRecognition, ev: Event) => any) | null;
+  onresult: ((this: CustomSpeechRecognition, ev: SpeechRecognitionEvent) => any) | null;
+  onerror: ((this: CustomSpeechRecognition, ev: SpeechRecognitionErrorEvent) => any) | null;
+  onend: ((this: CustomSpeechRecognition, ev: Event) => any) | null;
   start(): void;
   stop(): void;
 }
@@ -45,13 +37,11 @@ interface VoiceAssistantProps {
   isListening?: boolean;
   onListeningChange?: (listening: boolean) => void;
   show?: boolean;
-  mode?: 'assistant' | 'dictation'; // assistant: sesli komutlar, dictation: sesli yazma
+  mode?: 'assistant' | 'dictation'; // assistant: voice commands, dictation: voice writing
 }
 
 const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
   onCommand,
-  onQuestionRead,
-  onAnswerRead,
   onTranscript,
   currentQuestion,
   currentAnswer,
@@ -68,7 +58,7 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
   const [isReadingAnswer, setIsReadingAnswer] = useState(false);
   const [isReadingAiTutor, setIsReadingAiTutor] = useState(false);
   
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<CustomSpeechRecognition | null>(null);
   const synthesisRef = useRef<SpeechSynthesis | null>(null);
 
   // Convert markdown to plain text for speech
@@ -104,7 +94,7 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
     if (!isSupported) return;
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognitionRef.current = new SpeechRecognition();
+    recognitionRef.current = new SpeechRecognition() as any;
     
     const recognition = recognitionRef.current;
     if (!recognition) return;
@@ -123,11 +113,15 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
       let interimTranscript = '';
 
       for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          finalTranscript += transcript;
-        } else {
-          interimTranscript += transcript;
+        const result = event.results[i];
+        const firstAlternative = result?.[0];
+        if (result && firstAlternative) {
+          const transcript = firstAlternative.transcript;
+          if (result.isFinal) {
+            finalTranscript += transcript;
+          } else {
+            interimTranscript += transcript;
+          }
         }
       }
 
@@ -165,16 +159,16 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
     console.log('🎤 Komut algılandı:', command);
     
     if (mode === 'dictation') {
-      // Sesli yazma modu - transcript'i direkt gönder
+      // Dictation mode - send transcript directly
       if (onTranscript) {
         onTranscript(command);
       }
       return;
     }
     
-    // Sesli asistan modu - komutları işle
+    // Voice assistant mode - process commands
     if (onTranscript) {
-      // AI Chat komutları
+      // AI Chat commands
       if (command.includes('gönder') || command.includes('send')) {
         onCommand?.('send');
         return;
@@ -191,13 +185,13 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
         onCommand?.('explain');
         return;
       } else {
-        // Eğer özel komut değilse, transcript olarak gönder
+        // If not a special command, send as transcript
         onTranscript(command);
         return;
       }
     }
     
-    // Quiz/Flashcard komutları
+    // Quiz/Flashcard commands
     if (command.includes('cevap') || command.includes('yanıt')) {
       if (currentAnswer) {
         speakText(currentAnswer, 'answer');
@@ -293,14 +287,6 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
       recognitionRef.current.stop();
     } else {
       recognitionRef.current.start();
-    }
-  };
-
-  const toggleSpeaking = () => {
-    if (isSpeaking) {
-      stopSpeaking();
-    } else if (currentQuestion) {
-      speakText(currentQuestion, 'question');
     }
   };
 

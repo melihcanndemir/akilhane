@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from '@/components/theme-provider';
@@ -10,8 +10,6 @@ export const metadata: Metadata = {
   title: 'AkılHane - AI Destekli Eğitim Platformu',
   description: 'Yerli ve milli AI destekli eğitim teknolojisi platformu.',
   manifest: '/manifest.json',
-  themeColor: '#3b82f6',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -26,6 +24,13 @@ export const metadata: Metadata = {
       { url: '/favicon.svg', sizes: '180x180', type: 'image/svg+xml' }
     ]
   }
+};
+
+export const viewport: Viewport = {
+  themeColor: '#3b82f6',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({

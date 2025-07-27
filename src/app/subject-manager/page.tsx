@@ -6,21 +6,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Home, 
   Database, 
   BookOpen, 
   Brain, 
-  Users, 
-  Settings,
   GraduationCap,
-  Sparkles
 } from 'lucide-react';
 import Link from 'next/link';
-import { ThemeToggle } from '@/components/theme-toggle';
 import MobileNav from '@/components/mobile-nav';
-import { useToast } from '@/hooks/use-toast';
-import { BrainCircuit } from 'lucide-react';
 import LoadingSpinner from '@/components/loading-spinner';
+import { shouldUseDemoData, demoSubjects } from '@/data/demo-data';
 
 interface Subject {
   id: string;
@@ -47,6 +41,7 @@ export default function SubjectManagerPage() {
     totalCategories: 0
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [isDemoMode, setIsDemoMode] = useState(false);
 
   useEffect(() => {
     loadStats();
@@ -55,14 +50,16 @@ export default function SubjectManagerPage() {
   const loadStats = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/subjects');
-      if (response.ok) {
-        const subjects: Subject[] = await response.json();
-        
-        // Calculate stats
-        const totalSubjects = subjects.length;
-        const totalQuestions = subjects.reduce((sum, subject) => sum + subject.questionCount, 0);
-        const categories = new Set(subjects.map(subject => subject.category));
+      
+      // Check if demo mode is active
+      const demoMode = shouldUseDemoData();
+      setIsDemoMode(demoMode);
+      
+      if (demoMode) {
+        // Use demo data for statistics
+        const totalSubjects = demoSubjects.length;
+        const totalQuestions = demoSubjects.reduce((sum, subject) => sum + subject.questionCount, 0);
+        const categories = new Set(demoSubjects.map(subject => subject.category));
         const totalCategories = categories.size;
 
         setStats({
@@ -70,6 +67,50 @@ export default function SubjectManagerPage() {
           totalQuestions,
           totalCategories
         });
+      } else {
+        // Try to get data from localStorage first
+        const getSubjectsFromStorage = () => {
+          if (typeof window === 'undefined') return [];
+          try {
+            const stored = localStorage.getItem('exam_training_subjects');
+            return stored ? JSON.parse(stored) : [];
+          } catch {
+            return [];
+          }
+        };
+
+        const localSubjects = getSubjectsFromStorage();
+        
+        if (localSubjects.length > 0) {
+          // Use localStorage data
+          const totalSubjects = localSubjects.length;
+          const totalQuestions = localSubjects.reduce((sum: number, subject: any) => sum + (subject.questionCount || 0), 0);
+          const categories = new Set(localSubjects.map((subject: any) => subject.category));
+          const totalCategories = categories.size;
+
+          setStats({
+            totalSubjects,
+            totalQuestions,
+            totalCategories
+          });
+        } else {
+          // Try API as fallback
+          const response = await fetch('/api/subjects');
+          if (response.ok) {
+            const subjects: Subject[] = await response.json();
+            
+            const totalSubjects = subjects.length;
+            const totalQuestions = subjects.reduce((sum, subject) => sum + subject.questionCount, 0);
+            const categories = new Set(subjects.map(subject => subject.category));
+            const totalCategories = categories.size;
+
+            setStats({
+              totalSubjects,
+              totalQuestions,
+              totalCategories
+            });
+          }
+        }
       }
     } catch (error) {
       console.error('Error loading stats:', error);
@@ -95,6 +136,11 @@ export default function SubjectManagerPage() {
                   <div>
                     <CardTitle className="text-xl sm:text-2xl flex items-center gap-2">
                       Ders Yöneticisi
+                      {isDemoMode && (
+                        <Badge className="ml-2 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                          BTK Demo
+                        </Badge>
+                      )}
                     </CardTitle>
                     <p className="text-muted-foreground">
                       Dersleri ekleyin, düzenleyin ve yönetin. Her ders için sorular ekleyebilirsiniz.
@@ -128,11 +174,18 @@ export default function SubjectManagerPage() {
                     </div>
                   </div>
                 </div>
+                {isDemoMode && (
+                  <div className="mt-4 text-center">
+                    <p className="text-sm text-muted-foreground italic">
+                      Bunları da gösterelim
+                    </p>
+                  </div>
+                )}
             </CardContent>
           </Card>
 
           {/* Subject Manager Component */}
-          <SubjectManager onStatsUpdate={loadStats} />
+          <SubjectManager />
         </div>
       </div>
     </div>

@@ -5,22 +5,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getAiTutorHelp, type AiTutorOutput } from '../ai/flows/ai-tutor';
 import { Button } from '@/components/ui/button';
 import { 
-  BookOpen, 
-  Brain, 
-  Users, 
-  Home, 
-  Database,
-  Settings,
-  GraduationCap,
   ArrowLeft
 } from 'lucide-react';
 import Link from 'next/link';
-import { ThemeToggle } from '@/components/theme-toggle';
 import VoiceAssistant from './voice-assistant';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import MobileNav from './mobile-nav';
-import { QuizResult } from './quiz-result'; // Import the new component
+import { QuizResult } from './quiz-result';
 import LoadingSpinner from './loading-spinner';
 
 interface Question {
@@ -39,9 +31,17 @@ interface Question {
 
 interface QuizProps {
   subject: string;
+  isDemoMode?: boolean;
 }
 
-const QuizComponent: React.FC<QuizProps> = ({ subject }) => {
+const QuizComponent: React.FC<QuizProps> = ({ subject, isDemoMode = false }) => {
+  // Save demo mode to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined' && isDemoMode) {
+      localStorage.setItem('btk_demo_mode', 'true');
+    }
+  }, [isDemoMode]);
+
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
@@ -81,30 +81,107 @@ const QuizComponent: React.FC<QuizProps> = ({ subject }) => {
     const loadQuestions = async () => {
       try {
         console.log('Loading questions for subject:', subject);
-        const response = await fetch(`/api/questions?subject=${encodeURIComponent(subject)}&random=true&count=10`);
         
-        if (!response.ok) {
-          throw new Error(`Failed to load questions: ${response.status}`);
+        // Check demo mode
+        const demoModeActive = isDemoMode || 
+                          (typeof window !== 'undefined' && localStorage.getItem('btk_demo_mode') === 'true');
+        
+        console.log('🎮 Quiz Component - Demo mode:', demoModeActive);
+        
+        if (demoModeActive) {
+          // Demo questions
+          const demoQuestions: Question[] = [
+            {
+              id: 'demo_q_1',
+              subject: 'Matematik',
+              type: 'multiple-choice',
+              difficulty: 'Medium',
+              text: '2x + 5 = 13 denkleminin çözümü nedir?',
+              topic: 'Cebir',
+              options: [
+                { text: 'x = 4', isCorrect: true },
+                { text: 'x = 3', isCorrect: false },
+                { text: 'x = 5', isCorrect: false },
+                { text: 'x = 6', isCorrect: false }
+              ],
+              explanation: '2x + 5 = 13 → 2x = 8 → x = 4'
+            },
+            {
+              id: 'demo_q_2',
+              subject: 'Matematik',
+              type: 'multiple-choice',
+              difficulty: 'Medium',
+              text: 'Bir üçgenin iç açıları toplamı kaç derecedir?',
+              topic: 'Geometri',
+              options: [
+                { text: '90°', isCorrect: false },
+                { text: '180°', isCorrect: true },
+                { text: '270°', isCorrect: false },
+                { text: '360°', isCorrect: false }
+              ],
+              explanation: 'Bir üçgenin iç açıları toplamı her zaman 180 derecedir.'
+            },
+            {
+              id: 'demo_q_3',
+              subject: 'Matematik',
+              type: 'multiple-choice',
+              difficulty: 'Hard',
+              text: 'x² - 4x + 4 = 0 denkleminin çözümü nedir?',
+              topic: 'Cebir',
+              options: [
+                { text: 'x = 2', isCorrect: true },
+                { text: 'x = -2', isCorrect: false },
+                { text: 'x = 4', isCorrect: false },
+                { text: 'x = -4', isCorrect: false }
+              ],
+              explanation: 'x² - 4x + 4 = (x-2)² = 0 → x = 2'
+            }
+          ];
+          
+          setQuestions(demoQuestions);
+          setTotalQuestions(demoQuestions.length);
+          setStartTime(new Date());
+          return;
         }
+
+        // USE DIRECT LOCALSTORAGE
+        console.log('🎮 Quiz Component - Loading from localStorage...');
         
-        const subjectQuestions = await response.json() as Array<{ id: string; subject: string; type: string; difficulty: string; text: string; topic: string; options: Array<{ text: string; isCorrect: boolean }>; explanation: string }>;
-        console.log('Loaded questions:', subjectQuestions.length);
+        // LocalStorage service for questions
+        const getQuestionsFromStorage = (): Question[] => {
+          if (typeof window === 'undefined') return [];
+          try {
+            const stored = localStorage.getItem('exam_training_questions');
+            const questions = stored ? JSON.parse(stored) : [];
+            return questions.filter((q: any) => q.subject === subject);
+          } catch {
+            return [];
+          }
+        };
+
+        const localQuestions = getQuestionsFromStorage();
         
-        if (subjectQuestions.length === 0) {
-          throw new Error('No questions found for this subject');
+        if (localQuestions.length === 0) {
+          throw new Error('Bu ders için henüz soru bulunmuyor');
         }
+
+        // Get up to 10 questions
+        const quizQuestions = localQuestions.slice(0, 10);
         
-        setQuestions(subjectQuestions);
-        setTotalQuestions(subjectQuestions.length);
+        setQuestions(quizQuestions);
+        setTotalQuestions(quizQuestions.length);
         setStartTime(new Date());
+        
       } catch (error) {
         console.error('Error loading questions:', error);
-        // Show error message to user
+        // Show user-friendly error message
         alert(`Soru yüklenirken hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`);
       }
     };
 
-    loadQuestions();
+    if (subject) {
+      loadQuestions();
+    }
   }, [subject]);
 
   // Timer
@@ -116,6 +193,7 @@ const QuizComponent: React.FC<QuizProps> = ({ subject }) => {
 
       return () => clearInterval(timer);
     }
+    return undefined;
   }, [startTime]);
 
   const currentQuestion = questions[currentQuestionIndex];
@@ -128,7 +206,7 @@ const QuizComponent: React.FC<QuizProps> = ({ subject }) => {
 
   const handleSubmit = () => {
     if (selectedAnswer !== null) {
-      const isCorrect = currentQuestion.options[selectedAnswer].isCorrect;
+      const isCorrect = currentQuestion?.options[selectedAnswer]?.isCorrect ?? false;
       if (isCorrect) {
         setScore(score + 1);
       }
@@ -155,27 +233,40 @@ const QuizComponent: React.FC<QuizProps> = ({ subject }) => {
     setIsSaving(true);
     
     try {
-      // Save to database via API
-      const response = await fetch('/api/quiz', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId,
-          subject,
-          score,
-          totalQuestions,
-          timeSpent: totalTime,
-          weakTopics,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save quiz result');
-      }
+      // SAVE TO LOCALSTORAGE
+      console.log('🎮 Quiz Component - Saving result to localStorage...');
       
-      console.log('✅ Quiz result saved successfully');
+      // Save quiz result to localStorage
+      const saveQuizResult = () => {
+        if (typeof window === 'undefined') return;
+        
+        try {
+          const existingResults = localStorage.getItem('exam_training_quiz_results');
+          const results = existingResults ? JSON.parse(existingResults) : [];
+          
+          const newResult = {
+            id: `result_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            userId,
+            subject,
+            score,
+            totalQuestions,
+            timeSpent: totalTime,
+            weakTopics,
+            createdAt: new Date().toISOString(),
+            completedAt: endTime.toISOString()
+          };
+          
+          results.push(newResult);
+          localStorage.setItem('exam_training_quiz_results', JSON.stringify(results));
+          
+          console.log('✅ Quiz result saved to localStorage:', newResult);
+        } catch (error) {
+          console.error('❌ Error saving to localStorage:', error);
+        }
+      };
+      
+      saveQuizResult();
+      
       setFinalResult({ // Set the final result on success
         score,
         totalQuestions,
@@ -213,15 +304,98 @@ const QuizComponent: React.FC<QuizProps> = ({ subject }) => {
     setQuizFinished(false);
     setFinalResult({ score: 0, totalQuestions: 0, timeSpent: 0, weakTopics: {} });
 
-    // Reload questions
+    // Reload questions from localStorage
     const loadQuestions = async () => {
       try {
-        const response = await fetch(`/api/questions?subject=${encodeURIComponent(subject)}&random=true&count=10`);
-        if (!response.ok) throw new Error('Failed to reload questions');
-        const subjectQuestions = await response.json();
-        setQuestions(subjectQuestions);
-        setTotalQuestions(subjectQuestions.length);
+        console.log('🎮 Quiz Component - Reloading questions from localStorage...');
+        
+        // Check demo mode
+        const demoModeActive = isDemoMode || 
+                          (typeof window !== 'undefined' && localStorage.getItem('btk_demo_mode') === 'true');
+        
+        if (demoModeActive) {
+          // Demo questions
+          const demoQuestions: Question[] = [
+            {
+              id: 'demo_q_1',
+              subject: 'Matematik',
+              type: 'multiple-choice',
+              difficulty: 'Medium',
+              text: '2x + 5 = 13 denkleminin çözümü nedir?',
+              topic: 'Cebir',
+              options: [
+                { text: 'x = 4', isCorrect: true },
+                { text: 'x = 3', isCorrect: false },
+                { text: 'x = 5', isCorrect: false },
+                { text: 'x = 6', isCorrect: false }
+              ],
+              explanation: '2x + 5 = 13 → 2x = 8 → x = 4'
+            },
+            {
+              id: 'demo_q_2',
+              subject: 'Matematik',
+              type: 'multiple-choice',
+              difficulty: 'Medium',
+              text: 'Bir üçgenin iç açıları toplamı kaç derecedir?',
+              topic: 'Geometri',
+              options: [
+                { text: '90°', isCorrect: false },
+                { text: '180°', isCorrect: true },
+                { text: '270°', isCorrect: false },
+                { text: '360°', isCorrect: false }
+              ],
+              explanation: 'Bir üçgenin iç açıları toplamı her zaman 180 derecedir.'
+            },
+            {
+              id: 'demo_q_3',
+              subject: 'Matematik',
+              type: 'multiple-choice',
+              difficulty: 'Hard',
+              text: 'x² - 4x + 4 = 0 denkleminin çözümü nedir?',
+              topic: 'Cebir',
+              options: [
+                { text: 'x = 2', isCorrect: true },
+                { text: 'x = -2', isCorrect: false },
+                { text: 'x = 4', isCorrect: false },
+                { text: 'x = -4', isCorrect: false }
+              ],
+              explanation: 'x² - 4x + 4 = (x-2)² = 0 → x = 2'
+            }
+          ];
+          
+          setQuestions(demoQuestions);
+          setTotalQuestions(demoQuestions.length);
+          setStartTime(new Date());
+          return;
+        }
+
+        // Get questions from LocalStorage
+        const getQuestionsFromStorage = (): Question[] => {
+          if (typeof window === 'undefined') return [];
+          try {
+            const stored = localStorage.getItem('exam_training_questions');
+            const questions = stored ? JSON.parse(stored) : [];
+            return questions.filter((q: any) => q.subject === subject);
+          } catch {
+            return [];
+          }
+        };
+
+        const localQuestions = getQuestionsFromStorage();
+        
+        if (localQuestions.length === 0) {
+          throw new Error('Bu ders için henüz soru bulunmuyor');
+        }
+
+        // Get up to 10 questions and shuffle
+        const shuffledQuestions = localQuestions
+          .slice(0, 10)
+          .sort(() => Math.random() - 0.5);
+        
+        setQuestions(shuffledQuestions);
+        setTotalQuestions(shuffledQuestions.length);
         setStartTime(new Date());
+        
       } catch (error) {
         alert(`Sorular yeniden yüklenirken bir hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`);
       }
@@ -234,7 +408,7 @@ const QuizComponent: React.FC<QuizProps> = ({ subject }) => {
     
     // This is a simplified version - in a real app, you'd track wrong answers per question
     if (currentQuestion && selectedAnswer !== null) {
-      const isCorrect = currentQuestion.options[selectedAnswer].isCorrect;
+      const isCorrect = currentQuestion.options[selectedAnswer]?.isCorrect ?? false;
       if (!isCorrect) {
         weakTopics[currentQuestion.topic] = (weakTopics[currentQuestion.topic] || 0) + 1;
       }
@@ -302,7 +476,7 @@ const QuizComponent: React.FC<QuizProps> = ({ subject }) => {
         options: currentQuestion.options,
         correctAnswer: currentQuestion.options.find(opt => opt.isCorrect)?.text || '',
         explanation: currentQuestion.explanation,
-        userAnswer: selectedAnswer !== null ? currentQuestion.options[selectedAnswer].text : undefined,
+        userAnswer: selectedAnswer !== null ? currentQuestion.options[selectedAnswer]?.text : undefined,
         step,
       });
       
@@ -319,7 +493,7 @@ const QuizComponent: React.FC<QuizProps> = ({ subject }) => {
     }
   };
 
-  if (questions.length === 0) {
+  if (questions.length === 0 || !currentQuestion) {
     return (
       <div className="flex flex-col min-h-screen">
         <MobileNav />
@@ -546,9 +720,9 @@ const QuizComponent: React.FC<QuizProps> = ({ subject }) => {
       {/* Voice Assistant */}
       <VoiceAssistant
         onCommand={handleVoiceCommand}
-        currentQuestion={currentQuestion?.text}
-        currentAnswer={currentQuestion?.options.find(opt => opt.isCorrect)?.text}
-        aiTutorOutput={aiTutorHelp?.help}
+        currentQuestion={currentQuestion.text}
+        currentAnswer={currentQuestion.options.find(opt => opt.isCorrect)?.text || ''}
+        aiTutorOutput={aiTutorHelp?.help || ''}
         isListening={isListening}
         onListeningChange={setIsListening}
       />

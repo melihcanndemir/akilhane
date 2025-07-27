@@ -28,8 +28,8 @@ const AiTutorOutputSchema = z.object({
 export type AiTutorOutput = z.infer<typeof AiTutorOutputSchema>;
 
 // Difficulty translation function
-function translateDifficulty(difficulty: string): string {
-  const difficultyMap: Record<string, string> = {
+function translateDifficulty(difficulty: string): 'Kolay' | 'Orta' | 'Zor' | undefined {
+  const difficultyMap: Record<string, 'Kolay' | 'Orta' | 'Zor'> = {
     'Easy': 'Kolay',
     'Medium': 'Orta',
     'Hard': 'Zor',
@@ -41,7 +41,7 @@ function translateDifficulty(difficulty: string): string {
     'HARD': 'Zor'
   };
   
-  return difficultyMap[difficulty] || difficulty;
+  return difficultyMap[difficulty] || undefined;
 }
 
 export async function getAiTutorHelp(

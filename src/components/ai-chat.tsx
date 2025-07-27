@@ -3,21 +3,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAiChatResponse, type AiChatOutput } from '../ai/flows/ai-chat';
-import { Button } from '@/components/ui/button';
 import { 
-  BookOpen, 
-  Brain, 
-  Users, 
-  Home, 
-  Database,
-  Settings,
   Mic,
-  Volume2,
-  GraduationCap,
   Send
 } from 'lucide-react';
-import Link from 'next/link';
-import { ThemeToggle } from '@/components/theme-toggle';
 import VoiceAssistant from './voice-assistant';
 import MobileNav from './mobile-nav';
 

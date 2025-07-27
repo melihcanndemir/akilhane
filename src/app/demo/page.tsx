@@ -11,10 +11,8 @@ import {
   Pause, 
   SkipForward, 
   SkipBack, 
-  Volume2, 
   Mic,
   Brain,
-  Target,
   Users,
   BookOpen,
   BarChart3,
@@ -22,7 +20,6 @@ import {
   ArrowRight,
   CheckCircle
 } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 interface DemoStep {
@@ -192,39 +189,41 @@ export default function DemoPage() {
         </div>
 
         {/* Current Feature */}
-        <motion.div
-          key={currentStep}
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -50 }}
-          className="mb-8"
-        >
-          <Card className="shadow-xl border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
-            <CardHeader className="text-center">
-              <div className="flex justify-center mb-4">
-                <div className={`bg-gradient-to-r ${demoSteps[currentStep].color} p-3 rounded-xl`}>
-                  {demoSteps[currentStep].icon}
+        {demoSteps[currentStep] && (
+          <motion.div
+            key={currentStep}
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+            className="mb-8"
+          >
+            <Card className="shadow-xl border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+              <CardHeader className="text-center">
+                <div className="flex justify-center mb-4">
+                  <div className={`bg-gradient-to-r ${demoSteps[currentStep].color} p-3 rounded-xl`}>
+                    {demoSteps[currentStep].icon}
+                  </div>
                 </div>
-              </div>
-              <CardTitle className="text-2xl font-bold">
-                {demoSteps[currentStep].title}
-              </CardTitle>
-              <CardDescription className="text-lg">
-                {demoSteps[currentStep].description}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center">
-              <Button
-                onClick={() => handleStepAction(demoSteps[currentStep])}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-                size="lg"
-              >
-                <Zap className="h-4 w-4 mr-2" />
-                {demoSteps[currentStep].action}
-              </Button>
-            </CardContent>
-          </Card>
-        </motion.div>
+                <CardTitle className="text-2xl font-bold">
+                  {demoSteps[currentStep].title}
+                </CardTitle>
+                <CardDescription className="text-lg">
+                  {demoSteps[currentStep].description}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="text-center">
+                <Button
+                  onClick={() => demoSteps[currentStep] && handleStepAction(demoSteps[currentStep])}
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                  size="lg"
+                >
+                  <Zap className="h-4 w-4 mr-2" />
+                  {demoSteps[currentStep].action}
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
 
         {/* All Features Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

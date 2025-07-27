@@ -79,7 +79,7 @@ export class QuestionRepository {
 
       const results = await query;
 
-      return results.map(result => ({
+      return results.map((result: any) => ({
         id: result.id,
         subject: result.subject,
         type: result.type as any,
@@ -119,7 +119,7 @@ export class QuestionRepository {
 
       const results = await query;
 
-      return results.map(result => ({
+      return results.map((result: any) => ({
         id: result.id,
         subject: result.subject,
         type: result.type as any,
@@ -163,7 +163,7 @@ export class QuestionRepository {
 
       const results = await query;
 
-      return results.map(result => ({
+      return results.map((result: any) => ({
         id: result.id,
         subject: result.subject,
         type: result.type as any,
@@ -208,7 +208,7 @@ export class QuestionRepository {
       // Shuffle results
       const shuffled = results.sort(() => Math.random() - 0.5);
 
-      return shuffled.map(result => ({
+      return shuffled.map((result: any) => ({
         id: result.id,
         subject: result.subject,
         type: result.type as any,
@@ -252,7 +252,7 @@ export class QuestionRepository {
 
       const results = await query;
 
-      return results.map(result => ({
+      return results.map((result: any) => ({
         id: result.id,
         subject: result.subject,
         type: result.type as any,
@@ -375,7 +375,7 @@ export class QuestionRepository {
           )
         );
 
-      return results.map(result => result.topic);
+      return results.map((result: any) => result.topic);
     } catch (error) {
       console.error('❌ Error getting topics by subject:', error);
       throw error;

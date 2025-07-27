@@ -1,12 +1,7 @@
-'use client';
-
-import { useSearchParams } from 'next/navigation';
-import AiChatComponent from '@/components/ai-chat';
+import AiChatClient from "@/components/ai/ai-chat-client";
 
 export default function AiChatPage() {
-  const searchParams = useSearchParams();
-  const subject = searchParams.get('subject') || 'Genel';
-  const context = searchParams.get('context') || undefined;
-
-  return <AiChatComponent subject={subject} context={context} />;
-} 
+  return (
+      <AiChatClient />
+  );
+}

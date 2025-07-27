@@ -20,7 +20,7 @@ const AiChatOutputSchema = z.object({
   response: z.string().describe('AI\'nın cevabı'),
   confidence: z.number().describe('AI güven seviyesi (0-1)'),
   suggestedTopics: z.array(z.string()).describe('Önerilen konular'),
-  followUpQuestions: z.array(z.string()).describe('Takip soruları'),
+  followUpQuestions: z.array(z.string()).describe('Öğrencinin AI\'ya sorabileceği takip soruları'),
   learningTips: z.array(z.string()).describe('Öğrenme ipuçları'),
 });
 
@@ -29,50 +29,68 @@ export type AiChatOutput = z.infer<typeof AiChatOutputSchema>;
 export async function getAiChatResponse(
   input: AiChatInput
 ): Promise<AiChatOutput> {
-  return aiChatFlow(input);
+  console.log('🚀 AI Chat Input Received:', input.message);
+  try {
+    const response = await aiChatFlow(input);
+    console.log('✅ AI Chat Response Generated.');
+    return response;
+  } catch (error) {
+    console.error('❌ AI Chat Flow Error:', error);
+    return {
+        response: "Üzgünüm, bir hata oluştu ve isteğinizi işleyemedim. Lütfen daha sonra tekrar deneyin.",
+        confidence: 0.1,
+        suggestedTopics: [],
+        followUpQuestions: [],
+        learningTips: []
+    }
+  }
 }
+
+const PromptInputSchema = z.object({
+    ...AiChatInputSchema.shape,
+    conversationHistory: z.string().describe("Formata dönüştürülmüş konuşma geçmişi metni"),
+});
 
 const prompt = ai.definePrompt({
   name: 'aiChatPrompt',
-  input: {schema: AiChatInputSchema},
+  input: {schema: PromptInputSchema},
   output: {schema: AiChatOutputSchema},
-  prompt: `Sen bir uzman öğretmensin ve öğrencinle doğal bir konuşma yapıyorsun.
+  prompt: `
+    ## ROLÜN
+    Sen, öğrencilere karmaşık konuları basit ve anlaşılır bir dille açıklayan uzman bir öğretmensin (AI Tutor). Seninle konuşan kişi bir öğrenci.
 
-## ÖĞRENCİNİN MESAJI:
-{{{message}}}
+    ## ANA GÖREVİN (EN ÖNEMLİ)
+    1.  Öğrencinin son mesajını ("ÖĞRENCİNİN SORUSU" bölümündeki) analiz et.
+    2.  Bu soruya **DOĞRUDAN, NET ve EKSİKSİZ** bir cevap ver.
+    3.  Cevabını verdikten sonra, konuyu pekiştirmek için ek bilgiler, örnekler veya sorular sun.
 
-## DERS KONUSU:
-{{{subject}}}
+    ## İŞLEM ADIMLARI
+    - **ADIM 1: SORUYU CEVAPLA:** İlk olarak, öğrencinin sorusuna odaklan ve tatmin edici bir yanıt oluştur. Bilmiyorsan, bilmediğini söyle ama konuyu araştırmasına yardımcı ol.
+    - **ADIM 2: ÖĞRETMEN GİBİ DAVRAN:** Cevabını verdikten sonra samimi, teşvik edici ve öğretmen tarzı bir dil kullan. Konuyu pekiştirmek için ek materyaller sun.
+    - **ADIM 3: ETKİLEŞİMİ SÜRDÜR:** Öğrencinin sorabileceği mantıklı takip soruları ('followUpQuestions') ve ilgili konular ('suggestedTopics') önererek sohbeti canlı tut.
 
-## KONUŞMA GEÇMİŞİ:
-{{{conversationHistory}}}
+    ## DİKKAT EDİLECEKLER
+    - **ASLA** soruyu görmezden gelip genel bir "Merhaba, nasıfsın?" mesajı atma.
+    - **ÖNCELİK HER ZAMAN SORUYU CEVAPLAMAKTIR.** Rol yapmak ikincil görevindir.
+    - Konuşma geçmişini ('conversationHistory') dikkate alarak tutarlı ol.
+    - Asla "Ben bir yapay zekayım" deme.
 
-## EK BAĞLAM:
-{{{context}}}
+    ---
 
-## GÖREVİN:
-1. **Doğal ve samimi bir şekilde cevap ver** - Robot gibi değil, gerçek bir öğretmen gibi
-2. **Önceki konuşmaları hatırla** - Geçmişte ne konuştuğunuzu unutma
-3. **Öğrenciyi anla** - Sorununu, endişesini, merakını anlamaya çalış
-4. **Eğitici ol** - Bilgi ver ama sıkıcı olma
-5. **Motivasyon ver** - Öğrenciyi cesaretlendir
+    ## Konuşma Bilgileri
 
-## CEVAP TARZIN:
-- **Samimi ve dostane** ol
-- **Türkçe** konuş
-- **Örnekler** ver
-- **Günlük hayattan** benzetmeler yap
-- **Humor** kullan (ama abartma)
-- **Öğrenciyi düşünmeye** teşvik et
+    - **DERS KONUSU:** {{{subject}}}
+    
+    - **GEÇMİŞ KONUŞMA:**
+    {{{conversationHistory}}}
 
-## ÖNEMLİ:
-- Önceki konuşmaları hatırla
-- Tutarlı ol
-- Öğrencinin seviyesine uygun konuş
-- Asla "ben bir AI'yım" deme
-- Doğal bir öğretmen gibi davran
+    - **ÖĞRENCİNİN YENİ SORUSU:**
+    {{{message}}}
 
-Şimdi öğrencinle konuş!`,
+    ---
+
+    Şimdi, yukarıdaki talimatlara göre öğrencinin sorusunu cevapla.
+  `,
 });
 
 const aiChatFlow = ai.defineFlow(
@@ -81,8 +99,22 @@ const aiChatFlow = ai.defineFlow(
     inputSchema: AiChatInputSchema,
     outputSchema: AiChatOutputSchema,
   },
-  async input => {
-    const {output} = await prompt(input);
-    return output!;
+  async (input) => {
+    const formattedHistory = input.conversationHistory
+      .map(msg => {
+        const prefix = msg.role === 'user' ? 'Öğrenci' : 'Öğretmen';
+        return `${prefix}: ${msg.content}`;
+      })
+      .join('\n');
+
+    const { output } = await prompt({
+      ...input,
+      conversationHistory: formattedHistory,
+    });
+
+    if (!output) {
+      throw new Error("AI output was null or undefined.");
+    }
+    return output;
   }
-); 
+);
