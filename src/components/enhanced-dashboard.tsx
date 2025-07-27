@@ -85,7 +85,7 @@ export default function EnhancedDashboard() {
   const [storageInfo, setStorageInfo] = useState({ used: 0, available: 0, percentage: 0 });
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [useDemoData, setUseDemoData] = useState(false);
+  const [useDemoData, setUseDemoData] = useState(true);
 
   // Safely initialize the demo data state
   useEffect(() => {
