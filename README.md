@@ -1,11 +1,11 @@
 <div align="center">
-  <img src="https://i.imgur.com/your-logo-image-url.png" alt="AkılHane Logo" width="150">
+  <img src="public/favicon.svg" alt="AkılHane Logo" width="150">
   <h1>AkılHane - AI Destekli Eğitim Platformu</h1>
   <p>
     <strong>Öğrenme deneyiminizi kişiselleştiren, yapay zeka destekli yeni nesil eğitim platformu.</strong>
   </p>
   <p>
-    <a href="https://your-live-demo-url.com"><strong>Canlı Demoyu Ziyaret Et »</strong></a>
+    <a href="https://akilhane.vercel.app/"><strong>Canlı Demoyu Ziyaret Et »</strong></a>
   </p>
   <br>
 </div>
