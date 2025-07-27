@@ -5,7 +5,7 @@ import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import FlashcardComponent from '../../components/flashcard';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { shouldUseDemoData } from '@/data/demo-data';
 
 interface Subject {
@@ -54,6 +54,7 @@ class QuestionLocalStorageService {
 
 const FlashcardPageContent = () => {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [selectedSubject, setSelectedSubject] = useState<string>('');
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -148,7 +149,7 @@ const FlashcardPageContent = () => {
           {/* Back button */}
           <div className="mb-6">
             <Button 
-              onClick={() => window.location.href = '/'} 
+              onClick={() => router.push('/dashboard')} 
               variant="outline" 
               size="sm" 
               className="flex items-center gap-2"
@@ -252,17 +253,6 @@ const FlashcardPageContent = () => {
   return (
     <div>
       <FlashcardComponent subject={selectedSubject} isDemoMode={isDemoMode} />
-      
-      {/* Back to subject selection */}
-      <div className="fixed bottom-6 right-6">
-        <button
-          onClick={() => setSelectedSubject('')}
-          className="bg-gray-800 dark:bg-gray-700 text-white p-4 rounded-full shadow-lg hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
-          title="Konu seçimine dön"
-        >
-          ←
-        </button>
-      </div>
     </div>
   );
 };

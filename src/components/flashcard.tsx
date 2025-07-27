@@ -355,10 +355,14 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject, isDemoMode = fa
           {/* Header */}
           <div className="mb-8">
             <div className="flex flex-wrap items-center gap-4 mb-4">
-              <Link href="/flashcard">
-                <Button variant="outline" size="sm" className="flex items-center gap-2">
+              <Link href="/dashboard">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex items-center gap-2 min-h-[44px] px-4 text-base"
+                >
                   <ArrowLeft className="w-4 h-4" />
-                  Geri
+                  Ana Sayfaya Dön
                 </Button>
               </Link>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">
