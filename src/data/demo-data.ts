@@ -430,22 +430,25 @@ export const getDemoDataForUser = (userId: string) => {
 
 export const shouldUseDemoData = (): boolean => {
   if (typeof window === 'undefined') {
-    console.log('🔍 Demo Mode Check: Server-side rendering, returning false');
-    return false; // Return false during SSR
+    console.log('🔍 Demo Mode Check: Server-side rendering, returning true');
+    return true; // Return true during SSR for default demo mode
   }
   
   const urlParams = new URLSearchParams(window.location.search);
   const demoParam = urlParams.get('demo') === 'true';
-  const localStorageDemo = localStorage.getItem('btk_demo_mode') === 'true';
+  const localStorageDemo = localStorage.getItem('btk_demo_mode');
+  
+  // Default to true if no localStorage value is set
+  const shouldUseDemo = demoParam || localStorageDemo === 'true' || localStorageDemo === null;
   
   console.log('🔍 Demo Mode Check:', {
     url: window.location.href,
     demoParam,
     localStorageDemo,
-    result: demoParam || localStorageDemo
+    result: shouldUseDemo
   });
   
-  return demoParam || localStorageDemo;
+  return shouldUseDemo;
 };
 
 // Demo mode on/off

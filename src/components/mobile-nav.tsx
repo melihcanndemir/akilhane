@@ -15,6 +15,7 @@ import {
   LogOut,
   User,
   Settings,
+  Home,
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { useAuth } from '@/hooks/useAuth';
@@ -39,8 +40,9 @@ export default function MobileNav() {
   });
 
   const navLinks = [
-    { href: '/', label: 'Ana Sayfa', icon: Brain },
+    { href: '/landing', label: 'Tanıtım', icon: Home },
     { href: '/demo', label: 'Demo', icon: Play },
+    { href: '/dashboard', label: 'Gösterge Paneli', icon: Brain },
     { href: '/quiz', label: 'Test Çöz', icon: BookOpen },
     { href: '/flashcard', label: 'Flashcard', icon: Brain },
     { href: '/ai-chat', label: 'AI Asistan', icon: Users },
@@ -52,7 +54,7 @@ export default function MobileNav() {
     <nav className="bg-background/75 sticky top-0 z-50">
       <div className="container mx-auto px-4 md:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/landing" className="flex items-center gap-2">
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-2 rounded-lg">
                 <Brain className="h-6 w-6 text-white" />
             </div>

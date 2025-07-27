@@ -24,7 +24,7 @@ Bu proje, **BTK Akademi & Google Cloud & Girişimcilik Vakfı Hackathon'25** iç
 ## 🚀 Ana Özellikler
 
 -   🧠 **Kişiselleştirilmiş Öğrenme Asistanı:** Performansınıza göre size özel testler ve konular öneren akıllı sistem.
--   튜 **AI Tutor ile Anında Yardım:** Anlamadığınız sorularda size ipuçları veren, adım adım çözüm sunan ve konuyu özetleyen yapay zeka öğretmeni.
+-   🎓 **AI Tutor ile Anında Yardım:** Anlamadığınız sorularda size ipuçları veren, adım adım çözüm sunan ve konuyu özetleyen yapay zeka öğretmeni.
 -   💬 **Etkileşimli AI Sohbet:** Ders konuları hakkında yapay zeka ile sohbet etme ve derinlemesine bilgi alma imkanı.
 -   🃏 **Akıllı Flashcard'lar:** Spaced Repetition (Aralıklı Tekrar) algoritması ile çalışan, öğrenmenizi optimize eden dijital kartlar.
 -   📊 **Detaylı Performans Analizi:** Gelişiminizi takip edebileceğiniz görsel grafikler ve istatistikler.
@@ -49,6 +49,14 @@ Bu proje, **BTK Akademi & Google Cloud & Girişimcilik Vakfı Hackathon'25** iç
   <a href="https://web.dev/progressive-web-apps/" target="_blank"><img src="https://img.shields.io/badge/PWA-4285F4?style=for-the-badge&logo=pwa&logoColor=white" alt="PWA"></a>
   <a href="https://www.i18next.com/" target="_blank"><img src="https://img.shields.io/badge/i18next-26A69A?style=for-the-badge&logo=i18next&logoColor=white" alt="i18next"></a>
 </div>
+
+## 🔒 Security & Performance Features
+
+- **🔐 Row Level Security (RLS):** Supabase RLS policies ensure data isolation and secure access control
+- **📱 Mobile Responsive:** Fully responsive design optimized for all device sizes
+- **⚡ Progressive Web App (PWA):** Offline functionality and native app-like experience
+- **🛡️ TypeScript Strict Mode:** Complete type safety throughout the application
+- **🎯 SEO Optimized:** Server-side rendering and meta tags for better search visibility
 
 ## 🏗️ Teknik Derinlik ve Mimari
 
