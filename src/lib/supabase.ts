@@ -347,6 +347,13 @@ export const resetPassword = async (email: string) => {
   return { data, error };
 };
 
+export const updatePassword = async (password: string) => {
+  const { data, error } = await supabase.auth.updateUser({
+    password: password
+  });
+  return { data, error };
+};
+
 export const getCurrentUser = async () => {
   const { data: { user }, error } = await supabase.auth.getUser();
   return { user, error };
