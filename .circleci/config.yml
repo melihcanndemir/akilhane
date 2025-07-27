@@ -1,0 +1,19 @@
+version: 2.1
+
+jobs:
+  typecheck:
+    docker:
+      - image: cimg/node:lts
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: npm install
+      - run:
+          name: TypeScript type check
+          command: npm run typecheck
+
+workflows:
+  ci:
+    jobs:
+      - typecheck
