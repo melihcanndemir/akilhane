@@ -9,6 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { getAiChatResponse, AiChatInput } from '@/ai/flows/ai-chat'; 
 import { User, Sparkles, BrainCircuit, Lightbulb, Loader2 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeHighlight from 'rehype-highlight';
 
 interface Message {
   id: string;
@@ -123,7 +126,52 @@ export default function AiChatClient() {
                 </Avatar>
               )}
               <div className={`max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl rounded-2xl px-4 py-3 shadow-sm ${ message.role === 'user' ? 'bg-blue-500 text-white rounded-br-none' : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-bl-none'}`}>
-                <p className="whitespace-pre-wrap text-sm md:text-base">{message.content}</p>
+                {message.role === 'assistant' ? (
+                  <div className="prose prose-sm dark:prose-invert max-w-none prose-headings:mb-2 prose-p:mb-2 prose-ul:mb-2 prose-ol:mb-2 prose-li:mb-1">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      rehypePlugins={[rehypeHighlight]}
+                      components={{
+                        code({ node, className, children, ...props }: any) {
+                          const match = /language-(\w+)/.exec(className || '');
+                          const isInline = !className || !className.includes('language-');
+                          return !isInline && match ? (
+                            <pre className="bg-gray-900 text-gray-100 p-3 rounded-lg overflow-x-auto">
+                              <code className={className} {...props}>
+                                {children}
+                              </code>
+                            </pre>
+                          ) : (
+                            <code className="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-sm" {...props}>
+                              {children}
+                            </code>
+                          );
+                        },
+                        p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                        ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
+                        ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
+                        li: ({ children }) => <li className="text-sm">{children}</li>,
+                        h1: ({ children }) => <h1 className="text-xl font-bold mb-2">{children}</h1>,
+                        h2: ({ children }) => <h2 className="text-lg font-bold mb-2">{children}</h2>,
+                        h3: ({ children }) => <h3 className="text-base font-bold mb-2">{children}</h3>,
+                        blockquote: ({ children }) => (
+                          <blockquote className="border-l-4 border-blue-500 pl-4 italic bg-blue-50 dark:bg-blue-900/20 py-2 rounded-r">
+                            {children}
+                          </blockquote>
+                        ),
+                        a: ({ href, children }) => (
+                          <a href={href} className="text-blue-600 dark:text-blue-400 hover:underline" target="_blank" rel="noopener noreferrer">
+                            {children}
+                          </a>
+                        ),
+                      }}
+                    >
+                      {message.content}
+                    </ReactMarkdown>
+                  </div>
+                ) : (
+                  <p className="whitespace-pre-wrap text-sm md:text-base">{message.content}</p>
+                )}
               </div>
               {message.role === 'user' && (
                 <Avatar className="w-8 h-8 md:w-10 md:h-10 border-2 border-gray-300">

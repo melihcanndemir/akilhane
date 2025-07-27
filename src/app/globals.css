@@ -71,6 +71,86 @@
   /* Gradient removed, theme's own dark color will be used */
 }
 
+/* Code Highlighting Styles */
+.hljs {
+  background: #1e293b;
+  color: #e2e8f0;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+}
+
+.hljs-keyword {
+  color: #fbbf24;
+}
+
+.hljs-string {
+  color: #34d399;
+}
+
+.hljs-number {
+  color: #60a5fa;
+}
+
+.hljs-comment {
+  color: #6b7280;
+  font-style: italic;
+}
+
+.hljs-function {
+  color: #a78bfa;
+}
+
+.hljs-variable {
+  color: #f87171;
+}
+
+.hljs-operator {
+  color: #f59e0b;
+}
+
+.hljs-punctuation {
+  color: #e5e7eb;
+}
+
+/* Dark mode adjustments */
+.dark .hljs {
+  background: #0f172a;
+  color: #f1f5f9;
+}
+
+.dark .hljs-keyword {
+  color: #fbbf24;
+}
+
+.dark .hljs-string {
+  color: #34d399;
+}
+
+.dark .hljs-number {
+  color: #60a5fa;
+}
+
+.dark .hljs-comment {
+  color: #64748b;
+}
+
+.dark .hljs-function {
+  color: #a78bfa;
+}
+
+.dark .hljs-variable {
+  color: #f87171;
+}
+
+.dark .hljs-operator {
+  color: #f59e0b;
+}
+
+.dark .hljs-punctuation {
+  color: #cbd5e1;
+}
+
 /* Compact Mode Styles */
 .compact-mode {
   --spacing-xs: 0.25rem;
