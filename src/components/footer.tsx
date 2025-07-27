@@ -71,22 +71,16 @@ export default function Footer() {
                     Bizi Takip Edin
                 </h3>
                 <div className="flex mt-4 space-x-6 justify-start md:justify-end">
-                    <a href="#" className="text-gray-400 hover:text-gray-500">
-                        <span className="sr-only">X</span>
-                        <svg
-                            className="h-6 w-6"
-                            fill="currentColor"
-                            viewBox="0 0 24 24"
-                            aria-hidden="true"
-                        >
-                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                        </svg>
+                    <a href="https://www.producthunt.com/@melihcandemir" className="text-gray-400 hover:text-gray-500" target="_blank" rel="noopener noreferrer">
+                        <span className="sr-only">Product Hunt</span>
+                        {/* Product Hunt icon styled to match other icons */}
+                        <span className="flex items-center justify-center h-6 w-6 rounded-full border border-gray-400 dark:border-gray-500 bg-white dark:bg-gray-900 text-[#DA552F] font-bold text-base" style={{fontFamily: 'Inter, sans-serif'}}>P</span>
                     </a>
-                    <a href="#" className="text-gray-400 hover:text-gray-500">
+                    <a href="https://github.com/melihcanndemir/akilhane" className="text-gray-400 hover:text-gray-500" target="_blank" rel="noopener noreferrer">
                         <span className="sr-only">GitHub</span>
                         <Github className="h-6 w-6" />
                     </a>
-                    <a href="#" className="text-gray-400 hover:text-gray-500">
+                    <a href="https://www.linkedin.com/in/melihcandemir/" className="text-gray-400 hover:text-gray-500" target="_blank" rel="noopener noreferrer">
                         <span className="sr-only">LinkedIn</span>
                         <Linkedin className="h-6 w-6" />
                     </a>
