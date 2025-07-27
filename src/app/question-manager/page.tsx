@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { Plus, Edit, Trash2, Filter, BookOpen, Database, GraduationCap } from 'lucide-react';
+import { Plus, Edit, Trash2, Filter, BookOpen, Database, GraduationCap, Search } from 'lucide-react';
 import type { Question } from '@/lib/types';
 import Link from 'next/link';
 import MobileNav from '@/components/mobile-nav';
@@ -922,9 +922,9 @@ export default function QuestionManager() {
               </CardHeader>
               <CardContent>
                 {/* Filters */}
-                <div className="flex gap-2 mb-4">
+                <div className="flex flex-col sm:flex-row gap-3 mb-4 p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
                   <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-                    <SelectTrigger className="w-48">
+                    <SelectTrigger className="w-full sm:w-48">
                       <SelectValue placeholder="Ders seçin" />
                     </SelectTrigger>
                     <SelectContent>
@@ -951,14 +951,17 @@ export default function QuestionManager() {
                       )}
                     </SelectContent>
                   </Select>
-                  <Input
-                    placeholder="Soru ara..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="flex-1"
-                  />
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Input
+                      placeholder="Soru ara..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="flex-1 min-h-[44px] sm:min-h-[40px] text-base pl-10 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:border-blue-500 dark:focus:border-blue-400 shadow-sm"
+                    />
+                  </div>
                   <Select value={filterDifficulty} onValueChange={setFilterDifficulty}>
-                    <SelectTrigger className="w-32">
+                    <SelectTrigger className="w-full sm:w-32">
                       <SelectValue placeholder="Zorluk" />
                     </SelectTrigger>
                     <SelectContent>
