@@ -342,6 +342,34 @@ class LocalStorageService {
       percentage: Math.round(percentage * 100) / 100
     };
   }
+
+  // User Settings
+  getUserSettings(): any {
+    return this.getItem('userSettings', {
+      studyPreferences: {
+        defaultSubject: '',
+        questionsPerQuiz: 10,
+        timeLimit: 30,
+        showTimer: true,
+        autoSubmit: false,
+      },
+      notifications: {
+        email: true,
+        push: false,
+        reminders: true,
+        achievements: true,
+      },
+      appearance: {
+        fontSize: 'medium',
+        compactMode: false,
+        theme: 'system',
+      }
+    });
+  }
+
+  saveUserSettings(settings: any): void {
+    this.setItem('userSettings', settings);
+  }
 }
 
 export const localStorageService = LocalStorageService.getInstance();
