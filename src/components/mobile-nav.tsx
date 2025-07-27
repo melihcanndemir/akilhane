@@ -38,7 +38,7 @@ export default function MobileNav() {
     userObject: user 
   });
 
-  const allNavLinks = [
+  const navLinks = [
     { href: '/', label: 'Ana Sayfa', icon: Brain },
     { href: '/demo', label: 'Demo', icon: Play },
     { href: '/quiz', label: 'Test Çöz', icon: BookOpen },
@@ -61,7 +61,7 @@ export default function MobileNav() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-1">
-            {allNavLinks.map(({ href, label, icon: Icon }) => (
+            {navLinks.map(({ href, label, icon: Icon }) => (
               <Link key={href} href={href}>
                 <Button 
                   variant="ghost" 
@@ -186,7 +186,7 @@ export default function MobileNav() {
 
                     {/* Navigation Links */}
                     <div className="space-y-2">
-                      {allNavLinks.map(({ href, label, icon: Icon }) => (
+                      {navLinks.map(({ href, label, icon: Icon }) => (
                         <Link
                           key={href}
                           href={href}

@@ -51,12 +51,12 @@ export default function Footer() {
               </h3>
               <ul className="mt-4 space-y-2">
                 <li>
-                  <Link href="#" className="text-base text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                  <Link href="/privacy-policy" className="text-base text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
                     Gizlilik Politikası
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="text-base text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                  <Link href="/terms-of-service" className="text-base text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
                     Kullanım Şartları
                   </Link>
                 </li>
