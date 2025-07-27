@@ -203,60 +203,60 @@ export default function PWAInstallPrompt() {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 20, scale: 0.95 }}
         transition={{ duration: 0.3, ease: 'easeOut' }}
-        className="fixed bottom-4 right-4 z-50 max-w-sm"
+        className="fixed bottom-4 z-50 sm:bottom-4 sm:right-4 sm:left-auto sm:flex-none sm:px-0 left-0 right-0 flex justify-center px-4"
       >
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-2xl backdrop-blur-sm">
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 sm:p-6 shadow-2xl backdrop-blur-sm">
           {/* Header */}
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                <Smartphone className="w-4 h-4 text-white" />
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                <Smartphone className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900 dark:text-white text-sm">
+                <h3 className="font-semibold text-gray-900 dark:text-white text-base">
                   AkılHane'i Yükle
                 </h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   Daha hızlı erişim
                 </p>
               </div>
             </div>
             <button
               onClick={handleDismiss}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5" />
             </button>
           </div>
 
           {/* Content */}
-          <div className="mb-4">
-            <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+          <div className="mb-6">
+            <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
               AkılHane'i ana ekranınıza ekleyerek daha hızlı erişim sağlayın ve çevrimdışı çalışın.
             </p>
             
             {/* Benefits */}
-            <div className="mt-3 space-y-2">
-              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                <CheckCircle className="w-3 h-3 text-green-500" />
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+                <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
                 <span>Hızlı erişim</span>
               </div>
-              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                <CheckCircle className="w-3 h-3 text-green-500" />
+              <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+                <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
                 <span>Çevrimdışı çalışma</span>
               </div>
-              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                <CheckCircle className="w-3 h-3 text-green-500" />
+              <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+                <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
                 <span>Push bildirimleri</span>
               </div>
             </div>
           </div>
 
           {/* Actions */}
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Button 
               onClick={handleInstall} 
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white min-h-[44px] text-sm font-medium"
               size="sm"
             >
               <Download className="w-4 h-4 mr-2" />
@@ -266,7 +266,7 @@ export default function PWAInstallPrompt() {
               variant="outline" 
               onClick={handleRemindLater}
               size="sm"
-              className="text-xs"
+              className="min-h-[44px] text-sm font-medium"
             >
               Daha Sonra
             </Button>
