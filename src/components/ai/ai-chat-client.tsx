@@ -106,8 +106,8 @@ export default function AiChatClient() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-50 dark:bg-gray-900 p-2 sm:p-4">
-      <Card className="w-full max-w-5xl h-[95vh] flex flex-col shadow-2xl">
+    <div className="flex justify-center items-start min-h-screen bg-gray-50 dark:bg-gray-900 p-2 sm:p-4 pt-0">
+      <Card className="w-full max-w-5xl h-[calc(100vh-4rem)] flex flex-col shadow-2xl mt-2">
         <CardHeader className="border-b">
           <CardTitle className="flex items-center gap-3 text-lg md:text-xl">
             <Sparkles className="text-blue-500" />
