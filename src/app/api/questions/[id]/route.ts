@@ -5,11 +5,12 @@ import { eq } from 'drizzle-orm';
 
 // GET a single question by ID (optional, but good practice)
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const question = await db.select().from(questions).where(eq(questions.id, params.id));
+    const { id } = await params;
+    const question = await db.select().from(questions).where(eq(questions.id, id));
     if (question.length === 0) {
       return NextResponse.json({ error: 'Question not found' }, { status: 404 });
     }
@@ -23,9 +24,10 @@ export async function GET(
 // UPDATE a question by ID
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const { subject, topic, type, difficulty, text, options, correctAnswer, explanation, formula } = body;
 
@@ -45,7 +47,7 @@ export async function PUT(
         explanation,
         formula,
         updatedAt: new Date(),
-    }).where(eq(questions.id, params.id)).returning();
+    }).where(eq(questions.id, id)).returning();
 
     if (updatedQuestion.length === 0) {
       return NextResponse.json({ error: 'Question not found or failed to update' }, { status: 404 });
@@ -60,11 +62,12 @@ export async function PUT(
 
 // DELETE a question by ID
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const deletedQuestion = await db.delete(questions).where(eq(questions.id, params.id)).returning();
+    const { id } = await params;
+    const deletedQuestion = await db.delete(questions).where(eq(questions.id, id)).returning();
 
     if (deletedQuestion.length === 0) {
       return NextResponse.json({ error: 'Question not found' }, { status: 404 });

@@ -1,7 +1,7 @@
-import { eq, and, desc, sql } from 'drizzle-orm';
+import { eq, and, desc } from 'drizzle-orm';
 import { db } from '../connection';
 import { quizResults, performanceAnalytics, users } from '../schema';
-import type { QuizResult, Subject } from '@/lib/types';
+import type { QuizResult } from '@/lib/types';
 
 export class QuizRepository {
   /**
@@ -68,7 +68,7 @@ export class QuizRepository {
         )
         .orderBy(desc(quizResults.createdAt));
 
-      return results.map(result => ({
+      return results.map((result: any) => ({
         score: result.score,
         totalQuestions: result.totalQuestions,
         timeSpent: result.timeSpent,
@@ -101,7 +101,7 @@ export class QuizRepository {
 
       const groupedResults: Record<string, QuizResult[]> = {};
       
-      results.forEach(result => {
+      results.forEach((result: any) => {
         const quizResult: QuizResult = {
           score: result.score,
           totalQuestions: result.totalQuestions,
@@ -113,7 +113,7 @@ export class QuizRepository {
         if (!groupedResults[result.subject]) {
           groupedResults[result.subject] = [];
         }
-        groupedResults[result.subject].push(quizResult);
+        groupedResults[result.subject]!.push(quizResult);
       });
 
       return groupedResults;
@@ -150,7 +150,7 @@ export class QuizRepository {
         .orderBy(desc(quizResults.createdAt))
         .limit(limit);
 
-      return results.map(result => ({
+      return results.map((result: any) => ({
         score: result.score,
         totalQuestions: result.totalQuestions,
         timeSpent: result.timeSpent,
@@ -265,7 +265,7 @@ export class QuizRepository {
         .from(performanceAnalytics)
         .where(eq(performanceAnalytics.userId, userId));
 
-      return analytics.map(result => ({
+      return analytics.map((result: any) => ({
         subject: result.subject,
         averageScore: result.averageScore,
         totalTests: result.totalTests,

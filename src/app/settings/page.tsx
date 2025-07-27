@@ -8,24 +8,19 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { 
+import {
   Settings, 
-  User, 
   Bell, 
   Palette, 
   Database, 
   Trash2, 
   Download,
   Upload,
-  Home,
   BookOpen,
-  Brain,
-  Users,
   GraduationCap,
   Loader2
 } from 'lucide-react';
 import Link from 'next/link';
-import { ThemeToggle } from '@/components/theme-toggle';
 import { useTheme } from 'next-themes';
 import { useToast } from '@/hooks/use-toast';
 import MobileNav from '@/components/mobile-nav';
@@ -326,7 +321,7 @@ export default function SettingsPage() {
               <CardContent className="space-y-4">
                 <div>
                   <Label htmlFor="theme">Tema</Label>
-                  <Select value={theme} onValueChange={setTheme}>
+                  <Select value={theme || 'system'} onValueChange={setTheme}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>

@@ -13,8 +13,6 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { getPerformanceHistoryForSubject } from '@/services/performance-service';
-import type { QuizResult } from '@/lib/types';
-
 
 const getPerformanceHistoryTool = ai.defineTool(
   {

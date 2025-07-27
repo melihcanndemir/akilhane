@@ -6,8 +6,8 @@ export const users = sqliteTable('users', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
   email: text('email').notNull().unique(),
   name: text('name').notNull(),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
+  updatedAt: text('updated_at').notNull().$defaultFn(() => new Date().toISOString()),
 });
 
 // Subjects table
@@ -16,12 +16,12 @@ export const subjects = sqliteTable('subjects', {
   name: text('name').notNull().unique(),
   description: text('description').notNull(),
   category: text('category').notNull(),
-  difficulty: text('difficulty').notNull(), // 'Kolay', 'Orta', 'Zor'
+  difficulty: text('difficulty').notNull(), // 'Easy', 'Medium', 'Hard'
   questionCount: integer('question_count').notNull().default(0),
   isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
   createdBy: text('created_by').references(() => users.id),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
+  updatedAt: text('updated_at').notNull().$defaultFn(() => new Date().toISOString()),
 });
 
 // Questions table
@@ -31,7 +31,7 @@ export const questions = sqliteTable('questions', {
   subject: text('subject').notNull(),
   topic: text('topic').notNull(),
   type: text('type').notNull(), // 'multiple-choice', 'true-false', 'calculation', 'case-study'
-  difficulty: text('difficulty').notNull(), // 'Kolay', 'Orta', 'Zor'
+  difficulty: text('difficulty').notNull(), // 'Easy', 'Medium', 'Hard'
   text: text('text').notNull(),
   options: text('options').notNull(), // JSON string of options
   correctAnswer: text('correct_answer').notNull(),
@@ -39,8 +39,8 @@ export const questions = sqliteTable('questions', {
   formula: text('formula'), // For calculation questions
   createdBy: text('created_by').references(() => users.id),
   isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
+  updatedAt: text('updated_at').notNull().$defaultFn(() => new Date().toISOString()),
 });
 
 // Quiz results table
@@ -52,7 +52,7 @@ export const quizResults = sqliteTable('quiz_results', {
   totalQuestions: integer('total_questions').notNull(),
   timeSpent: integer('time_spent').notNull(), // in seconds
   weakTopics: text('weak_topics').notNull(), // JSON string
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
 });
 
 // Performance analytics table
@@ -64,7 +64,7 @@ export const performanceAnalytics = sqliteTable('performance_analytics', {
   totalTests: integer('total_tests').notNull(),
   averageTimeSpent: real('average_time_spent').notNull(), // in minutes
   weakTopics: text('weak_topics').notNull(), // JSON string
-  lastUpdated: integer('last_updated', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  lastUpdated: text('last_updated').notNull().$defaultFn(() => new Date().toISOString()),
 });
 
 // AI recommendations table
@@ -72,9 +72,9 @@ export const aiRecommendations = sqliteTable('ai_recommendations', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
   userId: text('user_id').notNull().references(() => users.id),
   subject: text('subject').notNull(),
-  recommendedDifficulty: text('recommended_difficulty').notNull(), // 'Kolay', 'Orta', 'Zor'
+  recommendedDifficulty: text('recommended_difficulty').notNull(), // 'Easy', 'Medium', 'Hard'
   reasoning: text('reasoning').notNull(),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
 });
 
 // Flashcard progress table
@@ -85,8 +85,8 @@ export const flashcardProgress = sqliteTable('flashcard_progress', {
   cardId: text('card_id').notNull(),
   isKnown: integer('is_known', { mode: 'boolean' }).notNull().default(false),
   reviewCount: integer('review_count').notNull().default(0),
-  lastReviewed: integer('last_reviewed', { mode: 'timestamp' }),
-  nextReview: integer('next_review', { mode: 'timestamp' }),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  lastReviewed: text('last_reviewed'),
+  nextReview: text('next_review'),
+  createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
+  updatedAt: text('updated_at').notNull().$defaultFn(() => new Date().toISOString()),
 }); 

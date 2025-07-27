@@ -1,4 +1,4 @@
-import { eq, and, desc, sql, like, count } from 'drizzle-orm';
+import { eq, desc, like, count } from 'drizzle-orm';
 import { db } from '../connection';
 import { subjects, questions } from '../schema';
 
@@ -96,7 +96,7 @@ export class SubjectRepository {
       
       // Update question counts
       const subjectsWithCounts = await Promise.all(
-        results.map(async (subject) => {
+        results.map(async (subject: any) => {
           const questionCount = await this.getQuestionCount(subject.id);
           return {
             ...subject,
@@ -240,7 +240,7 @@ export class SubjectRepository {
         .orderBy(desc(subjects.createdAt));
 
       const subjectsWithCounts = await Promise.all(
-        results.map(async (subject) => {
+        results.map(async (subject: any) => {
           const questionCount = await this.getQuestionCount(subject.id);
           return {
             ...subject,

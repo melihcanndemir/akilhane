@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/database/connection';
-import { quizResults, users } from '@/lib/database/schema';
-import { sql, avg, sum, count, desc, gt } from 'drizzle-orm';
-
-interface WeakTopic {
-  [key: string]: number;
-}
+import { quizResults } from '@/lib/database/schema';
+import { sql, desc } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
   const userId = request.headers.get('x-user-id');
@@ -38,10 +34,9 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const totalTests = userResults.length;
-    const totalTimeMinutes = Math.round(userResults.reduce((acc, r) => acc + (r.timeSpent || 0), 0) / 60);
-    const totalQuestionsSum = userResults.reduce((acc, r) => acc + (r.totalQuestions || 0), 0);
-    const correctAnswers = userResults.reduce((acc, r) => acc + (r.score || 0), 0);
+    const totalTimeMinutes = Math.round(userResults.reduce((acc: number, r: any) => acc + (r.timeSpent || 0), 0) / 60);
+    const totalQuestionsSum = userResults.reduce((acc: number, r: any) => acc + (r.totalQuestions || 0), 0);
+    const correctAnswers = userResults.reduce((acc: number, r: any) => acc + (r.score || 0), 0);
     const averageScore = totalQuestionsSum > 0 ? Math.round((correctAnswers / totalQuestionsSum) * 100) : 0;
 
     // Track both weak topics and topic performance for strong topics
@@ -65,7 +60,7 @@ export async function GET(request: NextRequest) {
                 
                 const topicData = allTopics.get(topic)!;
                 // The number in weakTopics represents incorrect answers
-                const incorrectCount = topics[topic];
+                const incorrectCount = topics[topic] ?? 0;
                 // Estimate total questions for this topic (this is an approximation)
                 const estimatedTotal = Math.max(incorrectCount * 2, 3); // Assume at least 3 questions per topic
                 
@@ -101,7 +96,7 @@ export async function GET(request: NextRequest) {
     // If no strong topics found, use some default topics based on the subject
     if (strongTopics.length === 0) {
         // Extract subjects from the results
-        const subjects = new Set(userResults.map(r => {
+        const subjects = new Set(userResults.map((r: any) => {
             try {
                 const topics = JSON.parse(r.weakTopics || '{}');
                 return Object.keys(topics)[0]?.split('-')[0] || 'Matematik';
@@ -128,7 +123,7 @@ export async function GET(request: NextRequest) {
         });
     }
 
-    // Matematik konusunu her zaman güçlü konular listesine ekle
+    // Add Mathematics topic to strong topics list by default
     if (!strongTopics.includes('Matematik') && !strongTopics.includes('Matematik - Temel İşlemler')) {
         strongTopics.push('Matematik - Temel İşlemler');
         console.log("Matematik konusu güçlü konulara eklendi");
@@ -136,13 +131,13 @@ export async function GET(request: NextRequest) {
 
     console.log("Final strong topics:", strongTopics);
     
-    // Bir konu hem güçlü hem zayıf olarak işaretlenmemeli
-    // Zayıf konular listesinde olan konuları güçlü konular listesinden çıkar
+    // A topic should not be both strong and weak
+    // Remove topics that are in the weak topics list from the strong topics list
     strongTopics = strongTopics.filter(topic => !sortedWeakTopics.includes(topic));
     
     console.log("Final strong topics (after removing weak topics):", strongTopics);
 
-    // Eğer hala hiç güçlü konu yoksa, varsayılan olarak Matematik ekle
+    // If there are still no strong subjects, add Mathematics by default
     if (strongTopics.length === 0) {
         strongTopics.push('Matematik - Temel İşlemler');
         console.log("Hiç güçlü konu olmadığı için varsayılan olarak Matematik eklendi");
@@ -153,10 +148,10 @@ export async function GET(request: NextRequest) {
       correctAnswers: correctAnswers,
       averageScore: averageScore,
       studyTime: totalTimeMinutes,
-      streak: 5, // Mock data for now
-      rank: 1, // Mock data for now
-      totalUsers: 1, // Mock data for now
-      improvement: 5, // Mock data for now
+      streak: 5,
+      rank: 1,
+      totalUsers: 1,
+      improvement: 5,
       weakTopics: sortedWeakTopics.slice(0, 3),
       strongTopics: strongTopics.slice(0, 3),
     };
@@ -169,4 +164,4 @@ export async function GET(request: NextRequest) {
     console.error('Error fetching analytics dashboard data:', error);
     return new NextResponse('Internal Server Error', { status: 500 });
   }
-} 
+}

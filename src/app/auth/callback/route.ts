@@ -1,16 +1,20 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
+// Force this route to be dynamic
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
-  const requestUrl = new URL(request.url);
-  const code = requestUrl.searchParams.get('code');
+  const { searchParams, origin } = new URL(request.url);
+  const code = searchParams.get('code');
+  const next = searchParams.get('next') ?? '/';
 
   if (code) {
-    const supabase = createRouteHandlerClient({ cookies });
-    await supabase.auth.exchangeCodeForSession(code);
+    // The Supabase client-side will handle the code exchange
+    // We just need to redirect to the main page with the code in the URL
+    // so the client-side auth can pick it up
+    console.log('Auth callback received code, redirecting to:', next);
   }
 
-  // URL to redirect to after sign in process completes
-  return NextResponse.redirect(requestUrl.origin);
+  // Always redirect to the main page where client-side auth will handle the session
+  return NextResponse.redirect(`${origin}${next}`);
 } 

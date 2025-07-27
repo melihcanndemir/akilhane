@@ -68,7 +68,7 @@
 }
 
 .dark body {
-  /* Gradient kaldırıldı, temanın kendi koyu rengi kullanılacak */
+  /* Gradient removed, theme's own dark color will be used */
 }
 
 /* Compact Mode Styles */
@@ -241,9 +241,10 @@
   @apply bg-muted/50 px-1 py-0.5 rounded text-xs font-mono;
 }
 
+/* REAL GLASS BACKGROUND - TRANSPARENT GLASSMORPHISM */
 .glass-card {
-  /* Açık tema: Daha opak ve parlak beyaz taban */
-  background: rgba(255, 255, 255, 0.9) !important;
+  /* Light theme: More opaque and bright white base */
+  background: rgba(255, 255, 255, 0.8) !important;
   backdrop-filter: blur(12px) saturate(160%) !important;
   -webkit-backdrop-filter: blur(12px) saturate(160%) !important;
   border: 1px solid rgba(255, 255, 255, 0.4) !important;
@@ -252,15 +253,15 @@
 }
 
 .dark .glass-card {
-  /* Koyu tema: Daha açık ve saydam bir füme tonu */
+  /* Dark theme: Lighter and transparent fume tone */
   background: rgba(40, 48, 64, 0.65) !important;
   border: 1px solid rgba(255, 255, 255, 0.15) !important;
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25) !important;
 }
 
 .glass-card-inner {
-  background: rgba(255, 255, 255, 0.5) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  background: rgba(255, 255, 255, 0.35) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
   border-radius: 12px !important;
 }
 
@@ -270,7 +271,7 @@
 }
 
 .glass-sheet {
-  background: rgba(255, 255, 255, 0.85) !important;
+  background: rgba(255, 255, 255, 0.75) !important;
   backdrop-filter: blur(16px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
@@ -285,4 +286,18 @@
   box-shadow: 
     inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
     0 20px 40px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* LIQUID GLASS NAVIGATION */
+.glass-nav {
+  /* NAVIGATION GLASS */
+  background: rgba(255, 255, 255, 0.1) !important; /* VERY TRANSPARENT */
+  backdrop-filter: blur(25px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(25px) saturate(200%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark .glass-nav {
+  background: rgba(0, 0, 0, 0.1) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
 }

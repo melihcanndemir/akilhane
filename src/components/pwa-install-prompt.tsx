@@ -19,94 +19,180 @@ export default function PWAInstallPrompt() {
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
+  const [isSupported, setIsSupported] = useState(false);
 
   useEffect(() => {
+    // Check if PWA features are supported
+    const checkSupport = () => {
+      return 'serviceWorker' in navigator && 'BeforeInstallPromptEvent' in window;
+    };
+
     // Check if app is already installed
     const checkIfInstalled = () => {
+      // Check display mode
       if (window.matchMedia('(display-mode: standalone)').matches) {
-        setIsInstalled(true);
         return true;
       }
+      
+      // Check for iOS Safari standalone
+      if ((window.navigator as any).standalone === true) {
+        return true;
+      }
+      
+      // Check document referrer for app context
+      if (document.referrer.includes('android-app://')) {
+        return true;
+      }
+      
       return false;
     };
 
-    // Check if user has dismissed the prompt before
-    const dismissed = localStorage.getItem('pwa-install-dismissed');
-    if (dismissed) {
-      setIsDismissed(true);
-    }
+    // Check dismissal status
+    const checkDismissalStatus = () => {
+      try {
+        const dismissed = localStorage.getItem('pwa-install-dismissed');
+        if (dismissed) {
+          const dismissedTime = parseInt(dismissed);
+          const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+          
+          // If dismissed less than 7 days ago, don't show
+          return dismissedTime > sevenDaysAgo;
+        }
+        return false;
+      } catch (error) {
+        console.warn('localStorage not available:', error);
+        return false;
+      }
+    };
 
-    // Check if already installed
-    if (checkIfInstalled()) {
+    // Initialize states
+    setIsSupported(checkSupport());
+    setIsInstalled(checkIfInstalled());
+    setIsDismissed(checkDismissalStatus());
+
+    // Early return if not supported or already installed
+    if (!checkSupport() || checkIfInstalled()) {
       return;
     }
 
+    console.log('🔍 PWA Install: Listening for beforeinstallprompt event');
+
     const handler = (e: BeforeInstallPromptEvent) => {
+      console.log('🎯 beforeinstallprompt event fired');
       e.preventDefault();
       setDeferredPrompt(e);
       
-      // Show prompt after a delay to not interrupt user
+      // Show prompt after a delay if conditions are met
       setTimeout(() => {
-        if (!isDismissed && !isInstalled) {
+        if (!checkDismissalStatus() && !checkIfInstalled()) {
+          console.log('✅ Showing PWA install prompt');
           setShowInstallPrompt(true);
+        } else {
+          console.log('❌ PWA install prompt blocked - dismissed or installed');
         }
       }, 3000);
     };
 
+    // Listen for install prompt
     window.addEventListener('beforeinstallprompt', handler as EventListener);
 
     // Listen for app install
-    window.addEventListener('appinstalled', () => {
+    const installHandler = () => {
+      console.log('🎉 PWA installed successfully!');
       setIsInstalled(true);
       setShowInstallPrompt(false);
-      console.log('🎉 PWA installed successfully!');
-    });
+      // Clear dismissal status
+      try {
+        localStorage.removeItem('pwa-install-dismissed');
+      } catch (error) {
+        console.warn('localStorage not available:', error);
+      }
+    };
 
+    window.addEventListener('appinstalled', installHandler);
+
+    // For iOS, we need to check periodically if the app was added to home screen
+    const checkIOSInstall = () => {
+      if ((window.navigator as any).standalone === true) {
+        installHandler();
+      }
+    };
+
+    const iosCheckInterval = setInterval(checkIOSInstall, 1000);
+
+    // Cleanup
     return () => {
       window.removeEventListener('beforeinstallprompt', handler as EventListener);
+      window.removeEventListener('appinstalled', installHandler);
+      clearInterval(iosCheckInterval);
     };
-  }, [isDismissed, isInstalled]);
+  }, []);
 
   const handleInstall = async () => {
-    if (deferredPrompt) {
-      try {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        
-        if (outcome === 'accepted') {
-          console.log('✅ User accepted the install prompt');
-          setShowInstallPrompt(false);
-        } else {
-          console.log('❌ User dismissed the install prompt');
-          handleDismiss();
-        }
-        
-        setDeferredPrompt(null);
-      } catch (error) {
-        console.error('❌ Error during install:', error);
+    if (!deferredPrompt) {
+      console.warn('❌ No deferred prompt available');
+      return;
+    }
+
+    try {
+      console.log('🚀 Triggering install prompt');
+      await deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      
+      if (outcome === 'accepted') {
+        console.log('✅ User accepted the install prompt');
+        setShowInstallPrompt(false);
+      } else {
+        console.log('❌ User dismissed the install prompt');
         handleDismiss();
       }
+      
+      setDeferredPrompt(null);
+    } catch (error) {
+      console.error('❌ Error during install:', error);
+      handleDismiss();
     }
   };
 
   const handleDismiss = () => {
     setShowInstallPrompt(false);
     setIsDismissed(true);
+    
     // Remember dismissal for 7 days
-    localStorage.setItem('pwa-install-dismissed', Date.now().toString());
+    try {
+      localStorage.setItem('pwa-install-dismissed', Date.now().toString());
+      console.log('📅 PWA install dismissed for 7 days');
+    } catch (error) {
+      console.warn('localStorage not available:', error);
+    }
   };
 
   const handleRemindLater = () => {
     setShowInstallPrompt(false);
-    // Show again in 1 hour
-    setTimeout(() => {
-      if (!isInstalled && !isDismissed) {
-        setShowInstallPrompt(true);
-      }
-    }, 60 * 60 * 1000);
+    setIsDismissed(true);
+    
+    // Remember dismissal for 7 days
+    try {
+      localStorage.setItem('pwa-install-dismissed', Date.now().toString());
+      console.log('⏰ PWA install reminder set for 7 days');
+    } catch (error) {
+      console.warn('localStorage not available:', error);
+    }
   };
 
-  if (isInstalled || isDismissed || !showInstallPrompt) {
+  // Debug info (remove in production)
+  useEffect(() => {
+    console.log('🐛 PWA Install Debug:', {
+      isSupported,
+      isInstalled,
+      isDismissed,
+      showInstallPrompt,
+      hasDeferredPrompt: !!deferredPrompt
+    });
+  }, [isSupported, isInstalled, isDismissed, showInstallPrompt, deferredPrompt]);
+
+  // Don't render if any blocking condition is true
+  if (!isSupported || isInstalled || isDismissed || !showInstallPrompt) {
     return null;
   }
 
@@ -189,4 +275,4 @@ export default function PWAInstallPrompt() {
       </motion.div>
     </AnimatePresence>
   );
-} 
+}

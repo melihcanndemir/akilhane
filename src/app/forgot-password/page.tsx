@@ -50,7 +50,7 @@ export default function ForgotPasswordPage() {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
+      <div className="min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -63,7 +63,7 @@ export default function ForgotPasswordPage() {
               </div>
             </div>
             
-            <Card className="shadow-xl border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+            <Card className="shadow-xl border-0 glass-card">
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl font-bold text-green-600 dark:text-green-400">
                   E-posta Gönderildi!
@@ -91,9 +91,9 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Logo ve Başlık */}
+        {/* Logo and Title */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -112,13 +112,13 @@ export default function ForgotPasswordPage() {
           </p>
         </motion.div>
 
-        {/* Ana Kart */}
+        {/* Main card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <Card className="shadow-xl border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+          <Card className="shadow-xl border-0 glass-card">
             <CardHeader className="text-center">
               <CardTitle className="text-2xl font-bold">
                 Şifrenizi mi unuttunuz?

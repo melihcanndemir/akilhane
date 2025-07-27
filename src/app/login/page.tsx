@@ -28,7 +28,9 @@ export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const { toast } = useToast();
@@ -48,6 +50,28 @@ export default function LoginPage() {
         });
         router.push('/');
       } else {
+        // Validate password confirmation
+        if (password !== confirmPassword) {
+          toast({
+            title: "Hata!",
+            description: "Şifreler eşleşmiyor. Lütfen tekrar deneyin.",
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
+
+        // Validate password length
+        if (password.length < 6) {
+          toast({
+            title: "Hata!",
+            description: "Şifre en az 6 karakter olmalıdır.",
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
+
         const { error } = await signUpWithEmail(email, password);
         if (error) throw error;
         toast({
@@ -55,6 +79,10 @@ export default function LoginPage() {
           description: "E-posta adresinizi doğrulayın ve giriş yapın.",
         });
         setIsLogin(true);
+        // Clear form fields
+        setEmail('');
+        setPassword('');
+        setConfirmPassword('');
       }
     } catch (error: any) {
       toast({
@@ -99,10 +127,18 @@ export default function LoginPage() {
     router.push('/demo');
   };
 
+  // Clear form when switching between login and register
+  const handleToggleMode = (newMode: boolean) => {
+    setIsLogin(newMode);
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Logo ve Başlık */}
+        {/* Logo and Title */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -121,7 +157,7 @@ export default function LoginPage() {
           </p>
         </motion.div>
 
-        {/* Ana Kart */}
+        {/* Main card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -181,10 +217,47 @@ export default function LoginPage() {
                   </div>
                 </div>
 
+                {/* Password confirmation field - only show in register mode */}
+                {!isLogin && (
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">Şifre Tekrar</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="confirmPassword"
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        placeholder="••••••••"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="pl-10 pr-10"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                      >
+                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                    {/* Password confirmation check */}
+                    {confirmPassword && password !== confirmPassword && (
+                      <p className="text-sm text-red-500 mt-1">
+                        Şifreler eşleşmiyor
+                      </p>
+                    )}
+                    {confirmPassword && password === confirmPassword && (
+                      <p className="text-sm text-green-500 mt-1">
+                        Şifreler eşleşiyor
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 <Button
                   type="submit"
                   className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-                  disabled={isLoading}
+                  disabled={isLoading || (!isLogin && (!confirmPassword || password !== confirmPassword))}
                 >
                   {isLoading ? (
                     <div className="flex items-center space-x-2">
@@ -200,7 +273,7 @@ export default function LoginPage() {
                 </Button>
               </form>
 
-              {/* Şifremi Unuttum */}
+              {/* Forgot password */}
               {isLogin && (
                 <div className="text-center">
                   <Link
@@ -214,7 +287,7 @@ export default function LoginPage() {
 
               <Separator />
 
-              {/* Google ile Giriş */}
+              {/* Google login */}
               <Button
                 variant="outline"
                 className="w-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
@@ -257,7 +330,7 @@ export default function LoginPage() {
 
               <Separator />
 
-              {/* Misafir Modu ve Demo */}
+              {/* Guest mode and demo */}
               <div className="space-y-3">
                 <Button
                   variant="ghost"
@@ -284,7 +357,7 @@ export default function LoginPage() {
                   <p>
                     Hesabınız yok mu?{' '}
                     <button
-                      onClick={() => setIsLogin(false)}
+                      onClick={() => handleToggleMode(false)}
                       className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
                     >
                       Kayıt olun
@@ -294,7 +367,7 @@ export default function LoginPage() {
                   <p>
                     Zaten hesabınız var mı?{' '}
                     <button
-                      onClick={() => setIsLogin(true)}
+                      onClick={() => handleToggleMode(true)}
                       className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
                     >
                       Giriş yapın
@@ -306,7 +379,7 @@ export default function LoginPage() {
           </Card>
         </motion.div>
 
-        {/* Özellikler */}
+        {/* Features */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

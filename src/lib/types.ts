@@ -7,14 +7,14 @@ export type QuestionType = 'multiple-choice' | 'true-false' | 'calculation' | 'c
 
 export type Question = {
   id: string;
-  subject: Subject;
+  subject: string; // Changed from Subject to string
   type: QuestionType;
   difficulty: 'Easy' | 'Medium' | 'Hard';
   text: string;
   options: Answer[];
   explanation: string;
   formula?: string; // For calculation questions
-  topic?: string; // e.g. 'Kaldıraç Oranları'
+  topic?: string; // e.g. 'Lever Ratios'
 };
 
 export type Subject =
