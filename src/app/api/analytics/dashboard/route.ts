@@ -3,6 +3,14 @@ import { db } from '@/lib/database/connection';
 import { quizResults } from '@/lib/database/schema';
 import { sql, desc } from 'drizzle-orm';
 
+interface QuizResult {
+  score: number;
+  timeSpent: number;
+  totalQuestions: number;
+  weakTopics: string;
+  createdAt: string;
+}
+
 export async function GET(request: NextRequest) {
   const userId = request.headers.get('x-user-id');
 
@@ -34,9 +42,9 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const totalTimeMinutes = Math.round(userResults.reduce((acc: number, r: any) => acc + (r.timeSpent || 0), 0) / 60);
-    const totalQuestionsSum = userResults.reduce((acc: number, r: any) => acc + (r.totalQuestions || 0), 0);
-    const correctAnswers = userResults.reduce((acc: number, r: any) => acc + (r.score || 0), 0);
+    const totalTimeMinutes = Math.round(userResults.reduce((acc: number, r: QuizResult) => acc + (r.timeSpent || 0), 0) / 60);
+    const totalQuestionsSum = userResults.reduce((acc: number, r: QuizResult) => acc + (r.totalQuestions || 0), 0);
+    const correctAnswers = userResults.reduce((acc: number, r: QuizResult) => acc + (r.score || 0), 0);
     const averageScore = totalQuestionsSum > 0 ? Math.round((correctAnswers / totalQuestionsSum) * 100) : 0;
 
     // Track both weak topics and topic performance for strong topics
@@ -68,10 +76,8 @@ export async function GET(request: NextRequest) {
                 topicData.incorrect += incorrectCount;
                 topicData.correct += (estimatedTotal - incorrectCount);
             }
-        } catch (e) { /* ignore */ }
+        } catch { /* ignore */ }
     }
-    
-    console.log("All topics data:", Array.from(allTopics.entries()));
     
     // Sort weak topics by frequency
     const sortedWeakTopics = Array.from(allWeakTopics.entries())
@@ -80,13 +86,12 @@ export async function GET(request: NextRequest) {
     
     // Identify strong topics as those with >80% correct answers and enough data
     let strongTopics = Array.from(allTopics.entries())
-        .filter(([topic, data]) => {
+        .filter(([, data]) => {
             // Only consider topics with enough data (at least 1 question)
             if (data.total < 1) return false;
             
             // Calculate percentage of correct answers
             const correctPercentage = (data.correct / data.total) * 100;
-            console.log(`Topic ${topic}: ${correctPercentage.toFixed(2)}% correct (${data.correct}/${data.total})`);
             
             // Consider strong if consistently getting 60% or more correct
             return correctPercentage >= 60;
@@ -96,11 +101,11 @@ export async function GET(request: NextRequest) {
     // If no strong topics found, use some default topics based on the subject
     if (strongTopics.length === 0) {
         // Extract subjects from the results
-        const subjects = new Set(userResults.map((r: any) => {
+        const subjects = new Set(userResults.map((r: QuizResult) => {
             try {
                 const topics = JSON.parse(r.weakTopics || '{}');
                 return Object.keys(topics)[0]?.split('-')[0] || 'Matematik';
-            } catch (e) {
+            } catch {
                 return 'Matematik';
             }
         }));
@@ -126,21 +131,16 @@ export async function GET(request: NextRequest) {
     // Add Mathematics topic to strong topics list by default
     if (!strongTopics.includes('Matematik') && !strongTopics.includes('Matematik - Temel İşlemler')) {
         strongTopics.push('Matematik - Temel İşlemler');
-        console.log("Matematik konusu güçlü konulara eklendi");
     }
 
-    console.log("Final strong topics:", strongTopics);
     
     // A topic should not be both strong and weak
     // Remove topics that are in the weak topics list from the strong topics list
     strongTopics = strongTopics.filter(topic => !sortedWeakTopics.includes(topic));
     
-    console.log("Final strong topics (after removing weak topics):", strongTopics);
-
     // If there are still no strong subjects, add Mathematics by default
     if (strongTopics.length === 0) {
         strongTopics.push('Matematik - Temel İşlemler');
-        console.log("Hiç güçlü konu olmadığı için varsayılan olarak Matematik eklendi");
     }
 
     const response = {
@@ -156,12 +156,9 @@ export async function GET(request: NextRequest) {
       strongTopics: strongTopics.slice(0, 3),
     };
 
-    console.log("Final response:", response);
-
     return NextResponse.json(response);
 
-  } catch (error) {
-    console.error('Error fetching analytics dashboard data:', error);
+  } catch {
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }

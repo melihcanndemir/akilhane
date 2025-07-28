@@ -47,7 +47,7 @@ export async function initializeDatabase() {
     // Check if tables exist by querying one
     await client`SELECT 1 FROM users LIMIT 1`;
     console.log('✅ Database tables already exist');
-  } catch (error) {
+  } catch {
     console.log('📦 Database tables not found, they will be created via Supabase migrations');
   }
 }

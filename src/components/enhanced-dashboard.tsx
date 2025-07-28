@@ -307,7 +307,7 @@ export default function EnhancedDashboard() {
         title: "Veriler başarıyla dışa aktarıldı",
         description: "Yedek dosyanız indirildi. Bu dosyayı güvenli bir yerde saklayın.",
       });
-    } catch (error) {
+    } catch {
       toast({
         title: "Dışa aktarma hatası",
         description: "Veriler dışa aktarılırken bir hata oluştu.",
@@ -347,7 +347,7 @@ export default function EnhancedDashboard() {
             } else {
               throw new Error('Import failed');
             }
-          } catch (error) {
+          } catch {
             toast({
               title: "İçe aktarma hatası",
               description: "Dosya formatı geçersiz veya bozuk.",

@@ -1,4 +1,4 @@
--- Enable Row Level Security
+-- Enable RLS
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE subjects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE questions ENABLE ROW LEVEL SECURITY;
@@ -6,6 +6,8 @@ ALTER TABLE quiz_results ENABLE ROW LEVEL SECURITY;
 ALTER TABLE performance_analytics ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_recommendations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE flashcard_progress ENABLE ROW LEVEL SECURITY;
+
+
 
 -- Create users table
 CREATE TABLE IF NOT EXISTS users (
@@ -108,46 +110,47 @@ CREATE INDEX IF NOT EXISTS idx_ai_recommendations_user_id ON ai_recommendations(
 CREATE INDEX IF NOT EXISTS idx_flashcard_progress_user_id ON flashcard_progress(user_id);
 CREATE INDEX IF NOT EXISTS idx_flashcard_progress_subject ON flashcard_progress(subject);
 
--- Row Level Security Policies
-
--- Users can only access their own data
+-- RLS Policies for users
 CREATE POLICY "Users can view own profile" ON users
   FOR SELECT USING (auth.uid()::text = id);
 
 CREATE POLICY "Users can update own profile" ON users
   FOR UPDATE USING (auth.uid()::text = id);
 
--- Subjects are private to each user
+CREATE POLICY "Users can insert own profile" ON users
+  FOR INSERT WITH CHECK (auth.uid()::text = id);
+
+-- RLS Policies for subjects
 CREATE POLICY "Users can view own subjects" ON subjects
-  FOR SELECT USING (auth.uid()::text = created_by);
+  FOR SELECT USING (auth.uid()::text = created_by OR created_by IS NULL);
 
-CREATE POLICY "Authenticated users can create subjects" ON subjects
-  FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+CREATE POLICY "Users can insert own subjects" ON subjects
+  FOR INSERT WITH CHECK (auth.uid()::text = created_by);
 
-CREATE POLICY "Users can update their own subjects" ON subjects
+CREATE POLICY "Users can update own subjects" ON subjects
   FOR UPDATE USING (auth.uid()::text = created_by);
 
-CREATE POLICY "Users can delete their own subjects" ON subjects
+CREATE POLICY "Users can delete own subjects" ON subjects
   FOR DELETE USING (auth.uid()::text = created_by);
 
--- Questions are private to each user
+-- RLS Policies for questions
 CREATE POLICY "Users can view own questions" ON questions
-  FOR SELECT USING (auth.uid()::text = created_by);
+  FOR SELECT USING (auth.uid()::text = created_by OR created_by IS NULL);
 
-CREATE POLICY "Authenticated users can create questions" ON questions
-  FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+CREATE POLICY "Users can insert own questions" ON questions
+  FOR INSERT WITH CHECK (auth.uid()::text = created_by);
 
-CREATE POLICY "Users can update their own questions" ON questions
+CREATE POLICY "Users can update own questions" ON questions
   FOR UPDATE USING (auth.uid()::text = created_by);
 
-CREATE POLICY "Users can delete their own questions" ON questions
+CREATE POLICY "Users can delete own questions" ON questions
   FOR DELETE USING (auth.uid()::text = created_by);
 
--- Quiz results are private to each user
+-- RLS Policies for quiz_results
 CREATE POLICY "Users can view own quiz results" ON quiz_results
   FOR SELECT USING (auth.uid()::text = user_id);
 
-CREATE POLICY "Users can create own quiz results" ON quiz_results
+CREATE POLICY "Users can insert own quiz results" ON quiz_results
   FOR INSERT WITH CHECK (auth.uid()::text = user_id);
 
 CREATE POLICY "Users can update own quiz results" ON quiz_results
@@ -156,24 +159,24 @@ CREATE POLICY "Users can update own quiz results" ON quiz_results
 CREATE POLICY "Users can delete own quiz results" ON quiz_results
   FOR DELETE USING (auth.uid()::text = user_id);
 
--- Performance analytics are private to each user
-CREATE POLICY "Users can view own analytics" ON performance_analytics
+-- RLS Policies for performance_analytics
+CREATE POLICY "Users can view own performance analytics" ON performance_analytics
   FOR SELECT USING (auth.uid()::text = user_id);
 
-CREATE POLICY "Users can create own analytics" ON performance_analytics
+CREATE POLICY "Users can insert own performance analytics" ON performance_analytics
   FOR INSERT WITH CHECK (auth.uid()::text = user_id);
 
-CREATE POLICY "Users can update own analytics" ON performance_analytics
+CREATE POLICY "Users can update own performance analytics" ON performance_analytics
   FOR UPDATE USING (auth.uid()::text = user_id);
 
-CREATE POLICY "Users can delete own analytics" ON performance_analytics
+CREATE POLICY "Users can delete own performance analytics" ON performance_analytics
   FOR DELETE USING (auth.uid()::text = user_id);
 
--- AI recommendations are private to each user
+-- RLS Policies for ai_recommendations
 CREATE POLICY "Users can view own AI recommendations" ON ai_recommendations
   FOR SELECT USING (auth.uid()::text = user_id);
 
-CREATE POLICY "Users can create own AI recommendations" ON ai_recommendations
+CREATE POLICY "Users can insert own AI recommendations" ON ai_recommendations
   FOR INSERT WITH CHECK (auth.uid()::text = user_id);
 
 CREATE POLICY "Users can update own AI recommendations" ON ai_recommendations
@@ -182,11 +185,11 @@ CREATE POLICY "Users can update own AI recommendations" ON ai_recommendations
 CREATE POLICY "Users can delete own AI recommendations" ON ai_recommendations
   FOR DELETE USING (auth.uid()::text = user_id);
 
--- Flashcard progress is private to each user
+-- RLS Policies for flashcard_progress
 CREATE POLICY "Users can view own flashcard progress" ON flashcard_progress
   FOR SELECT USING (auth.uid()::text = user_id);
 
-CREATE POLICY "Users can create own flashcard progress" ON flashcard_progress
+CREATE POLICY "Users can insert own flashcard progress" ON flashcard_progress
   FOR INSERT WITH CHECK (auth.uid()::text = user_id);
 
 CREATE POLICY "Users can update own flashcard progress" ON flashcard_progress
@@ -194,6 +197,8 @@ CREATE POLICY "Users can update own flashcard progress" ON flashcard_progress
 
 CREATE POLICY "Users can delete own flashcard progress" ON flashcard_progress
   FOR DELETE USING (auth.uid()::text = user_id);
+
+
 
 -- Functions for automatic timestamps
 CREATE OR REPLACE FUNCTION update_updated_at_column()

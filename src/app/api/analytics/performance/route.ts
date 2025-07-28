@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
         for (const topic in topics) {
           entry.weakTopics[topic] = (entry.weakTopics[topic] || 0) + topics[topic];
         }
-      } catch (e) {
+      } catch {
         // Ignore if weakTopics is not valid JSON
       }
     }
@@ -77,8 +77,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(performanceData);
     
-  } catch (error) {
-    console.error('Error fetching performance data:', error);
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch performance data' }, { status: 500 });
   }
 } 
