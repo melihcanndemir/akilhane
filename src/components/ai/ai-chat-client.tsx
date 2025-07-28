@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { getAiChatResponse, AiChatInput } from '@/ai/flows/ai-chat'; 
-import { User, Sparkles, BrainCircuit, Lightbulb, Loader2, Plus } from 'lucide-react';
+import { User, Sparkles, BrainCircuit, Lightbulb, Loader2, Plus, ChevronDown } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
@@ -36,9 +36,31 @@ export default function AiChatClient() {
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const [showScrollButton, setShowScrollButton] = useState(false);
 
+  // Handle scroll events to show/hide scroll button
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    e.stopPropagation(); // Prevent scroll from bubbling to parent
+    if (!messagesContainerRef.current) return;
+    const isNear = isNearBottom();
+    setShowScrollButton(!isNear);
+  };
+
+  // Only auto-scroll if user is already near bottom
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Remove automatic scrolling - let user control it manually
+    // if (isNearBottom()) {
+    //   scrollToBottom();
+    // }
+  }, [messages]);
+
+  // Debug: Log messages state changes
+  useEffect(() => {
+    console.log('📊 Messages state updated:', messages.length, 'messages');
+    messages.forEach((msg, index) => {
+      console.log(`  ${index + 1}. [${msg.role}] ${msg.content.substring(0, 50)}...`);
+    });
   }, [messages]);
   
   useEffect(() => {
@@ -190,15 +212,24 @@ export default function AiChatClient() {
   };
 
   const handleSendMessage = async (messageContent: string) => {
-    if (!messageContent.trim() || isLoading) return;
+    console.log('🚀 handleSendMessage called with:', messageContent);
+    if (!messageContent.trim() || isLoading) {
+      console.log('❌ Early return - message empty or loading');
+      return;
+    }
 
     // Create new session if authenticated and no current session
     if (isAuthenticated && !currentSessionId) {
+      console.log('🔐 Creating new session for authenticated user');
       const sessionId = await createNewSession();
       if (!sessionId) {
-        return;
+        console.log('❌ Failed to create session, but continuing without session');
+        // Don't return, continue without session
+      } else {
+        setCurrentSessionId(sessionId);
       }
-      setCurrentSessionId(sessionId);
+    } else if (!isAuthenticated) {
+      console.log('👤 User not authenticated, proceeding without session');
     }
 
     const newUserMessage: Message = {
@@ -208,13 +239,14 @@ export default function AiChatClient() {
     };
 
     const updatedMessages = [...messages, newUserMessage];
+    console.log('📝 Setting messages with user message:', updatedMessages.length, 'messages');
 
     setMessages(updatedMessages);
     setIsLoading(true);
     setSuggestions(null);
 
-    // Save user message to history if authenticated
-    if (isAuthenticated) {
+    // Save user message to history if authenticated and session exists
+    if (isAuthenticated && currentSessionId) {
       await saveMessageToHistory('user', messageContent);
     }
 
@@ -229,17 +261,21 @@ export default function AiChatClient() {
     };
 
     try {
+      console.log('🤖 Calling AI with input:', chatInput.message);
       const result = await getAiChatResponse(chatInput);
+      console.log('✅ AI response received:', result.response.substring(0, 50) + '...');
+      
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: result.response,
       };
 
+      console.log('📝 Adding assistant message to chat');
       setMessages(prev => [...prev, assistantMessage]);
       
-      // Save assistant message to history if authenticated
-      if (isAuthenticated) {
+      // Save assistant message to history if authenticated and session exists
+      if (isAuthenticated && currentSessionId) {
         await saveMessageToHistory('assistant', result.response);
       }
       
@@ -248,7 +284,8 @@ export default function AiChatClient() {
         followUpQuestions: result.followUpQuestions,
         learningTips: result.learningTips,
       });
-    } catch {
+    } catch (error) {
+      console.error('❌ Error in AI chat:', error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
@@ -257,6 +294,7 @@ export default function AiChatClient() {
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
+      console.log('🏁 handleSendMessage completed');
     }
   };
 
@@ -268,6 +306,17 @@ export default function AiChatClient() {
   
   const handleSuggestionClick = (suggestion: string) => {
     handleSendMessage(suggestion);
+  };
+
+  const isNearBottom = () => {
+    if (!messagesContainerRef.current) return true;
+    const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
+    const threshold = 150; // pixels from bottom - increased threshold
+    return scrollHeight - scrollTop - clientHeight < threshold;
+  };
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
@@ -307,7 +356,7 @@ export default function AiChatClient() {
             )}
           </CardTitle>
         </CardHeader>
-        <CardContent className="flex-1 overflow-y-auto p-3 md:p-6 space-y-6">
+        <CardContent className="flex-1 overflow-y-auto p-3 md:p-6 space-y-6" onScroll={handleScroll} ref={messagesContainerRef}>
           {messages.map(message => (
             <div key={message.id} className={`flex items-start gap-3 md:gap-4 ${message.role === 'user' ? 'justify-end' : ''}`}>
               {message.role === 'assistant' && (
@@ -397,6 +446,18 @@ export default function AiChatClient() {
             </div>
           )}
           <div ref={messagesEndRef} />
+          
+          {/* Scroll to bottom button */}
+          {showScrollButton && (
+            <Button
+              onClick={() => scrollToBottom()}
+              size="sm"
+              className="fixed bottom-24 right-4 z-10 rounded-full w-12 h-12 p-0 shadow-lg bg-blue-500 hover:bg-blue-600 text-white"
+              aria-label="Scroll to latest message"
+            >
+              <ChevronDown className="w-5 h-5" />
+            </Button>
+          )}
         </CardContent>
         <div className="border-t p-4 bg-white dark:bg-gray-950">
           <form onSubmit={handleFormSubmit} className="flex items-center gap-2 md:gap-4">
