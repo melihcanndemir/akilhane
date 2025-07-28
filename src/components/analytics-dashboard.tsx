@@ -334,10 +334,6 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
             <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
               <LineChart className="w-5 h-5 text-blue-600" />
               Performans İlerlemesi
-              <Badge variant="secondary" className="ml-auto">
-                <Sparkles className="w-3 h-3 mr-1" />
-                AI Analiz
-              </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
