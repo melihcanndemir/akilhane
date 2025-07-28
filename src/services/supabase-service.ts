@@ -56,10 +56,19 @@ export class UserService {
 // Subject Service
 export class SubjectService {
   static async getSubjects(): Promise<Subject[]> {
+    // Get current user for filtering
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      console.log('No authenticated user found');
+      return [];
+    }
+
     const { data, error } = await supabase
       .from('subjects')
       .select('*')
       .eq('is_active', true)
+      .eq('created_by', user.id) // User isolation
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -95,6 +104,14 @@ export class SubjectService {
   }
 
   static async updateSubject(id: string, updates: UpdateTables<'subjects'>): Promise<Subject | null> {
+    // Get current user for verification
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      console.error('No authenticated user found');
+      return null;
+    }
+    
     const { data, error } = await supabase
       .from('subjects')
       .update({
@@ -102,6 +119,7 @@ export class SubjectService {
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)
+      .eq('created_by', user.id) // Only update own subjects
       .select()
       .single();
 
@@ -114,10 +132,19 @@ export class SubjectService {
   }
 
   static async deleteSubject(id: string): Promise<boolean> {
+    // Get current user for verification
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      console.error('No authenticated user found');
+      return false;
+    }
+    
     const { error } = await supabase
       .from('subjects')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('created_by', user.id); // Only delete own subjects
 
     if (error) {
       console.error('Error deleting subject:', error);
@@ -135,11 +162,20 @@ export class SubjectService {
 // Question Service
 export class QuestionService {
   static async getQuestionsBySubject(subject: string): Promise<Question[]> {
+    // Get current user for filtering
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      console.log('No authenticated user found');
+      return [];
+    }
+
     const { data, error } = await supabase
       .from('questions')
       .select('*')
       .eq('subject', subject)
       .eq('is_active', true)
+      .eq('created_by', user.id) // User isolation
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -151,10 +187,19 @@ export class QuestionService {
   }
 
   static async createQuestion(question: InsertTables<'questions'>): Promise<Question | null> {
+    // Get current user for created_by field
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      console.error('No authenticated user found');
+      return null;
+    }
+    
     const { data, error } = await supabase
       .from('questions')
       .insert({
         ...question,
+        created_by: user.id, // Set current user as creator
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
@@ -170,6 +215,14 @@ export class QuestionService {
   }
 
   static async updateQuestion(id: string, updates: UpdateTables<'questions'>): Promise<Question | null> {
+    // Get current user for verification
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      console.error('No authenticated user found');
+      return null;
+    }
+    
     const { data, error } = await supabase
       .from('questions')
       .update({
@@ -177,6 +230,7 @@ export class QuestionService {
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)
+      .eq('created_by', user.id) // Only update own questions
       .select()
       .single();
 
@@ -189,10 +243,19 @@ export class QuestionService {
   }
 
   static async deleteQuestion(id: string): Promise<boolean> {
+    // Get current user for verification
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      console.error('No authenticated user found');
+      return false;
+    }
+    
     const { error } = await supabase
       .from('questions')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('created_by', user.id); // Only delete own questions
 
     if (error) {
       console.error('Error deleting question:', error);

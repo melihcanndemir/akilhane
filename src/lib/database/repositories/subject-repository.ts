@@ -69,6 +69,7 @@ export class SubjectRepository {
       difficulty?: string;
       isActive?: boolean;
       search?: string;
+      userId?: string;
     }
   ): Promise<Subject[]> {
     try {
@@ -90,6 +91,11 @@ export class SubjectRepository {
         query = query.where(
           like(subjects.name, `%${filters.search}%`)
         );
+      }
+
+      // Add user filter if userId is provided
+      if (filters?.userId) {
+        query = query.where(eq(subjects.createdBy, filters.userId));
       }
 
       const results = await query.orderBy(desc(subjects.createdAt));
@@ -231,13 +237,19 @@ export class SubjectRepository {
   /**
    * Get subjects by category
    */
-  static async getSubjectsByCategory(category: string): Promise<Subject[]> {
+  static async getSubjectsByCategory(category: string, userId?: string): Promise<Subject[]> {
     try {
-      const results = await db
+      let query = db
         .select()
         .from(subjects)
-        .where(eq(subjects.category, category))
-        .orderBy(desc(subjects.createdAt));
+        .where(eq(subjects.category, category));
+
+      // Add user filter if userId is provided
+      if (userId) {
+        query = query.where(eq(subjects.createdBy, userId));
+      }
+
+      const results = await query.orderBy(desc(subjects.createdAt));
 
       const subjectsWithCounts = await Promise.all(
         results.map(async (subject: any) => {

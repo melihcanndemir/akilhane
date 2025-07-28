@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS subjects (
   difficulty TEXT NOT NULL,
   question_count INTEGER NOT NULL DEFAULT 0,
   is_active BOOLEAN NOT NULL DEFAULT true,
-  created_by TEXT REFERENCES users(id),
+  created_by TEXT, -- Remove foreign key constraint
   created_at TEXT NOT NULL DEFAULT (now() AT TIME ZONE 'UTC')::text,
   updated_at TEXT NOT NULL DEFAULT (now() AT TIME ZONE 'UTC')::text
 );
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS questions (
   correct_answer TEXT NOT NULL,
   explanation TEXT NOT NULL,
   formula TEXT,
-  created_by TEXT REFERENCES users(id),
+  created_by TEXT, -- Remove foreign key constraint
   is_active BOOLEAN NOT NULL DEFAULT true,
   created_at TEXT NOT NULL DEFAULT (now() AT TIME ZONE 'UTC')::text,
   updated_at TEXT NOT NULL DEFAULT (now() AT TIME ZONE 'UTC')::text
@@ -117,9 +117,9 @@ CREATE POLICY "Users can view own profile" ON users
 CREATE POLICY "Users can update own profile" ON users
   FOR UPDATE USING (auth.uid()::text = id);
 
--- Subjects are public for reading, but only authenticated users can create/update
-CREATE POLICY "Anyone can view subjects" ON subjects
-  FOR SELECT USING (true);
+-- Subjects are private to each user
+CREATE POLICY "Users can view own subjects" ON subjects
+  FOR SELECT USING (auth.uid()::text = created_by);
 
 CREATE POLICY "Authenticated users can create subjects" ON subjects
   FOR INSERT WITH CHECK (auth.role() = 'authenticated');
@@ -130,9 +130,9 @@ CREATE POLICY "Users can update their own subjects" ON subjects
 CREATE POLICY "Users can delete their own subjects" ON subjects
   FOR DELETE USING (auth.uid()::text = created_by);
 
--- Questions are public for reading, but only authenticated users can create/update
-CREATE POLICY "Anyone can view questions" ON questions
-  FOR SELECT USING (true);
+-- Questions are private to each user
+CREATE POLICY "Users can view own questions" ON questions
+  FOR SELECT USING (auth.uid()::text = created_by);
 
 CREATE POLICY "Authenticated users can create questions" ON questions
   FOR INSERT WITH CHECK (auth.role() = 'authenticated');

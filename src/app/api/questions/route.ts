@@ -134,25 +134,26 @@ export async function GET(request: NextRequest) {
 
     // 🔍 Session control
     console.log('🔐 Questions API - Checking authentication for GET...');
-    const { isLoggedIn } = await checkAuth();
+    const { isLoggedIn, user } = await checkAuth();
     
     if (!isLoggedIn) {
       console.log('❌ Questions API - No session found for GET, returning empty data');
       return NextResponse.json([], { status: 200 });
     }
 
-    console.log('✅ Questions API - Session found for GET');
+    console.log('✅ Questions API - Session found for GET, user:', user?.id);
     
     // Initialize database if not already done
     initializeDatabase();
 
-    // Get questions from database
+    // Get questions from database with user filtering
     let questions;
+    const userId = user?.id;
     
     if (subjectId) {
-      questions = await QuestionRepository.getQuestionsBySubject(subjectId);
+      questions = await QuestionRepository.getQuestionsBySubject(subjectId, limit ? parseInt(limit) : undefined, userId);
     } else {
-      questions = await QuestionRepository.getRandomQuestions('', limit ? parseInt(limit) : 10);
+      questions = await QuestionRepository.getRandomQuestions('', limit ? parseInt(limit) : 10, difficulty as any, userId);
     }
 
     // Apply filters

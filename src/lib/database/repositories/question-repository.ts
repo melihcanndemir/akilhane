@@ -60,17 +60,22 @@ export class QuestionRepository {
   /**
    * Get questions by subject
    */
-  static async getQuestionsBySubject(subject: string, limit?: number): Promise<Question[]> {
+  static async getQuestionsBySubject(subject: string, limit?: number, userId?: string): Promise<Question[]> {
     try {
+      let conditions = [
+        eq(questions.subject, subject),
+        eq(questions.isActive, true)
+      ];
+
+      // Add user filter if userId is provided
+      if (userId) {
+        conditions.push(eq(questions.createdBy, userId));
+      }
+
       const query = db
         .select()
         .from(questions)
-        .where(
-          and(
-            eq(questions.subject, subject),
-            eq(questions.isActive, true)
-          )
-        )
+        .where(and(...conditions))
         .orderBy(desc(questions.createdAt));
 
       if (limit) {
@@ -99,18 +104,23 @@ export class QuestionRepository {
   /**
    * Get questions by topic
    */
-  static async getQuestionsByTopic(subject: string, topic: string, limit?: number): Promise<Question[]> {
+  static async getQuestionsByTopic(subject: string, topic: string, limit?: number, userId?: string): Promise<Question[]> {
     try {
+      let conditions = [
+        eq(questions.subject, subject),
+        eq(questions.topic, topic),
+        eq(questions.isActive, true)
+      ];
+
+      // Add user filter if userId is provided
+      if (userId) {
+        conditions.push(eq(questions.createdBy, userId));
+      }
+
       const query = db
         .select()
         .from(questions)
-        .where(
-          and(
-            eq(questions.subject, subject),
-            eq(questions.topic, topic),
-            eq(questions.isActive, true)
-          )
-        )
+        .where(and(...conditions))
         .orderBy(desc(questions.createdAt));
 
       if (limit) {
@@ -142,19 +152,25 @@ export class QuestionRepository {
   static async getQuestionsByDifficulty(
     subject: string, 
     difficulty: 'Easy' | 'Medium' | 'Hard', 
-    limit?: number
+    limit?: number,
+    userId?: string
   ): Promise<Question[]> {
     try {
+      let conditions = [
+        eq(questions.subject, subject),
+        eq(questions.difficulty, difficulty),
+        eq(questions.isActive, true)
+      ];
+
+      // Add user filter if userId is provided
+      if (userId) {
+        conditions.push(eq(questions.createdBy, userId));
+      }
+
       const query = db
         .select()
         .from(questions)
-        .where(
-          and(
-            eq(questions.subject, subject),
-            eq(questions.difficulty, difficulty),
-            eq(questions.isActive, true)
-          )
-        )
+        .where(and(...conditions))
         .orderBy(desc(questions.createdAt));
 
       if (limit) {
@@ -186,18 +202,24 @@ export class QuestionRepository {
   static async getRandomQuestions(
     subject: string, 
     count: number, 
-    difficulty?: 'Easy' | 'Medium' | 'Hard'
+    difficulty?: 'Easy' | 'Medium' | 'Hard',
+    userId?: string
   ): Promise<Question[]> {
     try {
+      let conditions = [
+        eq(questions.subject, subject),
+        eq(questions.isActive, true)
+      ];
+
+      // Add user filter if userId is provided
+      if (userId) {
+        conditions.push(eq(questions.createdBy, userId));
+      }
+
       let query = db
         .select()
         .from(questions)
-        .where(
-          and(
-            eq(questions.subject, subject),
-            eq(questions.isActive, true)
-          )
-        );
+        .where(and(...conditions));
 
       if (difficulty) {
         query = query.where(eq(questions.difficulty, difficulty));
@@ -231,19 +253,25 @@ export class QuestionRepository {
   static async searchQuestions(
     subject: string, 
     searchTerm: string, 
-    limit?: number
+    limit?: number,
+    userId?: string
   ): Promise<Question[]> {
     try {
+      let conditions = [
+        eq(questions.subject, subject),
+        eq(questions.isActive, true),
+        like(questions.text, `%${searchTerm}%`)
+      ];
+
+      // Add user filter if userId is provided
+      if (userId) {
+        conditions.push(eq(questions.createdBy, userId));
+      }
+
       const query = db
         .select()
         .from(questions)
-        .where(
-          and(
-            eq(questions.subject, subject),
-            eq(questions.isActive, true),
-            like(questions.text, `%${searchTerm}%`)
-          )
-        )
+        .where(and(...conditions))
         .orderBy(desc(questions.createdAt));
 
       if (limit) {
@@ -336,8 +364,18 @@ export class QuestionRepository {
   /**
    * Get question statistics
    */
-  static async getQuestionStats(subject: string) {
+  static async getQuestionStats(subject: string, userId?: string) {
     try {
+      let conditions = [
+        eq(questions.subject, subject),
+        eq(questions.isActive, true)
+      ];
+
+      // Add user filter if userId is provided
+      if (userId) {
+        conditions.push(eq(questions.createdBy, userId));
+      }
+
       const stats = await db
         .select({
           total: sql<number>`count(*)`,
@@ -346,12 +384,7 @@ export class QuestionRepository {
           hard: sql<number>`count(case when difficulty = 'Hard' then 1 end)`,
         })
         .from(questions)
-        .where(
-          and(
-            eq(questions.subject, subject),
-            eq(questions.isActive, true)
-          )
-        );
+        .where(and(...conditions));
 
       return stats[0];
     } catch (error) {
@@ -363,17 +396,22 @@ export class QuestionRepository {
   /**
    * Get all topics for a subject
    */
-  static async getTopicsBySubject(subject: string): Promise<string[]> {
+  static async getTopicsBySubject(subject: string, userId?: string): Promise<string[]> {
     try {
+      let conditions = [
+        eq(questions.subject, subject),
+        eq(questions.isActive, true)
+      ];
+
+      // Add user filter if userId is provided
+      if (userId) {
+        conditions.push(eq(questions.createdBy, userId));
+      }
+
       const results = await db
         .selectDistinct({ topic: questions.topic })
         .from(questions)
-        .where(
-          and(
-            eq(questions.subject, subject),
-            eq(questions.isActive, true)
-          )
-        );
+        .where(and(...conditions));
 
       return results.map((result: any) => result.topic);
     } catch (error) {
