@@ -261,6 +261,9 @@ const SubjectManager = () => {
 
   const handleAddSubject = async () => {
     try {
+      console.log('🎯 handleAddSubject - useSupabase:', useSupabase);
+      console.log('🎯 handleAddSubject - formData:', formData);
+      
       if (!formData.name || !formData.description || !formData.category) {
         toast({
           title: "Hata",
@@ -280,6 +283,7 @@ const SubjectManager = () => {
       };
 
       if (useSupabase) {
+        console.log('🎯 handleAddSubject - Using Supabase service');
         const result = await SubjectService.createSubject({
           name: formData.name,
           description: formData.description,

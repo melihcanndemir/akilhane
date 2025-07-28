@@ -204,27 +204,32 @@ export async function GET(request: NextRequest) {
 
     // 🔍 Session control - Check if the user is logged in
     console.log('🔐 Subjects API - Checking authentication...');
-    const { isLoggedIn } = await checkAuth();
+    const { isLoggedIn, user } = await checkAuth();
     
     if (!isLoggedIn) {
       console.log('❌ Subjects API - No session found, returning empty data');
       return NextResponse.json([], { status: 200 });
     }
 
-    console.log('✅ Subjects API - Session found, using database');
+    console.log('✅ Subjects API - Session found, using database, user:', user?.id);
     console.log('📊 Subjects API - Using normal database flow');
     
     // Normal API flow - only if the user is logged in
     initializeDatabase();
 
-    // Build filters
+    // Build filters with user isolation
     const filters: Record<string, string | boolean> = {};
     if (category) filters.category = category;
     if (difficulty) filters.difficulty = difficulty;
     if (isActive !== null) filters.isActive = isActive === 'true';
     if (search) filters.search = search;
+    
+    // Add user filter for data isolation
+    if (user?.id) {
+      filters.userId = user.id;
+    }
 
-    // Get subjects
+    // Get subjects with user filtering
     const subjects = await SubjectRepository.getAllSubjects(filters);
 
     return NextResponse.json(subjects, { status: 200 });
