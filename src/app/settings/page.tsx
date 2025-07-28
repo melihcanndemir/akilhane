@@ -239,7 +239,7 @@ export default function SettingsPage() {
           <div className="flex items-center gap-3">
             <Settings className="w-8 h-8 text-primary" />
             <div>
-              <h1 className="text-3xl font-headline font-bold text-blue-600">Ayarlar</h1>
+              <h1 className="text-3xl font-headline font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Ayarlar</h1>
               <p className="text-muted-foreground">Uygulama tercihlerinizi yönetin</p>
             </div>
           </div>
@@ -266,6 +266,7 @@ export default function SettingsPage() {
                     id="email-notifications"
                     checked={notifications.email}
                     onCheckedChange={(checked) => setNotifications({...notifications, email: checked})}
+                    className="data-[state=checked]:bg-indigo-600 hover:bg-indigo-600/20 transition-colors"
                   />
                 </div>
                 <Separator />
@@ -278,6 +279,7 @@ export default function SettingsPage() {
                     id="push-notifications"
                     checked={notifications.push}
                     onCheckedChange={(checked) => setNotifications({...notifications, push: checked})}
+                    className="data-[state=checked]:bg-indigo-600 hover:bg-indigo-600/20 transition-colors"
                   />
                 </div>
                 <Separator />
@@ -290,6 +292,7 @@ export default function SettingsPage() {
                     id="reminders"
                     checked={notifications.reminders}
                     onCheckedChange={(checked) => setNotifications({...notifications, reminders: checked})}
+                    className="data-[state=checked]:bg-indigo-600 hover:bg-indigo-600/20 transition-colors"
                   />
                 </div>
                 <Separator />
@@ -302,6 +305,7 @@ export default function SettingsPage() {
                     id="achievements"
                     checked={notifications.achievements}
                     onCheckedChange={(checked) => setNotifications({...notifications, achievements: checked})}
+                    className="data-[state=checked]:bg-indigo-600 hover:bg-indigo-600/20 transition-colors"
                   />
                 </div>
               </CardContent>
@@ -326,9 +330,15 @@ export default function SettingsPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="light">Açık</SelectItem>
-                      <SelectItem value="dark">Koyu</SelectItem>
-                      <SelectItem value="system">Sistem</SelectItem>
+                      <SelectItem value="light" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">
+                        Açık
+                      </SelectItem>
+                      <SelectItem value="dark" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">
+                        Koyu
+                      </SelectItem>
+                      <SelectItem value="system" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">
+                        Sistem
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -339,9 +349,15 @@ export default function SettingsPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="small">Küçük</SelectItem>
-                      <SelectItem value="medium">Orta</SelectItem>
-                      <SelectItem value="large">Büyük</SelectItem>
+                      <SelectItem value="small" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">
+                        Küçük
+                      </SelectItem>
+                      <SelectItem value="medium" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">
+                        Orta
+                      </SelectItem>
+                      <SelectItem value="large" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">
+                        Büyük
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -354,6 +370,7 @@ export default function SettingsPage() {
                     id="compact-mode"
                     checked={appearance.compactMode}
                     onCheckedChange={(checked) => setAppearance({...appearance, compactMode: checked})}
+                    className="data-[state=checked]:bg-indigo-600 hover:bg-indigo-600/20 transition-colors"
                   />
                 </div>
               </CardContent>
@@ -409,7 +426,7 @@ export default function SettingsPage() {
                         subjects
                           .filter(subject => subject.is_active)
                           .map((subject) => (
-                            <SelectItem key={subject.id} value={subject.name}>
+                            <SelectItem key={subject.id} value={subject.name} className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">
                               {subject.name}
                             </SelectItem>
                           ))
@@ -431,11 +448,11 @@ export default function SettingsPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="5">5 Soru</SelectItem>
-                        <SelectItem value="10">10 Soru</SelectItem>
-                        <SelectItem value="15">15 Soru</SelectItem>
-                        <SelectItem value="20">20 Soru</SelectItem>
-                        <SelectItem value="custom">Özel...</SelectItem>
+                        <SelectItem value="5" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">5 Soru</SelectItem>
+                        <SelectItem value="10" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">10 Soru</SelectItem>
+                        <SelectItem value="15" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">15 Soru</SelectItem>
+                        <SelectItem value="20" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">20 Soru</SelectItem>
+                        <SelectItem value="custom" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">Özel...</SelectItem>
                       </SelectContent>
                     </Select>
                     {studyPreferences.questionsPerQuiz === -1 && (
@@ -463,11 +480,11 @@ export default function SettingsPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="15">15 Dakika</SelectItem>
-                        <SelectItem value="30">30 Dakika</SelectItem>
-                        <SelectItem value="45">45 Dakika</SelectItem>
-                        <SelectItem value="60">60 Dakika</SelectItem>
-                        <SelectItem value="custom">Özel...</SelectItem>
+                        <SelectItem value="15" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">15 Dakika</SelectItem>
+                        <SelectItem value="30" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">30 Dakika</SelectItem>
+                        <SelectItem value="45" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">45 Dakika</SelectItem>
+                        <SelectItem value="60" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">60 Dakika</SelectItem>
+                        <SelectItem value="custom" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">Özel...</SelectItem>
                       </SelectContent>
                     </Select>
                      {studyPreferences.timeLimit === -1 && (
@@ -490,6 +507,7 @@ export default function SettingsPage() {
                     id="show-timer"
                     checked={studyPreferences.showTimer}
                     onCheckedChange={(checked) => setStudyPreferences({...studyPreferences, showTimer: checked})}
+                    className="data-[state=checked]:bg-indigo-600 hover:bg-indigo-600/20 transition-colors"
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -501,6 +519,7 @@ export default function SettingsPage() {
                     id="auto-submit"
                     checked={studyPreferences.autoSubmit}
                     onCheckedChange={(checked) => setStudyPreferences({...studyPreferences, autoSubmit: checked})}
+                    className="data-[state=checked]:bg-indigo-600 hover:bg-indigo-600/20 transition-colors"
                   />
                 </div>
               </CardContent>
@@ -519,18 +538,18 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex flex-col sm:flex-row gap-2">
-                  <Button onClick={handleExportData} variant="outline" className="flex-1">
+                  <Button onClick={handleExportData} variant="outline" className="flex-1 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0">
                     <Download className="w-4 h-4 mr-2" />
                     Verileri Dışa Aktar
                   </Button>
-                  <Button onClick={handleImportData} variant="outline" className="flex-1">
+                  <Button onClick={handleImportData} variant="outline" className="flex-1 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0">
                     <Upload className="w-4 h-4 mr-2" />
                     Verileri İçe Aktar
                   </Button>
                 </div>
                 <Separator />
                 <div className="flex gap-2">
-                  <Button onClick={handleClearData} variant="destructive" className="flex-1">
+                  <Button onClick={handleClearData} variant="destructive" className="flex-1 hover:bg-gradient-to-r hover:from-red-600 hover:to-pink-600 hover:text-white hover:border-0">
                     <Trash2 className="w-4 h-4 mr-2" />
                     Tüm Verileri Sil
                   </Button>
@@ -544,7 +563,7 @@ export default function SettingsPage() {
 
           {/* Save Button */}
           <div className="flex justify-end">
-            <Button className="px-8" onClick={handleSaveSettings}>
+            <Button className="px-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white" onClick={handleSaveSettings}>
               <Settings className="w-4 h-4 mr-2" />
               Ayarları Kaydet
             </Button>

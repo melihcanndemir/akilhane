@@ -149,7 +149,10 @@ export default function SubjectManagerPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Link href="/question-manager">
-                    <Button variant="outline" className="flex items-center gap-2">
+                    <Button 
+                      variant="outline" 
+                      className="flex items-center gap-2 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
+                    >
                       <Database className="w-4 h-4" />
                       Soru Yöneticisi
                     </Button>
@@ -159,14 +162,14 @@ export default function SubjectManagerPage() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2 p-4 rounded-lg glass-card-inner">
+                  <div className="flex items-center gap-2 p-4 border-gradient-question">
                     <BookOpen className="w-6 h-6 text-blue-500 flex-shrink-0" />
                     <div>
                       <p className="text-sm text-muted-foreground">Toplam Ders</p>
                       {isLoading ? <LoadingSpinner className="p-0 h-6 w-6" /> : <p className="text-xl font-bold">{stats.totalSubjects}</p>}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 p-4 rounded-lg glass-card-inner">
+                  <div className="flex items-center gap-2 p-4 border-gradient-question">
                     <Brain className="w-6 h-6 text-purple-500 flex-shrink-0" />
                      <div>
                       <p className="text-sm text-muted-foreground">Toplam Kategori</p>

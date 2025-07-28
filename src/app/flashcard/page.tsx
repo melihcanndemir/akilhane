@@ -152,7 +152,7 @@ const FlashcardPageContent = () => {
               onClick={() => router.push('/dashboard')} 
               variant="outline" 
               size="sm" 
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
             >
               <ArrowLeft className="w-4 h-4" />
               Ana Sayfaya Dön
@@ -186,7 +186,7 @@ const FlashcardPageContent = () => {
                     {!isDemoMode && (
                       <button
                         onClick={() => window.location.href = '/question-manager'}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-colors"
+                        className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-lg transition-all duration-200 border-0"
                       >
                         Soru Ekle
                       </button>
@@ -197,7 +197,7 @@ const FlashcardPageContent = () => {
                     <button
                       key={subject.id}
                       onClick={() => setSelectedSubject(subject.name)}
-                      className="p-6 bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                      className="p-6 border-gradient-question bg-white dark:bg-gray-800 text-gray-800 dark:text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                     >
                       <div className="text-2xl mb-3">
                         {subject.name === 'Matematik' && '📐'}
@@ -210,10 +210,10 @@ const FlashcardPageContent = () => {
                         {!['Matematik', 'Fizik', 'Kimya', 'Tarih', 'Biyoloji', 'Türk Dili ve Edebiyatı', 'İngilizce'].includes(subject.name) && '📚'}
                       </div>
                       <h3 className="text-lg font-semibold mb-2">{subject.name}</h3>
-                      <p className="text-blue-100 text-sm mb-2">
+                      <p className="text-gray-600 dark:text-gray-300 text-sm mb-2">
                         {subject.questionCount} {isDemoMode ? 'demo ' : ''}kart mevcut
                       </p>
-                      <p className="text-blue-100 text-xs">
+                      <p className="text-gray-500 dark:text-gray-400 text-xs">
                         {isDemoMode ? 'BTK Demo içeriği' : 'Akıllı öğrenme sistemi ile çalışın'}
                       </p>
                     </button>
@@ -222,11 +222,11 @@ const FlashcardPageContent = () => {
               </div>
             </div>
             
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-300 mb-3">
+            <div className="border-gradient-question bg-white dark:bg-gray-800 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-3">
                 🧠 Akıllı Öğrenme Özellikleri
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-700 dark:text-blue-300">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 dark:text-gray-300">
                 <div className="flex items-center">
                   <span className="mr-2">🔄</span>
                   <span>Aralıklı tekrar algoritması</span>

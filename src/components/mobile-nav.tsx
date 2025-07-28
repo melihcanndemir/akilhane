@@ -39,6 +39,7 @@ export default function MobileNav() {
     { href: '/ai-chat', label: 'AI Asistan', icon: Users },
     { href: '/question-manager', label: 'Soru Yöneticisi', icon: Database },
     { href: '/subject-manager', label: 'Ders Yöneticisi', icon: GraduationCap },
+    { href: '/settings', label: 'Ayarlar', icon: Settings },
   ];
 
   return (
@@ -59,7 +60,7 @@ export default function MobileNav() {
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="flex items-center gap-1.5 hover:bg-primary/10 dark:hover:bg-primary/20"
+                  className="flex items-center gap-1.5 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
                 >
                   <Icon className="w-4 h-4" />
                   {label}
@@ -75,7 +76,7 @@ export default function MobileNav() {
             ) : isAuthenticated && user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="flex items-center gap-2 hover:bg-primary/10 dark:hover:bg-primary/20 max-w-[200px]">
+                  <Button variant="ghost" size="sm" className="flex items-center gap-2 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0 max-w-[200px]">
                     <User className="w-4 h-4 flex-shrink-0" />
                     <span className="truncate">
                     {user?.email?.split('@')[0] || user?.user_metadata?.full_name || 'Kullanıcı'}
@@ -104,7 +105,7 @@ export default function MobileNav() {
               </DropdownMenu>
             ) : (
               <Link href="/login">
-                <Button variant="ghost" size="sm" className="flex items-center gap-1.5 hover:bg-primary/10 dark:hover:bg-primary/20">
+                <Button variant="ghost" size="sm" className="flex items-center gap-1.5 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0">
                   <User className="w-4 h-4" />
                   Giriş Yap
                 </Button>
@@ -192,23 +193,14 @@ export default function MobileNav() {
                           key={href}
                           href={href}
                           onClick={() => setIsOpen(false)}
-                          className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/20 dark:hover:bg-white/10 backdrop-blur-sm transition-all duration-300 group hover:scale-105"
+                          className="flex items-center gap-3 p-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white backdrop-blur-sm transition-all duration-300 group hover:scale-105"
                         >
-                          <Icon className="w-5 h-5 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300" />
-                          <span className="font-medium group-hover:text-foreground transition-colors duration-300">{label}</span>
+                          <Icon className="w-5 h-5 group-hover:text-white transition-colors duration-300" />
+                          <span className="font-medium group-hover:text-white transition-colors duration-300">{label}</span>
                         </Link>
                       ))}
                       
-                      {isAuthenticated && (
-                        <Link
-                          href="/settings"
-                          onClick={() => setIsOpen(false)}
-                          className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/20 dark:hover:bg-white/10 backdrop-blur-sm transition-all duration-300 group hover:scale-105"
-                        >
-                          <Settings className="w-5 h-5 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300" />
-                          <span className="font-medium group-hover:text-foreground transition-colors duration-300">Ayarlar</span>
-                        </Link>
-                      )}
+                      {/* Settings is now in navLinks, so no need for separate link */}
                     </div>
                     
                     {/* Extra spacing for scroll */}

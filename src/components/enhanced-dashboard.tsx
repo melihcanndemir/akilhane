@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   BookOpen, 
@@ -429,7 +428,7 @@ export default function EnhancedDashboard() {
           <div className="flex flex-col gap-4 mb-8">
             {/* Title Section */}
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 AkılHane Dashboard
               </h1>
               <p className="text-gray-600 dark:text-gray-400 mt-2">
@@ -458,9 +457,10 @@ export default function EnhancedDashboard() {
                     id="demo-mode"
                     checked={useDemoData}
                     onCheckedChange={handleToggleDemoMode}
+                    className="data-[state=checked]:bg-indigo-600 hover:bg-indigo-600/20 transition-colors"
                   />
-                  <Label htmlFor="demo-mode" className="text-sm font-medium text-orange-600">
-                    🎯 BTK Demo
+                  <Label htmlFor="demo-mode" className="text-sm font-medium bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent hover:text-indigo-600 transition-colors">
+                    BTK Demo
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -468,15 +468,16 @@ export default function EnhancedDashboard() {
                     id="analytics-mode"
                     checked={showAnalytics}
                     onCheckedChange={setShowAnalytics}
+                    className="data-[state=checked]:bg-indigo-600 hover:bg-indigo-600/20 transition-colors"
                   />
-                  <Label htmlFor="analytics-mode">Analitik Görünüm</Label>
+                  <Label htmlFor="analytics-mode" className="hover:text-indigo-600 transition-colors">Analitik Görünüm</Label>
                 </div>
               </div>
               
               {/* Settings Button - Separate Group */}
               <div className="flex justify-start sm:justify-end">
                 <Link href="/settings">
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0">
                     <Settings className="h-4 w-4 mr-2" />
                     Ayarlar
                   </Button>
@@ -541,7 +542,12 @@ export default function EnhancedDashboard() {
                     <span>Kullanılan: {(storageInfo.used / 1024).toFixed(1)} KB</span>
                     <span>{storageInfo.percentage.toFixed(1)}%</span>
                   </div>
-                  <Progress value={storageInfo.percentage} className="h-2" />
+                  <div className="progress-gradient-bg rounded-full h-2">
+                    <div 
+                      className="progress-gradient h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${storageInfo.percentage}%` }}
+                    />
+                  </div>
                   {storageInfo.percentage > 80 && (
                     <p className="text-xs text-amber-600 dark:text-amber-400">
                       Depolama alanınız dolmak üzere. Eski verileri silin veya yedekleyin.
@@ -559,7 +565,7 @@ export default function EnhancedDashboard() {
           <>
             {/* Stats Overview */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <Card className="hover:shadow-lg transition-shadow">
+              <Card className="border-gradient-question hover:shadow-lg transition-shadow">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Toplam Test</CardTitle>
                   <FileText className="h-4 w-4 text-muted-foreground" />
@@ -572,7 +578,7 @@ export default function EnhancedDashboard() {
                 </CardContent>
               </Card>
 
-              <Card className="hover:shadow-lg transition-shadow">
+              <Card className="border-gradient-question hover:shadow-lg transition-shadow">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Ortalama Başarı</CardTitle>
                   <Target className="h-4 w-4 text-muted-foreground" />
@@ -587,7 +593,7 @@ export default function EnhancedDashboard() {
                 </CardContent>
               </Card>
 
-              <Card className="hover:shadow-lg transition-shadow">
+              <Card className="border-gradient-question hover:shadow-lg transition-shadow">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Toplam Süre</CardTitle>
                   <Clock className="h-4 w-4 text-muted-foreground" />
@@ -602,7 +608,7 @@ export default function EnhancedDashboard() {
                 </CardContent>
               </Card>
 
-              <Card className="hover:shadow-lg transition-shadow">
+              <Card className="border-gradient-question hover:shadow-lg transition-shadow">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Aktif Konular</CardTitle>
                   <BookOpen className="h-4 w-4 text-muted-foreground" />
@@ -620,7 +626,7 @@ export default function EnhancedDashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
               {/* Performance by Subject */}
               <div className="lg:col-span-2">
-                <Card>
+                <Card className="border-gradient-question">
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <TrendingUp className="h-5 w-5 mr-2" />
@@ -638,13 +644,21 @@ export default function EnhancedDashboard() {
                             <div className="flex items-center justify-between mb-2">
                               <h4 className="font-semibold text-lg">{subject.subject}</h4>
                               <Badge 
-                                variant={subject.averageScore >= 80 ? "default" : subject.averageScore >= 60 ? "secondary" : "destructive"}
-                                className="text-sm"
+                                className={`text-sm ${
+                                  subject.averageScore >= 80 ? 'badge-gradient-high' : 
+                                  subject.averageScore >= 70 ? 'badge-gradient-medium' : 
+                                  'badge-gradient-low'
+                                }`}
                               >
                                 %{subject.averageScore.toFixed(0)}
                               </Badge>
                             </div>
-                            <Progress value={subject.averageScore} className="mb-2" />
+                            <div className="progress-gradient-bg rounded-full mb-2">
+                              <div 
+                                className="progress-gradient h-2 rounded-full transition-all duration-300"
+                                style={{ width: `${subject.averageScore}%` }}
+                              />
+                            </div>
                             <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
                               <span>{subject.totalTests} test tamamlandı</span>
                               <span>{new Date(subject.lastUpdated).toLocaleDateString('tr-TR')}</span>
@@ -682,7 +696,7 @@ export default function EnhancedDashboard() {
 
               {/* Recent Results */}
               <div>
-                <Card>
+                <Card className="border-gradient-question">
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <Activity className="h-5 w-5 mr-2" />
@@ -705,8 +719,11 @@ export default function EnhancedDashboard() {
                             </div>
                             <div className="flex items-center space-x-2">
                               <Badge 
-                                variant={(result.score / result.totalQuestions) >= 0.8 ? "default" : 
-                                        (result.score / result.totalQuestions) >= 0.6 ? "secondary" : "destructive"}
+                                className={`${
+                                  (result.score / result.totalQuestions) >= 0.8 ? 'badge-gradient-high' : 
+                                  (result.score / result.totalQuestions) >= 0.7 ? 'badge-gradient-medium' : 
+                                  'badge-gradient-low'
+                                }`}
                               >
                                 %{Math.round((result.score / result.totalQuestions) * 100)}
                               </Badge>
@@ -731,7 +748,7 @@ export default function EnhancedDashboard() {
 
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer hover:scale-105 transition-transform duration-200">
+              <Card className="border-gradient-question hover:shadow-lg transition-shadow cursor-pointer hover:scale-105 transition-transform duration-200">
                 <Link href="/quiz">
                   <CardContent className="p-8 text-center">
                     <Zap className="h-10 w-10 mx-auto mb-4 text-blue-600" />
@@ -743,7 +760,7 @@ export default function EnhancedDashboard() {
                 </Link>
               </Card>
 
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer hover:scale-105 transition-transform duration-200">
+              <Card className="border-gradient-question hover:shadow-lg transition-shadow cursor-pointer hover:scale-105 transition-transform duration-200">
                 <Link href="/flashcard">
                   <CardContent className="p-8 text-center">
                     <Brain className="h-10 w-10 mx-auto mb-4 text-green-600" />
@@ -753,7 +770,7 @@ export default function EnhancedDashboard() {
                 </Link>
               </Card>
 
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer hover:scale-105 transition-transform duration-200">
+              <Card className="border-gradient-question hover:shadow-lg transition-shadow cursor-pointer hover:scale-105 transition-transform duration-200">
                 <Link href="/ai-chat">
                   <CardContent className="p-8 text-center">
                     <BookOpen className="h-10 w-10 mx-auto mb-4 text-purple-600" />
@@ -763,7 +780,7 @@ export default function EnhancedDashboard() {
                 </Link>
               </Card>
 
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer hover:scale-105 transition-transform duration-200">
+              <Card className="border-gradient-question hover:shadow-lg transition-shadow cursor-pointer hover:scale-105 transition-transform duration-200">
                 <Link href="/subject-manager">
                   <CardContent className="p-8 text-center">
                     <Database className="h-10 w-10 mx-auto mb-4 text-indigo-600" />

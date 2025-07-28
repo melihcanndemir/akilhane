@@ -324,30 +324,97 @@
 /* REAL GLASS BACKGROUND - TRANSPARENT GLASSMORPHISM */
 .glass-card {
   /* Light theme: More opaque and bright white base */
-  background: rgba(255, 255, 255, 0.8) !important;
-  backdrop-filter: blur(12px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(160%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.4) !important;
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1), 0 0 12px 0 rgba(59, 130, 246, 0.15) !important;
-  border-radius: 16px !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15), 0 0 16px 0 rgba(59, 130, 246, 0.2) !important;
+  border-radius: 24px !important;
 }
 
 .dark .glass-card {
-  /* Dark theme: Lighter and transparent fume tone */
-  background: rgba(40, 48, 64, 0.65) !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25) !important;
+  /* Dark theme: More transparent and prominent glass effect */
+  background: rgba(40, 48, 64, 0.75) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3), 0 0 16px 0 rgba(59, 130, 246, 0.1) !important;
 }
 
 .glass-card-inner {
-  background: rgba(255, 255, 255, 0.35) !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(8px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
   border-radius: 12px !important;
 }
 
-.dark .glass-card-inner {
-  background: rgba(50, 58, 74, 0.5) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+/* BORDER GRADIENT FOR ACTIVE SUBJECT CARDS */
+.border-gradient-active {
+  border: 2px solid transparent !important;
+  background: linear-gradient(white, white) padding-box, linear-gradient(to right, #2563eb, #9333ea) border-box !important;
+}
+
+.dark .border-gradient-active {
+  background: linear-gradient(#1f2937, #1f2937) padding-box, linear-gradient(to right, #2563eb, #9333ea) border-box !important;
+}
+
+/* BORDER GRADIENT FOR QUESTION CARDS */
+.border-gradient-question {
+  border: 2px solid transparent !important;
+  background: linear-gradient(white, white) padding-box, linear-gradient(to right, #2563eb, #9333ea) border-box !important;
+}
+
+.dark .border-gradient-question {
+  background: linear-gradient(#1f2937, #1f2937) padding-box, linear-gradient(to right, #2563eb, #9333ea) border-box !important;
+}
+
+/* BORDER GRADIENT FOR GREEN CARDS */
+.border-gradient-green {
+  border: 2px solid transparent !important;
+  background: linear-gradient(white, white) padding-box, linear-gradient(to right, #10b981, #059669) border-box !important;
+}
+
+.dark .border-gradient-green {
+  background: linear-gradient(#1f2937, #1f2937) padding-box, linear-gradient(to right, #10b981, #059669) border-box !important;
+}
+
+/* BORDER GRADIENT FOR PURPLE CARDS */
+.border-gradient-purple {
+  border: 2px solid transparent !important;
+  background: linear-gradient(white, white) padding-box, linear-gradient(to right, #9333ea, #7c3aed) border-box !important;
+}
+
+.dark .border-gradient-purple {
+  background: linear-gradient(#1f2937, #1f2937) padding-box, linear-gradient(to right, #9333ea, #7c3aed) border-box !important;
+}
+
+/* BORDER GRADIENT FOR ORANGE CARDS */
+.border-gradient-orange {
+  border: 2px solid transparent !important;
+  background: linear-gradient(white, white) padding-box, linear-gradient(to right, #f97316, #dc2626) border-box !important;
+}
+
+.dark .border-gradient-orange {
+  background: linear-gradient(#1f2937, #1f2937) padding-box, linear-gradient(to right, #f97316, #dc2626) border-box !important;
+}
+
+/* BORDER GRADIENT FOR YELLOW CARDS */
+.border-gradient-yellow {
+  border: 2px solid transparent !important;
+  background: linear-gradient(white, white) padding-box, linear-gradient(to right, #eab308, #d97706) border-box !important;
+}
+
+.dark .border-gradient-yellow {
+  background: linear-gradient(#1f2937, #1f2937) padding-box, linear-gradient(to right, #eab308, #d97706) border-box !important;
+}
+
+/* BORDER GRADIENT FOR TEAL CARDS */
+.border-gradient-teal {
+  border: 2px solid transparent !important;
+  background: linear-gradient(white, white) padding-box, linear-gradient(to right, #14b8a6, #0891b2) border-box !important;
+}
+
+.dark .border-gradient-teal {
+  background: linear-gradient(#1f2937, #1f2937) padding-box, linear-gradient(to right, #14b8a6, #0891b2) border-box !important;
 }
 
 .glass-sheet {
@@ -380,4 +447,48 @@
 .dark .glass-nav {
   background: rgba(0, 0, 0, 0.1) !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+/* GRADIENT PROGRESS BAR */
+.progress-gradient {
+  background: linear-gradient(to right, #4f46e5, #7c3aed) !important;
+}
+
+.progress-gradient-bg {
+  background: #e0e7ff !important;
+}
+
+.dark .progress-gradient-bg {
+  background: #1e1b4b !important;
+}
+
+/* GRADIENT BADGES */
+.badge-gradient-high {
+  background: linear-gradient(to right, #2563eb, #7c3aed) !important;
+  color: white !important;
+  border: none !important;
+}
+
+.badge-gradient-medium {
+  background: linear-gradient(to right, #eab308, #f59e0b) !important;
+  color: white !important;
+  border: none !important;
+}
+
+.badge-gradient-low {
+  background: linear-gradient(to right, #dc2626, #ec4899) !important;
+  color: white !important;
+  border: none !important;
+}
+
+/* GRADIENT TOAST BORDER */
+.border-gradient-toast {
+  border: 2px solid transparent !important;
+  background: linear-gradient(white, white) padding-box, linear-gradient(to right, #2563eb, #9333ea) border-box !important;
+  border-radius: 0.5rem !important;
+}
+
+.dark .border-gradient-toast {
+  background: linear-gradient(#1f2937, #1f2937) padding-box, linear-gradient(to right, #2563eb, #9333ea) border-box !important;
+  border-radius: 0.5rem !important;
 }

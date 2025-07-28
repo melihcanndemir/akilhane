@@ -734,7 +734,7 @@ export default function QuestionManager() {
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-headline font-bold text-primary">Soru Yöneticisi</h1>
+              <h1 className="text-3xl font-headline font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Soru Yöneticisi</h1>
               <p className="text-muted-foreground">Soru ekle, düzenle ve yönet</p>
             </div>
             <div className="flex gap-2">
@@ -939,7 +939,11 @@ export default function QuestionManager() {
                 )}
 
                 <div className="flex gap-2">
-                  <Button onClick={handleCreateQuestion} disabled={isCreating}>
+                  <Button 
+                    onClick={handleCreateQuestion} 
+                    disabled={isCreating}
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0"
+                  >
                     {isCreating ? 'Oluşturuluyor...' : 'Soru Oluştur'}
                   </Button>
                   <Button variant="outline" onClick={resetForm}>
@@ -1080,7 +1084,7 @@ export default function QuestionManager() {
                 ) : (
                   <div className="space-y-4 max-h-96 overflow-y-auto">
                     {filteredQuestions.map((question) => (
-                      <div key={question.id} className="p-4 glass-card-inner">
+                      <div key={question.id} className="p-4 border-gradient-question">
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="bg-primary/10 text-primary px-2 py-1 rounded text-xs font-medium">

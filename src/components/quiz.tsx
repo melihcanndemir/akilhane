@@ -533,18 +533,18 @@ const QuizComponent: React.FC<QuizProps> = ({ subject, isDemoMode = false }) => 
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-4">
             <Link href="/">
-              <Button variant="outline" size="sm" className="flex items-center gap-2">
+              <Button variant="outline" size="sm" className="flex items-center gap-2 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0">
                 <ArrowLeft className="w-4 h-4" />
                 Ana Sayfaya Dön
               </Button>
             </Link>
-            <h1 className="text-3xl font-headline font-bold text-primary">
+            <h1 className="text-3xl font-headline font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               {subject} Quiz
             </h1>
           </div>
-          <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <span>Soru {currentQuestionIndex + 1} / {totalQuestions}</span>
-            <span>⏱️ {Math.floor(timeSpent / 60)}:{(timeSpent % 60).toString().padStart(2, '0')}</span>
+          <div className="flex items-center justify-between text-base font-medium">
+            <span className="text-gray-700 dark:text-gray-300">Soru {currentQuestionIndex + 1} / {totalQuestions}</span>
+            <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 py-1 rounded-full">⏱️ {Math.floor(timeSpent / 60)}:{(timeSpent % 60).toString().padStart(2, '0')}</span>
           </div>
         </div>
 
@@ -570,10 +570,16 @@ const QuizComponent: React.FC<QuizProps> = ({ subject, isDemoMode = false }) => 
           >
             <div className="mb-6">
               <div className="flex items-center gap-2 mb-4">
-                <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">
+                <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 py-1 rounded-full text-sm font-medium border-0">
                   {currentQuestion.topic}
                 </span>
-                <span className="bg-secondary/10 text-secondary-foreground px-3 py-1 rounded-full text-sm">
+                <span className={`px-3 py-1 rounded-full text-sm font-medium border-0 ${
+                  currentQuestion.difficulty === 'Kolay' || currentQuestion.difficulty === 'Easy' 
+                    ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white' :
+                  currentQuestion.difficulty === 'Orta' || currentQuestion.difficulty === 'Medium'
+                    ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white' :
+                  'bg-gradient-to-r from-red-400 to-pink-500 text-white'
+                }`}>
                   {currentQuestion.difficulty}
                 </span>
               </div>
@@ -592,11 +598,11 @@ const QuizComponent: React.FC<QuizProps> = ({ subject, isDemoMode = false }) => 
                     selectedAnswer === index
                       ? showResult
                         ? option.isCorrect
-                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
-                          : 'border-red-500 bg-red-50 dark:bg-red-950'
-                        : 'border-primary bg-primary/5'
-                      : 'border-border hover:border-primary/50'
-                  } ${showResult && option.isCorrect ? 'border-blue-500 bg-blue-50 dark:bg-blue-950' : ''}`}
+                          ? 'border-gradient-question bg-blue-50 dark:bg-blue-950'
+                          : 'border-gradient-question bg-red-50 dark:bg-red-950'
+                        : 'border-gradient-question bg-primary/5'
+                      : 'border-border hover:border-gradient-question'
+                  } ${showResult && option.isCorrect ? 'border-gradient-question bg-blue-50 dark:bg-blue-950' : ''}`}
                 >
                   <div className="flex items-center gap-3">
                     <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
@@ -623,7 +629,7 @@ const QuizComponent: React.FC<QuizProps> = ({ subject, isDemoMode = false }) => 
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
-                className="bg-muted/50 rounded-lg p-4 mb-6"
+                className="border-gradient-question bg-white dark:bg-gray-800 rounded-lg p-4 mb-6"
               >
                 <h3 className="font-semibold mb-2">Açıklama:</h3>
                 <p className="text-muted-foreground">{currentQuestion.explanation}</p>
@@ -640,7 +646,7 @@ const QuizComponent: React.FC<QuizProps> = ({ subject, isDemoMode = false }) => 
                       key={step}
                       onClick={() => requestAiTutorHelp(step)}
                       disabled={isLoadingTutor}
-                      className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors disabled:opacity-50"
+                      className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50"
                     >
                       {step === 'hint' && '💡 İpucu'}
                       {step === 'explanation' && '📚 Açıklama'}
@@ -661,7 +667,7 @@ const QuizComponent: React.FC<QuizProps> = ({ subject, isDemoMode = false }) => 
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-card border rounded-lg p-4"
+                    className="border-gradient-question bg-white dark:bg-gray-800 rounded-lg p-4"
                   >
                     <h4 className="font-semibold mb-2">
                       {tutorStep === 'hint' && '💡 İpucu'}
@@ -685,14 +691,14 @@ const QuizComponent: React.FC<QuizProps> = ({ subject, isDemoMode = false }) => 
                 <button
                   onClick={handleSubmit}
                   disabled={selectedAnswer === null}
-                  className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Cevabı Gönder
                 </button>
               ) : currentQuestionIndex < questions.length - 1 ? (
                 <button
                   onClick={handleNext}
-                  className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all"
                 >
                   Sonraki Soru
                 </button>
@@ -700,7 +706,7 @@ const QuizComponent: React.FC<QuizProps> = ({ subject, isDemoMode = false }) => 
                 <button
                   onClick={handleFinish}
                   disabled={isSaving}
-                  className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50"
                 >
                   {isSaving ? 'Kaydediliyor...' : 'Testi Bitir'}
                 </button>

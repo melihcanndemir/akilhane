@@ -132,11 +132,11 @@ export default function DemoPage() {
           className="text-center mb-8"
         >
           <div className="flex items-center justify-center mb-4">
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-3 rounded-xl">
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-3 rounded-xl">
               <Brain className="h-8 w-8 text-white" />
             </div>
           </div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-4">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
             AkılHane Canlı Demo
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-400 mb-6">
@@ -150,13 +150,14 @@ export default function DemoPage() {
               size="sm"
               onClick={handlePrevious}
               disabled={currentStep === 0}
+              className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0 transition-all"
             >
               <SkipBack className="h-4 w-4" />
             </Button>
             
             <Button
               onClick={handlePlayPause}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
             >
               {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
               <span className="ml-2">{isPlaying ? 'Duraklat' : 'Başlat'}</span>
@@ -167,6 +168,7 @@ export default function DemoPage() {
               size="sm"
               onClick={handleNext}
               disabled={currentStep === demoSteps.length - 1}
+              className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0 transition-all"
             >
               <SkipForward className="h-4 w-4" />
             </Button>
@@ -183,7 +185,7 @@ export default function DemoPage() {
           </div>
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
             <motion.div
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 h-2 rounded-full"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 h-2 rounded-full"
               initial={{ width: 0 }}
               animate={{ width: `${((currentStep + 1) / demoSteps.length) * 100}%` }}
               transition={{ duration: 0.5 }}
@@ -217,7 +219,7 @@ export default function DemoPage() {
               <CardContent className="text-center">
                 <Button
                   onClick={() => demoSteps[currentStep] && handleStepAction(demoSteps[currentStep])}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                   size="lg"
                 >
                   <Zap className="h-4 w-4 mr-2" />
@@ -229,7 +231,7 @@ export default function DemoPage() {
         )}
 
         {/* All Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 items-stretch">
           {demoSteps.map((step, index) => (
             <motion.div
               key={step.id}
@@ -238,7 +240,7 @@ export default function DemoPage() {
               transition={{ delay: index * 0.1 }}
             >
               <Card 
-                className={`cursor-pointer transition-all duration-300 hover:shadow-lg ${
+                className={`cursor-pointer transition-all duration-300 hover:shadow-lg hover:border-gradient-question h-full ${
                   currentStep === index ? 'ring-2 ring-blue-500' : ''
                 } ${completedSteps.includes(step.id) ? 'bg-green-50 dark:bg-green-900/20' : ''}`}
                 onClick={() => setCurrentStep(index)}
@@ -276,12 +278,12 @@ export default function DemoPage() {
           transition={{ delay: 0.5 }}
           className="text-center"
         >
-          <Card className="shadow-xl border-0 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+          <Card className="shadow-xl border-gradient-question bg-gradient-to-r from-blue-600 to-purple-600 text-white">
             <CardContent className="p-8">
-              <h2 className="text-2xl font-bold mb-4">
+              <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white drop-shadow-lg">
                 AkılHane'yi Deneyimlediniz mi?
               </h2>
-              <p className="text-blue-100 mb-6">
+              <p className="text-gray-900 dark:text-white mb-6 font-medium drop-shadow-md">
                 Ücretsiz hesap oluşturun ve AI destekli eğitim deneyiminin tamamını keşfedin!
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -289,7 +291,7 @@ export default function DemoPage() {
                   onClick={() => router.push('/login?mode=register')}
                   variant="secondary"
                   size="lg"
-                  className="bg-white text-blue-600 hover:bg-gray-100"
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 transition-all"
                 >
                   <Users className="h-4 w-4 mr-2" />
                   Ücretsiz Kayt Ol
@@ -298,7 +300,7 @@ export default function DemoPage() {
                   onClick={() => router.push('/')}
                   variant="secondary"
                   size="lg"
-                  className="bg-white text-blue-600 hover:bg-gray-100"
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 transition-all"
                 >
                   <ArrowRight className="h-4 w-4 mr-2" />
                   Ana Sayfaya Git
