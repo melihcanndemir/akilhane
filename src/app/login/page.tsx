@@ -22,10 +22,11 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { signInWithEmail, signInWithGoogle, signUpWithEmail } from '@/lib/supabase';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function LoginPage() {
-  const [isLogin, setIsLogin] = useState(true);
+  const searchParams = useSearchParams();
+  const [isLogin, setIsLogin] = useState(searchParams.get('mode') === 'register' ? false : true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
