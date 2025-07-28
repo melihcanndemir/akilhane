@@ -747,11 +747,11 @@ export default function QuestionManager() {
                   BTK Demo
                 </div>
               ) : isAuthenticated ? (
-                <div className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                <div className="px-3 py-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full text-xs font-medium">
                   ☁️ Cloud Storage
                 </div>
               ) : (
-                <div className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
+                <div className="px-3 py-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full text-xs font-medium">
                   💾 LocalStorage
                 </div>
               )}
@@ -1030,7 +1030,7 @@ export default function QuestionManager() {
                   </div>
                 ) : subjects.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-12 text-center">
-                    <GraduationCap className="w-16 h-16 text-muted-foreground/50 mb-4" />
+                    <GraduationCap className="w-16 h-16 text-gray-400 mb-4" />
                     <h3 className="text-lg font-semibold text-foreground mb-2">
                       Henüz ders bulunmuyor
                     </h3>
@@ -1039,7 +1039,7 @@ export default function QuestionManager() {
                     </p>
                     <Link href="/subject-manager">
                       <Button className="gap-2">
-                        <GraduationCap className="w-4 h-4" />
+                        <GraduationCap className="w-4 h-4 text-white" />
                         Ders Ekle
                       </Button>
                     </Link>
@@ -1058,7 +1058,7 @@ export default function QuestionManager() {
                   </div>
                 ) : filteredQuestions.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-12 text-center">
-                    <BookOpen className="w-16 h-16 text-muted-foreground/50 mb-4" />
+                    <GraduationCap className="w-16 h-16 text-muted-foreground/50 mb-4" />
                     <h3 className="text-lg font-semibold text-foreground mb-2">
                       Bu derste henüz soru bulunmuyor
                     </h3>

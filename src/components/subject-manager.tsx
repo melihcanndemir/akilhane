@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Edit, Trash2, Eye, EyeOff, BookOpen } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, EyeOff, BookOpen, GraduationCap } from 'lucide-react';
 import { shouldUseDemoData, demoSubjects } from '@/data/demo-data';
 import { SubjectService } from '@/services/supabase-service';
 import { supabase } from '@/lib/supabase';
@@ -493,7 +493,7 @@ const SubjectManager = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4 sm:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 p-4 sm:p-8 glass-card">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
@@ -504,12 +504,12 @@ const SubjectManager = () => {
             </h1>
             <div className="flex flex-wrap justify-center gap-2">
               {useSupabase && (
-                <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200">
+                <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
                   ☁️ Cloud Storage
                 </Badge>
               )}
               {!useSupabase && !shouldUseDemoData() && (
-                <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">
+                <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
                   💾 LocalStorage
                 </Badge>
               )}
@@ -680,7 +680,9 @@ const SubjectManager = () => {
 
         {subjects.length === 0 && (
           <div className="text-center py-8 sm:py-12 mx-6 sm:mx-0">
-            <div className="text-4xl sm:text-6xl mb-4">📚</div>
+            <div className="mb-4 flex justify-center">
+              <GraduationCap className="w-16 h-16 text-gray-400" />
+            </div>
             <h3 className="text-lg sm:text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
               Henüz ders eklenmemiş
             </h3>
