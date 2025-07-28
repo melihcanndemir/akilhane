@@ -743,7 +743,7 @@ export default function QuestionManager() {
                   Loading...
                 </div>
               ) : shouldUseDemoData() ? (
-                <div className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                <div className="px-3 py-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full text-xs font-medium">
                   BTK Demo
                 </div>
               ) : isAuthenticated ? (

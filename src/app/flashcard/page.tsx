@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import FlashcardComponent from '../../components/flashcard';
@@ -161,8 +161,9 @@ const FlashcardPageContent = () => {
 
           <div className="text-center">
             <div className="flex items-center justify-center gap-3 mb-8">
-              <h1 className="text-4xl font-bold text-gray-800 dark:text-white">
-                🎯 Flashcard Öğrenme Sistemi
+              <h1 className="text-4xl font-bold text-gray-800 dark:text-white flex items-center gap-3">
+                <BookOpen className="w-10 h-10 text-blue-600" />
+                Flashcard Öğrenme Sistemi
               </h1>
               {isDemoMode && (
                 <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">

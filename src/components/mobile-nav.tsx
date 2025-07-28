@@ -30,15 +30,6 @@ import {
 export default function MobileNav() {
   const [isOpen, setIsOpen] = useState(false);
   const { user, loading, logout, isAuthenticated } = useAuth();
-
-  // Debug logging
-  console.log('🧭 MobileNav state:', { 
-    user: user?.email || 'none', 
-    loading, 
-    isAuthenticated,
-    userObject: user 
-  });
-
   const navLinks = [
     { href: '/landing', label: 'Tanıtım', icon: Home },
     { href: '/demo', label: 'Demo', icon: Play },
@@ -87,7 +78,7 @@ export default function MobileNav() {
                   <Button variant="ghost" size="sm" className="flex items-center gap-2 hover:bg-primary/10 dark:hover:bg-primary/20 max-w-[200px]">
                     <User className="w-4 h-4 flex-shrink-0" />
                     <span className="truncate">
-                      {user?.email?.split('@')[0] || user?.user_metadata?.full_name || 'Kullanıcı'}
+                    {user?.email?.split('@')[0] || user?.user_metadata?.full_name || 'Kullanıcı'}
                     </span>
                   </Button>
                 </DropdownMenuTrigger>

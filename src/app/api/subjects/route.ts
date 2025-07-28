@@ -223,7 +223,7 @@ export async function GET(request: NextRequest) {
     if (difficulty) filters.difficulty = difficulty;
     if (isActive !== null) filters.isActive = isActive === 'true';
     if (search) filters.search = search;
-    
+
     // Add user filter for data isolation
     if (user?.id) {
       filters.userId = user.id;
