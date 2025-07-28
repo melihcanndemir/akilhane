@@ -62,7 +62,7 @@ export class QuestionRepository {
    */
   static async getQuestionsBySubject(subject: string, limit?: number, userId?: string): Promise<Question[]> {
     try {
-      let conditions = [
+      const conditions = [
         eq(questions.subject, subject),
         eq(questions.isActive, true)
       ];
@@ -106,7 +106,7 @@ export class QuestionRepository {
    */
   static async getQuestionsByTopic(subject: string, topic: string, limit?: number, userId?: string): Promise<Question[]> {
     try {
-      let conditions = [
+      const conditions = [
         eq(questions.subject, subject),
         eq(questions.topic, topic),
         eq(questions.isActive, true)
@@ -156,7 +156,7 @@ export class QuestionRepository {
     userId?: string
   ): Promise<Question[]> {
     try {
-      let conditions = [
+      const conditions = [
         eq(questions.subject, subject),
         eq(questions.difficulty, difficulty),
         eq(questions.isActive, true)
@@ -206,7 +206,7 @@ export class QuestionRepository {
     userId?: string
   ): Promise<Question[]> {
     try {
-      let conditions = [
+      const conditions = [
         eq(questions.subject, subject),
         eq(questions.isActive, true)
       ];
@@ -257,7 +257,7 @@ export class QuestionRepository {
     userId?: string
   ): Promise<Question[]> {
     try {
-      let conditions = [
+      const conditions = [
         eq(questions.subject, subject),
         eq(questions.isActive, true),
         like(questions.text, `%${searchTerm}%`)
@@ -366,7 +366,7 @@ export class QuestionRepository {
    */
   static async getQuestionStats(subject: string, userId?: string) {
     try {
-      let conditions = [
+      const conditions = [
         eq(questions.subject, subject),
         eq(questions.isActive, true)
       ];
@@ -398,7 +398,7 @@ export class QuestionRepository {
    */
   static async getTopicsBySubject(subject: string, userId?: string): Promise<string[]> {
     try {
-      let conditions = [
+      const conditions = [
         eq(questions.subject, subject),
         eq(questions.isActive, true)
       ];

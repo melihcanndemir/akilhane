@@ -6,10 +6,10 @@ interface SpeechRecognition extends EventTarget {
   start(): void;
   stop(): void;
   abort(): void;
-  onstart: ((this: SpeechRecognition, ev: Event) => any) | null;
-  onresult: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => any) | null;
-  onerror: ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => any) | null;
-  onend: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onstart: ((this: SpeechRecognition, ev: Event) => void) | null;
+  onresult: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => void) | null;
+  onerror: ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => void) | null;
+  onend: ((this: SpeechRecognition, ev: Event) => void) | null;
 }
 
 interface SpeechRecognitionEvent {
@@ -40,14 +40,7 @@ interface SpeechRecognitionAlternative {
 }
 
 // PWA Type Definitions
-interface BeforeInstallPromptEvent extends Event {
-  readonly platforms: string[];
-  readonly userChoice: Promise<{
-    outcome: 'accepted' | 'dismissed';
-    platform: string;
-  }>;
-  prompt(): Promise<void>;
-}
+// BeforeInstallPromptEvent is defined in pwa-install-prompt.tsx
 
 interface ServiceWorkerRegistration {
   installing: ServiceWorker | null;
@@ -55,7 +48,7 @@ interface ServiceWorkerRegistration {
   active: ServiceWorker | null;
   scope: string;
   updateViaCache: 'all' | 'imports' | 'none';
-  onupdatefound: ((this: ServiceWorkerRegistration, ev: Event) => any) | null;
+  onupdatefound: ((this: ServiceWorkerRegistration, ev: Event) => void) | null;
   update(): Promise<void>;
   unregister(): Promise<boolean>;
 }
@@ -63,15 +56,15 @@ interface ServiceWorkerRegistration {
 interface ServiceWorker {
   scriptURL: string;
   state: 'parsed' | 'installing' | 'installed' | 'activating' | 'activated' | 'redundant';
-  onstatechange: ((this: ServiceWorker, ev: Event) => any) | null;
-  postMessage(message: any, transfer?: Transferable[]): void;
+  onstatechange: ((this: ServiceWorker, ev: Event) => void) | null;
+  postMessage(message: unknown, transfer?: Transferable[]): void;
 }
 
 interface ServiceWorkerContainer {
   controller: ServiceWorker | null;
   ready: Promise<ServiceWorkerRegistration>;
-  oncontrollerchange: ((this: ServiceWorkerContainer, ev: Event) => any) | null;
-  onmessage: ((this: ServiceWorkerContainer, ev: MessageEvent) => any) | null;
+  oncontrollerchange: ((this: ServiceWorkerContainer, ev: Event) => void) | null;
+  onmessage: ((this: ServiceWorkerContainer, ev: MessageEvent) => void) | null;
   register(scriptURL: string, options?: RegistrationOptions): Promise<ServiceWorkerRegistration>;
   getRegistration(scope?: string): Promise<ServiceWorkerRegistration | undefined>;
   getRegistrations(): Promise<ServiceWorkerRegistration[]>;
@@ -98,9 +91,9 @@ interface SpeechSynthesisUtterance extends EventTarget {
   volume: number;
   rate: number;
   pitch: number;
-  onstart: ((this: SpeechSynthesisUtterance, ev: Event) => any) | null;
-  onend: ((this: SpeechSynthesisUtterance, ev: Event) => any) | null;
-  onerror: ((this: SpeechSynthesisUtterance, ev: SpeechSynthesisErrorEvent) => any) | null;
+  onstart: ((this: SpeechSynthesisUtterance, ev: Event) => void) | null;
+  onend: ((this: SpeechSynthesisUtterance, ev: Event) => void) | null;
+  onerror: ((this: SpeechSynthesisUtterance, ev: SpeechSynthesisErrorEvent) => void) | null;
 }
 
 interface SpeechSynthesisVoice {

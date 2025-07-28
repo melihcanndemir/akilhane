@@ -71,16 +71,16 @@ export default function Footer() {
                     Bizi Takip Edin
                 </h3>
                 <div className="flex mt-4 space-x-6 justify-start md:justify-end">
-                    <a href="https://www.producthunt.com/@melihcandemir" className="text-gray-400 hover:text-gray-500" target="_blank" rel="noopener noreferrer">
+                    <a href="https://www.producthunt.com/@melihcandemir" className="text-gray-400 hover:text-gray-500 transition-colors duration-200" target="_blank" rel="noopener noreferrer">
                         <span className="sr-only">Product Hunt</span>
                         {/* Product Hunt icon styled to match other icons */}
-                        <span className="flex items-center justify-center h-6 w-6 rounded-full border border-gray-400 dark:border-gray-500 bg-white dark:bg-gray-900 text-[#DA552F] font-bold text-base" style={{fontFamily: 'Inter, sans-serif'}}>P</span>
+                        <span className="flex items-center justify-center h-6 w-6 rounded-full border border-gray-400 dark:border-gray-500 bg-white dark:bg-gray-900 text-gray-400 dark:text-gray-500 font-bold text-base hover:text-gray-500 dark:hover:text-gray-400 transition-colors duration-200" style={{fontFamily: 'Inter, sans-serif'}}>P</span>
                     </a>
-                    <a href="https://github.com/melihcanndemir/akilhane" className="text-gray-400 hover:text-gray-500" target="_blank" rel="noopener noreferrer">
+                    <a href="https://github.com/melihcanndemir/akilhane" className="text-gray-400 hover:text-gray-500 transition-colors duration-200" target="_blank" rel="noopener noreferrer">
                         <span className="sr-only">GitHub</span>
                         <Github className="h-6 w-6" />
                     </a>
-                    <a href="https://www.linkedin.com/in/melihcandemir/" className="text-gray-400 hover:text-gray-500" target="_blank" rel="noopener noreferrer">
+                    <a href="https://www.linkedin.com/in/melihcandemir/" className="text-gray-400 hover:text-gray-500 transition-colors duration-200" target="_blank" rel="noopener noreferrer">
                         <span className="sr-only">LinkedIn</span>
                         <Linkedin className="h-6 w-6" />
                     </a>
@@ -92,6 +92,17 @@ export default function Footer() {
         <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-8 text-center">
           <p className="text-base text-gray-400">
             © {new Date().getFullYear()} AkılHane. Tüm hakları saklıdır.
+          </p>
+          <p className="text-sm text-gray-400 mt-2">
+            <a 
+              href="https://www.linkedin.com/in/melihcandemir/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-blue-500 hover:text-blue-600 transition-colors duration-200 font-medium"
+            >
+              Melih Can Demir
+            </a>
+            {' '}tarafından ❤️ ile oluşturuldu
           </p>
         </div>
       </div>

@@ -148,6 +148,7 @@ export default function QuestionManager() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<any | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
   const { toast } = useToast();
 
   // Form state
@@ -187,6 +188,11 @@ export default function QuestionManager() {
     });
 
     return () => subscription.unsubscribe();
+  }, []);
+
+  // Handle hydration
+  useEffect(() => {
+    setIsHydrated(true);
   }, []);
 
   // Load subjects and questions
@@ -732,7 +738,11 @@ export default function QuestionManager() {
               <p className="text-muted-foreground">Soru ekle, düzenle ve yönet</p>
             </div>
             <div className="flex gap-2">
-              {shouldUseDemoData() ? (
+              {!isHydrated ? (
+                <div className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
+                  Loading...
+                </div>
+              ) : shouldUseDemoData() ? (
                 <div className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
                   BTK Demo
                 </div>

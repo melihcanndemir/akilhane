@@ -8,10 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { getAiChatResponse, AiChatInput } from '@/ai/flows/ai-chat'; 
-import { User, Sparkles, BrainCircuit, Lightbulb, Loader2 } from 'lucide-react';
+import { User, Sparkles, BrainCircuit, Lightbulb, Loader2, Plus } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
+import { supabase } from '@/lib/supabase';
+import AiChatHistory from './ai-chat-history';
 
 interface Message {
   id: string;
@@ -31,11 +33,28 @@ export default function AiChatClient() {
   const [isLoading, setIsLoading] = useState(false);
   const [currentSubject] = useState('Genel'); 
   const [suggestions, setSuggestions] = useState<Suggestions | null>(null);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+  
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsAuthenticated(!!session);
+    };
+    checkAuth();
+    
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((session) => {
+      setIsAuthenticated(!!session);
+    });
+    
+    return () => subscription.unsubscribe();
+  }, []);
   
   useEffect(() => {
     setMessages([
@@ -47,8 +66,140 @@ export default function AiChatClient() {
     ]);
   }, [currentSubject]);
 
+  const createNewSession = async (): Promise<string | null> => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return null;
+      
+      const response = await fetch('/api/ai-chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          subject: currentSubject,
+          userId: session.user.id,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return data.sessionId;
+      } else {
+        return null;
+      }
+    } catch {
+      return null;
+    }
+  };
+
+  const saveMessageToHistory = async (role: 'user' | 'assistant', content: string) => {
+    try {
+      // Try multiple ways to get user ID
+      let userId: string | null = null;
+      
+      // Method 1: Try getSession first
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.id) {
+        userId = session.user.id;
+      }
+      
+      // Method 2: If session failed, try getUser
+      if (!userId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.id) {
+          userId = user.id;
+        }
+      }
+      
+      // Method 3: If both failed, try from session again
+      if (!userId) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user?.id) {
+          userId = session.user.id;
+        }
+      }
+      
+      if (!userId || !currentSessionId) {
+        return;
+      }
+      
+      const response = await fetch(`/api/ai-chat/${currentSessionId}/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          role,
+          content,
+          subject: currentSubject,
+          userId: userId,
+        }),
+      });
+
+      if (!response.ok) {
+        // Failed to save message
+      }
+    } catch {
+      // Error saving message
+    }
+  };
+
+  const loadSessionMessages = async (sessionId: string) => {
+    try {
+      // Try multiple ways to get user ID
+      let userId: string | null = null;
+      
+      // Method 1: Try getSession first
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.id) {
+        userId = session.user.id;
+      }
+      
+      // Method 2: If session failed, try getUser
+      if (!userId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.id) {
+          userId = user.id;
+        }
+      }
+      
+      if (!userId) {
+        return;
+      }
+
+      const response = await fetch(`/api/ai-chat/${sessionId}?userId=${userId}`);
+
+      if (response.ok) {
+        const data = await response.json();
+        const formattedMessages: Message[] = data.messages.map((msg: { id: string; role: string; content: string }) => ({
+          id: msg.id,
+          role: msg.role,
+          content: msg.content,
+        }));
+        setMessages(formattedMessages);
+        setCurrentSessionId(sessionId);
+      }
+    } catch {
+      // Error loading session
+    }
+  };
+
+  const handleSessionSelect = (sessionId: string) => {
+    loadSessionMessages(sessionId);
+  };
+
   const handleSendMessage = async (messageContent: string) => {
     if (!messageContent.trim() || isLoading) return;
+
+    // Create new session if authenticated and no current session
+    if (isAuthenticated && !currentSessionId) {
+      const sessionId = await createNewSession();
+      if (!sessionId) {
+        return;
+      }
+      setCurrentSessionId(sessionId);
+    }
 
     const newUserMessage: Message = {
       id: Date.now().toString(),
@@ -61,6 +212,11 @@ export default function AiChatClient() {
     setMessages(updatedMessages);
     setIsLoading(true);
     setSuggestions(null);
+
+    // Save user message to history if authenticated
+    if (isAuthenticated) {
+      await saveMessageToHistory('user', messageContent);
+    }
 
     const chatInput: AiChatInput = {
       message: messageContent,
@@ -81,12 +237,18 @@ export default function AiChatClient() {
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+      
+      // Save assistant message to history if authenticated
+      if (isAuthenticated) {
+        await saveMessageToHistory('assistant', result.response);
+      }
+      
       setSuggestions({
         suggestedTopics: result.suggestedTopics,
         followUpQuestions: result.followUpQuestions,
         learningTips: result.learningTips,
       });
-    } catch (error) {
+    } catch {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
@@ -112,9 +274,37 @@ export default function AiChatClient() {
     <div className="flex justify-center items-start min-h-screen bg-gray-50 dark:bg-gray-900 p-2 sm:p-4 pt-0">
       <Card className="w-full max-w-5xl h-[calc(100vh-4rem)] flex flex-col shadow-2xl mt-2">
         <CardHeader className="border-b">
-          <CardTitle className="flex items-center gap-3 text-lg md:text-xl">
-            <Sparkles className="text-blue-500" />
-            <span>AI Tutor - {currentSubject}</span>
+          <CardTitle className="flex items-center justify-between text-lg md:text-xl">
+            <div className="flex items-center gap-3">
+              <Sparkles className="text-blue-500" />
+              <span>AI Tutor - {currentSubject}</span>
+            </div>
+            {isAuthenticated && (
+              <div className="flex items-center gap-2">
+                <AiChatHistory
+                  onSessionSelect={handleSessionSelect}
+                  currentSessionId={currentSessionId || undefined}
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setCurrentSessionId(null);
+                    setMessages([
+                      {
+                        id: 'init',
+                        role: 'assistant',
+                        content: `Merhaba! Ben AkılHane AI Tutor'ınız. ${currentSubject} dersiyle ilgili aklınıza takılan her şeyi sorabilirsiniz. Hadi başlayalım!`
+                      }
+                    ]);
+                  }}
+                  className="gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Yeni
+                </Button>
+              </div>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent className="flex-1 overflow-y-auto p-3 md:p-6 space-y-6">
@@ -132,7 +322,7 @@ export default function AiChatClient() {
                       remarkPlugins={[remarkGfm]}
                       rehypePlugins={[rehypeHighlight]}
                       components={{
-                        code({ node, className, children, ...props }: any) {
+                        code({ className, children, ...props }: React.ComponentProps<'code'>) {
                           const match = /language-(\w+)/.exec(className || '');
                           const isInline = !className || !className.includes('language-');
                           return !isInline && match ? (

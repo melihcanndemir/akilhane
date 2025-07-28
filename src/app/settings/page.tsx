@@ -83,8 +83,8 @@ export default function SettingsPage() {
             loadedAppearance = { ...loadedAppearance, ...parsed.appearance };
             loadedTheme = parsed.appearance.theme || loadedTheme;
           }
-        } catch (e) {
-          console.error("Failed to parse settings from localStorage", e);
+        } catch {
+          // Failed to parse settings from localStorage
         }
       }
 
@@ -103,8 +103,8 @@ export default function SettingsPage() {
             }
           }
         }
-      } catch (error) {
-        console.error('Error fetching subjects:', error);
+      } catch {
+        // Error fetching subjects
       }
 
       // 4. Reconcile custom values for the UI
@@ -184,7 +184,7 @@ export default function SettingsPage() {
               setStudyPreferences(data.settings.studyPreferences || studyPreferences);
             }
             alert('Veriler başarıyla içe aktarıldı!');
-          } catch (error) {
+          } catch {
             alert('Dosya formatı geçersiz!');
           }
         };

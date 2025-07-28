@@ -89,4 +89,29 @@ export const flashcardProgress = sqliteTable('flashcard_progress', {
   nextReview: text('next_review'),
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
   updatedAt: text('updated_at').notNull().$defaultFn(() => new Date().toISOString()),
+});
+
+// AI Chat History table
+export const aiChatHistory = sqliteTable('ai_chat_history', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  userId: text('user_id').notNull().references(() => users.id),
+  sessionId: text('session_id').notNull(), // Unique session identifier
+  subject: text('subject').notNull(),
+  role: text('role').notNull(), // 'user' or 'assistant'
+  content: text('content').notNull(),
+  timestamp: text('timestamp').notNull().$defaultFn(() => new Date().toISOString()),
+  createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
+});
+
+// AI Chat Sessions table
+export const aiChatSessions = sqliteTable('ai_chat_sessions', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  userId: text('user_id').notNull().references(() => users.id),
+  sessionId: text('session_id').notNull().unique(), // Unique session identifier
+  subject: text('subject').notNull(),
+  title: text('title'), // Auto-generated title for the session
+  messageCount: integer('message_count').notNull().default(0),
+  lastMessageAt: text('last_message_at').notNull().$defaultFn(() => new Date().toISOString()),
+  createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
+  updatedAt: text('updated_at').notNull().$defaultFn(() => new Date().toISOString()),
 }); 
