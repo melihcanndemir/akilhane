@@ -493,45 +493,47 @@ const SubjectManager = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4 sm:p-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <h1 className="text-4xl font-bold text-gray-800 dark:text-white">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-4">
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 dark:text-white">
               📚 Ders Yöneticisi
             </h1>
-            {shouldUseDemoData() && (
-              <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-                🎯 BTK Demo
-              </Badge>
-            )}
-            {useSupabase && (
-              <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200">
-                ☁️ Cloud Storage
-              </Badge>
-            )}
-            {!useSupabase && !shouldUseDemoData() && (
-              <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">
-                💾 LocalStorage
-              </Badge>
-            )}
+            <div className="flex flex-wrap justify-center gap-2">
+              {shouldUseDemoData() && (
+                <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+                  🎯 BTK Demo
+                </Badge>
+              )}
+              {useSupabase && (
+                <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200">
+                  ☁️ Cloud Storage
+                </Badge>
+              )}
+              {!useSupabase && !shouldUseDemoData() && (
+                <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">
+                  💾 LocalStorage
+                </Badge>
+              )}
+            </div>
           </div>
-          <p className="text-gray-600 dark:text-gray-300 text-lg">
+          <p className="text-gray-600 dark:text-gray-300 text-base sm:text-lg">
             Dersleri yönetin ve organize edin
           </p>
         </div>
 
         {/* Add Subject Button */}
-        <div className="mb-6 flex justify-center">
+        <div className="mb-6 flex justify-center mx-6 sm:mx-0">
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button onClick={openAddDialog} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+              <Button onClick={openAddDialog} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 w-full sm:w-auto">
                 <Plus className="w-5 h-5 mr-2" />
                 Yeni Ders Ekle
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="mx-auto max-w-[90%] sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>
                   {editingSubject ? 'Dersi Düzenle' : 'Yeni Ders Ekle'}
@@ -545,6 +547,7 @@ const SubjectManager = () => {
                     value={formData.name}
                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                     placeholder="Örn: Matematik"
+                    className="w-full"
                   />
                 </div>
                 <div>
@@ -554,6 +557,7 @@ const SubjectManager = () => {
                     value={formData.description}
                     onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                     placeholder="Ders açıklaması"
+                    className="w-full"
                   />
                 </div>
                 <div>
@@ -563,12 +567,13 @@ const SubjectManager = () => {
                     value={formData.category}
                     onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
                     placeholder="Örn: Fen Bilimleri"
+                    className="w-full"
                   />
                 </div>
                 <div>
                   <Label htmlFor="difficulty">Zorluk Seviyesi</Label>
                   <Select value={formData.difficulty} onValueChange={(value) => setFormData(prev => ({ ...prev, difficulty: value }))}>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -578,7 +583,7 @@ const SubjectManager = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex gap-2 pt-4">
+                <div className="flex flex-col sm:flex-row gap-2 pt-4">
                   <Button onClick={editingSubject ? () => handleEditSubject(editingSubject) : handleAddSubject} className="flex-1">
                     {editingSubject ? 'Güncelle' : 'Ekle'}
                   </Button>
@@ -592,7 +597,7 @@ const SubjectManager = () => {
         </div>
 
         {/* Subjects Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mx-6 sm:mx-0">
           {subjects.map((subject) => (
             <div
               key={subject.id}
@@ -600,17 +605,17 @@ const SubjectManager = () => {
                 subject.isActive ? 'border-green-200 dark:border-green-800' : 'border-gray-200 dark:border-gray-700'
               }`}
             >
-              <div className="p-6">
+              <div className="p-4 sm:p-6">
                 <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white mb-2 truncate">
                       {subject.name}
                     </h3>
-                    <p className="text-gray-600 dark:text-gray-300 text-sm mb-3">
+                    <p className="text-gray-600 dark:text-gray-300 text-sm mb-3 line-clamp-2">
                       {subject.description}
                     </p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1 sm:gap-2 flex-shrink-0">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -678,15 +683,15 @@ const SubjectManager = () => {
         </div>
 
         {subjects.length === 0 && (
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">📚</div>
-            <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          <div className="text-center py-8 sm:py-12 mx-6 sm:mx-0">
+            <div className="text-4xl sm:text-6xl mb-4">📚</div>
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
               Henüz ders eklenmemiş
             </h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-6">
+            <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm sm:text-base">
               İlk dersinizi ekleyerek başlayın!
             </p>
-            <Button onClick={openAddDialog} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white">
+            <Button onClick={openAddDialog} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white w-full sm:w-auto">
               <Plus className="w-5 h-5 mr-2" />
               İlk Dersi Ekle
             </Button>
