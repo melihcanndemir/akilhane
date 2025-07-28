@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BookOpen, Play, GraduationCap, Loader2, ArrowLeft } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { shouldUseDemoData } from '@/data/demo-data';
 
 interface Subject {
@@ -60,6 +61,7 @@ function QuizPageContent() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSubject, setSelectedSubject] = useState('');
+  const [isDemoMode, setIsDemoMode] = useState(false);
 
   useEffect(() => {
     const loadSubjects = async () => {
@@ -68,11 +70,12 @@ function QuizPageContent() {
         console.log('🎯 Quiz Page - Loading subjects from localStorage...');
         
         // Demo mode control
-        const isDemoMode = shouldUseDemoData();
+        const demoMode = shouldUseDemoData();
+        setIsDemoMode(demoMode);
         
-        console.log('🎯 Quiz Page - Demo mode check:', { isDemoMode });
+        console.log('🎯 Quiz Page - Demo mode check:', { demoMode });
         
-        if (isDemoMode) {
+        if (demoMode) {
           // Demo subjects
           const demoSubjects: Subject[] = [
             {
@@ -167,10 +170,17 @@ function QuizPageContent() {
         </div>
 
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-4 flex items-center justify-center gap-3">
-            <BookOpen className="w-8 h-8 text-blue-600" />
-            Quiz Sayfası
-          </h1>
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <h1 className="text-4xl font-bold text-gray-800 dark:text-white flex items-center gap-3">
+              <BookOpen className="w-8 h-8 text-blue-600" />
+              Quiz Sayfası
+            </h1>
+            {isDemoMode && (
+              <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+                BTK Demo
+              </Badge>
+            )}
+          </div>
           <p className="text-lg text-gray-600 dark:text-gray-300">
             Bilgilerinizi test etmek için bir ders seçin ve quiz'e başlayın.
           </p>
