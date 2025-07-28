@@ -499,7 +499,7 @@ export default function EnhancedDashboard() {
               <AlertDescription>
                 <strong>Misafir modunda kullanıyorsunuz.</strong> Verileriniz sadece bu cihazda saklanıyor. 
                 Kalıcı kayıt için{' '}
-                <Link href="/login" className="text-blue-600 hover:underline font-medium">
+                <Link href="/login?mode=register" className="text-blue-600 hover:underline font-medium">
                   ücretsiz hesap oluşturun
                 </Link>
                 {' '}veya verilerinizi yedekleyin.

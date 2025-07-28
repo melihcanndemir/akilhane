@@ -286,7 +286,7 @@ export default function DemoPage() {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button
-                  onClick={() => router.push('/login')}
+                  onClick={() => router.push('/login?mode=register')}
                   variant="secondary"
                   size="lg"
                   className="bg-white text-blue-600 hover:bg-gray-100"
