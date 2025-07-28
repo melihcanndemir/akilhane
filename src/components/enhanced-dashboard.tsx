@@ -155,15 +155,19 @@ export default function EnhancedDashboard() {
         if (typeof window === 'undefined') return null;
         
         try {
-          // Calculate performance from quiz results
-          const quizResults = localStorage.getItem('exam_training_quiz_results');
+          // Load appropriate quiz results based on demo mode
+          const quizResultsKey = useDemoData ? 'exam_training_demo_quiz_results' : 'exam_training_quiz_results';
+          const quizResults = localStorage.getItem(quizResultsKey);
           const results = quizResults ? JSON.parse(quizResults) : [];
+          
+          // Filter out demo results if not in demo mode
+          const filteredResults = useDemoData ? results : results.filter((result: any) => !result.isDemo);
           
           // Get subject information from Subjects
           const subjects = localStorage.getItem('exam_training_subjects');
           const subjectsData = subjects ? JSON.parse(subjects) : [];
           
-          if (results.length === 0) {
+          if (filteredResults.length === 0) {
             // If there are no quiz results, return empty data
             return {
               performanceData: [],
@@ -180,7 +184,7 @@ export default function EnhancedDashboard() {
           
           // Calculate performance data
           const performanceMap: Record<string, any> = {};
-          results.forEach((result: any) => {
+          filteredResults.forEach((result: any) => {
             if (!performanceMap[result.subject]) {
               performanceMap[result.subject] = {
                 totalTests: 0,
@@ -212,7 +216,7 @@ export default function EnhancedDashboard() {
           }));
           
           // Recent results
-          const recentResults = results
+          const recentResults = filteredResults
             .slice(-5)
             .map((result: any) => ({
               id: result.id,
@@ -225,10 +229,10 @@ export default function EnhancedDashboard() {
             }));
           
           // Total stats
-          const totalTests = results.length;
-          const totalScore = results.reduce((sum: number, result: any) => sum + result.score, 0);
+          const totalTests = filteredResults.length;
+          const totalScore = filteredResults.reduce((sum: number, result: any) => sum + result.score, 0);
           const averageScore = totalTests > 0 ? Math.round((totalScore / totalTests) * 100) : 0;
-          const totalTimeSpent = results.reduce((sum: number, result: any) => sum + (result.timeSpent || 0), 0);
+          const totalTimeSpent = filteredResults.reduce((sum: number, result: any) => sum + (result.timeSpent || 0), 0);
           
           const totalStats = {
             totalTests,
@@ -238,7 +242,7 @@ export default function EnhancedDashboard() {
           };
           
           // Storage info (simple calculation)
-          const used = JSON.stringify(results).length + JSON.stringify(subjectsData).length;
+          const used = JSON.stringify(filteredResults).length + JSON.stringify(subjectsData).length;
           const storageInfo = {
             used,
             available: 5242880, // 5MB
@@ -374,9 +378,13 @@ export default function EnhancedDashboard() {
       });
       setTimeout(() => window.location.reload(), 1000);
     } else {
+      // Clear demo quiz results when exiting demo mode
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('exam_training_demo_quiz_results');
+      }
       toast({
         title: "Demo modu kapatıldı",
-        description: "Gerçek veriler kullanılacak. Sayfa yenileniyor...",
+        description: "Demo testler temizlendi. Gerçek veriler kullanılacak. Sayfa yenileniyor...",
       });
       setTimeout(() => window.location.reload(), 1000);
     }

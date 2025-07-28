@@ -106,8 +106,12 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
           
           try {
             // Calculate analytics from quiz results
-            const quizResults = localStorage.getItem('exam_training_quiz_results');
+            const quizResultsKey = useMockData ? 'exam_training_demo_quiz_results' : 'exam_training_quiz_results';
+            const quizResults = localStorage.getItem(quizResultsKey);
             const results = quizResults ? JSON.parse(quizResults) : [];
+            
+            // Filter out demo results if not in demo mode
+            const filteredResults = useMockData ? results : results.filter((result: any) => !result.isDemo);
             
             // Get subject information from Subjects
             const subjects = localStorage.getItem('exam_training_subjects');
@@ -117,7 +121,7 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
             const questions = localStorage.getItem('exam_training_questions');
             questions ? JSON.parse(questions) : [];
             
-            if (results.length === 0) {
+            if (filteredResults.length === 0) {
               // If there are no quiz results, use simple mock data
               return {
                 totalQuestions: 0,
@@ -135,14 +139,14 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
             }
             
             // Calculate analytics
-            const totalQuestions = results.reduce((sum: number, result: any) => sum + result.totalQuestions, 0);
-            const correctAnswers = results.reduce((sum: number, result: any) => sum + result.score, 0);
+            const totalQuestions = filteredResults.reduce((sum: number, result: any) => sum + result.totalQuestions, 0);
+            const correctAnswers = filteredResults.reduce((sum: number, result: any) => sum + result.score, 0);
             const averageScore = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
-            const studyTime = results.reduce((sum: number, result: any) => sum + (result.timeSpent || 0), 0);
+            const studyTime = filteredResults.reduce((sum: number, result: any) => sum + (result.timeSpent || 0), 0);
             
             // Calculate weak topics
             const weakTopicsMap: Record<string, number> = {};
-            results.forEach((result: any) => {
+            filteredResults.forEach((result: any) => {
               if (result.weakTopics) {
                 Object.entries(result.weakTopics).forEach(([topic, count]) => {
                   weakTopicsMap[topic] = (weakTopicsMap[topic] || 0) + (count as number);
@@ -162,7 +166,7 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
               .map((subject: any) => subject.name);
             
             // Recent activity
-            const recentActivity = results
+            const recentActivity = filteredResults
               .slice(-5)
               .map((result: any) => ({
                 type: 'Quiz',

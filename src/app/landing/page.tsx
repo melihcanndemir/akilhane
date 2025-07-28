@@ -293,7 +293,7 @@ export default function LandingPage() {
                   </div>
                   <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-slate-800/50 rounded-lg border border-blue-200 dark:border-slate-700">
                     <Layers className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                    <span className="font-semibold text-blue-700 dark:text-blue-200">React 18</span>
+                    <span className="font-semibold text-blue-700 dark:text-blue-200">React 18+</span>
                   </div>
                   <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-slate-800/50 rounded-lg border border-blue-200 dark:border-slate-700">
                     <FileCode className="h-5 w-5 text-blue-600 dark:text-blue-400" />

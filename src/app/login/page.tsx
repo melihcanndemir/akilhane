@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,7 +24,7 @@ import Link from 'next/link';
 import { signInWithEmail, signInWithGoogle, signUpWithEmail } from '@/lib/supabase';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function LoginPage() {
+function LoginPageContent() {
   const searchParams = useSearchParams();
   const [isLogin, setIsLogin] = useState(searchParams.get('mode') === 'register' ? false : true);
   const [email, setEmail] = useState('');
@@ -85,10 +85,11 @@ export default function LoginPage() {
         setPassword('');
         setConfirmPassword('');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Bir hata oluştu. Lütfen tekrar deneyin.";
       toast({
         title: "Hata!",
-        description: error.message || "Bir hata oluştu. Lütfen tekrar deneyin.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -101,10 +102,11 @@ export default function LoginPage() {
     try {
       const { error } = await signInWithGoogle();
       if (error) throw error;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Google ile giriş yapılamadı.";
       toast({
         title: "Google girişi başarısız!",
-        description: error.message || "Google ile giriş yapılamadı.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -398,5 +400,13 @@ export default function LoginPage() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginPageContent />
+    </Suspense>
   );
 } 

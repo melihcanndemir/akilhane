@@ -241,7 +241,9 @@ const QuizComponent: React.FC<QuizProps> = ({ subject, isDemoMode = false }) => 
         if (typeof window === 'undefined') return;
         
         try {
-          const existingResults = localStorage.getItem('exam_training_quiz_results');
+          // Use different localStorage keys for demo and real results
+          const storageKey = isDemoMode ? 'exam_training_demo_quiz_results' : 'exam_training_quiz_results';
+          const existingResults = localStorage.getItem(storageKey);
           const results = existingResults ? JSON.parse(existingResults) : [];
           
           const newResult = {
@@ -253,11 +255,12 @@ const QuizComponent: React.FC<QuizProps> = ({ subject, isDemoMode = false }) => 
             timeSpent: totalTime,
             weakTopics,
             createdAt: new Date().toISOString(),
-            completedAt: endTime.toISOString()
+            completedAt: endTime.toISOString(),
+            isDemo: isDemoMode // Add demo flag for identification
           };
           
           results.push(newResult);
-          localStorage.setItem('exam_training_quiz_results', JSON.stringify(results));
+          localStorage.setItem(storageKey, JSON.stringify(results));
           
           console.log('✅ Quiz result saved to localStorage:', newResult);
         } catch (error) {
