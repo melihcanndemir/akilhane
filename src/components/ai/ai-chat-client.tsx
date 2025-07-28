@@ -321,7 +321,7 @@ export default function AiChatClient() {
 
   return (
     <div className="flex justify-center items-start min-h-screen bg-gray-50 dark:bg-gray-900 p-2 sm:p-4 pt-0">
-      <Card className="w-full max-w-5xl h-[calc(100vh-4rem)] flex flex-col shadow-2xl mt-2">
+      <Card className="w-full max-w-5xl h-[calc(100vh-4rem)] flex flex-col shadow-2xl mt-2 border-gradient-question p-0">
         <CardHeader className="border-b">
           <CardTitle className="flex items-center justify-between text-lg md:text-xl">
             <div className="flex items-center gap-3">
@@ -347,7 +347,7 @@ export default function AiChatClient() {
                       }
                     ]);
                   }}
-                  className="gap-2"
+                  className="gap-2 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
                 >
                   <Plus className="w-4 h-4" />
                   Yeni
@@ -364,9 +364,9 @@ export default function AiChatClient() {
                   <AvatarFallback className="bg-blue-100 dark:bg-blue-800"><Sparkles className="text-blue-500" /></AvatarFallback>
                 </Avatar>
               )}
-              <div className={`max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl rounded-2xl px-4 py-3 shadow-sm ${ message.role === 'user' ? 'bg-blue-500 text-white rounded-br-none' : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-bl-none'}`}>
+              <div className={`max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl rounded-2xl px-4 py-3 shadow-sm ${ message.role === 'user' ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-br-none' : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-bl-none'}`}>
                 {message.role === 'assistant' ? (
-                  <div className="prose prose-sm dark:prose-invert max-w-none prose-headings:mb-2 prose-p:mb-2 prose-ul:mb-2 prose-ol:mb-2 prose-li:mb-1">
+                  <div className="max-w-none text-white">
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
                       rehypePlugins={[rehypeHighlight]}
@@ -462,7 +462,11 @@ export default function AiChatClient() {
         <div className="border-t p-4 bg-white dark:bg-gray-950">
           <form onSubmit={handleFormSubmit} className="flex items-center gap-2 md:gap-4">
             <Input value={input} onChange={e => setInput(e.target.value)} placeholder="AI Tutor'a bir soru sor..." className="flex-1" disabled={isLoading} />
-            <Button type="submit" disabled={isLoading || !input.trim()}>
+            <Button 
+              type="submit" 
+              disabled={isLoading || !input.trim()}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0"
+            >
               {isLoading ? (<Loader2 className="h-4 w-4 animate-spin" />) : ('Gönder')}
             </Button>
           </form>

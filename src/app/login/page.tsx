@@ -259,7 +259,7 @@ function LoginPageContent() {
 
                 <Button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                   disabled={isLoading || (!isLogin && (!confirmPassword || password !== confirmPassword))}
                 >
                   {isLoading ? (
@@ -293,7 +293,7 @@ function LoginPageContent() {
               {/* Google login */}
               <Button
                 variant="outline"
-                className="w-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                className="w-full hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0 transition-all"
                 onClick={handleGoogleSignIn}
                 disabled={isGoogleLoading}
               >
@@ -337,7 +337,7 @@ function LoginPageContent() {
               <div className="space-y-3">
                 <Button
                   variant="ghost"
-                  className="w-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                  className="w-full hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0 transition-all"
                   onClick={handleGuestMode}
                 >
                   <Users className="h-4 w-4 mr-2" />
@@ -346,7 +346,7 @@ function LoginPageContent() {
 
                 <Button
                   variant="ghost"
-                  className="w-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                  className="w-full hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0 transition-all"
                   onClick={handleLiveDemo}
                 >
                   <Play className="h-4 w-4 mr-2" />
@@ -389,14 +389,22 @@ function LoginPageContent() {
           transition={{ delay: 0.2 }}
           className="mt-8 grid grid-cols-2 gap-4"
         >
-          <div className="text-center p-4 rounded-lg glass-card-inner">
+          <motion.div 
+            className="text-center p-4 rounded-lg border-gradient-question bg-white dark:bg-gray-800"
+            whileHover={{ scale: 1.05, y: -5 }}
+            transition={{ type: "spring", stiffness: 300 }}
+          >
             <GraduationCap className="h-6 w-6 mx-auto mb-2 text-blue-600" />
-            <p className="text-sm font-medium">AI Destekli Öğrenme</p>
-          </div>
-          <div className="text-center p-4 rounded-lg glass-card-inner">
+            <p className="text-sm font-medium text-gray-800 dark:text-white">AI Destekli Öğrenme</p>
+          </motion.div>
+          <motion.div 
+            className="text-center p-4 rounded-lg border-gradient-question bg-white dark:bg-gray-800"
+            whileHover={{ scale: 1.05, y: -5 }}
+            transition={{ type: "spring", stiffness: 300 }}
+          >
             <Target className="h-6 w-6 mx-auto mb-2 text-indigo-600" />
-            <p className="text-sm font-medium">Kişiselleştirilmiş</p>
-          </div>
+            <p className="text-sm font-medium text-gray-800 dark:text-white">Kişiselleştirilmiş</p>
+          </motion.div>
         </motion.div>
       </div>
     </div>

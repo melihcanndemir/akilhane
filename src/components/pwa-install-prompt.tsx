@@ -256,7 +256,7 @@ export default function PWAInstallPrompt() {
           <div className="flex flex-col sm:flex-row gap-2">
             <Button 
               onClick={handleInstall} 
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white min-h-[44px] text-sm font-medium"
+              className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white min-h-[44px] text-sm font-medium border-0"
               size="sm"
             >
               <Download className="w-4 h-4 mr-2" />
@@ -266,7 +266,7 @@ export default function PWAInstallPrompt() {
               variant="outline" 
               onClick={handleRemindLater}
               size="sm"
-              className="min-h-[44px] text-sm font-medium"
+              className="min-h-[44px] text-sm font-medium hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
             >
               Daha Sonra
             </Button>

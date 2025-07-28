@@ -137,7 +137,11 @@ export default function AiChatHistory({ onSessionSelect, currentSessionId }: AiC
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="gap-2 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
+        >
           <History className="w-4 h-4" />
           Geçmiş
         </Button>

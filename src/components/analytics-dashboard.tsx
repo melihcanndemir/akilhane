@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -288,7 +287,7 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
       {/* Main Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Total Questions */}
-        <Card className="hover:shadow-lg transition-shadow">
+        <Card className="border-gradient-question hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-900 dark:text-gray-100">Toplam Cevaplanan Soru</CardTitle>
             <Target className="h-4 w-4 text-blue-600" />
@@ -302,7 +301,7 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
         </Card>
 
         {/* Average Score */}
-        <Card className="hover:shadow-lg transition-shadow">
+        <Card className="border-gradient-question hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-900 dark:text-gray-100">Ortalama Puan</CardTitle>
             <TrendingUp className="h-4 w-4 text-green-600" />
@@ -316,7 +315,7 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
         </Card>
 
         {/* Study Time */}
-        <Card className="hover:shadow-lg transition-shadow">
+        <Card className="border-gradient-question hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-900 dark:text-gray-100">Toplam Çalışma Süresi</CardTitle>
             <Clock className="h-4 w-4 text-purple-600" />
@@ -333,7 +332,7 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
       {/* Progress and Performance */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Performance Progress */}
-        <Card>
+        <Card className="border-gradient-question">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
               <LineChart className="w-5 h-5 text-blue-600" />
@@ -346,7 +345,12 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
                 <span>Genel Başarı</span>
                 <span>{analytics.averageScore}%</span>
               </div>
-              <Progress value={analytics.averageScore} className="h-2" />
+              <div className="progress-gradient-bg rounded-full h-2">
+                <div 
+                  className="progress-gradient h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${analytics.averageScore}%` }}
+                />
+              </div>
             </div>
             
             <div>
@@ -354,7 +358,12 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
                 <span>Doğru Cevap Oranı</span>
                 <span>{analytics.totalQuestions > 0 ? Math.round((analytics.correctAnswers / analytics.totalQuestions) * 100) : 0}%</span>
               </div>
-              <Progress value={analytics.totalQuestions > 0 ? (analytics.correctAnswers / analytics.totalQuestions) * 100 : 0} className="h-2" />
+              <div className="progress-gradient-bg rounded-full h-2">
+                <div 
+                  className="progress-gradient h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${analytics.totalQuestions > 0 ? (analytics.correctAnswers / analytics.totalQuestions) * 100 : 0}%` }}
+                />
+              </div>
             </div>
 
             <div>
@@ -362,13 +371,18 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
                 <span>Çalışma Süresi</span>
                 <span>{formatTime(analytics.studyTime)}</span>
               </div>
-              <Progress value={Math.min((analytics.studyTime / 120) * 100, 100)} className="h-2" />
+              <div className="progress-gradient-bg rounded-full h-2">
+                <div 
+                  className="progress-gradient h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${Math.min((analytics.studyTime / 120) * 100, 100)}%` }}
+                />
+              </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Topic Analysis */}
-        <Card>
+        <Card className="border-gradient-question">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
               <PieChart className="w-5 h-5 text-green-600" />
@@ -433,7 +447,7 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
 
       {/* Weak and Strong Topics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card>
+        <Card className="border-gradient-question">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
               <TrendingDown className="w-5 h-5 text-red-500" />
@@ -454,7 +468,7 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-gradient-question">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
               <TrendingUp className="w-5 h-5 text-green-500" />
@@ -478,7 +492,7 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
 
       {/* BTK Hackathon: Weekly Progress Graph */}
       {analytics.weeklyProgress && (
-        <Card>
+        <Card className="border-gradient-question">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
               <LineChart className="w-5 h-5 text-purple-600" />
@@ -494,7 +508,12 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
                     <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{day.day}</span>
                   </div>
                   <div className="flex-1 mx-4">
-                    <Progress value={day.score} className="h-3" />
+                    <div className="progress-gradient-bg rounded-full h-3">
+                      <div 
+                        className="progress-gradient h-3 rounded-full transition-all duration-300"
+                        style={{ width: `${day.score}%` }}
+                      />
+                    </div>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <span className="font-semibold text-gray-700 dark:text-gray-300">%{day.score}</span>
@@ -511,7 +530,7 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
 
       {/* BTK Hackathon: Subject Distribution */}
       {analytics.subjectDistribution && (
-        <Card>
+        <Card className="border-gradient-question">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
               <PieChart className="w-5 h-5 text-indigo-600" />
@@ -532,7 +551,12 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-32">
-                      <Progress value={subject.percentage} className="h-2" />
+                      <div className="progress-gradient-bg rounded-full h-2">
+                        <div 
+                          className="progress-gradient h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${subject.percentage}%` }}
+                        />
+                      </div>
                     </div>
                     <span className="text-sm font-semibold w-12 text-gray-700 dark:text-gray-300">%{subject.percentage}</span>
                   </div>
@@ -544,7 +568,7 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
       )}
 
       {/* Recent Activity */}
-      <Card>
+      <Card className="border-gradient-question">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
             <Activity className="w-5 h-5 text-blue-600" />
@@ -561,13 +585,13 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
                     {activity.type === 'Flashcard' && <Brain className="w-4 h-4 text-green-500" />}
                     {activity.type === 'ai_chat' && <Sparkles className="w-4 h-4 text-purple-500" />}
                     <div>
-                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                         {activity.type === 'Quiz' && 'Test Çözüldü'}
                         {activity.type === 'Flashcard' && 'Flashcard Çalışması'}
                         {activity.type === 'ai_chat' && 'AI Tutor Sohbeti'}
                       </p>
                       {activity.subject && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400">{activity.subject}</p>
+                        <p className="text-xs text-gray-700 dark:text-gray-300 font-medium">{activity.subject}</p>
                       )}
                     </div>
                   </div>

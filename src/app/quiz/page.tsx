@@ -162,7 +162,7 @@ function QuizPageContent() {
             onClick={() => window.location.href = '/'} 
             variant="outline" 
             size="sm" 
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
           >
             <ArrowLeft className="w-4 h-4" />
             Ana Sayfaya Dön
@@ -209,11 +209,18 @@ function QuizPageContent() {
                   Henüz soru içeren aktif ders bulunmuyor
                 </p>
                 <div className="space-y-2">
-                  <Button onClick={() => router.push('/subject-manager')} className="mr-2">
+                  <Button 
+                    onClick={() => router.push('/subject-manager')} 
+                    className="mr-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
+                  >
                     <GraduationCap className="w-4 h-4 mr-2" />
                     Ders Ekle
                   </Button>
-                  <Button onClick={() => router.push('/question-manager')} variant="outline">
+                  <Button 
+                    onClick={() => router.push('/question-manager')} 
+                    variant="outline"
+                    className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
+                  >
                     <BookOpen className="w-4 h-4 mr-2" />
                     Soru Ekle
                   </Button>
@@ -222,12 +229,16 @@ function QuizPageContent() {
             ) : (
               <>
                 <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-                  <SelectTrigger>
+                  <SelectTrigger className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0">
                     <SelectValue placeholder="Quiz yapmak istediğiniz dersi seçin" />
                   </SelectTrigger>
                   <SelectContent>
                     {subjects.map((subject) => (
-                      <SelectItem key={subject.id} value={subject.name}>
+                      <SelectItem 
+                        key={subject.id} 
+                        value={subject.name}
+                        className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white"
+                      >
                         {subject.name} ({subject.questionCount} soru)
                       </SelectItem>
                     ))}
@@ -237,7 +248,7 @@ function QuizPageContent() {
                 <Button 
                   onClick={handleStartQuiz} 
                   disabled={!selectedSubject}
-                  className="w-full"
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0"
                   size="lg"
                 >
                   <Play className="w-4 h-4 mr-2" />
@@ -257,7 +268,7 @@ function QuizPageContent() {
               {subjects.map((subject) => (
                 <Card 
                   key={subject.id} 
-                  className="cursor-pointer hover:shadow-lg transition-shadow"
+                  className="cursor-pointer hover:shadow-lg transition-shadow border-gradient-question"
                   onClick={() => {
                     setSelectedSubject(subject.name);
                     

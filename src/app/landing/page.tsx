@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -65,7 +66,7 @@ export default function LandingPage() {
 
             {/* Main Headline - Following the gradient text pattern */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 AI Destekli
               </span>
               <br />
@@ -83,13 +84,13 @@ export default function LandingPage() {
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
               <Link href="/demo">
-                <Button size="lg" className="w-full sm:w-auto text-lg px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                <Button size="lg" className="w-full sm:w-auto text-lg px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-600 hover:to-purple-600 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                   <Sparkles className="h-5 w-5 mr-2" />
                   Ücretsiz Demo Dene
                 </Button>
               </Link>
               <Link href="/dashboard">
-                <Button variant="outline" size="lg" className="w-full sm:w-auto text-lg px-8 py-3 hover:bg-muted transition-all duration-300 hover:scale-105">
+                <Button variant="outline" size="lg" className="w-full sm:w-auto text-lg px-8 py-3 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0 transition-all duration-300 hover:scale-105">
                   <Brain className="h-5 w-5 mr-2" />
                   Dashboard'a Git
                 </Button>
@@ -98,26 +99,26 @@ export default function LandingPage() {
 
             {/* Stats - Modern card pattern */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
-              <div className="rounded-xl bg-gradient-to-br from-blue-500/30 to-indigo-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
-                <div className="glass-card h-full w-full rounded-[11px] border-0 p-6 text-center">
+              <div className="border-gradient-question p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
+                <div className="h-full w-full border-0 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 dark:from-blue-500/20 dark:to-indigo-500/20 rounded-[11px] p-6 text-center">
                   <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">Hızlı</div>
                   <div className="text-sm text-muted-foreground font-medium">Test (Anında Başla)</div>
                 </div>
               </div>
-              <div className="rounded-xl bg-gradient-to-br from-green-500/30 to-emerald-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
-                <div className="glass-card h-full w-full rounded-[11px] border-0 p-6 text-center">
+              <div className="border-gradient-green p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
+                <div className="h-full w-full border-0 bg-gradient-to-br from-green-500/10 to-emerald-500/10 dark:from-green-500/20 dark:to-emerald-500/20 rounded-[11px] p-6 text-center">
                   <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">Akıllı</div>
                   <div className="text-sm text-muted-foreground font-medium">Analiz (Performans Takibi)</div>
                 </div>
               </div>
-              <div className="rounded-xl bg-gradient-to-br from-purple-500/30 to-violet-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
-                <div className="glass-card h-full w-full rounded-[11px] border-0 p-6 text-center">
+              <div className="border-gradient-purple p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
+                <div className="h-full w-full border-0 bg-gradient-to-br from-purple-500/10 to-violet-500/10 dark:from-purple-500/20 dark:to-violet-500/20 rounded-[11px] p-6 text-center">
                   <div className="text-2xl font-bold text-purple-600 dark:text-purple-400 mb-2">Flashcard</div>
                   <div className="text-xs text-muted-foreground font-medium">Tekrar Sistemi</div>
                 </div>
               </div>
-              <div className="rounded-xl bg-gradient-to-br from-orange-500/30 to-red-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
-                <div className="glass-card h-full w-full rounded-[11px] border-0 p-6 text-center">
+              <div className="border-gradient-orange p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
+                <div className="h-full w-full border-0 bg-gradient-to-br from-orange-500/10 to-red-500/10 dark:from-orange-500/20 dark:to-red-500/20 rounded-[11px] p-6 text-center">
                   <div className="text-3xl font-bold text-orange-600 dark:text-orange-400 mb-2">AI Asistan</div>
                   <div className="text-sm text-muted-foreground font-medium">(7/24 Destek)</div>
                 </div>
@@ -138,16 +139,20 @@ export default function LandingPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {/* AI-Powered Learning */}
-              <div className="rounded-xl bg-gradient-to-br from-blue-500/30 to-indigo-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
-                <Card className="glass-card h-full w-full rounded-[11px] border-0">
+              <motion.div 
+                className="rounded-xl border-gradient-question bg-white dark:bg-gray-800 p-[1px]"
+                whileHover={{ scale: 1.02, y: -5 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <Card className="h-full w-full rounded-[11px] border-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20">
                 <CardHeader>
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center mb-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center mb-4">
                     <Brain className="h-6 w-6 text-white" />
                   </div>
-                    <CardTitle className="text-xl font-semibold text-foreground">AI Destekli Öğrenme</CardTitle>
+                    <CardTitle className="text-xl font-semibold text-gray-800 dark:text-white">AI Destekli Öğrenme</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground mb-4">
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
                     Yapay zeka ile kişiselleştirilmiş soru önerileri ve zorluk seviyesi ayarlaması
                   </p>
                   <div className="flex flex-wrap gap-2">
@@ -156,11 +161,11 @@ export default function LandingPage() {
                   </div>
                 </CardContent>
               </Card>
-              </div>
+              </motion.div>
 
               {/* Smart Analytics */}
-              <div className="rounded-xl bg-gradient-to-br from-green-500/30 to-emerald-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
-                <Card className="glass-card h-full w-full rounded-[11px] border-0">
+              <div className="border-gradient-green p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
+                <Card className="h-full w-full border-0 bg-gradient-to-br from-green-500/10 to-emerald-500/10 dark:from-green-500/20 dark:to-emerald-500/20 rounded-[11px]">
                 <CardHeader>
                     <div className="w-12 h-12 bg-gradient-to-br from-green-600 to-emerald-600 rounded-lg flex items-center justify-center mb-4">
                     <TrendingUp className="h-6 w-6 text-white" />
@@ -180,8 +185,8 @@ export default function LandingPage() {
               </div>
 
               {/* Progressive Web App */}
-              <div className="rounded-xl bg-gradient-to-br from-purple-500/30 to-violet-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
-                <Card className="glass-card h-full w-full rounded-[11px] border-0">
+              <div className="border-gradient-purple p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
+                <Card className="h-full w-full border-0 bg-gradient-to-br from-purple-500/10 to-violet-500/10 dark:from-purple-500/20 dark:to-violet-500/20 rounded-[11px]">
                 <CardHeader>
                     <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-violet-600 rounded-lg flex items-center justify-center mb-4">
                     <Smartphone className="h-6 w-6 text-white" />
@@ -201,8 +206,8 @@ export default function LandingPage() {
               </div>
 
               {/* Smart Flashcards */}
-              <div className="rounded-xl bg-gradient-to-br from-orange-500/30 to-red-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
-                <Card className="glass-card h-full w-full rounded-[11px] border-0">
+              <div className="border-gradient-orange p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
+                <Card className="h-full w-full border-0 bg-gradient-to-br from-orange-500/10 to-red-500/10 dark:from-orange-500/20 dark:to-red-500/20 rounded-[11px]">
                 <CardHeader>
                     <div className="w-12 h-12 bg-gradient-to-br from-orange-600 to-red-600 rounded-lg flex items-center justify-center mb-4">
                     <BookOpen className="h-6 w-6 text-white" />
@@ -222,8 +227,8 @@ export default function LandingPage() {
               </div>
 
               {/* Quick Tests */}
-              <div className="rounded-xl bg-gradient-to-br from-yellow-500/30 to-amber-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
-                <Card className="glass-card h-full w-full rounded-[11px] border-0">
+              <div className="border-gradient-yellow p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
+                <Card className="h-full w-full border-0 bg-gradient-to-br from-yellow-500/10 to-amber-500/10 dark:from-yellow-500/20 dark:to-amber-500/20 rounded-[11px]">
                 <CardHeader>
                     <div className="w-12 h-12 bg-gradient-to-br from-yellow-600 to-amber-600 rounded-lg flex items-center justify-center mb-4">
                     <Zap className="h-6 w-6 text-white" />
@@ -243,8 +248,8 @@ export default function LandingPage() {
               </div>
 
               {/* Security & Privacy */}
-              <div className="rounded-xl bg-gradient-to-br from-teal-500/30 to-cyan-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
-                <Card className="glass-card h-full w-full rounded-[11px] border-0">
+              <div className="border-gradient-teal p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
+                <Card className="h-full w-full border-0 bg-gradient-to-br from-teal-500/10 to-cyan-500/10 dark:from-teal-500/20 dark:to-cyan-500/20 rounded-[11px]">
                 <CardHeader>
                     <div className="w-12 h-12 bg-gradient-to-br from-teal-600 to-cyan-600 rounded-lg flex items-center justify-center mb-4">
                     <Shield className="h-6 w-6 text-white" />
@@ -268,7 +273,7 @@ export default function LandingPage() {
           {/* Technology Stack Section */}
           <section id="technology" className="py-16">
             <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Modern Teknoloji Yığını
               </h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -278,8 +283,8 @@ export default function LandingPage() {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {/* Frontend */}
-            <div className="rounded-xl bg-gradient-to-br from-blue-500/30 to-indigo-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
-              <Card className="glass-card h-full w-full rounded-[11px] border-0">
+            <div className="border-gradient-question p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
+              <Card className="h-full w-full rounded-[11px] border-0 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 dark:from-blue-500/20 dark:to-indigo-500/20">
                 <CardHeader className="flex flex-row items-center gap-4 pb-4">
                   <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
                     <Code2 className="h-6 w-6 text-white" />
@@ -312,8 +317,8 @@ export default function LandingPage() {
             </div>
 
               {/* Backend */}
-            <div className="rounded-xl bg-gradient-to-br from-green-500/30 to-emerald-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
-              <Card className="glass-card h-full w-full rounded-[11px] border-0">
+            <div className="border-gradient-green p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
+              <Card className="h-full w-full rounded-[11px] border-0 bg-gradient-to-br from-green-500/10 to-emerald-500/10 dark:from-green-500/20 dark:to-emerald-500/20">
                 <CardHeader className="flex flex-row items-center gap-4 pb-4">
                   <div className="w-12 h-12 bg-gradient-to-br from-green-600 to-emerald-600 rounded-lg flex items-center justify-center">
                     <Server className="h-6 w-6 text-white" />
@@ -346,8 +351,8 @@ export default function LandingPage() {
             </div>
 
               {/* AI & ML */}
-            <div className="rounded-xl bg-gradient-to-br from-purple-500/30 to-violet-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
-              <Card className="glass-card h-full w-full rounded-[11px] border-0">
+            <div className="border-gradient-purple p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
+              <Card className="h-full w-full rounded-[11px] border-0 bg-gradient-to-br from-purple-500/10 to-violet-500/10 dark:from-purple-500/20 dark:to-violet-500/20">
                 <CardHeader className="flex flex-row items-center gap-4 pb-4">
                   <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-violet-600 rounded-lg flex items-center justify-center">
                     <BrainCircuit className="h-6 w-6 text-white" />
@@ -380,8 +385,8 @@ export default function LandingPage() {
             </div>
 
               {/* DevOps & Quality */}
-            <div className="rounded-xl bg-gradient-to-br from-orange-500/30 to-red-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
-              <Card className="glass-card h-full w-full rounded-[11px] border-0">
+            <div className="border-gradient-orange p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
+              <Card className="h-full w-full rounded-[11px] border-0 bg-gradient-to-br from-orange-500/10 to-red-500/10 dark:from-orange-500/20 dark:to-red-500/20">
                 <CardHeader className="flex flex-row items-center gap-4 pb-4">
                   <div className="w-12 h-12 bg-gradient-to-br from-orange-600 to-red-600 rounded-lg flex items-center justify-center">
                     <GitMerge className="h-6 w-6 text-white" />
@@ -418,7 +423,7 @@ export default function LandingPage() {
           {/* Demo CTA Section */}
           <section id="demo" className="py-16">
             <div className="glass-card p-8 rounded-xl text-center">
-              <h2 className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              <h2 className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Hemen Demo'yu Deneyin
               </h2>
               <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
@@ -426,22 +431,22 @@ export default function LandingPage() {
               </p>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 max-w-4xl mx-auto">
-                <div className="rounded-xl bg-gradient-to-br from-blue-500/30 to-indigo-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
-                  <div className="glass-card h-full w-full rounded-[11px] border-0 p-6 text-center">
+                <div className="border-gradient-question p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
+                  <div className="h-full w-full border-0 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 dark:from-blue-500/20 dark:to-indigo-500/20 rounded-[11px] p-6 text-center">
                     <Users className="h-8 w-8 mx-auto mb-3 text-blue-600 dark:text-blue-400" />
                     <h3 className="font-semibold mb-2 text-foreground">Kayıt Gerektirmez</h3>
                   <p className="text-muted-foreground text-sm">Hemen denemeye başlayın</p>
                   </div>
                 </div>
-                <div className="rounded-xl bg-gradient-to-br from-green-500/30 to-emerald-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
-                  <div className="glass-card h-full w-full rounded-[11px] border-0 p-6 text-center">
+                <div className="border-gradient-green p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
+                  <div className="h-full w-full border-0 bg-gradient-to-br from-green-500/10 to-emerald-500/10 dark:from-green-500/20 dark:to-emerald-500/20 rounded-[11px] p-6 text-center">
                     <Clock className="h-8 w-8 mx-auto mb-3 text-green-600 dark:text-green-400" />
                     <h3 className="font-semibold mb-2 text-foreground">5 Dakikada Deneyim</h3>
                   <p className="text-muted-foreground text-sm">Tüm özellikleri hızlıca test edin</p>
                   </div>
                 </div>
-                <div className="rounded-xl bg-gradient-to-br from-purple-500/30 to-violet-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
-                  <div className="glass-card h-full w-full rounded-[11px] border-0 p-6 text-center">
+                <div className="border-gradient-purple p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
+                  <div className="h-full w-full border-0 bg-gradient-to-br from-purple-500/10 to-violet-500/10 dark:from-purple-500/20 dark:to-violet-500/20 rounded-[11px] p-6 text-center">
                     <CheckCircle className="h-8 w-8 mx-auto mb-3 text-purple-600 dark:text-purple-400" />
                     <h3 className="font-semibold mb-2 text-foreground">Gerçek Veriler</h3>
                   <p className="text-muted-foreground text-sm">Hackathon demo verileri ile test edin</p>
@@ -462,7 +467,7 @@ export default function LandingPage() {
           {/* Quick Actions - Dashboard Style */}
           <section className="py-16">
             <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Öğrenme Yolculuğunuzu Başlatın
               </h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -471,8 +476,8 @@ export default function LandingPage() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
-              <div className="rounded-xl bg-gradient-to-br from-blue-500/30 to-indigo-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
-                <Card className="glass-card h-full w-full rounded-[11px] border-0 cursor-pointer">
+              <div className="border-gradient-question p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
+                <Card className="h-full w-full rounded-[11px] border-0 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 dark:from-blue-500/20 dark:to-indigo-500/20 cursor-pointer">
                 <Link href="/quiz">
                   <CardContent className="p-6 text-center">
                       <Zap className="h-8 w-8 mx-auto mb-3 text-blue-600 dark:text-blue-400" />
@@ -483,8 +488,8 @@ export default function LandingPage() {
               </Card>
               </div>
 
-              <div className="rounded-xl bg-gradient-to-br from-green-500/30 to-emerald-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
-                <Card className="glass-card h-full w-full rounded-[11px] border-0 cursor-pointer">
+              <div className="border-gradient-green p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
+                <Card className="h-full w-full rounded-[11px] border-0 bg-gradient-to-br from-green-500/10 to-emerald-500/10 dark:from-green-500/20 dark:to-emerald-500/20 cursor-pointer">
                 <Link href="/flashcard">
                   <CardContent className="p-6 text-center">
                       <Brain className="h-8 w-8 mx-auto mb-3 text-green-600 dark:text-green-400" />
@@ -495,8 +500,8 @@ export default function LandingPage() {
               </Card>
               </div>
 
-              <div className="rounded-xl bg-gradient-to-br from-purple-500/30 to-violet-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
-                <Card className="glass-card h-full w-full rounded-[11px] border-0 cursor-pointer">
+              <div className="border-gradient-purple p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
+                <Card className="h-full w-full rounded-[11px] border-0 bg-gradient-to-br from-purple-500/10 to-violet-500/10 dark:from-purple-500/20 dark:to-violet-500/20 cursor-pointer">
                 <Link href="/ai-chat">
                   <CardContent className="p-6 text-center">
                       <BookOpen className="h-8 w-8 mx-auto mb-3 text-purple-600 dark:text-purple-400" />
@@ -507,8 +512,8 @@ export default function LandingPage() {
               </Card>
               </div>
 
-              <div className="rounded-xl bg-gradient-to-br from-indigo-500/30 to-blue-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
-                <Card className="glass-card h-full w-full rounded-[11px] border-0 cursor-pointer">
+              <div className="border-gradient-question p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
+                <Card className="h-full w-full rounded-[11px] border-0 bg-gradient-to-br from-indigo-500/10 to-blue-500/10 dark:from-indigo-500/20 dark:to-blue-500/20 cursor-pointer">
                 <Link href="/subject-manager">
                   <CardContent className="p-6 text-center">
                       <Database className="h-8 w-8 mx-auto mb-3 text-indigo-600 dark:text-indigo-400" />
@@ -523,13 +528,13 @@ export default function LandingPage() {
             {/* Main CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/dashboard">
-                <Button size="lg" className="w-full sm:w-auto text-lg px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                <Button size="lg" className="w-full sm:w-auto text-lg px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-600 hover:to-purple-600 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                   <Brain className="h-5 w-5 mr-2" />
                   Dashboard'a Git
                 </Button>
               </Link>
               <Link href="/demo">
-                <Button variant="outline" size="lg" className="w-full sm:w-auto text-lg px-8 py-3 hover:bg-muted transition-all duration-300 hover:scale-105">
+                <Button variant="outline" size="lg" className="w-full sm:w-auto text-lg px-8 py-3 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0 transition-all duration-300 hover:scale-105">
                   <Play className="h-5 w-5 mr-2" />
                   Demo Dene
                 </Button>

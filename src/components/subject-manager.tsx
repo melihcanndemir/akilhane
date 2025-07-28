@@ -597,8 +597,8 @@ const SubjectManager = () => {
           {subjects.map((subject) => (
             <div
               key={subject.id}
-              className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border-2 ${
-                subject.isActive ? 'border-green-200 dark:border-green-800' : 'border-gray-200 dark:border-gray-700'
+              className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 ${
+                subject.isActive ? 'border-gradient-active' : 'border-2 border-gray-200 dark:border-gray-700'
               }`}
             >
               <div className="p-4 sm:p-6">
@@ -642,7 +642,7 @@ const SubjectManager = () => {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-500 dark:text-gray-400">Kategori:</span>
-                    <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200">
+                    <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
                       {subject.category}
                     </Badge>
                   </div>
@@ -650,9 +650,9 @@ const SubjectManager = () => {
                     <span className="text-sm text-gray-500 dark:text-gray-400">Zorluk:</span>
                     <Badge 
                       className={
-                        subject.difficulty === 'Kolay' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' :
-                        subject.difficulty === 'Orta' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200' :
-                        'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
+                        subject.difficulty === 'Kolay' ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white border-0' :
+                        subject.difficulty === 'Orta' ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0' :
+                        'bg-gradient-to-r from-red-400 to-pink-500 text-white border-0'
                       }
                     >
                       {subject.difficulty}
@@ -667,7 +667,7 @@ const SubjectManager = () => {
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-500 dark:text-gray-400">Durum:</span>
                     <Badge 
-                      className={subject.isActive ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' : 'bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-200'}
+                      className={subject.isActive ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white border-0' : 'bg-gradient-to-r from-gray-400 to-gray-500 text-white border-0'}
                     >
                       {subject.isActive ? 'Aktif' : 'Pasif'}
                     </Badge>

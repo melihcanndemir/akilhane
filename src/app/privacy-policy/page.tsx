@@ -25,7 +25,7 @@ export default function PrivacyPolicyPage() {
 
           {/* Content Card */}
           <div className="glass-card p-8 rounded-xl shadow-lg">
-            <h1 className="text-4xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Gizlilik Politikası
             </h1>
             

@@ -77,7 +77,7 @@ export default function ForgotPasswordPage() {
               <CardContent className="space-y-4">
                 <Button
                   onClick={() => router.push('/login')}
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Giriş sayfasına dön
@@ -147,7 +147,7 @@ export default function ForgotPasswordPage() {
 
                 <Button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -164,7 +164,7 @@ export default function ForgotPasswordPage() {
               <div className="text-center">
                 <Link
                   href="/login"
-                  className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 flex items-center justify-center"
+                  className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 flex items-center justify-center hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:px-3 hover:py-1 hover:rounded-lg transition-all duration-200"
                 >
                   <ArrowLeft className="h-4 w-4 mr-1" />
                   Giriş sayfasına dön

@@ -321,10 +321,10 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
           size="lg"
           className={`rounded-full w-16 h-16 shadow-lg transition-all duration-300 ${
             isListening 
-              ? 'bg-red-500 hover:bg-red-600 animate-pulse' 
+              ? 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 animate-pulse' 
               : mode === 'dictation' 
-                ? 'bg-green-500 hover:bg-green-600' 
-                : 'bg-blue-500 hover:bg-blue-600'
+                ? 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600' 
+                : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
           }`}
           title={mode === 'dictation' ? 'Sesli Yazma' : 'Sesli Asistan'}
         >
