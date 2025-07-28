@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Edit, Trash2, Eye, EyeOff } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, EyeOff, BookOpen } from 'lucide-react';
 import { shouldUseDemoData, demoSubjects } from '@/data/demo-data';
 import { SubjectService } from '@/services/supabase-service';
 import { supabase } from '@/lib/supabase';
@@ -498,15 +498,11 @@ const SubjectManager = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-4">
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 dark:text-white">
-              📚 Ders Yöneticisi
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 dark:text-white flex items-center gap-3">
+              <BookOpen className="w-8 h-8 text-blue-600" />
+              Ders Yöneticisi
             </h1>
             <div className="flex flex-wrap justify-center gap-2">
-              {shouldUseDemoData() && (
-                <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-                  🎯 BTK Demo
-                </Badge>
-              )}
               {useSupabase && (
                 <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200">
                   ☁️ Cloud Storage

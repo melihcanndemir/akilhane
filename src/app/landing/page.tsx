@@ -26,7 +26,7 @@ import {
   FileCode,    
   Palette,     
   Package,     
-  Database,    
+  Database,
   HardDrive,   
   Network,     
   Key,         
@@ -140,127 +140,127 @@ export default function LandingPage() {
               {/* AI-Powered Learning */}
               <div className="rounded-xl bg-gradient-to-br from-blue-500/30 to-indigo-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
                 <Card className="glass-card h-full w-full rounded-[11px] border-0">
-                  <CardHeader>
+                <CardHeader>
                     <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center mb-4">
-                      <Brain className="h-6 w-6 text-white" />
-                    </div>
+                    <Brain className="h-6 w-6 text-white" />
+                  </div>
                     <CardTitle className="text-xl font-semibold text-foreground">AI Destekli Öğrenme</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground mb-4">
-                      Yapay zeka ile kişiselleştirilmiş soru önerileri ve zorluk seviyesi ayarlaması
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      <Badge variant="secondary">Google Gemini</Badge>
-                      <Badge variant="secondary">Genkit Framework</Badge>
-                    </div>
-                  </CardContent>
-                </Card>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground mb-4">
+                    Yapay zeka ile kişiselleştirilmiş soru önerileri ve zorluk seviyesi ayarlaması
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="secondary">Google Gemini</Badge>
+                    <Badge variant="secondary">Genkit Framework</Badge>
+                  </div>
+                </CardContent>
+              </Card>
               </div>
 
               {/* Smart Analytics */}
               <div className="rounded-xl bg-gradient-to-br from-green-500/30 to-emerald-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
                 <Card className="glass-card h-full w-full rounded-[11px] border-0">
-                  <CardHeader>
+                <CardHeader>
                     <div className="w-12 h-12 bg-gradient-to-br from-green-600 to-emerald-600 rounded-lg flex items-center justify-center mb-4">
-                      <TrendingUp className="h-6 w-6 text-white" />
-                    </div>
+                    <TrendingUp className="h-6 w-6 text-white" />
+                  </div>
                     <CardTitle className="text-xl font-semibold text-foreground">Akıllı Analitik</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground mb-4">
-                      Detaylı performans analizleri ve gelişim takibi ile zayıf noktalarınızı keşfedin
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      <Badge variant="secondary">Performance Tracking</Badge>
-                      <Badge variant="secondary">Charts</Badge>
-                    </div>
-                  </CardContent>
-                </Card>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground mb-4">
+                    Detaylı performans analizleri ve gelişim takibi ile zayıf noktalarınızı keşfedin
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="secondary">Performance Tracking</Badge>
+                    <Badge variant="secondary">Charts</Badge>
+                  </div>
+                </CardContent>
+              </Card>
               </div>
 
               {/* Progressive Web App */}
               <div className="rounded-xl bg-gradient-to-br from-purple-500/30 to-violet-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
                 <Card className="glass-card h-full w-full rounded-[11px] border-0">
-                  <CardHeader>
+                <CardHeader>
                     <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-violet-600 rounded-lg flex items-center justify-center mb-4">
-                      <Smartphone className="h-6 w-6 text-white" />
-                    </div>
+                    <Smartphone className="h-6 w-6 text-white" />
+                  </div>
                     <CardTitle className="text-xl font-semibold text-foreground">Progressive Web App</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground mb-4">
-                      Mobil cihazınıza yükleyebilir, offline çalışabilir ve native app deneyimi yaşayabilirsiniz
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      <Badge variant="secondary">Offline Support</Badge>
-                      <Badge variant="secondary">Mobile Optimized</Badge>
-                    </div>
-                  </CardContent>
-                </Card>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground mb-4">
+                    Mobil cihazınıza yükleyebilir, offline çalışabilir ve native app deneyimi yaşayabilirsiniz
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="secondary">Offline Support</Badge>
+                    <Badge variant="secondary">Mobile Optimized</Badge>
+                  </div>
+                </CardContent>
+              </Card>
               </div>
 
               {/* Smart Flashcards */}
               <div className="rounded-xl bg-gradient-to-br from-orange-500/30 to-red-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
                 <Card className="glass-card h-full w-full rounded-[11px] border-0">
-                  <CardHeader>
+                <CardHeader>
                     <div className="w-12 h-12 bg-gradient-to-br from-orange-600 to-red-600 rounded-lg flex items-center justify-center mb-4">
-                      <BookOpen className="h-6 w-6 text-white" />
-                    </div>
+                    <BookOpen className="h-6 w-6 text-white" />
+                  </div>
                     <CardTitle className="text-xl font-semibold text-foreground">Akıllı Flashcard'lar</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground mb-4">
-                      AI tarafından önerilen flashcard'lar ile etkili tekrar sistemleri
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      <Badge variant="secondary">Spaced Repetition</Badge>
-                      <Badge variant="secondary">AI Recommendations</Badge>
-                    </div>
-                  </CardContent>
-                </Card>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground mb-4">
+                    AI tarafından önerilen flashcard'lar ile etkili tekrar sistemleri
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="secondary">Spaced Repetition</Badge>
+                    <Badge variant="secondary">AI Recommendations</Badge>
+                  </div>
+                </CardContent>
+              </Card>
               </div>
 
               {/* Quick Tests */}
               <div className="rounded-xl bg-gradient-to-br from-yellow-500/30 to-amber-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
                 <Card className="glass-card h-full w-full rounded-[11px] border-0">
-                  <CardHeader>
+                <CardHeader>
                     <div className="w-12 h-12 bg-gradient-to-br from-yellow-600 to-amber-600 rounded-lg flex items-center justify-center mb-4">
-                      <Zap className="h-6 w-6 text-white" />
-                    </div>
+                    <Zap className="h-6 w-6 text-white" />
+                  </div>
                     <CardTitle className="text-xl font-semibold text-foreground">Hızlı Test Sistemi</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground mb-4">
-                      Kişiselleştirilebilir soru sayısı ve zorluk seviyesi ile hızlı değerlendirmeler
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      <Badge variant="secondary">Custom Length</Badge>
-                      <Badge variant="secondary">Adaptive Difficulty</Badge>
-                    </div>
-                  </CardContent>
-                </Card>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground mb-4">
+                    Kişiselleştirilebilir soru sayısı ve zorluk seviyesi ile hızlı değerlendirmeler
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="secondary">Custom Length</Badge>
+                    <Badge variant="secondary">Adaptive Difficulty</Badge>
+                  </div>
+                </CardContent>
+              </Card>
               </div>
 
               {/* Security & Privacy */}
               <div className="rounded-xl bg-gradient-to-br from-teal-500/30 to-cyan-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
                 <Card className="glass-card h-full w-full rounded-[11px] border-0">
-                  <CardHeader>
+                <CardHeader>
                     <div className="w-12 h-12 bg-gradient-to-br from-teal-600 to-cyan-600 rounded-lg flex items-center justify-center mb-4">
-                      <Shield className="h-6 w-6 text-white" />
-                    </div>
+                    <Shield className="h-6 w-6 text-white" />
+                  </div>
                     <CardTitle className="text-xl font-semibold text-foreground">Güvenlik & Gizlilik</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground mb-4">
-                      Verileriniz güvenli bir şekilde saklanır, gizlilik politikalarımız şeffaftır
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      <Badge variant="secondary">Data Privacy</Badge>
-                      <Badge variant="secondary">Secure Storage</Badge>
-                    </div>
-                  </CardContent>
-                </Card>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground mb-4">
+                    Verileriniz güvenli bir şekilde saklanır, gizlilik politikalarımız şeffaftır
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="secondary">Data Privacy</Badge>
+                    <Badge variant="secondary">Secure Storage</Badge>
+                  </div>
+                </CardContent>
+              </Card>
               </div>
             </div>
           </section>
@@ -277,7 +277,7 @@ export default function LandingPage() {
             </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {/* Frontend */}
+              {/* Frontend */}
             <div className="rounded-xl bg-gradient-to-br from-blue-500/30 to-indigo-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
               <Card className="glass-card h-full w-full rounded-[11px] border-0">
                 <CardHeader className="flex flex-row items-center gap-4 pb-4">
@@ -311,7 +311,7 @@ export default function LandingPage() {
               </Card>
             </div>
 
-            {/* Backend */}
+              {/* Backend */}
             <div className="rounded-xl bg-gradient-to-br from-green-500/30 to-emerald-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
               <Card className="glass-card h-full w-full rounded-[11px] border-0">
                 <CardHeader className="flex flex-row items-center gap-4 pb-4">
@@ -345,7 +345,7 @@ export default function LandingPage() {
               </Card>
             </div>
 
-            {/* AI & ML */}
+              {/* AI & ML */}
             <div className="rounded-xl bg-gradient-to-br from-purple-500/30 to-violet-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
               <Card className="glass-card h-full w-full rounded-[11px] border-0">
                 <CardHeader className="flex flex-row items-center gap-4 pb-4">
@@ -379,7 +379,7 @@ export default function LandingPage() {
               </Card>
             </div>
 
-            {/* DevOps & Quality */}
+              {/* DevOps & Quality */}
             <div className="rounded-xl bg-gradient-to-br from-orange-500/30 to-red-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
               <Card className="glass-card h-full w-full rounded-[11px] border-0">
                 <CardHeader className="flex flex-row items-center gap-4 pb-4">
@@ -412,7 +412,7 @@ export default function LandingPage() {
                 </CardContent>
               </Card>
             </div>
-          </div>
+            </div>
           </section>
 
           {/* Demo CTA Section */}
@@ -430,21 +430,21 @@ export default function LandingPage() {
                   <div className="glass-card h-full w-full rounded-[11px] border-0 p-6 text-center">
                     <Users className="h-8 w-8 mx-auto mb-3 text-blue-600 dark:text-blue-400" />
                     <h3 className="font-semibold mb-2 text-foreground">Kayıt Gerektirmez</h3>
-                    <p className="text-muted-foreground text-sm">Hemen denemeye başlayın</p>
+                  <p className="text-muted-foreground text-sm">Hemen denemeye başlayın</p>
                   </div>
                 </div>
                 <div className="rounded-xl bg-gradient-to-br from-green-500/30 to-emerald-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
                   <div className="glass-card h-full w-full rounded-[11px] border-0 p-6 text-center">
                     <Clock className="h-8 w-8 mx-auto mb-3 text-green-600 dark:text-green-400" />
                     <h3 className="font-semibold mb-2 text-foreground">5 Dakikada Deneyim</h3>
-                    <p className="text-muted-foreground text-sm">Tüm özellikleri hızlıca test edin</p>
+                  <p className="text-muted-foreground text-sm">Tüm özellikleri hızlıca test edin</p>
                   </div>
                 </div>
                 <div className="rounded-xl bg-gradient-to-br from-purple-500/30 to-violet-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
                   <div className="glass-card h-full w-full rounded-[11px] border-0 p-6 text-center">
                     <CheckCircle className="h-8 w-8 mx-auto mb-3 text-purple-600 dark:text-purple-400" />
                     <h3 className="font-semibold mb-2 text-foreground">Gerçek Veriler</h3>
-                    <p className="text-muted-foreground text-sm">Hackathon demo verileri ile test edin</p>
+                  <p className="text-muted-foreground text-sm">Hackathon demo verileri ile test edin</p>
                   </div>
                 </div>
               </div>
@@ -473,50 +473,50 @@ export default function LandingPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
               <div className="rounded-xl bg-gradient-to-br from-blue-500/30 to-indigo-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
                 <Card className="glass-card h-full w-full rounded-[11px] border-0 cursor-pointer">
-                  <Link href="/quiz">
-                    <CardContent className="p-6 text-center">
+                <Link href="/quiz">
+                  <CardContent className="p-6 text-center">
                       <Zap className="h-8 w-8 mx-auto mb-3 text-blue-600 dark:text-blue-400" />
                       <h3 className="font-semibold mb-2 text-foreground">Hızlı Test</h3>
-                      <p className="text-sm text-muted-foreground">Test çözmeye hemen başlayın</p>
-                    </CardContent>
-                  </Link>
-                </Card>
+                    <p className="text-sm text-muted-foreground">Test çözmeye hemen başlayın</p>
+                  </CardContent>
+                </Link>
+              </Card>
               </div>
 
               <div className="rounded-xl bg-gradient-to-br from-green-500/30 to-emerald-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
                 <Card className="glass-card h-full w-full rounded-[11px] border-0 cursor-pointer">
-                  <Link href="/flashcard">
-                    <CardContent className="p-6 text-center">
+                <Link href="/flashcard">
+                  <CardContent className="p-6 text-center">
                       <Brain className="h-8 w-8 mx-auto mb-3 text-green-600 dark:text-green-400" />
                       <h3 className="font-semibold mb-2 text-foreground">Flashcard</h3>
-                      <p className="text-sm text-muted-foreground">Akıllı kartlarla çalışın</p>
-                    </CardContent>
-                  </Link>
-                </Card>
+                    <p className="text-sm text-muted-foreground">Akıllı kartlarla çalışın</p>
+                  </CardContent>
+                </Link>
+              </Card>
               </div>
 
               <div className="rounded-xl bg-gradient-to-br from-purple-500/30 to-violet-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
                 <Card className="glass-card h-full w-full rounded-[11px] border-0 cursor-pointer">
-                  <Link href="/ai-chat">
-                    <CardContent className="p-6 text-center">
+                <Link href="/ai-chat">
+                  <CardContent className="p-6 text-center">
                       <BookOpen className="h-8 w-8 mx-auto mb-3 text-purple-600 dark:text-purple-400" />
                       <h3 className="font-semibold mb-2 text-foreground">AI Tutor</h3>
-                      <p className="text-sm text-muted-foreground">Yapay zeka ile sohbet edin</p>
-                    </CardContent>
-                  </Link>
-                </Card>
+                    <p className="text-sm text-muted-foreground">Yapay zeka ile sohbet edin</p>
+                  </CardContent>
+                </Link>
+              </Card>
               </div>
 
               <div className="rounded-xl bg-gradient-to-br from-indigo-500/30 to-blue-500/30 p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
                 <Card className="glass-card h-full w-full rounded-[11px] border-0 cursor-pointer">
-                  <Link href="/subject-manager">
-                    <CardContent className="p-6 text-center">
+                <Link href="/subject-manager">
+                  <CardContent className="p-6 text-center">
                       <Database className="h-8 w-8 mx-auto mb-3 text-indigo-600 dark:text-indigo-400" />
                       <h3 className="font-semibold mb-2 text-foreground">Konu Yönetimi</h3>
-                      <p className="text-sm text-muted-foreground">Konuları düzenleyin</p>
-                    </CardContent>
-                  </Link>
-                </Card>
+                    <p className="text-sm text-muted-foreground">Konuları düzenleyin</p>
+                  </CardContent>
+                </Link>
+              </Card>
               </div>
             </div>
 

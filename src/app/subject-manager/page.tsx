@@ -84,8 +84,8 @@ export default function SubjectManagerPage() {
         if (localSubjects.length > 0) {
           // Use localStorage data
           const totalSubjects = localSubjects.length;
-          const totalQuestions = localSubjects.reduce((sum: number, subject: any) => sum + (subject.questionCount || 0), 0);
-          const categories = new Set(localSubjects.map((subject: any) => subject.category));
+          const totalQuestions = localSubjects.reduce((sum: number, subject: Subject) => sum + (subject.questionCount || 0), 0);
+          const categories = new Set(localSubjects.map((subject: Subject) => subject.category));
           const totalCategories = categories.size;
 
           setStats({
@@ -112,8 +112,8 @@ export default function SubjectManagerPage() {
           }
         }
       }
-    } catch (error) {
-      console.error('Error loading stats:', error);
+    } catch {
+      // Error loading stats
     } finally {
       setIsLoading(false);
     }
@@ -137,7 +137,7 @@ export default function SubjectManagerPage() {
                     <CardTitle className="text-xl sm:text-2xl flex items-center gap-2">
                       Ders Yöneticisi
                       {isDemoMode && (
-                        <Badge className="ml-2 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                        <Badge className="ml-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
                           BTK Demo
                         </Badge>
                       )}
@@ -174,13 +174,7 @@ export default function SubjectManagerPage() {
                     </div>
                   </div>
                 </div>
-                {isDemoMode && (
-                  <div className="mt-4 text-center">
-                    <p className="text-sm text-muted-foreground italic">
-                      Bunları da gösterelim
-                    </p>
-                  </div>
-                )}
+
             </CardContent>
           </Card>
 
