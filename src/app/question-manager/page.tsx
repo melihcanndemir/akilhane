@@ -147,6 +147,7 @@ export default function QuestionManager() {
   const [filterDifficulty, setFilterDifficulty] = useState<string>('all');
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<any | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const { toast } = useToast();
 
   // Form state
@@ -165,6 +166,28 @@ export default function QuestionManager() {
     explanation: '',
     formula: '',
   });
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        setIsAuthenticated(!!session);
+      } catch (error) {
+        console.error('Error checking authentication:', error);
+        setIsAuthenticated(false);
+      }
+    };
+
+    checkAuth();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   // Load subjects and questions
   useEffect(() => {
@@ -713,9 +736,13 @@ export default function QuestionManager() {
                 <div className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
                   BTK Demo
                 </div>
-              ) : (
+              ) : isAuthenticated ? (
                 <div className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
                   ☁️ Cloud Storage
+                </div>
+              ) : (
+                <div className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
+                  💾 LocalStorage
                 </div>
               )}
             </div>
