@@ -146,7 +146,16 @@ export default function AiChatHistory({ onSessionSelect, currentSessionId }: AiC
           Geçmiş
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+      <DialogContent className="
+  max-w-2xl
+  max-h-[85vh]
+  overflow-hidden
+  flex
+  flex-col
+  w-[94vw] ml-[3vw] mr-[3vw] mx-auto
+  lg:w-auto lg:mx-auto
+  p-4 sm:p-6
+">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <History className="w-5 h-5" />
@@ -162,7 +171,7 @@ export default function AiChatHistory({ onSessionSelect, currentSessionId }: AiC
             onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
             className="flex-1"
           />
-          <Button onClick={handleSearch} size="sm">
+          <Button onClick={handleSearch} size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0 hover:from-purple-700 hover:to-blue-700">
             <Search className="w-4 h-4" />
           </Button>
         </div>
