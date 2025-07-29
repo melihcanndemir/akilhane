@@ -38,18 +38,33 @@ export class UserService {
   }
 
   static async getUserById(id: string): Promise<User | null> {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', id)
-      .single();
+    console.log('🔍 UserService.getUserById - Input ID:', id);
+    
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', id)
+        .single();
 
-    if (error) {
-      console.error('Error fetching user:', error);
+      console.log('🔍 UserService.getUserById - Response data:', data);
+      console.log('🔍 UserService.getUserById - Response error:', error);
+
+      if (error) {
+        console.error('❌ UserService.getUserById - Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        return null;
+      }
+
+      return data;
+    } catch (err) {
+      console.error('❌ UserService.getUserById - Unexpected error:', err);
       return null;
     }
-
-    return data;
   }
 }
 
