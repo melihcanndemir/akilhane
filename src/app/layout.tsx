@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import PWAServiceWorker from '@/components/pwa-service-worker';
 import PWAInstallPrompt from '@/components/pwa-install-prompt';
 import Footer from '@/components/footer'; // Import the new component
+import { I18nProvider } from '@/components/providers/i18n-provider';
 
 export const metadata: Metadata = {
   title: 'AkılHane - AI Destekli Eğitim Platformu',
@@ -56,20 +57,22 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased flex flex-col min-h-screen">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <div className="flex-grow">
-            {children}
-          </div>
-          <Toaster />
-          <PWAServiceWorker />
-          <PWAInstallPrompt />
-          <Footer />
-        </ThemeProvider>
+        <I18nProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <div className="flex-grow">
+              {children}
+            </div>
+            <Toaster />
+            <PWAServiceWorker />
+            <PWAInstallPrompt />
+            <Footer />
+          </ThemeProvider>
+        </I18nProvider>
       </body>
     </html>
   );

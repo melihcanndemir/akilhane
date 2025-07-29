@@ -28,20 +28,24 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import { useI18n } from '@/hooks/use-i18n';
+import { LanguageSwitcher } from '@/components/language-switcher';
 
 export default function MobileNav() {
   const [isOpen, setIsOpen] = useState(false);
   const { user, loading, logout, isAuthenticated } = useAuth();
+  const { t } = useI18n(['common', 'dashboard']);
+  
   const navLinks = [
-    { href: '/landing', label: 'Tanıtım', icon: Home },
+    { href: '/landing', label: t('common:home'), icon: Home },
     { href: '/demo', label: 'Demo', icon: Play },
-    { href: '/dashboard', label: 'Gösterge Paneli', icon: Brain },
-    { href: '/quiz', label: 'Test Çöz', icon: BookOpen },
+    { href: '/dashboard', label: t('common:dashboard'), icon: Brain },
+    { href: '/quiz', label: t('quiz:title'), icon: BookOpen },
     { href: '/flashcard', label: 'Flashcard', icon: Brain },
     { href: '/ai-chat', label: 'AI Asistan', icon: Users },
     { href: '/question-manager', label: 'Soru Yöneticisi', icon: Database },
     { href: '/subject-manager', label: 'Ders Yöneticisi', icon: GraduationCap },
-    { href: '/settings', label: 'Ayarlar', icon: Settings },
+    { href: '/settings', label: t('common:settings'), icon: Settings },
   ];
 
   return (
@@ -71,6 +75,7 @@ export default function MobileNav() {
             ))}
             
             <ThemeToggle />
+            <LanguageSwitcher />
             
             {/* Authentication Status */}
             {loading ? (
@@ -198,7 +203,7 @@ export default function MobileNav() {
                           className="flex items-center gap-3 p-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white backdrop-blur-sm transition-all duration-300 group hover:scale-105"
                         >
                           <UserCircle className="w-5 h-5 group-hover:text-white transition-colors duration-300" />
-                          <span className="font-medium group-hover:text-white transition-colors duration-300">Profilim</span>
+                          <span className="font-medium group-hover:text-white transition-colors duration-300">{t('common:profile')}</span>
                         </Link>
                         
                         {/* Logout button */}
@@ -211,7 +216,7 @@ export default function MobileNav() {
                           className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-red-50/20 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 justify-start transition-all duration-300 hover:scale-105 border border-red-200/30 dark:border-red-800/30"
                         >
                           <LogOut className="w-5 h-5" />
-                          <span className="font-medium">Çıkış Yap</span>
+                          <span className="font-medium">{t('common:logout')}</span>
                         </Button>
                       </div>
                     )}
@@ -237,9 +242,12 @@ export default function MobileNav() {
                     <div className="h-4"></div>
                   </div>
                   
-                  {/* Fixed Footer - Theme Toggle */}
+                  {/* Fixed Footer - Theme Toggle and Language Switcher */}
                   <div className="flex-shrink-0 border-t border-white/20 dark:border-white/10 p-4 pt-3">
-                    <ThemeToggle />
+                    <div className="flex items-center gap-2">
+                      <ThemeToggle />
+                      <LanguageSwitcher />
+                    </div>
                   </div>
                 </div>
               </SheetContent>

@@ -24,6 +24,8 @@ import Link from 'next/link';
 import { useTheme } from 'next-themes';
 import { useToast } from '@/hooks/use-toast';
 import MobileNav from '@/components/mobile-nav';
+import { useTranslation } from 'react-i18next';
+import { LanguageSwitcher } from '@/components/language-switcher';
 
 interface Subject {
   id: number;
@@ -36,6 +38,7 @@ interface Subject {
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
+  const { t } = useTranslation(['settings', 'common']);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState({
@@ -223,8 +226,8 @@ export default function SettingsPage() {
     };
     localStorage.setItem('userSettings', JSON.stringify(settings));
     toast({
-      title: 'Ayarlar kaydedildi',
-      description: 'Tüm ayarlarınız başarıyla kaydedildi.',
+      title: t('settings:changes_saved'),
+      description: t('settings:changes_saved'),
     });
   };
 
@@ -236,12 +239,15 @@ export default function SettingsPage() {
       <div className="p-4 md:p-8">
         <div className="container mx-auto space-y-8">
           {/* Header */}
-          <div className="flex items-center gap-3">
-            <Settings className="w-8 h-8 text-primary" />
-            <div>
-              <h1 className="text-3xl font-headline font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Ayarlar</h1>
-              <p className="text-muted-foreground">Uygulama tercihlerinizi yönetin</p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Settings className="w-8 h-8 text-primary" />
+              <div>
+                <h1 className="text-3xl font-headline font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">{t('settings:title')}</h1>
+                <p className="text-muted-foreground">{t('settings:title')}</p>
+              </div>
             </div>
+            <LanguageSwitcher />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -250,10 +256,10 @@ export default function SettingsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Bell className="w-5 h-5" />
-                  Bildirimler
+                  {t('settings:notifications')}
                 </CardTitle>
                 <CardDescription>
-                  Bildirim tercihlerinizi ayarlayın
+                  {t('settings:notification_settings')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -316,28 +322,28 @@ export default function SettingsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Palette className="w-5 h-5" />
-                  Görünüm
+                  {t('settings:appearance')}
                 </CardTitle>
                 <CardDescription>
-                  Uygulama görünümünü özelleştirin
+                  {t('settings:theme_settings')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="theme">Tema</Label>
+                  <Label htmlFor="theme">{t('common:theme')}</Label>
                   <Select value={theme || 'system'} onValueChange={setTheme}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="light" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">
-                        Açık
+                        {t('common:light')}
                       </SelectItem>
                       <SelectItem value="dark" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">
-                        Koyu
+                        {t('common:dark')}
                       </SelectItem>
                       <SelectItem value="system" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">
-                        Sistem
+                        {t('common:system')}
                       </SelectItem>
                     </SelectContent>
                   </Select>
@@ -565,7 +571,7 @@ export default function SettingsPage() {
           <div className="flex justify-end">
             <Button className="px-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white" onClick={handleSaveSettings}>
               <Settings className="w-4 h-4 mr-2" />
-              Ayarları Kaydet
+              {t('settings:save_changes')}
             </Button>
           </div>
         </div>
