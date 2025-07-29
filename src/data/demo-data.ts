@@ -438,8 +438,22 @@ export const shouldUseDemoData = (): boolean => {
   const demoParam = urlParams.get('demo') === 'true';
   const localStorageDemo = localStorage.getItem('btk_demo_mode');
   
-  // Default to true if no localStorage value is set
-  const shouldUseDemo = demoParam || localStorageDemo === 'true' || localStorageDemo === null;
+  // If localStorage is null (first time visitor), default to true
+  // If localStorage has a value, use that value
+  // URL parameter always overrides localStorage
+  let shouldUseDemo: boolean;
+  
+  if (demoParam) {
+    shouldUseDemo = true;
+  } else if (localStorageDemo === null) {
+    // First time visitor - default to demo mode
+    shouldUseDemo = true;
+    // Set the default value in localStorage
+    localStorage.setItem('btk_demo_mode', 'true');
+  } else {
+    // Use the stored preference
+    shouldUseDemo = localStorageDemo === 'true';
+  }
   
   console.log('🔍 Demo Mode Check:', {
     url: window.location.href,

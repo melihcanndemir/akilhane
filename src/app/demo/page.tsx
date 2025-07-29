@@ -6,6 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { shouldUseDemoData, toggleDemoMode } from '@/data/demo-data';
 import { 
   Play, 
   Pause, 
@@ -71,8 +74,25 @@ export default function DemoPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  const [isDemoMode, setIsDemoMode] = useState(true);
   const { toast } = useToast();
   const router = useRouter();
+
+  // Initialize demo mode state
+  React.useEffect(() => {
+    const currentDemoMode = shouldUseDemoData();
+    setIsDemoMode(currentDemoMode);
+    
+    // If demo mode is not active, activate it for the demo page
+    if (!currentDemoMode) {
+      toggleDemoMode(true);
+      setIsDemoMode(true);
+      toast({
+        title: "Demo modu aktif",
+        description: "Demo verileri ile platform özelliklerini keşfedebilirsiniz.",
+      });
+    }
+  }, [toast]);
 
   const handleStepAction = (step: DemoStep) => {
     setCompletedSteps(prev => [...prev, step.id]);
@@ -120,6 +140,23 @@ export default function DemoPage() {
     }
   };
 
+  const handleDemoModeToggle = (checked: boolean) => {
+    setIsDemoMode(checked);
+    toggleDemoMode(checked);
+    
+    toast({
+      title: checked ? "Demo modu aktif" : "Demo modu kapatıldı",
+      description: checked 
+        ? "Demo verileri ile platform özelliklerini keşfedebilirsiniz." 
+        : "Gerçek veriler kullanılacak.",
+    });
+    
+    // Reload the page after a short delay to apply changes
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <MobileNav />
@@ -142,6 +179,22 @@ export default function DemoPage() {
           <p className="text-xl text-gray-600 dark:text-gray-400 mb-6">
             AI destekli eğitim platformunun tüm özelliklerini keşfedin
           </p>
+          
+          {/* Demo Mode Switch */}
+          <div className="flex items-center justify-center space-x-2 mb-6">
+            <Switch
+              id="demo-mode"
+              checked={isDemoMode}
+              onCheckedChange={handleDemoModeToggle}
+              className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-blue-600 data-[state=checked]:to-purple-600"
+            />
+            <Label 
+              htmlFor="demo-mode" 
+              className="text-sm font-medium cursor-pointer select-none"
+            >
+              Demo Modu {isDemoMode ? 'Aktif' : 'Kapalı'}
+            </Label>
+          </div>
           
           {/* Demo Controls */}
           <div className="flex items-center justify-center space-x-4 mb-8">

@@ -14,6 +14,15 @@ import remarkGfm from 'remark-gfm';
 import MobileNav from './mobile-nav';
 import { QuizResult } from './quiz-result';
 import LoadingSpinner from './loading-spinner';
+import { useToast } from '@/hooks/use-toast';
+import { toggleDemoMode } from '@/data/demo-data';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertCircle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { Clock, CheckCircle, XCircle, Brain, Sparkles, Target, TrendingUp } from 'lucide-react';
 
 interface Question {
   id: string;
@@ -62,6 +71,8 @@ const QuizComponent: React.FC<QuizProps> = ({ subject, isDemoMode = false }) => 
     timeSpent: 0,
     weakTopics: {}
   });
+
+  const { toast } = useToast();
 
   // Generate a unique user ID for this session
   const userId = React.useMemo(() => {
@@ -162,7 +173,79 @@ const QuizComponent: React.FC<QuizProps> = ({ subject, isDemoMode = false }) => 
         const localQuestions = getQuestionsFromStorage();
         
         if (localQuestions.length === 0) {
-          throw new Error('Bu ders için henüz soru bulunmuyor');
+          // If no questions available, show a message and offer to load demo questions
+          console.warn('No questions found for subject:', subject);
+          
+          // Automatically load demo questions as fallback
+          const confirmDemo = window.confirm(
+            `${subject} dersi için henüz soru bulunmuyor.\n\nDemo sorularla devam etmek ister misiniz?`
+          );
+          
+          if (confirmDemo) {
+            // Load demo questions
+            const demoQuestions: Question[] = [
+              {
+                id: 'demo_q_1',
+                subject: subject,
+                type: 'multiple-choice',
+                difficulty: 'Medium',
+                text: `${subject} Demo Soru 1: Temel kavramlar hakkında`,
+                topic: 'Temel Kavramlar',
+                options: [
+                  { text: 'Doğru cevap', isCorrect: true },
+                  { text: 'Yanlış cevap 1', isCorrect: false },
+                  { text: 'Yanlış cevap 2', isCorrect: false },
+                  { text: 'Yanlış cevap 3', isCorrect: false }
+                ],
+                explanation: 'Bu demo bir sorudur. Gerçek sorular için içerik eklemeniz gerekiyor.'
+              },
+              {
+                id: 'demo_q_2',
+                subject: subject,
+                type: 'multiple-choice',
+                difficulty: 'Medium',
+                text: `${subject} Demo Soru 2: Uygulama sorusu`,
+                topic: 'Uygulamalar',
+                options: [
+                  { text: 'Yanlış cevap 1', isCorrect: false },
+                  { text: 'Doğru cevap', isCorrect: true },
+                  { text: 'Yanlış cevap 2', isCorrect: false },
+                  { text: 'Yanlış cevap 3', isCorrect: false }
+                ],
+                explanation: 'Demo açıklama: Bu sorunun doğru cevabı ikinci seçenektir.'
+              },
+              {
+                id: 'demo_q_3',
+                subject: subject,
+                type: 'multiple-choice',
+                difficulty: 'Hard',
+                text: `${subject} Demo Soru 3: İleri düzey kavram`,
+                topic: 'İleri Düzey',
+                options: [
+                  { text: 'Yanlış cevap 1', isCorrect: false },
+                  { text: 'Yanlış cevap 2', isCorrect: false },
+                  { text: 'Doğru cevap', isCorrect: true },
+                  { text: 'Yanlış cevap 3', isCorrect: false }
+                ],
+                explanation: 'Demo açıklama: İleri düzey konular daha detaylı çalışma gerektirir.'
+              }
+            ];
+            
+            setQuestions(demoQuestions);
+            setTotalQuestions(demoQuestions.length);
+            setStartTime(new Date());
+            
+            // Show info toast
+            toast({
+              title: "Demo Sorular Yüklendi",
+              description: "Gerçek sorular eklemek için Soru Yönetimi sayfasını kullanın.",
+              variant: "default"
+            });
+            
+            return;
+          } else {
+            throw new Error('Bu ders için henüz soru bulunmuyor');
+          }
         }
 
         // Get up to 10 questions
@@ -174,15 +257,34 @@ const QuizComponent: React.FC<QuizProps> = ({ subject, isDemoMode = false }) => 
         
       } catch (error) {
         console.error('Error loading questions:', error);
-        // Show user-friendly error message
-        alert(`Soru yüklenirken hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`);
+        
+        // Show user-friendly error message with fallback options
+        const errorMessage = error instanceof Error ? error.message : 'Bilinmeyen hata';
+        
+        toast({
+          title: "Soru Yükleme Hatası",
+          description: errorMessage,
+          variant: "destructive"
+        });
+        
+        // Offer to switch to demo mode
+        if (!isDemoMode) {
+          const switchToDemo = window.confirm(
+            'Sorular yüklenirken bir hata oluştu.\n\nDemo moduna geçmek ister misiniz?'
+          );
+          
+          if (switchToDemo) {
+            toggleDemoMode(true);
+            window.location.reload();
+          }
+        }
       }
     };
 
     if (subject) {
       loadQuestions();
     }
-  }, [subject]);
+  }, [subject, isDemoMode]); // Added isDemoMode to dependency array
 
   // Timer
   useEffect(() => {
@@ -500,8 +602,35 @@ const QuizComponent: React.FC<QuizProps> = ({ subject, isDemoMode = false }) => 
     return (
       <div className="flex flex-col min-h-screen">
         <MobileNav />
-        <main className="flex-grow flex items-center justify-center">
-            <LoadingSpinner />
+        <main className="flex-grow flex items-center justify-center p-4">
+          <Card className="max-w-md w-full">
+            <CardHeader className="text-center">
+              <div className="flex justify-center mb-4">
+                <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-3 rounded-xl">
+                  <AlertCircle className="h-8 w-8 text-white" />
+                </div>
+              </div>
+              <CardTitle>Sorular Yükleniyor...</CardTitle>
+              <CardDescription>
+                {isDemoMode 
+                  ? "Demo sorular hazırlanıyor..." 
+                  : "Lütfen bekleyin, sorular yükleniyor..."}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center">
+              <LoadingSpinner />
+              <p className="text-sm text-muted-foreground mt-4">
+                Eğer bu mesaj uzun süre görünüyorsa, sayfayı yenilemeyi deneyin.
+              </p>
+              <Button 
+                onClick={() => window.location.reload()} 
+                variant="outline" 
+                className="mt-4"
+              >
+                Sayfayı Yenile
+              </Button>
+            </CardContent>
+          </Card>
         </main>
       </div>
     );
