@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   BookOpen,
   Brain,
@@ -16,6 +17,7 @@ import {
   User,
   Settings,
   Home,
+  UserCircle,
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { useAuth } from '@/hooks/useAuth';
@@ -77,7 +79,12 @@ export default function MobileNav() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="flex items-center gap-2 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0 max-w-[200px]">
-                    <User className="w-4 h-4 flex-shrink-0" />
+                    <Avatar className="w-6 h-6 flex-shrink-0">
+                      <AvatarImage src={user?.user_metadata?.avatar_url} alt={user?.user_metadata?.full_name || user?.email} />
+                      <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-medium">
+                        {user?.email?.charAt(0).toUpperCase() || user?.user_metadata?.full_name?.charAt(0).toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
                     <span className="truncate">
                     {user?.email?.split('@')[0] || user?.user_metadata?.full_name || 'Kullanıcı'}
                     </span>
@@ -90,6 +97,12 @@ export default function MobileNav() {
                       {user?.email}
                     </div>
                   </div>
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile" className="flex items-center gap-2">
+                      <UserCircle className="w-4 h-4" />
+                      Profilim
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/settings" className="flex items-center gap-2">
                       <Settings className="w-4 h-4" />
@@ -160,18 +173,35 @@ export default function MobileNav() {
                       <div className="space-y-3">
                         {/* User Information */}
                         <div className="glass-card-inner p-3 rounded-lg shadow-lg">
-                          <div className="flex items-start gap-2 text-sm text-foreground">
-                            <User className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                            <span className="font-medium break-words break-all min-w-0">{user.email}</span>
-                          </div>
-                          {user.user_metadata?.full_name && (
-                            <div className="text-xs text-muted-foreground mt-1">
-                              {user.user_metadata.full_name}
+                          <div className="flex items-start gap-3 text-sm text-foreground">
+                            <Avatar className="w-8 h-8 flex-shrink-0">
+                              <AvatarImage src={user?.user_metadata?.avatar_url} alt={user?.user_metadata?.full_name || user?.email} />
+                              <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-medium">
+                                {user?.email?.charAt(0).toUpperCase() || user?.user_metadata?.full_name?.charAt(0).toUpperCase() || 'U'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="min-w-0 flex-1">
+                              <span className="font-medium break-words break-all block">{user.email}</span>
+                              {user.user_metadata?.full_name && (
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  {user.user_metadata.full_name}
+                                </div>
+                              )}
                             </div>
-                          )}
+                          </div>
                         </div>
                         
-                        {/* Logout button - immediately below user information */}
+                        {/* Profile Link - Now at the top */}
+                        <Link
+                          href="/profile"
+                          onClick={() => setIsOpen(false)}
+                          className="flex items-center gap-3 p-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white backdrop-blur-sm transition-all duration-300 group hover:scale-105"
+                        >
+                          <UserCircle className="w-5 h-5 group-hover:text-white transition-colors duration-300" />
+                          <span className="font-medium group-hover:text-white transition-colors duration-300">Profilim</span>
+                        </Link>
+                        
+                        {/* Logout button */}
                         <Button
                           onClick={() => {
                             logout();

@@ -31,6 +31,19 @@ Bu proje, **BTK Akademi & Google Cloud & Girişimcilik Vakfı Hackathon'25** iç
 -   🎤 **Sesli Asistan Desteği:** "Soru oku", "cevabı göster" gibi komutlarla uygulamayı sesle kontrol etme.
 -   📱 **PWA (Progressive Web App):** Çevrimdışı çalışma ve mobil cihazınıza uygulama gibi kurma desteği.
 -   ⚙️ **Kapsamlı Yönetim Panelleri:** Hem dersleri hem de soruları kolayca yönetebileceğiniz arayüzler.
+-   👤 **Gelişmiş Profil Yönetimi:** Avatar yükleme/silme, şifre değiştirme ve veri yönetimi özellikleri.
+-   ☁️ **Cloudinary Avatar Sistemi:** Güvenli avatar yükleme ve yönetimi.
+-   🔐 **Güvenli Şifre Değiştirme:** Ayrı sayfa üzerinden güvenli şifre güncelleme.
+-   📦 **Veri Yönetimi:** Cloud backup, restore, clear ve hesap silme işlemleri.
+
+## 🎨 UI/UX Özellikleri
+
+-   **Gradient Design Language:** Tüm componentlerde tutarlı mavi-mor gradient tasarım dili.
+-   **Glassmorphism Effects:** Kartlarda modern cam efekti.
+-   **Responsive Design:** Tüm cihazlarda mükemmel görünüm.
+-   **Dark/Light Mode:** Kullanıcı tercihine göre tema değiştirme.
+-   **Enhanced Navigation:** Avatar display ve gelişmiş menü sistemi.
+-   **Interactive Elements:** Hover efektleri ve animasyonlar.
 
 ## 🛠️ Kullanılan Teknolojiler
 
@@ -48,6 +61,7 @@ Bu proje, **BTK Akademi & Google Cloud & Girişimcilik Vakfı Hackathon'25** iç
   <a href="https://www.framer.com/motion/" target="_blank"><img src="https://img.shields.io/badge/Framer_Motion-EF008F?style=for-the-badge&logo=framer&logoColor=white" alt="Framer Motion"></a>
   <a href="https://web.dev/progressive-web-apps/" target="_blank"><img src="https://img.shields.io/badge/PWA-4285F4?style=for-the-badge&logo=pwa&logoColor=white" alt="PWA"></a>
   <a href="https://www.i18next.com/" target="_blank"><img src="https://img.shields.io/badge/i18next-26A69A?style=for-the-badge&logo=i18next&logoColor=white" alt="i18next"></a>
+  <a href="https://cloudinary.com/" target="_blank"><img src="https://img.shields.io/badge/Cloudinary-3448C6?style=for-the-badge&logo=cloudinary&logoColor=white" alt="Cloudinary"></a>
 </div>
 
 ## 🔒 Security & Performance Features
@@ -57,6 +71,8 @@ Bu proje, **BTK Akademi & Google Cloud & Girişimcilik Vakfı Hackathon'25** iç
 - **⚡ Progressive Web App (PWA):** Offline functionality and native app-like experience
 - **🛡️ TypeScript Strict Mode:** Complete type safety throughout the application
 - **🎯 SEO Optimized:** Server-side rendering and meta tags for better search visibility
+- **☁️ Cloudinary Integration:** Secure image upload and management
+- **🔐 Supabase Auth:** Complete authentication system with real-time updates
 
 ## 🏗️ Teknik Derinlik ve Mimari
 
@@ -66,6 +82,8 @@ Bu proje, modern ve ölçeklenebilir bir mimari üzerine kurulmuştur.
 -   **Type-Safe Veritabanı:** **Drizzle ORM** ve **SQLite** kullanarak tamamen tip güvenli bir veritabanı katmanı oluşturulmuştur. Bu, SQL injection gibi zafiyetleri engeller ve geliştirme sürecini hızlandırır.
 -   **Gelişmiş AI Akışları:** **Genkit Framework** kullanılarak sadece basit API çağrıları yapılmamış, birden fazla AI modelini (Google Gemini, vb.) ve veri kaynaklarını birleştiren karmaşık "flow"lar tasarlanmıştır. Bu, AI çıktılarının daha güvenilir ve amaca yönelik olmasını sağlar.
 -   **Modüler ve Bileşen Tabanlı Arayüz:** **Radix UI** ve **Tailwind CSS** kullanılarak hem erişilebilir hem de yeniden kullanılabilir, modern bir UI kütüphanesi oluşturulmuştur.
+-   **Cloudinary Avatar Sistemi:** Güvenli avatar yükleme, silme ve yönetimi için Cloudinary entegrasyonu.
+-   **Supabase Auth Entegrasyonu:** Gerçek kullanıcı verileri ve güvenli kimlik doğrulama.
 
 <details>
 <summary><b>🗺️ Proje Genel Mimarisi (Mermaid Şeması)</b></summary>
@@ -84,6 +102,9 @@ flowchart TD
     AIChat
     VoiceAssistant
     AnalyticsDashboard
+    ProfileSettings
+    ChangePassword
+    DataManagement
   end
 
   subgraph API
@@ -92,6 +113,7 @@ flowchart TD
     QuizService
     SubjectService
     AIService
+    AvatarService
   end
 
   subgraph AI
@@ -110,11 +132,17 @@ flowchart TD
     FlashcardProgressTable
   end
 
+  subgraph Cloud
+    Cloudinary
+    SupabaseAuth
+  end
+
   UI --> APIRoute
   APIRoute --> PerformanceService
   APIRoute --> QuizService
   APIRoute --> SubjectService
   APIRoute --> AIService
+  APIRoute --> AvatarService
 
   PerformanceService --> QuizResultsTable
   PerformanceService --> PerformanceAnalyticsTable
@@ -127,6 +155,11 @@ flowchart TD
 
   AIService --> AIRecommendationsTable
   Flashcard --> FlashcardProgressTable
+
+  AvatarService --> Cloudinary
+  ProfileSettings --> SupabaseAuth
+  ChangePassword --> SupabaseAuth
+  DataManagement --> SupabaseAuth
 
   UsersTable <---> QuizResultsTable
   UsersTable <---> PerformanceAnalyticsTable
@@ -157,9 +190,14 @@ flowchart TD
 ```bash
 npm install
 ```
-3.  **`.env.local` dosyasını oluşturun:** `.env.example` dosyasını kopyalayarak kendi Google AI anahtarınızı ekleyin.
+3.  **`.env.local` dosyasını oluşturun:** `.env.example` dosyasını kopyalayarak kendi API anahtarlarınızı ekleyin.
     ```
     GOOGLE_API_KEY=your_google_api_key_here
+    CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+    CLOUDINARY_API_KEY=your_cloudinary_api_key
+    CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
     ```
 4.  **Veritabanını hazırlayın ve başlatın:**
 ```bash
@@ -203,6 +241,27 @@ npm run db:studio
 -   **performance_analytics**: Konu bazlı performans analizleri
 -   **ai_recommendations**: Kişiselleştirilmiş AI ders/konu önerileri
 -   **flashcard_progress**: Flashcard'ların öğrenilme durumu
+
+</details>
+
+<details>
+<summary><b>📁 Yeni Sayfalar ve Özellikler</b></summary>
+<br>
+
+### **👤 Profil Yönetimi**
+- **`/profile`** - Gelişmiş profil ayarları, avatar yönetimi
+- **`/change-password`** - Güvenli şifre değiştirme sayfası
+- **`/data-management`** - Veri yönetimi (backup, restore, clear, delete)
+
+### **☁️ API Routes**
+- **`/api/upload-avatar`** - Cloudinary avatar yükleme
+- **`/api/delete-avatar`** - Cloudinary avatar silme
+
+### **🎨 UI/UX İyileştirmeleri**
+- **Gradient Design Language** - Tüm componentlerde tutarlı mavi-mor gradient
+- **Glassmorphism Effects** - Modern cam efekti kartlarda
+- **Enhanced Navigation** - Avatar display ve gelişmiş menü
+- **Responsive Design** - Tüm cihazlarda mükemmel görünüm
 
 </details>
 
