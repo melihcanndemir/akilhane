@@ -1,4 +1,4 @@
-# **App Name**: AÖF Exam Prep
+# **App Name**: Akılhane
 
 ## Core Features:
 
