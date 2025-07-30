@@ -350,14 +350,23 @@ export default function QuestionManager() {
     }
   };
 
-  const loadQuestions = async () => {
+  const loadQuestions = async (forceSubject?: string) => {
     try {
       setIsLoading(true);
       
+      const subjectToLoad = forceSubject || selectedSubject;
+      console.log('📚 Loading questions for subject:', subjectToLoad);
+      
+      if (!subjectToLoad) {
+        console.log('⚠️ No subject selected, skipping question load');
+        setQuestions([]);
+        return;
+      }
+      
       // Use demo data for demo mode
       if (shouldUseDemoData()) {
-        // Demo questions
-        const demoQuestions: Question[] = [
+        // Demo questions - filter by subject
+        const allDemoQuestions: Question[] = [
           {
             id: 'demo_q_1',
             subject: 'Matematik' as any, // Type assertion for demo
@@ -389,14 +398,22 @@ export default function QuestionManager() {
             topic: 'Mekanik'
           }
         ];
-        setQuestions(demoQuestions);
+        
+        // Filter demo questions by subject
+        const demoQuestions = allDemoQuestions.filter(q => q.subject === subjectToLoad);
+        
+        // Also get questions from localStorage for demo mode
+        const localQuestions = QuestionLocalStorageService.getQuestionsBySubject(subjectToLoad);
+        const combinedQuestions = [...demoQuestions, ...localQuestions];
+        
+        setQuestions(combinedQuestions);
         return;
       }
 
       // Check Supabase usage
-      console.log('🎯 Question Manager - Loading questions for subject:', selectedSubject);
+      console.log('🎯 Question Manager - Loading questions for subject:', subjectToLoad);
       
-      const supabaseQuestions = await QuestionService.getQuestionsBySubject(selectedSubject);
+      const supabaseQuestions = await QuestionService.getQuestionsBySubject(subjectToLoad);
       const mappedQuestions: Question[] = supabaseQuestions.map(q => ({
         id: q.id,
         subject: q.subject,
@@ -414,14 +431,14 @@ export default function QuestionManager() {
       // Sync Supabase questions to localStorage
       console.log('📦 Syncing Supabase questions to localStorage...');
       const allQuestions = QuestionLocalStorageService.getQuestions();
-      const updatedQuestions = allQuestions.filter(q => q.subject !== selectedSubject);
+      const updatedQuestions = allQuestions.filter(q => q.subject !== subjectToLoad);
       updatedQuestions.push(...mappedQuestions);
       QuestionLocalStorageService.saveQuestions(updatedQuestions);
       
     } catch (error) {
       console.error('Error loading questions:', error);
       // Fallback to localStorage
-      const localQuestions = QuestionLocalStorageService.getQuestionsBySubject(selectedSubject);
+      const localQuestions = QuestionLocalStorageService.getQuestionsBySubject(subjectToLoad);
       setQuestions(localQuestions);
     } finally {
       setIsLoading(false);
@@ -848,16 +865,24 @@ export default function QuestionManager() {
           formula: aiQuestion.formula || '',
           topic: aiQuestion.topic,
         };
+        
+        console.log('➕ Adding question:', {
+          subject: questionData.subject,
+          type: questionData.type,
+          text: questionData.text.substring(0, 50) + '...'
+        });
 
         if (shouldUseDemoData()) {
-          QuestionLocalStorageService.addQuestion(questionData);
+          const addedQuestion = QuestionLocalStorageService.addQuestion(questionData);
+          console.log('✅ Question added to localStorage:', addedQuestion.id);
         } else {
           const { data: { session } } = await supabase.auth.getSession();
           
           if (!session) {
-            QuestionLocalStorageService.addQuestion(questionData);
+            const addedQuestion = QuestionLocalStorageService.addQuestion(questionData);
+            console.log('✅ Question added to localStorage (no session):', addedQuestion.id);
           } else {
-            await QuestionService.createQuestion({
+            const result = await QuestionService.createQuestion({
               subject_id: subjects.find(s => s.name === aiFormData.subject)?.id || '',
               subject: aiFormData.subject,
               topic: aiQuestion.topic,
@@ -870,8 +895,23 @@ export default function QuestionManager() {
               formula: aiQuestion.formula,
               is_active: true
             });
+            console.log('✅ Question added to Supabase:', result);
           }
         }
+      }
+      
+      // Update selected subject if different and reload questions
+      console.log('🔄 Current subject:', selectedSubject, 'AI subject:', aiFormData.subject);
+      
+      if (selectedSubject !== aiFormData.subject) {
+        console.log('📝 Switching to AI subject:', aiFormData.subject);
+        setSelectedSubject(aiFormData.subject);
+        // Force load questions for the new subject
+        await loadQuestions(aiFormData.subject);
+      } else {
+        // Refresh questions for current subject
+        console.log('🔄 Refreshing questions for current subject');
+        await loadQuestions();
       }
 
       toast({
@@ -884,9 +924,6 @@ export default function QuestionManager() {
       setAIGeneratedQuestions([]);
       setAIGenerationResult(null);
       setSelectedAIQuestions(new Set());
-      
-      // Refresh questions
-      loadQuestions();
     } catch (error) {
       console.error('Error adding AI questions:', error);
       toast({
@@ -935,11 +972,11 @@ export default function QuestionManager() {
                 onClick={() => {
                   setAIFormData({
                     ...aiFormData,
-                    subject: selectedSubject,
+                    subject: selectedSubject || subjects[0]?.name || '',
                   });
                   setIsAIDialogOpen(true);
                 }}
-                disabled={!selectedSubject}
+                disabled={!selectedSubject && subjects.length === 0}
                 className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0"
               >
                 <Sparkles className="w-4 h-4 mr-2" />
@@ -1433,7 +1470,10 @@ export default function QuestionManager() {
                     <Label htmlFor="ai-subject">Ders</Label>
                     <Select 
                       value={aiFormData.subject} 
-                      onValueChange={(value) => setAIFormData({...aiFormData, subject: value})}
+                      onValueChange={(value) => {
+                        console.log('🎯 AI Subject selected:', value);
+                        setAIFormData({...aiFormData, subject: value});
+                      }}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Ders seçin" />
