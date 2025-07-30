@@ -181,8 +181,8 @@ export async function POST(request: NextRequest) {
 
     let result;
     
-    // Check if Google AI API key is available
-    const hasApiKey = process.env.GOOGLE_GENAI_API_KEY || process.env.GOOGLE_AI_API_KEY;
+    // Check if Google AI API key is available (support multiple key names)
+    const hasApiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY || process.env.GOOGLE_AI_API_KEY;
     
     if (!hasApiKey || shouldUseDemoData()) {
       console.log('📝 Using mock question generation (no API key or demo mode)');
