@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { Plus, Edit, Trash2, Filter, BookOpen, Database, GraduationCap, Search } from 'lucide-react';
+import { Plus, Edit, Trash2, Filter, BookOpen, Database, GraduationCap, Search, Sparkles, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import type { Question } from '@/lib/types';
 import Link from 'next/link';
 import MobileNav from '@/components/mobile-nav';
@@ -18,6 +18,11 @@ import LoadingSpinner from '@/components/loading-spinner';
 import { shouldUseDemoData } from '@/data/demo-data';
 import { QuestionService, SubjectService } from '@/services/supabase-service';
 import { supabase } from '@/lib/supabase';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Progress } from '@/components/ui/progress';
 
 interface Subject {
   id: string;
@@ -27,6 +32,30 @@ interface Subject {
   difficulty: string;
   questionCount: number;
   isActive: boolean;
+}
+
+interface AIGeneratedQuestion {
+  text: string;
+  options: { text: string; isCorrect: boolean }[];
+  explanation: string;
+  topic: string;
+  formula?: string;
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+  keywords: string[];
+  learningObjective: string;
+}
+
+interface AIGenerationResult {
+  questions: AIGeneratedQuestion[];
+  metadata: {
+    totalGenerated: number;
+    subject: string;
+    topic: string;
+    averageDifficulty: string;
+    generationTimestamp: string;
+  };
+  qualityScore: number;
+  suggestions: string[];
 }
 
 // LocalStorage service for questions (fallback)
@@ -150,6 +179,21 @@ export default function QuestionManager() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
   const { toast } = useToast();
+  
+  // AI Generation states
+  const [isAIDialogOpen, setIsAIDialogOpen] = useState(false);
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  const [aiGeneratedQuestions, setAIGeneratedQuestions] = useState<AIGeneratedQuestion[]>([]);
+  const [aiGenerationResult, setAIGenerationResult] = useState<AIGenerationResult | null>(null);
+  const [selectedAIQuestions, setSelectedAIQuestions] = useState<Set<number>>(new Set());
+  const [aiFormData, setAIFormData] = useState({
+    subject: '',
+    topic: '',
+    type: 'multiple-choice' as 'multiple-choice' | 'true-false' | 'calculation' | 'case-study',
+    difficulty: 'Medium' as 'Easy' | 'Medium' | 'Hard',
+    count: 5,
+    guidelines: '',
+  });
 
   // Form state
   const [formData, setFormData] = useState({
@@ -724,6 +768,155 @@ export default function QuestionManager() {
     return matchesSearch && matchesDifficulty;
   });
 
+  // AI Generation functions
+  const handleAIGenerate = async () => {
+    try {
+      setIsGeneratingAI(true);
+      
+      // Get existing questions for the topic to avoid duplicates
+      const existingQuestions = questions
+        .filter(q => q.topic === aiFormData.topic)
+        .map(q => q.text)
+        .slice(0, 10); // Send max 10 for context
+
+      const response = await fetch('/api/ai-generate-questions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...aiFormData,
+          language: 'tr', // Turkish by default
+          existingQuestions,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate questions');
+      }
+
+      const result: AIGenerationResult = await response.json();
+      setAIGenerationResult(result);
+      setAIGeneratedQuestions(result.questions);
+      
+      // Auto-select high quality questions
+      const autoSelected = new Set<number>();
+      result.questions.forEach((q, idx) => {
+        // Auto-select if quality is good (has all required fields)
+        if (q.text && q.explanation && q.options.length >= 2) {
+          autoSelected.add(idx);
+        }
+      });
+      setSelectedAIQuestions(autoSelected);
+
+      toast({
+        title: 'AI Sorular Oluşturuldu!',
+        description: `${result.questions.length} soru başarıyla oluşturuldu. Kalite puanı: ${(result.qualityScore * 100).toFixed(0)}%`,
+      });
+    } catch (error) {
+      console.error('AI generation error:', error);
+      toast({
+        title: 'Hata!',
+        description: 'AI soru oluşturma sırasında bir hata oluştu',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGeneratingAI(false);
+    }
+  };
+
+  const handleApproveAIQuestions = async () => {
+    if (selectedAIQuestions.size === 0) {
+      toast({
+        title: 'Uyarı',
+        description: 'Lütfen eklemek istediğiniz soruları seçin',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      setIsCreating(true);
+      const questionsToAdd = aiGeneratedQuestions.filter((_, idx) => selectedAIQuestions.has(idx));
+      
+      for (const aiQuestion of questionsToAdd) {
+        const questionData = {
+          subject: aiFormData.subject,
+          type: aiFormData.type,
+          difficulty: aiQuestion.difficulty,
+          text: aiQuestion.text,
+          options: aiQuestion.options,
+          explanation: aiQuestion.explanation,
+          formula: aiQuestion.formula || '',
+          topic: aiQuestion.topic,
+        };
+
+        if (shouldUseDemoData()) {
+          QuestionLocalStorageService.addQuestion(questionData);
+        } else {
+          const { data: { session } } = await supabase.auth.getSession();
+          
+          if (!session) {
+            QuestionLocalStorageService.addQuestion(questionData);
+          } else {
+            await QuestionService.createQuestion({
+              subject_id: subjects.find(s => s.name === aiFormData.subject)?.id || '',
+              subject: aiFormData.subject,
+              topic: aiQuestion.topic,
+              type: aiFormData.type,
+              difficulty: aiQuestion.difficulty,
+              text: aiQuestion.text,
+              options: JSON.stringify(aiQuestion.options),
+              correct_answer: aiQuestion.options.find(opt => opt.isCorrect)?.text || '',
+              explanation: aiQuestion.explanation,
+              formula: aiQuestion.formula,
+              is_active: true
+            });
+          }
+        }
+      }
+
+      toast({
+        title: 'Başarılı!',
+        description: `${questionsToAdd.length} soru başarıyla eklendi`,
+      });
+
+      // Reset AI dialog
+      setIsAIDialogOpen(false);
+      setAIGeneratedQuestions([]);
+      setAIGenerationResult(null);
+      setSelectedAIQuestions(new Set());
+      
+      // Refresh questions
+      loadQuestions();
+    } catch (error) {
+      console.error('Error adding AI questions:', error);
+      toast({
+        title: 'Hata!',
+        description: 'Sorular eklenirken bir hata oluştu',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const toggleAIQuestionSelection = (index: number) => {
+    const newSelection = new Set(selectedAIQuestions);
+    if (newSelection.has(index)) {
+      newSelection.delete(index);
+    } else {
+      newSelection.add(index);
+    }
+    setSelectedAIQuestions(newSelection);
+  };
+
+  const selectAllAIQuestions = () => {
+    if (selectedAIQuestions.size === aiGeneratedQuestions.length) {
+      setSelectedAIQuestions(new Set());
+    } else {
+      setSelectedAIQuestions(new Set(aiGeneratedQuestions.map((_, idx) => idx)));
+    }
+  };
+
   return (
     <div className="min-h-screen">
       {/* Responsive Navigation Bar */}
@@ -737,7 +930,21 @@ export default function QuestionManager() {
               <h1 className="text-3xl font-headline font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Soru Yöneticisi</h1>
               <p className="text-muted-foreground">Soru ekle, düzenle ve yönet</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
+              <Button
+                onClick={() => {
+                  setAIFormData({
+                    ...aiFormData,
+                    subject: selectedSubject,
+                  });
+                  setIsAIDialogOpen(true);
+                }}
+                disabled={!selectedSubject}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                AI ile Soru Oluştur
+              </Button>
               {!isHydrated ? (
                 <div className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
                   Loading...
@@ -1198,6 +1405,293 @@ export default function QuestionManager() {
             </DialogClose>
             <Button onClick={handleUpdateQuestion}>Değişiklikleri Kaydet</Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* AI Question Generation Dialog */}
+      <Dialog open={isAIDialogOpen} onOpenChange={setIsAIDialogOpen}>
+        <DialogContent className="sm:max-w-[800px] max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-purple-600" />
+              AI ile Soru Oluştur
+            </DialogTitle>
+          </DialogHeader>
+          
+          <Tabs defaultValue="generate" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="generate">Oluştur</TabsTrigger>
+              <TabsTrigger value="review" disabled={aiGeneratedQuestions.length === 0}>
+                İncele ({aiGeneratedQuestions.length})
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="generate" className="space-y-4">
+              <div className="grid gap-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="ai-subject">Ders</Label>
+                    <Select 
+                      value={aiFormData.subject} 
+                      onValueChange={(value) => setAIFormData({...aiFormData, subject: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Ders seçin" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {subjects.map(subject => (
+                          <SelectItem key={subject.id} value={subject.name}>{subject.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="ai-topic">Konu</Label>
+                    <Input
+                      id="ai-topic"
+                      value={aiFormData.topic}
+                      onChange={(e) => setAIFormData({...aiFormData, topic: e.target.value})}
+                      placeholder="Örn: Türev ve İntegral"
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="ai-type">Soru Tipi</Label>
+                    <Select 
+                      value={aiFormData.type} 
+                      onValueChange={(value) => setAIFormData({...aiFormData, type: value as any})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="multiple-choice">Çoktan Seçmeli</SelectItem>
+                        <SelectItem value="true-false">Doğru/Yanlış</SelectItem>
+                        <SelectItem value="calculation">Hesaplama</SelectItem>
+                        <SelectItem value="case-study">Vaka Çalışması</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="ai-difficulty">Zorluk</Label>
+                    <Select 
+                      value={aiFormData.difficulty} 
+                      onValueChange={(value) => setAIFormData({...aiFormData, difficulty: value as any})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Easy">Kolay</SelectItem>
+                        <SelectItem value="Medium">Orta</SelectItem>
+                        <SelectItem value="Hard">Zor</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="ai-count">Soru Sayısı</Label>
+                    <Input
+                      id="ai-count"
+                      type="number"
+                      min="1"
+                      max="10"
+                      value={aiFormData.count}
+                      onChange={(e) => setAIFormData({...aiFormData, count: parseInt(e.target.value) || 1})}
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="ai-guidelines">Ek Yönergeler (Opsiyonel)</Label>
+                  <Textarea
+                    id="ai-guidelines"
+                    value={aiFormData.guidelines}
+                    onChange={(e) => setAIFormData({...aiFormData, guidelines: e.target.value})}
+                    placeholder="AI'ya ek talimatlar verebilirsiniz. Örn: Gerçek hayat örnekleri kullan, görsel tasvirler ekle..."
+                    rows={3}
+                  />
+                </div>
+                
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    AI tarafından oluşturulan sorular otomatik olarak kalite kontrolünden geçirilecek ve 
+                    onayınız alındıktan sonra soru bankasına eklenecektir.
+                  </AlertDescription>
+                </Alert>
+                
+                <Button 
+                  onClick={handleAIGenerate}
+                  disabled={isGeneratingAI || !aiFormData.subject || !aiFormData.topic}
+                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0"
+                >
+                  {isGeneratingAI ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                      Sorular Oluşturuluyor...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      AI ile Soru Oluştur
+                    </>
+                  )}
+                </Button>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="review" className="space-y-4">
+              {aiGenerationResult && (
+                <>
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-lg font-semibold">Oluşturulan Sorular</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {aiGenerationResult.metadata.subject} - {aiGenerationResult.metadata.topic}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="text-sm">
+                        <span className="font-medium">Kalite Puanı:</span>
+                        <Badge 
+                          variant={aiGenerationResult.qualityScore > 0.8 ? "default" : aiGenerationResult.qualityScore > 0.6 ? "secondary" : "destructive"}
+                          className="ml-2"
+                        >
+                          {(aiGenerationResult.qualityScore * 100).toFixed(0)}%
+                        </Badge>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={selectAllAIQuestions}
+                      >
+                        {selectedAIQuestions.size === aiGeneratedQuestions.length ? 'Hiçbirini Seçme' : 'Tümünü Seç'}
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <Progress value={aiGenerationResult.qualityScore * 100} className="mb-4" />
+                  
+                  {aiGenerationResult.suggestions.length > 0 && (
+                    <Alert className="mb-4">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        <strong>İyileştirme Önerileri:</strong>
+                        <ul className="list-disc list-inside mt-2">
+                          {aiGenerationResult.suggestions.map((suggestion, idx) => (
+                            <li key={idx} className="text-sm">{suggestion}</li>
+                          ))}
+                        </ul>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                  
+                  <ScrollArea className="h-[400px] pr-4">
+                    <div className="space-y-4">
+                      {aiGeneratedQuestions.map((question, idx) => (
+                        <Card 
+                          key={idx} 
+                          className={`cursor-pointer transition-all ${
+                            selectedAIQuestions.has(idx) 
+                              ? 'ring-2 ring-purple-600 bg-purple-50 dark:bg-purple-950/20' 
+                              : ''
+                          }`}
+                          onClick={() => toggleAIQuestionSelection(idx)}
+                        >
+                          <CardContent className="pt-6">
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex items-center gap-2">
+                                <Checkbox
+                                  checked={selectedAIQuestions.has(idx)}
+                                  onCheckedChange={() => toggleAIQuestionSelection(idx)}
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                                <Badge variant="outline">{question.difficulty}</Badge>
+                                <Badge variant="secondary">{question.topic}</Badge>
+                              </div>
+                              {selectedAIQuestions.has(idx) && (
+                                <CheckCircle className="w-5 h-5 text-purple-600" />
+                              )}
+                            </div>
+                            
+                            <h4 className="font-medium mb-2">{question.text}</h4>
+                            
+                            {question.options.length > 0 && (
+                              <div className="space-y-1 mb-3">
+                                {question.options.map((option, optIdx) => (
+                                  <div 
+                                    key={optIdx} 
+                                    className={`text-sm p-2 rounded ${
+                                      option.isCorrect 
+                                        ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' 
+                                        : 'bg-gray-100 dark:bg-gray-800'
+                                    }`}
+                                  >
+                                    {option.isCorrect && <CheckCircle className="w-3 h-3 inline mr-1" />}
+                                    {String.fromCharCode(65 + optIdx)}) {option.text}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            
+                            <div className="border-t pt-3">
+                              <p className="text-sm text-muted-foreground">
+                                <strong>Açıklama:</strong> {question.explanation}
+                              </p>
+                              {question.learningObjective && (
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  <strong>Öğrenme Hedefi:</strong> {question.learningObjective}
+                                </p>
+                              )}
+                              {question.keywords.length > 0 && (
+                                <div className="flex gap-1 mt-2">
+                                  {question.keywords.map((keyword, kIdx) => (
+                                    <Badge key={kIdx} variant="outline" className="text-xs">
+                                      {keyword}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                  
+                  <div className="flex justify-between items-center pt-4 border-t">
+                    <p className="text-sm text-muted-foreground">
+                      {selectedAIQuestions.size} / {aiGeneratedQuestions.length} soru seçildi
+                    </p>
+                    <div className="flex gap-2">
+                      <Button variant="outline" onClick={() => setIsAIDialogOpen(false)}>
+                        İptal
+                      </Button>
+                      <Button 
+                        onClick={handleApproveAIQuestions}
+                        disabled={selectedAIQuestions.size === 0 || isCreating}
+                        className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0"
+                      >
+                        {isCreating ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                            Ekleniyor...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Seçili Soruları Ekle
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </TabsContent>
+          </Tabs>
         </DialogContent>
       </Dialog>
     </div>
