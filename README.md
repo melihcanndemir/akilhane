@@ -73,6 +73,9 @@ Bu proje, **BTK Akademi & Google Cloud & Girişimcilik Vakfı Hackathon'25** iç
 - **🎯 SEO Optimized:** Server-side rendering and meta tags for better search visibility
 - **☁️ Cloudinary Integration:** Secure image upload and management
 - **🔐 Supabase Auth:** Complete authentication system with real-time updates
+- **🤖 AI-Powered Question Generation:** Generate high-quality exam questions using Google's Gemini AI
+- **✅ Question Review Workflow:** Review and approve AI-generated questions before adding to question bank
+- **🌐 Multi-language Support:** AI generation supports both Turkish and English languages
 
 ## 🏗️ Teknik Derinlik ve Mimari
 
