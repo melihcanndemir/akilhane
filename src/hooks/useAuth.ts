@@ -95,11 +95,11 @@ export function useAuth() {
   };
 
   // Debug logging for current state
-  console.log('🎯 useAuth current state:', { 
-    user: user?.email || 'none', 
-    loading, 
-    isAuthenticated: !!user 
-  });
+  // console.log('🎯 useAuth current state:', { 
+  //   user: user?.email || 'none', 
+  //   loading, 
+  //   isAuthenticated: !!user 
+  // });
 
   return {
     user,
