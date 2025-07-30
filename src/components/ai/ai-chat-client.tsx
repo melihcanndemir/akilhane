@@ -16,6 +16,21 @@ import { supabase } from '@/lib/supabase';
 import AiChatHistory from './ai-chat-history';
 import localStorageService from '@/services/localStorage-service';
 
+// LocalStorage service for subjects
+class SubjectLocalStorageService {
+  private static readonly STORAGE_KEY = 'exam_training_subjects';
+
+  static getSubjects(): any[] {
+    if (typeof window === 'undefined') return [];
+    try {
+      const stored = localStorage.getItem(this.STORAGE_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  }
+}
+
 interface Message {
   id: string;
   role: 'user' | 'assistant';
@@ -78,13 +93,16 @@ export default function AiChatClient() {
   // Fetch subjects
   const fetchSubjects = async () => {
     try {
-      const response = await fetch('/api/subjects');
-      if (response.ok) {
-        const data = await response.json();
-        setSubjects(data);
-      }
+      // Get user's custom subjects from localStorage
+      const customSubjects = SubjectLocalStorageService.getSubjects();
+      console.log('📚 Custom subjects from localStorage:', customSubjects);
+      
+      // Only show custom subjects, no demo subjects
+      setSubjects(customSubjects);
     } catch (error) {
       console.error('❌ Error fetching subjects:', error);
+      // Fallback to empty array on error
+      setSubjects([]);
     }
   };
 
@@ -476,21 +494,21 @@ export default function AiChatClient() {
       <Card className="w-full max-w-5xl h-[calc(100vh-4rem)] flex flex-col shadow-2xl mt-2 border-gradient-question p-0">
         <CardHeader className="border-b">
           <CardTitle className="flex items-center justify-between text-lg md:text-xl">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <Sparkles className="text-blue-500 w-5 h-5 sm:w-6 sm:h-6" />
-              <div className="flex items-center gap-1 sm:gap-2">
-                <span className="text-sm sm:text-base">AI Tutor</span>
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+              <Sparkles className="text-blue-500 w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
+              <div className="flex items-center gap-1 sm:gap-2 min-w-0 flex-1">
+                <span className="text-sm sm:text-base flex-shrink-0">AI Tutor</span>
                 <div className="relative subject-selector">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setShowSubjectSelector(!showSubjectSelector)}
-                    className="gap-1 sm:gap-2 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0 text-xs sm:text-sm h-8 sm:h-9 w-20 sm:w-24 justify-center"
+                    className="gap-1 sm:gap-2 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0 text-xs sm:text-sm h-8 sm:h-9 min-w-[80px] sm:min-w-[100px] max-w-[120px] sm:max-w-[150px] justify-center"
                   >
-                    <BookOpen className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span className="hidden sm:inline">{currentSubject}</span>
-                    <span className="sm:hidden">{currentSubject.length > 8 ? currentSubject.substring(0, 8) + '...' : currentSubject}</span>
-                    <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <BookOpen className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    <span className="hidden sm:inline truncate">{currentSubject}</span>
+                    <span className="sm:hidden truncate">{currentSubject.length > 6 ? currentSubject.substring(0, 6) + '...' : currentSubject}</span>
+                    <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                   </Button>
                   
                   {/* Subject Selector Dropdown */}
@@ -553,7 +571,7 @@ export default function AiChatClient() {
               </div>
             </div>
             {isAuthenticated && (
-              <div className="flex items-center gap-1 sm:gap-2">
+              <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                 <AiChatHistory
                   onSessionSelect={handleSessionSelect}
                   currentSessionId={currentSessionId || undefined}
