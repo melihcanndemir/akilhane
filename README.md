@@ -23,6 +23,7 @@ Bu proje, **BTK Akademi & Google Cloud & Girişimcilik Vakfı Hackathon'25** iç
 
 ## 🚀 Ana Özellikler
 
+-   🤖 **AI Destekli Soru Üretimi:** Google Gemini AI ile otomatik olarak yüksek kaliteli sorular oluşturan, konu ve zorluk seviyesine göre özelleştirilebilen akıllı sistem.
 -   🧠 **Kişiselleştirilmiş Öğrenme Asistanı:** Performansınıza göre size özel testler ve konular öneren akıllı sistem.
 -   🎓 **AI Tutor ile Anında Yardım:** Anlamadığınız sorularda size ipuçları veren, adım adım çözüm sunan ve konuyu özetleyen yapay zeka öğretmeni.
 -   💬 **Etkileşimli AI Sohbet:** Ders konuları hakkında yapay zeka ile sohbet etme ve derinlemesine bilgi alma imkanı.
@@ -73,9 +74,11 @@ Bu proje, **BTK Akademi & Google Cloud & Girişimcilik Vakfı Hackathon'25** iç
 - **🎯 SEO Optimized:** Server-side rendering and meta tags for better search visibility
 - **☁️ Cloudinary Integration:** Secure image upload and management
 - **🔐 Supabase Auth:** Complete authentication system with real-time updates
-- **🤖 AI-Powered Question Generation:** Generate high-quality exam questions using Google's Gemini AI
-- **✅ Question Review Workflow:** Review and approve AI-generated questions before adding to question bank
+- **🤖 AI-Powered Question Generation:** Generate high-quality exam questions using Google's Gemini AI with advanced JSON parsing and error handling
+- **✅ Question Review Workflow:** Review and approve AI-generated questions before adding to question bank with optional answer visibility
 - **🌐 Multi-language Support:** AI generation supports both Turkish and English languages
+- **📱 Mobile-Responsive AI Interface:** Fully responsive AI question generation and review interface
+- **💾 Hybrid Data Storage:** LocalStorage for offline functionality, Supabase for authenticated users
 
 ## 🏗️ Teknik Derinlik ve Mimari
 
@@ -195,12 +198,21 @@ npm install
 ```
 3.  **`.env.local` dosyasını oluşturun:** `.env.example` dosyasını kopyalayarak kendi API anahtarlarınızı ekleyin.
     ```
-    GOOGLE_API_KEY=your_google_api_key_here
+    # AI Configuration (Required for AI question generation)
+    GEMINI_API_KEY=your_google_ai_api_key_here
+    
+    # Supabase Configuration
+    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+    DATABASE_URL=your_database_url
+    
+    # Cloudinary Configuration (Optional)
     CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
     CLOUDINARY_API_KEY=your_cloudinary_api_key
     CLOUDINARY_API_SECRET=your_cloudinary_api_secret
-    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+    
+    # Demo Mode (Optional)
+    NEXT_PUBLIC_DEMO_MODE=false
     ```
 4.  **Veritabanını hazırlayın ve başlatın:**
 ```bash
@@ -250,6 +262,11 @@ npm run db:studio
 <details>
 <summary><b>📁 Yeni Sayfalar ve Özellikler</b></summary>
 <br>
+
+### **🤖 AI Destekli Özellikler**
+- **`/question-manager`** - AI destekli soru üretimi ve yönetimi
+- **`/ai-chat`** - AI Tutor ile etkileşimli sohbet
+- **`/flashcard`** - AI destekli akıllı flashcard sistemi
 
 ### **👤 Profil Yönetimi**
 - **`/profile`** - Gelişmiş profil ayarları, avatar yönetimi
