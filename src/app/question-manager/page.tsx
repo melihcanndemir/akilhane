@@ -186,6 +186,7 @@ export default function QuestionManager() {
   const [aiGeneratedQuestions, setAIGeneratedQuestions] = useState<AIGeneratedQuestion[]>([]);
   const [aiGenerationResult, setAIGenerationResult] = useState<AIGenerationResult | null>(null);
   const [selectedAIQuestions, setSelectedAIQuestions] = useState<Set<number>>(new Set());
+  const [activeAITab, setActiveAITab] = useState<string>("generate");
   const [aiFormData, setAIFormData] = useState({
     subject: '',
     topic: '',
@@ -811,6 +812,12 @@ export default function QuestionManager() {
       }
 
       const result: AIGenerationResult = await response.json();
+      console.log('📥 AI Generation Result:', {
+        questionsCount: result.questions.length,
+        metadata: result.metadata,
+        firstQuestion: result.questions[0]
+      });
+      
       setAIGenerationResult(result);
       setAIGeneratedQuestions(result.questions);
       
@@ -823,6 +830,14 @@ export default function QuestionManager() {
         }
       });
       setSelectedAIQuestions(autoSelected);
+      
+      console.log('✅ Questions set:', {
+        totalQuestions: result.questions.length,
+        autoSelected: autoSelected.size
+      });
+
+      // Switch to review tab
+      setActiveAITab("review");
 
       toast({
         title: 'AI Sorular Oluşturuldu!',
@@ -1446,7 +1461,19 @@ export default function QuestionManager() {
       </Dialog>
       
       {/* AI Question Generation Dialog */}
-      <Dialog open={isAIDialogOpen} onOpenChange={setIsAIDialogOpen}>
+      <Dialog 
+        open={isAIDialogOpen} 
+        onOpenChange={(open) => {
+          setIsAIDialogOpen(open);
+          // Reset states when closing
+          if (!open) {
+            setAIGeneratedQuestions([]);
+            setAIGenerationResult(null);
+            setSelectedAIQuestions(new Set());
+            setActiveAITab("generate");
+          }
+        }}
+      >
         <DialogContent className="sm:max-w-[800px] max-h-[90vh]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -1455,7 +1482,11 @@ export default function QuestionManager() {
             </DialogTitle>
           </DialogHeader>
           
-          <Tabs defaultValue="generate" className="w-full">
+          <Tabs 
+            value={activeAITab}
+            onValueChange={setActiveAITab}
+            className="w-full"
+          >
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="generate">Oluştur</TabsTrigger>
               <TabsTrigger value="review" disabled={aiGeneratedQuestions.length === 0}>
@@ -1583,7 +1614,8 @@ export default function QuestionManager() {
             </TabsContent>
             
             <TabsContent value="review" className="space-y-4">
-              {aiGenerationResult && (
+              {console.log('📋 Review Tab - Questions:', aiGeneratedQuestions.length, 'Result:', aiGenerationResult)}
+              {aiGenerationResult && aiGeneratedQuestions.length > 0 ? (
                 <>
                   <div className="flex items-center justify-between mb-4">
                     <div>
@@ -1729,6 +1761,22 @@ export default function QuestionManager() {
                     </div>
                   </div>
                 </>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <Sparkles className="w-16 h-16 text-purple-400 mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">
+                    Henüz soru oluşturulmadı
+                  </h3>
+                  <p className="text-muted-foreground mb-4">
+                    AI ile soru oluşturmak için "Oluştur" sekmesini kullanın
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setActiveAITab("generate")}
+                  >
+                    Soru Oluştur
+                  </Button>
+                </div>
               )}
             </TabsContent>
           </Tabs>

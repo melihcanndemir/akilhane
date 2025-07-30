@@ -7,6 +7,7 @@ export const runtime = 'nodejs';
 
 // Mock question generation for demo/development when API key is not available
 function generateMockQuestions(input: QuestionGenerationInput) {
+  console.log('🎲 Generating mock questions:', input);
   const questions = [];
   const typeTemplates = {
     'multiple-choice': {
@@ -27,6 +28,15 @@ function generateMockQuestions(input: QuestionGenerationInput) {
             { text: 'İlgisiz kavram 1', isCorrect: false },
             { text: 'İlgisiz kavram 2', isCorrect: false },
             { text: 'İlgisiz kavram 3', isCorrect: false },
+          ],
+        },
+        {
+          text: `${input.topic} hakkında aşağıdaki ifadelerden hangisi doğrudur?`,
+          options: [
+            { text: 'Doğru ifade', isCorrect: true },
+            { text: 'Yanlış ifade 1', isCorrect: false },
+            { text: 'Yanlış ifade 2', isCorrect: false },
+            { text: 'Yanlış ifade 3', isCorrect: false },
           ],
         },
       ],
@@ -96,10 +106,19 @@ function generateMockQuestions(input: QuestionGenerationInput) {
 
   const templates = typeTemplates[input.type][input.language || 'tr'] || typeTemplates[input.type]['tr'];
   
-  for (let i = 0; i < Math.min(input.count, templates.length); i++) {
+  // Generate requested number of questions, cycling through templates if needed
+  for (let i = 0; i < input.count; i++) {
     const template = templates[i % templates.length];
+    const questionNumber = i + 1;
+    
+    // Customize each question slightly to add variety
+    const customizedText = template.text.replace(
+      input.topic,
+      `${input.topic} (Soru ${questionNumber})`
+    );
+    
     questions.push({
-      text: template.text,
+      text: customizedText,
       options: template.options || [],
       explanation: input.language === 'en' 
         ? `This question tests understanding of ${input.topic} in ${input.subject}.`
@@ -113,6 +132,8 @@ function generateMockQuestions(input: QuestionGenerationInput) {
         : `${input.topic} kavramlarını anlama`,
     });
   }
+
+  console.log('📊 Total questions generated:', questions.length);
 
   return {
     questions,
@@ -166,6 +187,12 @@ export async function POST(request: NextRequest) {
     if (!hasApiKey || shouldUseDemoData()) {
       console.log('📝 Using mock question generation (no API key or demo mode)');
       result = generateMockQuestions(body);
+      console.log('📊 Mock generation result:', {
+        questionsCount: result.questions.length,
+        subjects: result.metadata.subject,
+        topic: result.metadata.topic,
+        firstQuestion: result.questions[0]?.text
+      });
     } else {
       try {
         // Call the AI generation flow
