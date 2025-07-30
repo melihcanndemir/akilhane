@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -74,12 +74,20 @@ export default function DemoPage() {
   const { toast } = useToast();
   const router = useRouter();
 
+  // Activate demo mode when page loads
+  useEffect(() => {
+    localStorage.setItem('btk_demo_mode', 'true');
+  }, []);
+
   const handleStepAction = (step: DemoStep) => {
     setCompletedSteps(prev => [...prev, step.id]);
     toast({
       title: `${step.title} başlatılıyor!`,
       description: step.description,
     });
+    
+    // Ensure demo mode is active
+    localStorage.setItem('btk_demo_mode', 'true');
     
     // Navigate to the actual feature
     switch (step.id) {
@@ -101,6 +109,8 @@ export default function DemoPage() {
   const handlePlayPause = () => {
     setIsPlaying(!isPlaying);
     if (!isPlaying) {
+      // Ensure demo mode is active
+      localStorage.setItem('btk_demo_mode', 'true');
       toast({
         title: "Demo başlatıldı!",
         description: "AkılHane'nin özelliklerini keşfedin.",

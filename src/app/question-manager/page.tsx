@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { Plus, Edit, Trash2, Filter, BookOpen, Database, GraduationCap, Search, Sparkles, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Plus, Edit, Trash2, Filter, BookOpen, Database, GraduationCap, Search, Sparkles, CheckCircle, AlertCircle } from 'lucide-react';
 import type { Question } from '@/lib/types';
 import Link from 'next/link';
 import MobileNav from '@/components/mobile-nav';
@@ -187,6 +187,7 @@ export default function QuestionManager() {
   const [aiGenerationResult, setAIGenerationResult] = useState<AIGenerationResult | null>(null);
   const [selectedAIQuestions, setSelectedAIQuestions] = useState<Set<number>>(new Set());
   const [activeAITab, setActiveAITab] = useState<string>("generate");
+  const [showAnswers, setShowAnswers] = useState(false);
   const [aiFormData, setAIFormData] = useState({
     subject: '',
     topic: '',
@@ -352,10 +353,11 @@ export default function QuestionManager() {
   };
 
   const loadQuestions = async (forceSubject?: string) => {
+    const subjectToLoad = forceSubject || selectedSubject;
+    
     try {
       setIsLoading(true);
       
-      const subjectToLoad = forceSubject || selectedSubject;
       console.log('📚 Loading questions for subject:', subjectToLoad);
       
       if (!subjectToLoad) {
@@ -409,32 +411,52 @@ export default function QuestionManager() {
         
         setQuestions(combinedQuestions);
         return;
+      } else {
+        // Demo mode is disabled - check authentication for Supabase
+        console.log('🎯 Demo mode disabled - checking authentication for Supabase');
+        
+        // Check authentication
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          // No session - use localStorage only
+          console.log('❌ No session found, using localStorage only');
+          const localQuestions = QuestionLocalStorageService.getQuestionsBySubject(subjectToLoad);
+          setQuestions(localQuestions);
+          return;
+        }
+        
+        // Has session - try Supabase
+        console.log('✅ Session found, trying Supabase');
+        try {
+          const supabaseQuestions = await QuestionService.getQuestionsBySubject(subjectToLoad);
+          const mappedQuestions: Question[] = supabaseQuestions.map(q => ({
+            id: q.id,
+            subject: q.subject,
+            type: q.type as 'multiple-choice' | 'true-false' | 'calculation' | 'case-study',
+            difficulty: q.difficulty as 'Easy' | 'Medium' | 'Hard',
+            text: q.text,
+            options: JSON.parse(q.options),
+            explanation: q.explanation,
+            topic: q.topic,
+            formula: q.formula || ''
+          }));
+          
+          setQuestions(mappedQuestions);
+          
+          // Sync Supabase questions to localStorage
+          console.log('📦 Syncing Supabase questions to localStorage...');
+          const allQuestions = QuestionLocalStorageService.getQuestions();
+          const updatedQuestions = allQuestions.filter(q => q.subject !== subjectToLoad);
+          updatedQuestions.push(...mappedQuestions);
+          QuestionLocalStorageService.saveQuestions(updatedQuestions);
+        } catch (error) {
+          console.error('❌ Supabase error, falling back to localStorage:', error);
+          const localQuestions = QuestionLocalStorageService.getQuestionsBySubject(subjectToLoad);
+          setQuestions(localQuestions);
+        }
+        return;
       }
-
-      // Check Supabase usage
-      console.log('🎯 Question Manager - Loading questions for subject:', subjectToLoad);
-      
-      const supabaseQuestions = await QuestionService.getQuestionsBySubject(subjectToLoad);
-      const mappedQuestions: Question[] = supabaseQuestions.map(q => ({
-        id: q.id,
-        subject: q.subject,
-        type: q.type as 'multiple-choice' | 'true-false' | 'calculation' | 'case-study',
-        difficulty: q.difficulty as 'Easy' | 'Medium' | 'Hard',
-        text: q.text,
-        options: JSON.parse(q.options),
-        explanation: q.explanation,
-        topic: q.topic,
-        formula: q.formula || ''
-      }));
-      
-      setQuestions(mappedQuestions);
-      
-      // Sync Supabase questions to localStorage
-      console.log('📦 Syncing Supabase questions to localStorage...');
-      const allQuestions = QuestionLocalStorageService.getQuestions();
-      const updatedQuestions = allQuestions.filter(q => q.subject !== subjectToLoad);
-      updatedQuestions.push(...mappedQuestions);
-      QuestionLocalStorageService.saveQuestions(updatedQuestions);
       
     } catch (error) {
       console.error('Error loading questions:', error);
@@ -473,34 +495,13 @@ export default function QuestionManager() {
 
       const validOptions = formData.options.filter(opt => opt.text.trim() !== '');
 
-      // Demo mode control
-      if (shouldUseDemoData()) {
-        QuestionLocalStorageService.addQuestion({
-          subject: formData.subject,
-          type: formData.type === 'Çoktan Seçmeli' ? 'multiple-choice' : 
-                formData.type === 'Doğru/Yanlış' ? 'true-false' :
-                formData.type === 'Hesaplama' ? 'calculation' : 'case-study',
-          difficulty: formData.difficulty === 'Kolay' ? 'Easy' : 
-                     formData.difficulty === 'Orta' ? 'Medium' : 'Hard',
-          text: formData.text,
-          options: validOptions,
-          explanation: formData.explanation,
-          formula: formData.formula,
-          topic: formData.topic
-        });
-
-        toast({ title: 'Başarılı!', description: 'Soru başarıyla oluşturuldu!' });
-        resetForm();
-        loadQuestions();
-        return;
-      }
-
-      // Check authentication
+      // Check authentication first
       console.log('🔐 Question Manager - Checking authentication for create...');
       const { data: { session } } = await supabase.auth.getSession();
       
-      if (!session) {
-        console.log('❌ No session found, using localStorage for create');
+      // If no session or demo mode, use localStorage
+      if (!session || shouldUseDemoData()) {
+        console.log('❌ No session or demo mode, using localStorage for create');
         QuestionLocalStorageService.addQuestion({
           subject: formData.subject,
           type: formData.type === 'Çoktan Seçmeli' ? 'multiple-choice' : 
@@ -974,15 +975,15 @@ export default function QuestionManager() {
       {/* Responsive Navigation Bar */}
       <MobileNav />
 
-      <div className="p-4 md:p-8">
-        <div className="container mx-auto space-y-8">
+      <div className="p-1 sm:p-4 md:p-8">
+        <div className="container mx-auto space-y-2 sm:space-y-8">
           {/* Header */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-headline font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Soru Yöneticisi</h1>
+              <h1 className="text-2xl sm:text-3xl font-headline font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Soru Yöneticisi</h1>
               <p className="text-muted-foreground">Soru ekle, düzenle ve yönet</p>
             </div>
-            <div className="flex gap-2 items-center">
+            <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
               <Button
                 onClick={() => {
                   setAIFormData({
@@ -992,49 +993,50 @@ export default function QuestionManager() {
                   setIsAIDialogOpen(true);
                 }}
                 disabled={!selectedSubject && subjects.length === 0}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0"
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 w-full sm:w-auto shadow-lg"
               >
                 <Sparkles className="w-4 h-4 mr-2" />
-                AI ile Soru Oluştur
+                <span className="hidden sm:inline">AI ile Soru Oluştur</span>
+                <span className="sm:hidden">AI Soru</span>
               </Button>
               {!isHydrated ? (
-                <div className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
+                <div className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium w-full sm:w-auto text-center">
                   Loading...
                 </div>
               ) : shouldUseDemoData() ? (
-                <div className="px-3 py-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full text-xs font-medium">
+                <div className="px-3 py-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full text-xs font-medium w-full sm:w-auto text-center">
                   BTK Demo
                 </div>
               ) : isAuthenticated ? (
-                <div className="px-3 py-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full text-xs font-medium">
-                  ☁️ Cloud Storage
+                <div className="px-3 py-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full text-xs font-medium w-full sm:w-auto text-center">
+                  💾 LocalStorage
                 </div>
               ) : (
-                <div className="px-3 py-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full text-xs font-medium">
+                <div className="px-3 py-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full text-xs font-medium w-full sm:w-auto text-center">
                   💾 LocalStorage
                 </div>
               )}
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-8">
             {/* Create Question Form */}
             <Card id="question-form" className="glass-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Plus className="w-5 h-5" />
+              <CardHeader className="p-3 sm:p-6">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-xl">
+                  <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
                   Yeni Soru Ekle
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-xs sm:text-sm">
                   Yeni bir soru oluşturmak için formu doldurun
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+              <CardContent className="space-y-2 sm:space-y-4 p-3 sm:p-6 max-h-[70vh] overflow-y-auto">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
                   <div>
-                    <Label htmlFor="subject">Ders</Label>
+                    <Label htmlFor="subject" className="text-sm">Ders</Label>
                     <Select value={formData.subject} onValueChange={(value) => setFormData({...formData, subject: value})}>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-9 sm:h-10">
                         <SelectValue placeholder="Ders seçin" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1063,21 +1065,22 @@ export default function QuestionManager() {
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="topic">Konu</Label>
+                    <Label htmlFor="topic" className="text-sm">Konu</Label>
                     <Input
                       id="topic"
                       value={formData.topic}
                       onChange={(e) => setFormData({...formData, topic: e.target.value})}
                       placeholder="Örn: Finansal Tablolar"
+                      className="h-9 sm:h-10"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
                   <div>
-                    <Label htmlFor="type">Soru Tipi</Label>
+                    <Label htmlFor="type" className="text-sm">Soru Tipi</Label>
                     <Select value={formData.type} onValueChange={(value) => setFormData({...formData, type: value})}>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-9 sm:h-10">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1100,9 +1103,9 @@ export default function QuestionManager() {
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="difficulty">Zorluk</Label>
+                    <Label htmlFor="difficulty" className="text-sm">Zorluk</Label>
                     <Select value={formData.difficulty} onValueChange={(value) => setFormData({...formData, difficulty: value})}>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-9 sm:h-10">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1127,13 +1130,14 @@ export default function QuestionManager() {
                 </div>
 
                 <div>
-                  <Label htmlFor="text">Soru Metni</Label>
+                  <Label htmlFor="text" className="text-sm">Soru Metni</Label>
                   <Textarea
                     id="text"
                     value={formData.text}
                     onChange={(e) => setFormData({...formData, text: e.target.value})}
                     placeholder="Soruyu buraya yazın..."
-                    rows={3}
+                    rows={1}
+                    className="min-h-[40px] sm:min-h-[80px]"
                   />
                 </div>
 
@@ -1175,13 +1179,14 @@ export default function QuestionManager() {
                 )}
 
                 <div>
-                  <Label htmlFor="explanation">Açıklama</Label>
+                  <Label htmlFor="explanation" className="text-sm">Açıklama</Label>
                   <Textarea
                     id="explanation"
                     value={formData.explanation}
                     onChange={(e) => setFormData({...formData, explanation: e.target.value})}
                     placeholder="Doğru cevabın açıklaması..."
-                    rows={3}
+                    rows={1}
+                    className="min-h-[40px] sm:min-h-[80px]"
                   />
                 </div>
 
@@ -1197,16 +1202,29 @@ export default function QuestionManager() {
                   </div>
                 )}
 
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Button 
                     onClick={handleCreateQuestion} 
                     disabled={isCreating}
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0"
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0 h-8 sm:h-10"
                   >
-                    {isCreating ? 'Oluşturuluyor...' : 'Soru Oluştur'}
+                    {isCreating ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                        <span className="hidden sm:inline">Oluşturuluyor...</span>
+                        <span className="sm:hidden">Oluşturuluyor</span>
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="w-4 h-4 mr-2" />
+                        <span className="hidden sm:inline">Soru Oluştur</span>
+                        <span className="sm:hidden">Oluştur</span>
+                      </>
+                    )}
                   </Button>
-                  <Button variant="outline" onClick={resetForm}>
-                    Sıfırla
+                  <Button variant="outline" onClick={resetForm} className="h-8 sm:h-10">
+                    <span className="hidden sm:inline">Sıfırla</span>
+                    <span className="sm:hidden">Temizle</span>
                   </Button>
                 </div>
               </CardContent>
@@ -1474,7 +1492,7 @@ export default function QuestionManager() {
           }
         }}
       >
-        <DialogContent className="sm:max-w-[800px] max-h-[90vh]">
+        <DialogContent className="sm:max-w-[800px] max-h-[90vh] w-[98vw] max-w-[98vw] h-[95vh] sm:h-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-purple-600" />
@@ -1494,9 +1512,9 @@ export default function QuestionManager() {
               </TabsTrigger>
             </TabsList>
             
-            <TabsContent value="generate" className="space-y-4">
-              <div className="grid gap-4">
-                <div className="grid grid-cols-2 gap-4">
+            <TabsContent value="generate" className="space-y-2 sm:space-y-4 max-h-[60vh] sm:max-h-[70vh] overflow-y-auto">
+              <div className="grid gap-2 sm:gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
                   <div>
                     <Label htmlFor="ai-subject">Ders</Label>
                     <Select 
@@ -1527,7 +1545,7 @@ export default function QuestionManager() {
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
                   <div>
                     <Label htmlFor="ai-type">Soru Tipi</Label>
                     <Select 
@@ -1575,13 +1593,14 @@ export default function QuestionManager() {
                 </div>
                 
                 <div>
-                  <Label htmlFor="ai-guidelines">Ek Yönergeler (Opsiyonel)</Label>
+                  <Label htmlFor="ai-guidelines" className="text-sm">Ek Yönergeler (Opsiyonel)</Label>
                   <Textarea
                     id="ai-guidelines"
                     value={aiFormData.guidelines}
                     onChange={(e) => setAIFormData({...aiFormData, guidelines: e.target.value})}
                     placeholder="AI'ya ek talimatlar verebilirsiniz. Örn: Gerçek hayat örnekleri kullan, görsel tasvirler ekle..."
-                    rows={3}
+                    rows={2}
+                    className="min-h-[60px] sm:min-h-[80px]"
                   />
                 </div>
                 
@@ -1596,7 +1615,7 @@ export default function QuestionManager() {
                 <Button 
                   onClick={handleAIGenerate}
                   disabled={isGeneratingAI || !aiFormData.subject || !aiFormData.topic}
-                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0"
+                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 h-10 sm:h-10 shadow-lg"
                 >
                   {isGeneratingAI ? (
                     <>
@@ -1613,34 +1632,45 @@ export default function QuestionManager() {
               </div>
             </TabsContent>
             
-            <TabsContent value="review" className="space-y-4">
+            <TabsContent value="review" className="space-y-4 max-h-[60vh] sm:max-h-[70vh] overflow-y-auto">
               {console.log('📋 Review Tab - Questions:', aiGeneratedQuestions.length, 'Result:', aiGenerationResult)}
               {aiGenerationResult && aiGeneratedQuestions.length > 0 ? (
                 <>
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex flex-col gap-3 mb-4">
                     <div>
-                      <h3 className="text-lg font-semibold">Oluşturulan Sorular</h3>
-                      <p className="text-sm text-muted-foreground">
+                      <h3 className="text-base sm:text-lg font-semibold">Oluşturulan Sorular</h3>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
                         {aiGenerationResult.metadata.subject} - {aiGenerationResult.metadata.topic}
                       </p>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-sm">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                      <div className="text-xs sm:text-sm">
                         <span className="font-medium">Kalite Puanı:</span>
                         <Badge 
                           variant={aiGenerationResult.qualityScore > 0.8 ? "default" : aiGenerationResult.qualityScore > 0.6 ? "secondary" : "destructive"}
-                          className="ml-2"
+                          className="ml-2 text-xs"
                         >
                           {(aiGenerationResult.qualityScore * 100).toFixed(0)}%
                         </Badge>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={selectAllAIQuestions}
-                      >
-                        {selectedAIQuestions.size === aiGeneratedQuestions.length ? 'Hiçbirini Seçme' : 'Tümünü Seç'}
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowAnswers(!showAnswers)}
+                          className="h-8 text-xs"
+                        >
+                          {showAnswers ? 'Cevapları Gizle' : 'Cevapları Göster'}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={selectAllAIQuestions}
+                          className="h-8 text-xs"
+                        >
+                          {selectedAIQuestions.size === aiGeneratedQuestions.length ? 'Hiçbirini Seçme' : 'Tümünü Seç'}
+                        </Button>
+                      </div>
                     </div>
                   </div>
                   
@@ -1660,7 +1690,7 @@ export default function QuestionManager() {
                     </Alert>
                   )}
                   
-                  <ScrollArea className="h-[400px] pr-4">
+                  <ScrollArea className="h-[250px] sm:h-[400px] pr-2 sm:pr-4">
                     <div className="space-y-4">
                       {aiGeneratedQuestions.map((question, idx) => (
                         <Card 
@@ -1672,53 +1702,54 @@ export default function QuestionManager() {
                           }`}
                           onClick={() => toggleAIQuestionSelection(idx)}
                         >
-                          <CardContent className="pt-6">
-                            <div className="flex items-start justify-between mb-3">
-                              <div className="flex items-center gap-2">
+                          <CardContent className="pt-4 sm:pt-6">
+                            <div className="flex items-start justify-between mb-2 sm:mb-3">
+                              <div className="flex items-center gap-1 sm:gap-2">
                                 <Checkbox
                                   checked={selectedAIQuestions.has(idx)}
                                   onCheckedChange={() => toggleAIQuestionSelection(idx)}
                                   onClick={(e) => e.stopPropagation()}
+                                  className="scale-75 sm:scale-100"
                                 />
-                                <Badge variant="outline">{question.difficulty}</Badge>
-                                <Badge variant="secondary">{question.topic}</Badge>
+                                <Badge variant="outline" className="text-xs">{question.difficulty}</Badge>
+                                <Badge variant="secondary" className="text-xs">{question.topic}</Badge>
                               </div>
                               {selectedAIQuestions.has(idx) && (
-                                <CheckCircle className="w-5 h-5 text-purple-600" />
+                                <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
                               )}
                             </div>
                             
-                            <h4 className="font-medium mb-2">{question.text}</h4>
+                            <h4 className="font-medium mb-2 text-sm sm:text-base">{question.text}</h4>
                             
                             {question.options.length > 0 && (
-                              <div className="space-y-1 mb-3">
+                              <div className="space-y-1 mb-2 sm:mb-3">
                                 {question.options.map((option, optIdx) => (
                                   <div 
                                     key={optIdx} 
-                                    className={`text-sm p-2 rounded ${
-                                      option.isCorrect 
+                                    className={`text-xs sm:text-sm p-1.5 sm:p-2 rounded ${
+                                      showAnswers && option.isCorrect 
                                         ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' 
                                         : 'bg-gray-100 dark:bg-gray-800'
                                     }`}
                                   >
-                                    {option.isCorrect && <CheckCircle className="w-3 h-3 inline mr-1" />}
+                                    {showAnswers && option.isCorrect && <CheckCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3 inline mr-1" />}
                                     {String.fromCharCode(65 + optIdx)}) {option.text}
                                   </div>
                                 ))}
                               </div>
                             )}
                             
-                            <div className="border-t pt-3">
-                              <p className="text-sm text-muted-foreground">
+                            <div className="border-t pt-2 sm:pt-3">
+                              <p className="text-xs sm:text-sm text-muted-foreground">
                                 <strong>Açıklama:</strong> {question.explanation}
                               </p>
                               {question.learningObjective && (
-                                <p className="text-sm text-muted-foreground mt-1">
+                                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                                   <strong>Öğrenme Hedefi:</strong> {question.learningObjective}
                                 </p>
                               )}
                               {question.keywords.length > 0 && (
-                                <div className="flex gap-1 mt-2">
+                                <div className="flex flex-wrap gap-1 mt-2">
                                   {question.keywords.map((keyword, kIdx) => (
                                     <Badge key={kIdx} variant="outline" className="text-xs">
                                       {keyword}
@@ -1733,28 +1764,32 @@ export default function QuestionManager() {
                     </div>
                   </ScrollArea>
                   
-                  <div className="flex justify-between items-center pt-4 border-t">
-                    <p className="text-sm text-muted-foreground">
+                  <div className="flex flex-col gap-3 pt-3 sm:pt-4 border-t">
+                    <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
                       {selectedAIQuestions.size} / {aiGeneratedQuestions.length} soru seçildi
                     </p>
-                    <div className="flex gap-2">
-                      <Button variant="outline" onClick={() => setIsAIDialogOpen(false)}>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setIsAIDialogOpen(false)}
+                        className="w-full sm:w-auto h-8 sm:h-10 text-xs sm:text-sm"
+                      >
                         İptal
                       </Button>
                       <Button 
                         onClick={handleApproveAIQuestions}
                         disabled={selectedAIQuestions.size === 0 || isCreating}
-                        className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0"
+                        className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 w-full sm:w-auto h-8 sm:h-10 text-xs sm:text-sm shadow-lg"
                       >
                         {isCreating ? (
                           <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                            Ekleniyor...
+                            <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-b-2 border-white mr-1 sm:mr-2" />
+                            <span className="text-xs sm:text-sm">Ekleniyor...</span>
                           </>
                         ) : (
                           <>
-                            <CheckCircle className="w-4 h-4 mr-2" />
-                            Seçili Soruları Ekle
+                            <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                            <span className="text-xs sm:text-sm">Soruları Ekle</span>
                           </>
                         )}
                       </Button>

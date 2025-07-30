@@ -59,10 +59,7 @@ export async function generateQuestions(
   }
 }
 
-const PromptInputSchema = z.object({
-  ...QuestionGenerationInputSchema.shape,
-  systemPrompt: z.string(),
-});
+
 
 const questionGeneratorFlow = ai.defineFlow(
   {
@@ -87,6 +84,35 @@ Your task is to generate ${input.count} ${typeDescriptions[input.type]} for the 
 
 ${languageInstructions}
 
+IMPORTANT: You must respond with ONLY valid JSON in the following format:
+{
+  "questions": [
+    {
+      "text": "Question text here",
+      "options": [
+        {"text": "Option A", "isCorrect": true},
+        {"text": "Option B", "isCorrect": false},
+        {"text": "Option C", "isCorrect": false},
+        {"text": "Option D", "isCorrect": false}
+      ],
+      "explanation": "Detailed explanation here",
+      "topic": "Topic name",
+      "difficulty": "Easy|Medium|Hard",
+      "keywords": ["keyword1", "keyword2"],
+      "learningObjective": "Learning objective description"
+    }
+  ],
+  "metadata": {
+    "totalGenerated": ${input.count},
+    "subject": "${input.subject}",
+    "topic": "${input.topic}",
+    "averageDifficulty": "${input.difficulty}",
+    "generationTimestamp": ""
+  },
+  "qualityScore": 0.85,
+  "suggestions": []
+}
+
 Requirements:
 1. Questions must be clear, unambiguous, and educationally valuable
 2. Difficulty level should match "${input.difficulty}":
@@ -98,6 +124,7 @@ Requirements:
 5. Include detailed explanations that help students learn
 6. For calculation questions, include the formula used
 7. Ensure factual accuracy and pedagogical soundness
+8. RESPOND WITH ONLY VALID JSON - NO MARKDOWN, NO EXPLANATIONS OUTSIDE THE JSON
 
 ${input.guidelines ? `Additional Guidelines: ${input.guidelines}` : ''}
 
@@ -105,26 +132,55 @@ Quality Criteria:
 - Clarity: Questions should be easily understood
 - Relevance: Questions must be directly related to the topic
 - Discrimination: Questions should differentiate between students who understand and those who don't
-- Validity: Questions should measure what they intend to measure`;
+- Validity: Questions should measure what they intend to measure
 
-    const {output} = await ai.generate({
-      model: 'googleai/gemini-2.0-flash',
-      prompt: systemPrompt,
-      input: {
-        ...input,
-        systemPrompt,
-      },
-      inputSchema: PromptInputSchema,
-      outputSchema: QuestionGenerationOutputSchema,
-      config: {
-        temperature: 0.7,
-        topP: 0.9,
-        maxOutputTokens: 4000,
-      },
-    });
+REMEMBER: Return ONLY the JSON object, no other text.`;
+
+    const response = await ai.generate(systemPrompt);
+
+    // Check if response is valid
+    if (!response || !response.text) {
+      console.error('❌ AI generation returned null or invalid response:', response);
+      throw new Error('AI generation failed - invalid response');
+    }
+
+    // Clean the response text to remove markdown formatting
+    let cleanedText = response.text;
+    
+    // Remove markdown code blocks if present
+    if (cleanedText.includes('```json')) {
+      cleanedText = cleanedText.replace(/```json\s*/, '').replace(/\s*```$/, '');
+    } else if (cleanedText.includes('```')) {
+      cleanedText = cleanedText.replace(/```\s*/, '').replace(/\s*```$/, '');
+    }
+    
+    // Trim whitespace
+    cleanedText = cleanedText.trim();
+    
+    console.log('🧹 Cleaned response text:', cleanedText.substring(0, 200) + '...');
+    
+    // Parse the cleaned text as JSON
+    let output;
+    try {
+      output = JSON.parse(cleanedText);
+    } catch (parseError) {
+      console.error('❌ Failed to parse AI response as JSON:', cleanedText);
+      console.error('❌ Parse error details:', parseError);
+      console.error('❌ Response length:', cleanedText?.length || 0);
+      console.error('❌ Response preview:', cleanedText?.substring(0, 200) + '...');
+      throw new Error('AI generation failed - invalid JSON response. The AI returned natural language instead of JSON format.');
+    }
+
+    // Validate output structure
+    if (!output || !output.metadata || !output.questions) {
+      console.error('❌ Invalid output structure:', output);
+      throw new Error('AI generation failed - invalid output structure');
+    }
 
     // Add timestamp
-    output.metadata.generationTimestamp = new Date().toISOString();
+    if (output.metadata) {
+      (output.metadata as any).generationTimestamp = new Date().toISOString();
+    }
 
     // Validate and ensure quality
     const validatedOutput = validateGeneratedQuestions(output, input);

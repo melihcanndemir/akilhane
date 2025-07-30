@@ -430,16 +430,16 @@ export const getDemoDataForUser = (userId: string) => {
 
 export const shouldUseDemoData = (): boolean => {
   if (typeof window === 'undefined') {
-    console.log('🔍 Demo Mode Check: Server-side rendering, returning true');
-    return true; // Return true during SSR for default demo mode
+    console.log('🔍 Demo Mode Check: Server-side rendering, returning false');
+    return false; // Return false during SSR for API mode
   }
   
   const urlParams = new URLSearchParams(window.location.search);
   const demoParam = urlParams.get('demo') === 'true';
   const localStorageDemo = localStorage.getItem('btk_demo_mode');
   
-  // Default to true if no localStorage value is set
-  const shouldUseDemo = demoParam || localStorageDemo === 'true' || localStorageDemo === null;
+  // Default to false if no localStorage value is set - use API instead
+  const shouldUseDemo = demoParam || localStorageDemo === 'true';
   
   console.log('🔍 Demo Mode Check:', {
     url: window.location.href,

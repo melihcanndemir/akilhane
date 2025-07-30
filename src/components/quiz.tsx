@@ -89,54 +89,157 @@ const QuizComponent: React.FC<QuizProps> = ({ subject, isDemoMode = false }) => 
         console.log('🎮 Quiz Component - Demo mode:', demoModeActive);
         
         if (demoModeActive) {
-          // Demo questions
-          const demoQuestions: Question[] = [
-            {
-              id: 'demo_q_1',
-              subject: 'Matematik',
-              type: 'multiple-choice',
-              difficulty: 'Medium',
-              text: '2x + 5 = 13 denkleminin çözümü nedir?',
-              topic: 'Cebir',
-              options: [
-                { text: 'x = 4', isCorrect: true },
-                { text: 'x = 3', isCorrect: false },
-                { text: 'x = 5', isCorrect: false },
-                { text: 'x = 6', isCorrect: false }
-              ],
-              explanation: '2x + 5 = 13 → 2x = 8 → x = 4'
-            },
-            {
-              id: 'demo_q_2',
-              subject: 'Matematik',
-              type: 'multiple-choice',
-              difficulty: 'Medium',
-              text: 'Bir üçgenin iç açıları toplamı kaç derecedir?',
-              topic: 'Geometri',
-              options: [
-                { text: '90°', isCorrect: false },
-                { text: '180°', isCorrect: true },
-                { text: '270°', isCorrect: false },
-                { text: '360°', isCorrect: false }
-              ],
-              explanation: 'Bir üçgenin iç açıları toplamı her zaman 180 derecedir.'
-            },
-            {
-              id: 'demo_q_3',
-              subject: 'Matematik',
-              type: 'multiple-choice',
-              difficulty: 'Hard',
-              text: 'x² - 4x + 4 = 0 denkleminin çözümü nedir?',
-              topic: 'Cebir',
-              options: [
-                { text: 'x = 2', isCorrect: true },
-                { text: 'x = -2', isCorrect: false },
-                { text: 'x = 4', isCorrect: false },
-                { text: 'x = -4', isCorrect: false }
-              ],
-              explanation: 'x² - 4x + 4 = (x-2)² = 0 → x = 2'
+          // Demo questions based on selected subject
+          const getDemoQuestions = (selectedSubject: string): Question[] => {
+            switch (selectedSubject) {
+              case 'Fizik':
+                return [
+                  {
+                    id: 'demo_physics_1',
+                    subject: 'Fizik',
+                    type: 'multiple-choice',
+                    difficulty: 'Medium',
+                    text: 'Bir cismin hızı 20 m/s ise, 5 saniye sonra kaç metre yol alır?',
+                    topic: 'Hareket',
+                    options: [
+                      { text: '100 m', isCorrect: true },
+                      { text: '80 m', isCorrect: false },
+                      { text: '120 m', isCorrect: false },
+                      { text: '60 m', isCorrect: false }
+                    ],
+                    explanation: 'Hız = Yol / Zaman → Yol = Hız × Zaman = 20 × 5 = 100 m'
+                  },
+                  {
+                    id: 'demo_physics_2',
+                    subject: 'Fizik',
+                    type: 'multiple-choice',
+                    difficulty: 'Medium',
+                    text: 'Yerçekimi ivmesi kaç m/s²\'dir?',
+                    topic: 'Kuvvet ve Hareket',
+                    options: [
+                      { text: '9.8 m/s²', isCorrect: true },
+                      { text: '8.9 m/s²', isCorrect: false },
+                      { text: '10 m/s²', isCorrect: false },
+                      { text: '9 m/s²', isCorrect: false }
+                    ],
+                    explanation: 'Dünya\'da yerçekimi ivmesi yaklaşık 9.8 m/s²\'dir.'
+                  },
+                  {
+                    id: 'demo_physics_3',
+                    subject: 'Fizik',
+                    type: 'multiple-choice',
+                    difficulty: 'Hard',
+                    text: 'Bir cismin kinetik enerjisi 100 J ise, kütlesi 2 kg olan cismin hızı kaç m/s\'dir?',
+                    topic: 'Enerji',
+                    options: [
+                      { text: '10 m/s', isCorrect: true },
+                      { text: '5 m/s', isCorrect: false },
+                      { text: '15 m/s', isCorrect: false },
+                      { text: '20 m/s', isCorrect: false }
+                    ],
+                    explanation: 'Kinetik Enerji = ½ × m × v² → 100 = ½ × 2 × v² → v² = 100 → v = 10 m/s'
+                  }
+                ];
+              case 'Kimya':
+                return [
+                  {
+                    id: 'demo_chemistry_1',
+                    subject: 'Kimya',
+                    type: 'multiple-choice',
+                    difficulty: 'Medium',
+                    text: 'H₂O molekülünde kaç hidrojen atomu vardır?',
+                    topic: 'Moleküller',
+                    options: [
+                      { text: '2', isCorrect: true },
+                      { text: '1', isCorrect: false },
+                      { text: '3', isCorrect: false },
+                      { text: '0', isCorrect: false }
+                    ],
+                    explanation: 'H₂O su molekülünde 2 hidrojen (H) ve 1 oksijen (O) atomu vardır.'
+                  },
+                  {
+                    id: 'demo_chemistry_2',
+                    subject: 'Kimya',
+                    type: 'multiple-choice',
+                    difficulty: 'Medium',
+                    text: 'Periyodik tabloda kaç periyot vardır?',
+                    topic: 'Periyodik Tablo',
+                    options: [
+                      { text: '7', isCorrect: true },
+                      { text: '6', isCorrect: false },
+                      { text: '8', isCorrect: false },
+                      { text: '5', isCorrect: false }
+                    ],
+                    explanation: 'Periyodik tabloda 7 periyot bulunmaktadır.'
+                  },
+                  {
+                    id: 'demo_chemistry_3',
+                    subject: 'Kimya',
+                    type: 'multiple-choice',
+                    difficulty: 'Hard',
+                    text: 'pH değeri 3 olan bir çözelti asidik mi, bazik mi?',
+                    topic: 'Asitler ve Bazlar',
+                    options: [
+                      { text: 'Asidik', isCorrect: true },
+                      { text: 'Bazik', isCorrect: false },
+                      { text: 'Nötr', isCorrect: false },
+                      { text: 'Belirsiz', isCorrect: false }
+                    ],
+                    explanation: 'pH < 7 asidik, pH = 7 nötr, pH > 7 bazik çözeltilerdir.'
+                  }
+                ];
+              default: // Matematik
+                return [
+                  {
+                    id: 'demo_math_1',
+                    subject: 'Matematik',
+                    type: 'multiple-choice',
+                    difficulty: 'Medium',
+                    text: '2x + 5 = 13 denkleminin çözümü nedir?',
+                    topic: 'Cebir',
+                    options: [
+                      { text: 'x = 4', isCorrect: true },
+                      { text: 'x = 3', isCorrect: false },
+                      { text: 'x = 5', isCorrect: false },
+                      { text: 'x = 6', isCorrect: false }
+                    ],
+                    explanation: '2x + 5 = 13 → 2x = 8 → x = 4'
+                  },
+                  {
+                    id: 'demo_math_2',
+                    subject: 'Matematik',
+                    type: 'multiple-choice',
+                    difficulty: 'Medium',
+                    text: 'Bir üçgenin iç açıları toplamı kaç derecedir?',
+                    topic: 'Geometri',
+                    options: [
+                      { text: '180°', isCorrect: true },
+                      { text: '90°', isCorrect: false },
+                      { text: '270°', isCorrect: false },
+                      { text: '360°', isCorrect: false }
+                    ],
+                    explanation: 'Bir üçgenin iç açıları toplamı her zaman 180 derecedir.'
+                  },
+                  {
+                    id: 'demo_math_3',
+                    subject: 'Matematik',
+                    type: 'multiple-choice',
+                    difficulty: 'Hard',
+                    text: 'x² - 4x + 4 = 0 denkleminin çözümü nedir?',
+                    topic: 'Cebir',
+                    options: [
+                      { text: 'x = 2', isCorrect: true },
+                      { text: 'x = -2', isCorrect: false },
+                      { text: 'x = 4', isCorrect: false },
+                      { text: 'x = -4', isCorrect: false }
+                    ],
+                    explanation: 'x² - 4x + 4 = (x-2)² = 0 → x = 2'
+                  }
+                ];
             }
-          ];
+          };
+
+          const demoQuestions = getDemoQuestions(subject);
           
           setQuestions(demoQuestions);
           setTotalQuestions(demoQuestions.length);
@@ -162,7 +265,10 @@ const QuizComponent: React.FC<QuizProps> = ({ subject, isDemoMode = false }) => 
         const localQuestions = getQuestionsFromStorage();
         
         if (localQuestions.length === 0) {
-          throw new Error('Bu ders için henüz soru bulunmuyor');
+          // Show error message and redirect to home page
+          alert('Bu ders için henüz soru bulunmuyor');
+          window.location.href = '/';
+          return;
         }
 
         // Get up to 10 questions
@@ -176,6 +282,7 @@ const QuizComponent: React.FC<QuizProps> = ({ subject, isDemoMode = false }) => 
         console.error('Error loading questions:', error);
         // Show user-friendly error message
         alert(`Soru yüklenirken hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`);
+        window.location.href = '/';
       }
     };
 
@@ -317,54 +424,157 @@ const QuizComponent: React.FC<QuizProps> = ({ subject, isDemoMode = false }) => 
                           (typeof window !== 'undefined' && localStorage.getItem('btk_demo_mode') === 'true');
         
         if (demoModeActive) {
-          // Demo questions
-          const demoQuestions: Question[] = [
-            {
-              id: 'demo_q_1',
-              subject: 'Matematik',
-              type: 'multiple-choice',
-              difficulty: 'Medium',
-              text: '2x + 5 = 13 denkleminin çözümü nedir?',
-              topic: 'Cebir',
-              options: [
-                { text: 'x = 4', isCorrect: true },
-                { text: 'x = 3', isCorrect: false },
-                { text: 'x = 5', isCorrect: false },
-                { text: 'x = 6', isCorrect: false }
-              ],
-              explanation: '2x + 5 = 13 → 2x = 8 → x = 4'
-            },
-            {
-              id: 'demo_q_2',
-              subject: 'Matematik',
-              type: 'multiple-choice',
-              difficulty: 'Medium',
-              text: 'Bir üçgenin iç açıları toplamı kaç derecedir?',
-              topic: 'Geometri',
-              options: [
-                { text: '90°', isCorrect: false },
-                { text: '180°', isCorrect: true },
-                { text: '270°', isCorrect: false },
-                { text: '360°', isCorrect: false }
-              ],
-              explanation: 'Bir üçgenin iç açıları toplamı her zaman 180 derecedir.'
-            },
-            {
-              id: 'demo_q_3',
-              subject: 'Matematik',
-              type: 'multiple-choice',
-              difficulty: 'Hard',
-              text: 'x² - 4x + 4 = 0 denkleminin çözümü nedir?',
-              topic: 'Cebir',
-              options: [
-                { text: 'x = 2', isCorrect: true },
-                { text: 'x = -2', isCorrect: false },
-                { text: 'x = 4', isCorrect: false },
-                { text: 'x = -4', isCorrect: false }
-              ],
-              explanation: 'x² - 4x + 4 = (x-2)² = 0 → x = 2'
+          // Demo questions based on selected subject
+          const getDemoQuestions = (selectedSubject: string): Question[] => {
+            switch (selectedSubject) {
+              case 'Fizik':
+                return [
+                  {
+                    id: 'demo_physics_1',
+                    subject: 'Fizik',
+                    type: 'multiple-choice',
+                    difficulty: 'Medium',
+                    text: 'Bir cismin hızı 20 m/s ise, 5 saniye sonra kaç metre yol alır?',
+                    topic: 'Hareket',
+                    options: [
+                      { text: '100 m', isCorrect: true },
+                      { text: '80 m', isCorrect: false },
+                      { text: '120 m', isCorrect: false },
+                      { text: '60 m', isCorrect: false }
+                    ],
+                    explanation: 'Hız = Yol / Zaman → Yol = Hız × Zaman = 20 × 5 = 100 m'
+                  },
+                  {
+                    id: 'demo_physics_2',
+                    subject: 'Fizik',
+                    type: 'multiple-choice',
+                    difficulty: 'Medium',
+                    text: 'Yerçekimi ivmesi kaç m/s²\'dir?',
+                    topic: 'Kuvvet ve Hareket',
+                    options: [
+                      { text: '9.8 m/s²', isCorrect: true },
+                      { text: '8.9 m/s²', isCorrect: false },
+                      { text: '10 m/s²', isCorrect: false },
+                      { text: '9 m/s²', isCorrect: false }
+                    ],
+                    explanation: 'Dünya\'da yerçekimi ivmesi yaklaşık 9.8 m/s²\'dir.'
+                  },
+                  {
+                    id: 'demo_physics_3',
+                    subject: 'Fizik',
+                    type: 'multiple-choice',
+                    difficulty: 'Hard',
+                    text: 'Bir cismin kinetik enerjisi 100 J ise, kütlesi 2 kg olan cismin hızı kaç m/s\'dir?',
+                    topic: 'Enerji',
+                    options: [
+                      { text: '10 m/s', isCorrect: true },
+                      { text: '5 m/s', isCorrect: false },
+                      { text: '15 m/s', isCorrect: false },
+                      { text: '20 m/s', isCorrect: false }
+                    ],
+                    explanation: 'Kinetik Enerji = ½ × m × v² → 100 = ½ × 2 × v² → v² = 100 → v = 10 m/s'
+                  }
+                ];
+              case 'Kimya':
+                return [
+                  {
+                    id: 'demo_chemistry_1',
+                    subject: 'Kimya',
+                    type: 'multiple-choice',
+                    difficulty: 'Medium',
+                    text: 'H₂O molekülünde kaç hidrojen atomu vardır?',
+                    topic: 'Moleküller',
+                    options: [
+                      { text: '2', isCorrect: true },
+                      { text: '1', isCorrect: false },
+                      { text: '3', isCorrect: false },
+                      { text: '0', isCorrect: false }
+                    ],
+                    explanation: 'H₂O su molekülünde 2 hidrojen (H) ve 1 oksijen (O) atomu vardır.'
+                  },
+                  {
+                    id: 'demo_chemistry_2',
+                    subject: 'Kimya',
+                    type: 'multiple-choice',
+                    difficulty: 'Medium',
+                    text: 'Periyodik tabloda kaç periyot vardır?',
+                    topic: 'Periyodik Tablo',
+                    options: [
+                      { text: '7', isCorrect: true },
+                      { text: '6', isCorrect: false },
+                      { text: '8', isCorrect: false },
+                      { text: '5', isCorrect: false }
+                    ],
+                    explanation: 'Periyodik tabloda 7 periyot bulunmaktadır.'
+                  },
+                  {
+                    id: 'demo_chemistry_3',
+                    subject: 'Kimya',
+                    type: 'multiple-choice',
+                    difficulty: 'Hard',
+                    text: 'pH değeri 3 olan bir çözelti asidik mi, bazik mi?',
+                    topic: 'Asitler ve Bazlar',
+                    options: [
+                      { text: 'Asidik', isCorrect: true },
+                      { text: 'Bazik', isCorrect: false },
+                      { text: 'Nötr', isCorrect: false },
+                      { text: 'Belirsiz', isCorrect: false }
+                    ],
+                    explanation: 'pH < 7 asidik, pH = 7 nötr, pH > 7 bazik çözeltilerdir.'
+                  }
+                ];
+              default: // Matematik
+                return [
+                  {
+                    id: 'demo_math_1',
+                    subject: 'Matematik',
+                    type: 'multiple-choice',
+                    difficulty: 'Medium',
+                    text: '2x + 5 = 13 denkleminin çözümü nedir?',
+                    topic: 'Cebir',
+                    options: [
+                      { text: 'x = 4', isCorrect: true },
+                      { text: 'x = 3', isCorrect: false },
+                      { text: 'x = 5', isCorrect: false },
+                      { text: 'x = 6', isCorrect: false }
+                    ],
+                    explanation: '2x + 5 = 13 → 2x = 8 → x = 4'
+                  },
+                  {
+                    id: 'demo_math_2',
+                    subject: 'Matematik',
+                    type: 'multiple-choice',
+                    difficulty: 'Medium',
+                    text: 'Bir üçgenin iç açıları toplamı kaç derecedir?',
+                    topic: 'Geometri',
+                    options: [
+                      { text: '180°', isCorrect: true },
+                      { text: '90°', isCorrect: false },
+                      { text: '270°', isCorrect: false },
+                      { text: '360°', isCorrect: false }
+                    ],
+                    explanation: 'Bir üçgenin iç açıları toplamı her zaman 180 derecedir.'
+                  },
+                  {
+                    id: 'demo_math_3',
+                    subject: 'Matematik',
+                    type: 'multiple-choice',
+                    difficulty: 'Hard',
+                    text: 'x² - 4x + 4 = 0 denkleminin çözümü nedir?',
+                    topic: 'Cebir',
+                    options: [
+                      { text: 'x = 2', isCorrect: true },
+                      { text: 'x = -2', isCorrect: false },
+                      { text: 'x = 4', isCorrect: false },
+                      { text: 'x = -4', isCorrect: false }
+                    ],
+                    explanation: 'x² - 4x + 4 = (x-2)² = 0 → x = 2'
+                  }
+                ];
             }
-          ];
+          };
+
+          const demoQuestions = getDemoQuestions(subject);
           
           setQuestions(demoQuestions);
           setTotalQuestions(demoQuestions.length);
@@ -387,7 +597,10 @@ const QuizComponent: React.FC<QuizProps> = ({ subject, isDemoMode = false }) => 
         const localQuestions = getQuestionsFromStorage();
         
         if (localQuestions.length === 0) {
-          throw new Error('Bu ders için henüz soru bulunmuyor');
+          // Show error message and redirect to home page
+          alert('Bu ders için henüz soru bulunmuyor');
+          window.location.href = '/';
+          return;
         }
 
         // Get up to 10 questions and shuffle
@@ -401,6 +614,7 @@ const QuizComponent: React.FC<QuizProps> = ({ subject, isDemoMode = false }) => 
         
       } catch (error) {
         alert(`Sorular yeniden yüklenirken bir hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`);
+        window.location.href = '/';
       }
     };
     loadQuestions();

@@ -83,12 +83,17 @@ export default function LandingPage() {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-              <Link href="/demo">
-                <Button size="lg" className="w-full sm:w-auto text-lg px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-600 hover:to-purple-600 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-                  <Sparkles className="h-5 w-5 mr-2" />
-                  Ücretsiz Demo Dene
-                </Button>
-              </Link>
+              <Button 
+                onClick={() => {
+                  localStorage.setItem('btk_demo_mode', 'true');
+                  window.location.href = '/demo';
+                }}
+                size="lg" 
+                className="w-full sm:w-auto text-lg px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-600 hover:to-purple-600 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+              >
+                <Sparkles className="h-5 w-5 mr-2" />
+                Ücretsiz Demo Dene
+              </Button>
               <Link href="/dashboard">
                 <Button variant="outline" size="lg" className="w-full sm:w-auto text-lg px-8 py-3 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0 transition-all duration-300 hover:scale-105">
                   <Brain className="h-5 w-5 mr-2" />
@@ -454,13 +459,18 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              <Link href="/demo">
-                <Button size="lg" className="text-lg px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-                  <Play className="h-5 w-5 mr-2" />
-                  Demo'yu Başlat
-                  <ArrowRight className="h-5 w-5 ml-2" />
-                </Button>
-              </Link>
+              <Button 
+                onClick={() => {
+                  localStorage.setItem('btk_demo_mode', 'true');
+                  window.location.href = '/demo';
+                }}
+                size="lg" 
+                className="text-lg px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+              >
+                <Play className="h-5 w-5 mr-2" />
+                Demo'yu Başlat
+                <ArrowRight className="h-5 w-5 ml-2" />
+              </Button>
             </div>
           </section>
 
@@ -478,13 +488,19 @@ export default function LandingPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
               <div className="border-gradient-question p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
                 <Card className="h-full w-full rounded-[11px] border-0 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 dark:from-blue-500/20 dark:to-indigo-500/20 cursor-pointer">
-                <Link href="/quiz">
+                <div 
+                  onClick={() => {
+                    localStorage.setItem('btk_demo_mode', 'true');
+                    window.location.href = '/quiz';
+                  }}
+                  className="cursor-pointer"
+                >
                   <CardContent className="p-6 text-center">
                       <Zap className="h-8 w-8 mx-auto mb-3 text-blue-600 dark:text-blue-400" />
                       <h3 className="font-semibold mb-2 text-foreground">Hızlı Test</h3>
                     <p className="text-sm text-muted-foreground">Test çözmeye hemen başlayın</p>
                   </CardContent>
-                </Link>
+                </div>
               </Card>
               </div>
 
@@ -533,12 +549,18 @@ export default function LandingPage() {
                   Dashboard'a Git
                 </Button>
               </Link>
-              <Link href="/demo">
-                <Button variant="outline" size="lg" className="w-full sm:w-auto text-lg px-8 py-3 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0 transition-all duration-300 hover:scale-105">
-                  <Play className="h-5 w-5 mr-2" />
-                  Demo Dene
-                </Button>
-              </Link>
+              <Button 
+                onClick={() => {
+                  localStorage.setItem('btk_demo_mode', 'true');
+                  window.location.href = '/demo';
+                }}
+                variant="outline" 
+                size="lg" 
+                className="w-full sm:w-auto text-lg px-8 py-3 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0 transition-all duration-300 hover:scale-105"
+              >
+                <Play className="h-5 w-5 mr-2" />
+                Demo Dene
+              </Button>
             </div>
           </section>
 

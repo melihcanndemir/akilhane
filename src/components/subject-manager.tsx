@@ -503,16 +503,9 @@ const SubjectManager = () => {
               Ders Yöneticisi
             </h1>
             <div className="flex flex-wrap justify-center gap-2">
-              {useSupabase && (
-                <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-                  ☁️ Cloud Storage
-                </Badge>
-              )}
-              {!useSupabase && !shouldUseDemoData() && (
-                <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-                  💾 LocalStorage
-                </Badge>
-              )}
+              <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+                💾 LocalStorage
+              </Badge>
             </div>
           </div>
           <p className="text-gray-600 dark:text-gray-300 text-base sm:text-lg">

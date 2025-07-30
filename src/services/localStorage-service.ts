@@ -44,6 +44,26 @@ interface AIRecommendation {
   createdAt: string;
 }
 
+interface AIChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+}
+
+interface AIChatSession {
+  id: string;
+  sessionId: string;
+  userId: string;
+  subject: string;
+  title?: string;
+  messages: AIChatMessage[];
+  messageCount: number;
+  lastMessageAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 class LocalStorageService {
   private static instance: LocalStorageService;
 
@@ -369,6 +389,111 @@ class LocalStorageService {
 
   saveUserSettings(settings: any): void {
     this.setItem('userSettings', settings);
+  }
+
+  // AI Chat Sessions
+  getAIChatSessions(): AIChatSession[] {
+    return this.getItem('aiChatSessions', []);
+  }
+
+  getAIChatSessionsByUser(userId: string): AIChatSession[] {
+    const sessions = this.getAIChatSessions();
+    return sessions.filter(session => session.userId === userId);
+  }
+
+  getAIChatSession(sessionId: string): AIChatSession | null {
+    const sessions = this.getAIChatSessions();
+    return sessions.find(session => session.sessionId === sessionId) || null;
+  }
+
+  saveAIChatSession(session: Omit<AIChatSession, 'id' | 'createdAt' | 'updatedAt' | 'messageCount'>): AIChatSession {
+    const sessions = this.getAIChatSessions();
+    const existingIndex = sessions.findIndex(s => s.sessionId === session.sessionId);
+    
+    const newSession: AIChatSession = {
+      ...session,
+      id: `ai_chat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      messageCount: session.messages?.length || 0,
+      createdAt: existingIndex >= 0 && sessions[existingIndex] ? sessions[existingIndex].createdAt : new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    if (existingIndex >= 0) {
+      sessions[existingIndex] = newSession;
+    } else {
+      sessions.push(newSession);
+    }
+
+    this.setItem('aiChatSessions', sessions);
+    return newSession;
+  }
+
+  updateAIChatSession(sessionId: string, updates: Partial<AIChatSession>): boolean {
+    const sessions = this.getAIChatSessions();
+    const sessionIndex = sessions.findIndex(s => s.sessionId === sessionId);
+    
+    if (sessionIndex === -1) return false;
+    
+    const existingSession = sessions[sessionIndex];
+    if (!existingSession) return false;
+    
+    sessions[sessionIndex] = {
+      ...existingSession,
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+    
+    this.setItem('aiChatSessions', sessions);
+    return true;
+  }
+
+  deleteAIChatSession(sessionId: string): boolean {
+    const sessions = this.getAIChatSessions();
+    const filteredSessions = sessions.filter(s => s.sessionId !== sessionId);
+    
+    if (filteredSessions.length === sessions.length) return false;
+    
+    this.setItem('aiChatSessions', filteredSessions);
+    return true;
+  }
+
+  addMessageToSession(sessionId: string, message: Omit<AIChatMessage, 'id' | 'timestamp'>): AIChatMessage {
+    const sessions = this.getAIChatSessions();
+    const sessionIndex = sessions.findIndex(s => s.sessionId === sessionId);
+    
+    if (sessionIndex === -1) {
+      throw new Error(`Session ${sessionId} not found`);
+    }
+    
+    const existingSession = sessions[sessionIndex];
+    if (!existingSession) {
+      throw new Error(`Session ${sessionId} not found`);
+    }
+    
+    const newMessage: AIChatMessage = {
+      ...message,
+      id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      timestamp: new Date().toISOString()
+    };
+    
+    existingSession.messages.push(newMessage);
+    existingSession.messageCount = existingSession.messages.length;
+    existingSession.lastMessageAt = newMessage.timestamp;
+    existingSession.updatedAt = new Date().toISOString();
+    
+    this.setItem('aiChatSessions', sessions);
+    return newMessage;
+  }
+
+  searchAIChatSessions(userId: string, searchTerm: string): AIChatSession[] {
+    const sessions = this.getAIChatSessionsByUser(userId);
+    const term = searchTerm.toLowerCase();
+    
+    return sessions.filter(session => 
+      session.title?.toLowerCase().includes(term) ||
+      session.subject.toLowerCase().includes(term) ||
+      session.messages.some(msg => msg.content.toLowerCase().includes(term))
+    );
   }
 }
 

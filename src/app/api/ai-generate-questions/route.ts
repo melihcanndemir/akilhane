@@ -184,6 +184,15 @@ export async function POST(request: NextRequest) {
     // Check if Google AI API key is available (support multiple key names)
     const hasApiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY || process.env.GOOGLE_AI_API_KEY;
     
+    // Debug environment variables
+    console.log('🔍 Environment Variables Debug:', {
+      GEMINI_API_KEY: process.env.GEMINI_API_KEY ? '✅ SET' : '❌ MISSING',
+      GOOGLE_GENAI_API_KEY: process.env.GOOGLE_GENAI_API_KEY ? '✅ SET' : '❌ MISSING',
+      GOOGLE_AI_API_KEY: process.env.GOOGLE_AI_API_KEY ? '✅ SET' : '❌ MISSING',
+      hasApiKey: !!hasApiKey,
+      shouldUseDemoData: shouldUseDemoData(),
+    });
+    
     if (!hasApiKey || shouldUseDemoData()) {
       console.log('📝 Using mock question generation (no API key or demo mode)');
       result = generateMockQuestions(body);

@@ -138,11 +138,26 @@ function QuizPageContent() {
 
   const handleStartQuiz = () => {
     if (selectedSubject) {
-      // Add demo mode parameter to quiz URL
-      const isDemoMode = shouldUseDemoData();
+      // Check if there are real questions for this subject
+      const questionsForSubject = QuestionLocalStorageService.getQuestionsBySubject(selectedSubject);
+      const hasRealQuestions = questionsForSubject.length > 0;
       
-      const quizUrl = `/quiz?subject=${encodeURIComponent(selectedSubject)}${isDemoMode ? '&demo=true' : ''}`;
-      router.push(quizUrl);
+      console.log('🎯 Quiz Page - Subject questions check:', {
+        subject: selectedSubject,
+        questionCount: questionsForSubject.length,
+        hasRealQuestions
+      });
+      
+      if (hasRealQuestions) {
+        // Use real questions - don't set demo mode
+        const quizUrl = `/quiz?subject=${encodeURIComponent(selectedSubject)}`;
+        router.push(quizUrl);
+      } else {
+        // No real questions - use demo mode
+        localStorage.setItem('btk_demo_mode', 'true');
+        const quizUrl = `/quiz?subject=${encodeURIComponent(selectedSubject)}&demo=true`;
+        router.push(quizUrl);
+      }
     }
   };
 
@@ -272,11 +287,26 @@ function QuizPageContent() {
                   onClick={() => {
                     setSelectedSubject(subject.name);
                     
-                    // Add demo mode parameter to quiz URL
-                    const isDemoMode = shouldUseDemoData();
+                    // Check if there are real questions for this subject
+                    const questionsForSubject = QuestionLocalStorageService.getQuestionsBySubject(subject.name);
+                    const hasRealQuestions = questionsForSubject.length > 0;
                     
-                    const quizUrl = `/quiz?subject=${encodeURIComponent(subject.name)}${isDemoMode ? '&demo=true' : ''}`;
-                    router.push(quizUrl);
+                    console.log('🎯 Quiz Page - Card click - Subject questions check:', {
+                      subject: subject.name,
+                      questionCount: questionsForSubject.length,
+                      hasRealQuestions
+                    });
+                    
+                    if (hasRealQuestions) {
+                      // Use real questions - don't set demo mode
+                      const quizUrl = `/quiz?subject=${encodeURIComponent(subject.name)}`;
+                      router.push(quizUrl);
+                    } else {
+                      // No real questions - use demo mode
+                      localStorage.setItem('btk_demo_mode', 'true');
+                      const quizUrl = `/quiz?subject=${encodeURIComponent(subject.name)}&demo=true`;
+                      router.push(quizUrl);
+                    }
                   }}
                 >
                   <CardContent className="p-4">

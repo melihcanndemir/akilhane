@@ -8,12 +8,13 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { getAiChatResponse, AiChatInput } from '@/ai/flows/ai-chat'; 
-import { User, Sparkles, BrainCircuit, Lightbulb, Loader2, Plus, ChevronDown } from 'lucide-react';
+import { User, Sparkles, BrainCircuit, Lightbulb, Loader2, Plus, ChevronDown, BookOpen } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
 import { supabase } from '@/lib/supabase';
 import AiChatHistory from './ai-chat-history';
+import localStorageService from '@/services/localStorage-service';
 
 interface Message {
   id: string;
@@ -27,11 +28,22 @@ interface Suggestions {
   learningTips: string[];
 }
 
+interface Subject {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  difficulty: string;
+  isActive: boolean;
+}
+
 export default function AiChatClient() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [currentSubject] = useState('Genel'); 
+  const [currentSubject, setCurrentSubject] = useState('Genel'); 
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [showSubjectSelector, setShowSubjectSelector] = useState(false);
   const [suggestions, setSuggestions] = useState<Suggestions | null>(null);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -63,6 +75,19 @@ export default function AiChatClient() {
     });
   }, [messages]);
   
+  // Fetch subjects
+  const fetchSubjects = async () => {
+    try {
+      const response = await fetch('/api/subjects');
+      if (response.ok) {
+        const data = await response.json();
+        setSubjects(data);
+      }
+    } catch (error) {
+      console.error('❌ Error fetching subjects:', error);
+    }
+  };
+
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -77,6 +102,29 @@ export default function AiChatClient() {
     
     return () => subscription.unsubscribe();
   }, []);
+
+  // Load subjects on mount
+  useEffect(() => {
+    fetchSubjects();
+  }, []);
+
+  // Close subject selector when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest('.subject-selector')) {
+        setShowSubjectSelector(false);
+      }
+    };
+
+    if (showSubjectSelector) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showSubjectSelector]);
   
   useEffect(() => {
     setMessages([
@@ -91,32 +139,67 @@ export default function AiChatClient() {
   const createNewSession = async (): Promise<string | null> => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return null;
-      
-      const response = await fetch('/api/ai-chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      if (!session) {
+        // Create local session if not authenticated
+        const sessionId = `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        localStorageService.saveAIChatSession({
+          sessionId,
+          userId: 'guest',
           subject: currentSubject,
-          userId: session.user.id,
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        return data.sessionId;
-      } else {
-        return null;
+          title: `AI Tutor - ${currentSubject}`,
+          messages: [],
+          lastMessageAt: new Date().toISOString()
+        });
+        console.log('✅ Created local session:', sessionId);
+        return sessionId;
       }
+      
+      // Try to create session in Supabase
+      try {
+        const response = await fetch('/api/ai-chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            subject: currentSubject,
+            userId: session.user.id,
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          return data.sessionId;
+        }
+      } catch {
+        console.log('❌ Failed to create Supabase session, using localStorage');
+      }
+      
+      // Fallback to localStorage if Supabase fails
+      const sessionId = `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      localStorageService.saveAIChatSession({
+        sessionId,
+        userId: session.user.id,
+        subject: currentSubject,
+        title: `AI Tutor - ${currentSubject}`,
+        messages: [],
+        lastMessageAt: new Date().toISOString()
+      });
+      return sessionId;
     } catch {
+      console.error('❌ Error creating session');
       return null;
     }
   };
 
-  const saveMessageToHistory = async (role: 'user' | 'assistant', content: string) => {
+  const saveMessageToHistory = async (role: 'user' | 'assistant', content: string, sessionId?: string) => {
     try {
+      const targetSessionId = sessionId || currentSessionId;
+      if (!targetSessionId) {
+        console.log('❌ No session ID provided for saveMessageToHistory');
+        return;
+      }
+
       // Try multiple ways to get user ID
       let userId: string | null = null;
       
@@ -142,34 +225,54 @@ export default function AiChatClient() {
         }
       }
       
-      if (!userId || !currentSessionId) {
-        return;
+      // If no userId, use 'guest' for localStorage
+      if (!userId) {
+        userId = 'guest';
       }
       
-      const response = await fetch(`/api/ai-chat/${currentSessionId}/messages`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          role,
-          content,
-          subject: currentSubject,
-          userId: userId,
-        }),
-      });
+      // Try to save to Supabase first (only if user is authenticated)
+      if (userId !== 'guest') {
+        try {
+          const response = await fetch(`/api/ai-chat/${targetSessionId}/messages`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              role,
+              content,
+              subject: currentSubject,
+              userId: userId,
+            }),
+          });
 
-      if (!response.ok) {
-        // Failed to save message
+          if (response.ok) {
+            console.log('✅ Message saved to Supabase');
+            return; // Successfully saved to Supabase
+          }
+        } catch {
+          console.log('❌ Failed to save to Supabase, falling back to localStorage');
+        }
+      }
+      
+      // Fallback to localStorage if Supabase fails or user is guest
+      try {
+        localStorageService.addMessageToSession(targetSessionId, {
+          role,
+          content
+        });
+        console.log('✅ Message saved to localStorage');
+      } catch (error) {
+        console.error('❌ Failed to save to localStorage:', error);
       }
     } catch {
-      // Error saving message
+      console.error('❌ Error saving message');
     }
   };
 
   const loadSessionMessages = async (sessionId: string) => {
     try {
-      // Try multiple ways to get user ID
+      // Try to load from Supabase first
       let userId: string | null = null;
       
       // Method 1: Try getSession first
@@ -186,50 +289,93 @@ export default function AiChatClient() {
         }
       }
       
-      if (!userId) {
-        return;
+      if (userId) {
+        try {
+          const response = await fetch(`/api/ai-chat/${sessionId}?userId=${userId}`);
+
+          if (response.ok) {
+            const data = await response.json();
+            const formattedMessages: Message[] = data.messages.map((msg: { id: string; role: string; content: string }) => ({
+              id: msg.id,
+              role: msg.role,
+              content: msg.content,
+            }));
+            setMessages(formattedMessages);
+            setCurrentSessionId(sessionId);
+            console.log('✅ Loaded session from Supabase:', sessionId, 'with', formattedMessages.length, 'messages');
+            return;
+          } else {
+            console.log('❌ Supabase session not found, trying localStorage');
+          }
+        } catch {
+          console.log('❌ Failed to load from Supabase, trying localStorage');
+        }
       }
-
-      const response = await fetch(`/api/ai-chat/${sessionId}?userId=${userId}`);
-
-      if (response.ok) {
-        const data = await response.json();
-        const formattedMessages: Message[] = data.messages.map((msg: { id: string; role: string; content: string }) => ({
-          id: msg.id,
-          role: msg.role,
-          content: msg.content,
-        }));
-        setMessages(formattedMessages);
+      
+      // Fallback to localStorage
+      try {
+        const localSession = localStorageService.getAIChatSession(sessionId);
+        if (localSession) {
+          const formattedMessages: Message[] = localSession.messages.map(msg => ({
+            id: msg.id,
+            role: msg.role,
+            content: msg.content,
+          }));
+          setMessages(formattedMessages);
+          setCurrentSessionId(sessionId);
+          console.log('✅ Loaded session from localStorage:', sessionId, 'with', formattedMessages.length, 'messages');
+        } else {
+          console.log('❌ Session not found in localStorage:', sessionId);
+          // Set empty messages but keep the session ID
+          setMessages([]);
+          setCurrentSessionId(sessionId);
+        }
+      } catch {
+        console.error('❌ Failed to load session from localStorage');
+        // Set empty messages but keep the session ID
+        setMessages([]);
         setCurrentSessionId(sessionId);
       }
     } catch {
-      // Error loading session
+      console.error('❌ Error loading session');
     }
   };
 
   const handleSessionSelect = (sessionId: string) => {
+    console.log('🔍 handleSessionSelect called with sessionId:', sessionId);
+    
+    // Debug: Check localStorage sessions
+    const allSessions = localStorageService.getAIChatSessions();
+    console.log('📋 All localStorage sessions:', allSessions);
+    
+    const targetSession = localStorageService.getAIChatSession(sessionId);
+    console.log('🎯 Target session:', targetSession);
+    
     loadSessionMessages(sessionId);
   };
 
   const handleSendMessage = async (messageContent: string) => {
     console.log('🚀 handleSendMessage called with:', messageContent);
+    console.log('🔍 Current session ID:', currentSessionId);
     if (!messageContent.trim() || isLoading) {
       console.log('❌ Early return - message empty or loading');
       return;
     }
 
-    // Create new session if authenticated and no current session
-    if (isAuthenticated && !currentSessionId) {
-      console.log('🔐 Creating new session for authenticated user');
-      const sessionId = await createNewSession();
-      if (!sessionId) {
-        console.log('❌ Failed to create session, but continuing without session');
-        // Don't return, continue without session
+    // Create new session if no current session (for both authenticated and guest users)
+    let sessionIdToUse = currentSessionId;
+    if (!currentSessionId) {
+      console.log('🔐 Creating new session');
+      const newSessionId = await createNewSession();
+      if (newSessionId) {
+        setCurrentSessionId(newSessionId);
+        sessionIdToUse = newSessionId;
+        console.log('✅ Session created:', newSessionId);
       } else {
-        setCurrentSessionId(sessionId);
+        console.log('❌ Failed to create session, but continuing without session');
       }
-    } else if (!isAuthenticated) {
-      console.log('👤 User not authenticated, proceeding without session');
+    } else {
+      console.log('🔍 Using existing session:', currentSessionId);
     }
 
     const newUserMessage: Message = {
@@ -245,9 +391,12 @@ export default function AiChatClient() {
     setIsLoading(true);
     setSuggestions(null);
 
-    // Save user message to history if authenticated and session exists
-    if (isAuthenticated && currentSessionId) {
-      await saveMessageToHistory('user', messageContent);
+    // Save user message to history if session exists
+    if (sessionIdToUse) {
+      console.log('💾 Saving user message to session:', sessionIdToUse);
+      await saveMessageToHistory('user', messageContent, sessionIdToUse);
+    } else {
+      console.log('❌ No session ID, skipping save');
     }
 
     const chatInput: AiChatInput = {
@@ -274,9 +423,12 @@ export default function AiChatClient() {
       console.log('📝 Adding assistant message to chat');
       setMessages(prev => [...prev, assistantMessage]);
       
-      // Save assistant message to history if authenticated and session exists
-      if (isAuthenticated && currentSessionId) {
-        await saveMessageToHistory('assistant', result.response);
+      // Save assistant message to history if session exists
+      if (sessionIdToUse) {
+        console.log('💾 Saving assistant message to session:', sessionIdToUse);
+        await saveMessageToHistory('assistant', result.response, sessionIdToUse);
+      } else {
+        console.log('❌ No session ID, skipping assistant save');
       }
       
       setSuggestions({
@@ -324,12 +476,84 @@ export default function AiChatClient() {
       <Card className="w-full max-w-5xl h-[calc(100vh-4rem)] flex flex-col shadow-2xl mt-2 border-gradient-question p-0">
         <CardHeader className="border-b">
           <CardTitle className="flex items-center justify-between text-lg md:text-xl">
-            <div className="flex items-center gap-3">
-              <Sparkles className="text-blue-500" />
-              <span>AI Tutor - {currentSubject}</span>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Sparkles className="text-blue-500 w-5 h-5 sm:w-6 sm:h-6" />
+              <div className="flex items-center gap-1 sm:gap-2">
+                <span className="text-sm sm:text-base">AI Tutor</span>
+                <div className="relative subject-selector">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowSubjectSelector(!showSubjectSelector)}
+                    className="gap-1 sm:gap-2 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0 text-xs sm:text-sm h-8 sm:h-9 w-20 sm:w-24 justify-center"
+                  >
+                    <BookOpen className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">{currentSubject}</span>
+                    <span className="sm:hidden">{currentSubject.length > 8 ? currentSubject.substring(0, 8) + '...' : currentSubject}</span>
+                    <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
+                  </Button>
+                  
+                  {/* Subject Selector Dropdown */}
+                  {showSubjectSelector && (
+                    <div className="absolute top-full left-0 mt-1 w-48 sm:w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+                      <div className="p-2">
+                        <div className="text-xs font-medium text-gray-500 dark:text-gray-400 px-2 py-1 mb-2">
+                          Ders Seçin
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setCurrentSubject('Genel');
+                            setShowSubjectSelector(false);
+                            setMessages([
+                              {
+                                id: 'init',
+                                role: 'assistant',
+                                content: `Merhaba! Ben AkılHane AI Tutor'ınız. Genel konularda aklınıza takılan her şeyi sorabilirsiniz. Hadi başlayalım!`
+                              }
+                            ]);
+                          }}
+                          className="w-full justify-start text-left hover:bg-blue-50 dark:hover:bg-blue-900/20 text-xs sm:text-sm"
+                        >
+                          <BookOpen className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+                          Genel
+                        </Button>
+                        {subjects.map((subject) => (
+                          <Button
+                            key={subject.id}
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setCurrentSubject(subject.name);
+                              setShowSubjectSelector(false);
+                              setMessages([
+                                {
+                                  id: 'init',
+                                  role: 'assistant',
+                                  content: `Merhaba! Ben AkılHane AI Tutor'ınız. ${subject.name} dersiyle ilgili aklınıza takılan her şeyi sorabilirsiniz. Hadi başlayalım!`
+                                }
+                              ]);
+                            }}
+                            className="w-full justify-start text-left hover:bg-blue-50 dark:hover:bg-blue-900/20 text-xs sm:text-sm"
+                          >
+                            <BookOpen className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+                            <div className="flex-1 text-left">
+                              <div className="font-medium">{subject.name}</div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                {subject.description}
+                              </div>
+                            </div>
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
             {isAuthenticated && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 sm:gap-2">
                 <AiChatHistory
                   onSessionSelect={handleSessionSelect}
                   currentSessionId={currentSessionId || undefined}
@@ -347,10 +571,10 @@ export default function AiChatClient() {
                       }
                     ]);
                   }}
-                  className="gap-2 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
+                  className="gap-1 sm:gap-2 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0 text-xs sm:text-sm h-8 sm:h-9"
                 >
-                  <Plus className="w-4 h-4" />
-                  Yeni
+                  <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">Yeni</span>
                 </Button>
               </div>
             )}
