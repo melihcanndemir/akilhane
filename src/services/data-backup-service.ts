@@ -173,7 +173,7 @@ export class DataBackupService {
    */
   private static async updateLastBackupTimestamp(userId: string): Promise<void> {
     try {
-      const { error } = await supabase
+      await supabase
         .from('user_backup_metadata')
         .upsert({
           user_id: userId,
@@ -285,7 +285,7 @@ export class DataBackupService {
   /**
    * Restore user data from backup
    */
-  private static async restoreUserData(userId: string, backupData: UserBackupData): Promise<void> {
+  private static async restoreUserData(_userId: string, backupData: UserBackupData): Promise<void> {
     try {
       const { data } = backupData;
 
@@ -400,38 +400,6 @@ export class DataBackupService {
       // LocalStorage data (guest data) is not restored for authenticated users
     } catch (error) {
       throw error;
-    }
-  }
-
-  /**
-   * Clear all localStorage data
-   */
-  private static clearLocalStorageData() {
-    if (typeof window === 'undefined') {return;}
-
-    try {
-      // Clear all exam training related localStorage items
-      const keysToRemove = [
-        'guestQuizResults',
-        'guestFlashcardProgress',
-        'guestPerformanceData',
-        'guestAIRecommendations',
-        'userSettings',
-        'exam_training_subjects',
-        'exam_training_questions',
-        'exam_training_quiz_results',
-        'exam_training_demo_quiz_results',
-        'useMockData',
-        'userId',
-      ];
-
-      keysToRemove.forEach(key => {
-        localStorage.removeItem(key);
-      });
-
-      console.log('LocalStorage data cleared successfully');
-    } catch (error) {
-      console.error('Error clearing localStorage data:', error);
     }
   }
 

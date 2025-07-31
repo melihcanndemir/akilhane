@@ -1,7 +1,7 @@
 import { eq, and, desc } from 'drizzle-orm';
-import { db } from '../connection';
+import { getDb } from '../connection';
 import { quizResults, performanceAnalytics, users } from '../schema';
-import type { QuizResult } from '@/lib/types';
+import type { QuizResultDisplay } from '@/lib/types';
 
 export class QuizRepository {
   /**
@@ -15,9 +15,9 @@ export class QuizRepository {
     timeSpent: number,
     weakTopics: Record<string, number>,
   ): Promise<void> {
-    if (!db) {throw new Error('Database connection not available');}
-
     try {
+      const db = getDb();
+
       // First, ensure the user exists. If not, create a guest user.
       await db
         .insert(users)
@@ -50,10 +50,9 @@ export class QuizRepository {
   /**
    * Get quiz results for a user and subject
    */
-  static async getQuizResults(userId: string, subject: string): Promise<QuizResult[]> {
-    if (!db) {throw new Error('Database connection not available');}
-
+  static async getQuizResults(userId: string, subject: string): Promise<QuizResultDisplay[]> {
     try {
+      const db = getDb();
       const results = await db
         .select({
           score: quizResults.score,
@@ -86,10 +85,9 @@ export class QuizRepository {
   /**
    * Get all quiz results for a user
    */
-  static async getAllQuizResults(userId: string): Promise<Record<string, QuizResult[]>> {
-    if (!db) {throw new Error('Database connection not available');}
-
+  static async getAllQuizResults(userId: string): Promise<Record<string, QuizResultDisplay[]>> {
     try {
+      const db = getDb();
       const results = await db
         .select({
           subject: quizResults.subject,
@@ -103,10 +101,10 @@ export class QuizRepository {
         .where(eq(quizResults.userId, userId))
         .orderBy(desc(quizResults.createdAt));
 
-      const groupedResults: Record<string, QuizResult[]> = {};
+      const groupedResults: Record<string, QuizResultDisplay[]> = {};
 
       results.forEach((result) => {
-        const quizResult: QuizResult = {
+        const quizResult: QuizResultDisplay = {
           score: result.score,
           totalQuestions: result.totalQuestions,
           timeSpent: result.timeSpent,
@@ -133,10 +131,9 @@ export class QuizRepository {
     userId: string,
     subject: string,
     limit: number = 10,
-  ): Promise<QuizResult[]> {
-    if (!db) {throw new Error('Database connection not available');}
-
+  ): Promise<QuizResultDisplay[]> {
     try {
+      const db = getDb();
       const results = await db
         .select({
           score: quizResults.score,
@@ -171,9 +168,8 @@ export class QuizRepository {
    * Update performance analytics for a user and subject
    */
   private static async updatePerformanceAnalytics(userId: string, subject: string): Promise<void> {
-    if (!db) {throw new Error('Database connection not available');}
-
     try {
+      const db = getDb();
       const results = await this.getQuizResults(userId, subject);
 
       if (results.length === 0) {return;}
@@ -229,9 +225,8 @@ export class QuizRepository {
    * Get performance analytics for a user and subject
    */
   static async getPerformanceAnalytics(userId: string, subject: string) {
-    if (!db) {throw new Error('Database connection not available');}
-
     try {
+      const db = getDb();
       const analytics = await db
         .select()
         .from(performanceAnalytics)
@@ -268,9 +263,8 @@ export class QuizRepository {
    * Get all performance analytics for a user
    */
   static async getAllPerformanceAnalytics(userId: string) {
-    if (!db) {throw new Error('Database connection not available');}
-
     try {
+      const db = getDb();
       const analytics = await db
         .select()
         .from(performanceAnalytics)
@@ -293,9 +287,8 @@ export class QuizRepository {
    * Delete quiz results for a user and subject
    */
   static async deleteQuizResults(userId: string, subject: string): Promise<void> {
-    if (!db) {throw new Error('Database connection not available');}
-
     try {
+      const db = getDb();
       await db
         .delete(quizResults)
         .where(

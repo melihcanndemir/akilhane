@@ -27,6 +27,14 @@ try {
 
 export { db };
 
+// Database connection helper with null checking
+export function getDb(): PostgresJsDatabase<typeof schema> {
+  if (!db) {
+    throw new Error('Database connection not initialized. Check DATABASE_URL environment variable.');
+  }
+  return db;
+}
+
 // Database health check
 export async function checkDatabaseHealth(): Promise<boolean> {
   if (!client) {return false;}

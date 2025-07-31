@@ -1,6 +1,6 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/database/connection';
+import { getDb } from '@/lib/database/connection';
 import { quizResults } from '@/lib/database/schema';
 import { sql, avg, sum, count } from 'drizzle-orm';
 
@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    const db = getDb();
     const statsResult = await db
       .select({
         totalTests: count(quizResults.id),
@@ -32,9 +33,9 @@ export async function GET(request: NextRequest) {
 
     // Handle the case where there are no results, avg and sum will be null
     return NextResponse.json({
-      totalTests: stats.totalTests || 0,
-      averageScore: stats.averageScore ? Math.round(Number(stats.averageScore)) : 0,
-      totalTimeSpent: Number(stats.totalTimeSpent) || 0,
+      totalTests: stats?.totalTests || 0,
+      averageScore: stats?.averageScore ? Math.round(Number(stats.averageScore)) : 0,
+      totalTimeSpent: Number(stats?.totalTimeSpent) || 0,
     });
 
   } catch {

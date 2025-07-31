@@ -1,11 +1,12 @@
 import { eq, and, desc, sql, like } from 'drizzle-orm';
-import { db } from '../connection';
+import { getDb } from '../connection';
 import { questions, subjects } from '../schema';
 import type { Question, QuestionType } from '@/lib/types';
 
-// Type for database result
+// Type for database result - what actually comes from the database
 type QuestionResult = {
   id: string;
+  subjectId: string;
   subject: string;
   topic: string;
   type: string;
@@ -17,8 +18,8 @@ type QuestionResult = {
   formula: string | null;
   createdBy: string | null;
   isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date; // Database returns Date objects, not strings
+  updatedAt: Date;
 };
 
 export class QuestionRepository {
@@ -41,13 +42,17 @@ export class QuestionRepository {
       const id = `question_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
       // Get subject ID from subject name
+      const db = getDb();
       const subjectResult = await db.select({ id: subjects.id }).from(subjects).where(eq(subjects.name, subject)).limit(1);
 
       if (subjectResult.length === 0) {
         throw new Error(`Subject not found: ${subject}`);
       }
 
-      const subjectId = subjectResult[0].id;
+      const subjectId = subjectResult[0]?.id;
+      if (!subjectId) {
+        throw new Error(`Invalid subject ID for: ${subject}`);
+      }
 
       await db.insert(questions).values({
         id,
@@ -60,8 +65,8 @@ export class QuestionRepository {
         options: JSON.stringify(options),
         correctAnswer,
         explanation,
-        formula,
-        createdBy,
+        formula: formula || null,
+        createdBy: createdBy || null,
         isActive: true,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -78,6 +83,7 @@ export class QuestionRepository {
    */
   static async getQuestionsBySubject(subject: string, limit?: number, userId?: string): Promise<Question[]> {
     try {
+      const db = getDb();
       const conditions = [
         eq(questions.subject, subject),
         eq(questions.isActive, true),
@@ -121,6 +127,7 @@ export class QuestionRepository {
    */
   static async getQuestionsByTopic(subject: string, topic: string, limit?: number, userId?: string): Promise<Question[]> {
     try {
+      const db = getDb();
       const conditions = [
         eq(questions.subject, subject),
         eq(questions.topic, topic),
@@ -170,6 +177,7 @@ export class QuestionRepository {
     userId?: string,
   ): Promise<Question[]> {
     try {
+      const db = getDb();
       const conditions = [
         eq(questions.subject, subject),
         eq(questions.difficulty, difficulty),
@@ -219,6 +227,7 @@ export class QuestionRepository {
     userId?: string,
   ): Promise<Question[]> {
     try {
+      const db = getDb();
       const conditions = [
         eq(questions.subject, subject),
         eq(questions.isActive, true),
@@ -229,16 +238,16 @@ export class QuestionRepository {
         conditions.push(eq(questions.createdBy, userId));
       }
 
-      let query = db
-        .select()
-        .from(questions)
-        .where(and(...conditions));
-
+      // Add difficulty filter if provided
       if (difficulty) {
-        query = query.where(eq(questions.difficulty, difficulty));
+        conditions.push(eq(questions.difficulty, difficulty));
       }
 
-      const results = await query.limit(count);
+      const results = await db
+        .select()
+        .from(questions)
+        .where(and(...conditions))
+        .limit(count);
 
       // Shuffle results
       const shuffled = results.sort(() => Math.random() - 0.5);
@@ -269,6 +278,7 @@ export class QuestionRepository {
     userId?: string,
   ): Promise<Question[]> {
     try {
+      const db = getDb();
       const conditions = [
         eq(questions.subject, subject),
         eq(questions.isActive, true),
@@ -326,6 +336,7 @@ export class QuestionRepository {
     }>,
   ): Promise<void> {
     try {
+      const db = getDb();
       const updateData: Record<string, unknown> = {
         updatedAt: new Date(),
       };
@@ -355,6 +366,7 @@ export class QuestionRepository {
    */
   static async deleteQuestion(id: string): Promise<void> {
     try {
+      const db = getDb();
       await db
         .update(questions)
         .set({
@@ -373,6 +385,7 @@ export class QuestionRepository {
    */
   static async getQuestionStats(subject: string, userId?: string) {
     try {
+      const db = getDb();
       const conditions = [
         eq(questions.subject, subject),
         eq(questions.isActive, true),
@@ -404,6 +417,7 @@ export class QuestionRepository {
    */
   static async getTopicsBySubject(subject: string, userId?: string): Promise<string[]> {
     try {
+      const db = getDb();
       const conditions = [
         eq(questions.subject, subject),
         eq(questions.isActive, true),

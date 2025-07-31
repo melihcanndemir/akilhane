@@ -1,6 +1,6 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/database/connection';
+import { getDb } from '@/lib/database/connection';
 import { quizResults } from '@/lib/database/schema';
 import { sql } from 'drizzle-orm';
 
@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
 
   try {
     // 1. Get all results for the user
+    const db = getDb();
     const userResults = await db
       .select({
         subject: quizResults.subject,

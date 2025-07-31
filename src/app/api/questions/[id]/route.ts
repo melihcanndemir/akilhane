@@ -1,6 +1,6 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/database/connection';
+import { getDb } from '@/lib/database/connection';
 import { questions } from '@/lib/database/schema';
 import { eq } from 'drizzle-orm';
 
@@ -11,6 +11,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
+    const db = getDb();
     const question = await db.select().from(questions).where(eq(questions.id, id));
     if (question.length === 0) {
       return NextResponse.json({ error: 'Question not found' }, { status: 404 });
@@ -36,6 +37,7 @@ export async function PUT(
         return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    const db = getDb();
     const updatedQuestion = await db.update(questions).set({
         subject,
         topic,
@@ -66,6 +68,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
+    const db = getDb();
     const deletedQuestion = await db.delete(questions).where(eq(questions.id, id)).returning();
 
     if (deletedQuestion.length === 0) {

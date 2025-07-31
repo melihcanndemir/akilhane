@@ -3,12 +3,12 @@
  * This service provides methods to retrieve and manage performance data.
  */
 
-import type { PerformanceData, QuizResult, Subject } from '@/lib/types';
+import type { PerformanceData, QuizResultDisplay, Subject } from '@/lib/types';
 import { QuizRepository } from '@/lib/database/repositories/quiz-repository';
 
 // Type for function with __setData property
 type PerformanceFunction = {
-  (subject: string, userId: string): Promise<QuizResult[]>;
+  (subject: string, userId: string): Promise<QuizResultDisplay[]>;
   __setData?: (data: PerformanceData) => void;
 };
 
@@ -18,7 +18,7 @@ type PerformanceFunction = {
  * @param userId The user ID.
  * @returns An array of quiz results for the subject, or an empty array if none exist.
  */
-export async function getPerformanceHistoryForSubject(subject: string, userId: string): Promise<QuizResult[]> {
+export async function getPerformanceHistoryForSubject(subject: string, userId: string): Promise<QuizResultDisplay[]> {
   try {
 
     const results = await QuizRepository.getQuizResults(userId, subject);
@@ -108,7 +108,7 @@ export async function getRecentQuizResults(
   userId: string,
   subject: string,
   limit: number = 10,
-): Promise<QuizResult[]> {
+): Promise<QuizResultDisplay[]> {
   try {
 
     return await QuizRepository.getRecentQuizResults(userId, subject, limit);
@@ -139,7 +139,7 @@ let mockPerformanceData: PerformanceData = {};
   mockPerformanceData = data;
 };
 // Fallback function for when database is not available
-export async function getPerformanceHistoryForSubjectFallback(subject: string): Promise<QuizResult[]> {
+export async function getPerformanceHistoryForSubjectFallback(subject: string): Promise<QuizResultDisplay[]> {
   const subjectKey = subject as Subject;
   return mockPerformanceData[subjectKey] || [];
 }
