@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
 import { v2 as cloudinary } from 'cloudinary';
 
 // Configure Cloudinary
@@ -36,27 +37,26 @@ export async function POST(request: NextRequest) {
           folder: 'akilhane-avatars',
           transformation: [
             { width: 200, height: 200, crop: 'fill' },
-            { quality: 'auto' }
-          ]
+            { quality: 'auto' },
+          ],
         },
         (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
-        }
+          if (error) {reject(error);}
+          else {resolve(result);}
+        },
       ).end(buffer);
     });
 
-    return NextResponse.json({ 
-      success: true, 
-      url: (result as any).secure_url,
-      publicId: (result as any).public_id
+    return NextResponse.json({
+      success: true,
+      url: (result as { secure_url: string }).secure_url,
+      publicId: (result as { public_id: string }).public_id,
     });
 
-  } catch (error) {
-    console.error('Avatar upload error:', error);
+  } catch {
     return NextResponse.json(
-      { error: 'Upload failed' }, 
-      { status: 500 }
+      { error: 'Upload failed' },
+      { status: 500 },
     );
   }
-} 
+}

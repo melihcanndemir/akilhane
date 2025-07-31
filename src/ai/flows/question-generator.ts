@@ -46,20 +46,15 @@ const QuestionGenerationOutputSchema = z.object({
 export type QuestionGenerationOutput = z.infer<typeof QuestionGenerationOutputSchema>;
 
 export async function generateQuestions(
-  input: QuestionGenerationInput
+  input: QuestionGenerationInput,
 ): Promise<QuestionGenerationOutput> {
-  console.log('🚀 Question Generation Request:', input);
   try {
     const response = await questionGeneratorFlow(input);
-    console.log('✅ Questions Generated Successfully');
     return response;
-  } catch (error) {
-    console.error('❌ Question Generation Error:', error);
+  } catch {
     throw new Error('Failed to generate questions');
   }
 }
-
-
 
 const questionGeneratorFlow = ai.defineFlow(
   {
@@ -72,10 +67,10 @@ const questionGeneratorFlow = ai.defineFlow(
       'multiple-choice': 'multiple choice questions with 4 options where exactly one is correct',
       'true-false': 'true/false questions',
       'calculation': 'calculation-based questions requiring mathematical problem solving',
-      'case-study': 'case study questions with real-world scenarios'
+      'case-study': 'case study questions with real-world scenarios',
     };
 
-    const languageInstructions = input.language === 'tr' 
+    const languageInstructions = input.language === 'tr'
       ? 'Generate all content in Turkish. Use proper Turkish grammar and terminology.'
       : 'Generate all content in English.';
 
@@ -139,75 +134,65 @@ REMEMBER: Return ONLY the JSON object, no other text.`;
     const response = await ai.generate(systemPrompt);
 
     // Check if response is valid
-    if (!response || !response.text) {
-      console.error('❌ AI generation returned null or invalid response:', response);
+    if (!response?.text) {
       throw new Error('AI generation failed - invalid response');
     }
 
     // Clean the response text to remove markdown formatting
     let cleanedText = response.text;
-    
+
     // Remove markdown code blocks if present
     if (cleanedText.includes('```json')) {
       cleanedText = cleanedText.replace(/```json\s*/, '').replace(/\s*```$/, '');
     } else if (cleanedText.includes('```')) {
       cleanedText = cleanedText.replace(/```\s*/, '').replace(/\s*```$/, '');
     }
-    
+
     // Trim whitespace
     cleanedText = cleanedText.trim();
-    
-    console.log('🧹 Cleaned response text:', cleanedText.substring(0, 200) + '...');
-    
+
     // Parse the cleaned text as JSON
     let output;
     try {
       output = JSON.parse(cleanedText);
-    } catch (parseError) {
-      console.error('❌ Failed to parse AI response as JSON:', cleanedText);
-      console.error('❌ Parse error details:', parseError);
-      console.error('❌ Response length:', cleanedText?.length || 0);
-      console.error('❌ Response preview:', cleanedText?.substring(0, 200) + '...');
+    } catch {
       throw new Error('AI generation failed - invalid JSON response. The AI returned natural language instead of JSON format.');
     }
 
     // Validate output structure
-    if (!output || !output.metadata || !output.questions) {
-      console.error('❌ Invalid output structure:', output);
+    if (!output?.metadata || !output.questions) {
       throw new Error('AI generation failed - invalid output structure');
     }
 
     // Add timestamp
     if (output.metadata) {
-      (output.metadata as any).generationTimestamp = new Date().toISOString();
+      output.metadata.generationTimestamp = new Date().toISOString();
     }
 
     // Validate and ensure quality
     const validatedOutput = validateGeneratedQuestions(output, input);
-    
+
     return validatedOutput;
-  }
+  },
 );
 
 function validateGeneratedQuestions(
   output: QuestionGenerationOutput,
-  input: QuestionGenerationInput
+  input: QuestionGenerationInput,
 ): QuestionGenerationOutput {
   // Ensure we have the requested number of questions
   if (output.questions.length < input.count) {
-    console.warn(`Generated ${output.questions.length} questions instead of ${input.count}`);
   }
 
   // Validate each question
   output.questions = output.questions.map(question => {
     // Ensure multiple choice questions have exactly 4 options
     if (input.type === 'multiple-choice' && question.options.length !== 4) {
-      console.warn('Multiple choice question does not have exactly 4 options');
       // Pad or trim options
       while (question.options.length < 4) {
         question.options.push({
           text: `Option ${question.options.length + 1}`,
-          isCorrect: false
+          isCorrect: false,
         });
       }
       question.options = question.options.slice(0, 4);
@@ -217,10 +202,11 @@ function validateGeneratedQuestions(
     if (input.type === 'multiple-choice') {
       const correctCount = question.options.filter(opt => opt.isCorrect).length;
       if (correctCount !== 1) {
-        console.warn('Multiple choice question does not have exactly one correct answer');
         // Reset all to false and set first as correct
         question.options.forEach(opt => opt.isCorrect = false);
-        question.options[0].isCorrect = true;
+        if (question.options[0]) {
+          question.options[0].isCorrect = true;
+        }
       }
     }
 
@@ -228,7 +214,7 @@ function validateGeneratedQuestions(
     if (input.type === 'true-false' && question.options.length !== 2) {
       question.options = [
         { text: input.language === 'tr' ? 'Doğru' : 'True', isCorrect: true },
-        { text: input.language === 'tr' ? 'Yanlış' : 'False', isCorrect: false }
+        { text: input.language === 'tr' ? 'Yanlış' : 'False', isCorrect: false },
       ];
     }
 
@@ -237,7 +223,7 @@ function validateGeneratedQuestions(
 
   // Calculate quality score based on various factors
   let qualityScore = 1.0;
-  
+
   // Deduct for missing questions
   if (output.questions.length < input.count) {
     qualityScore -= (input.count - output.questions.length) * 0.1;
@@ -245,9 +231,9 @@ function validateGeneratedQuestions(
 
   // Check for empty fields
   output.questions.forEach(q => {
-    if (!q.text || q.text.trim().length < 10) qualityScore -= 0.1;
-    if (!q.explanation || q.explanation.trim().length < 20) qualityScore -= 0.05;
-    if (!q.learningObjective) qualityScore -= 0.05;
+    if (!q.text || q.text.trim().length < 10) {qualityScore -= 0.1;}
+    if (!q.explanation || q.explanation.trim().length < 20) {qualityScore -= 0.05;}
+    if (!q.learningObjective) {qualityScore -= 0.05;}
   });
 
   output.qualityScore = Math.max(0, Math.min(1, qualityScore));

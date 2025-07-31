@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
 import { db } from '@/lib/database/connection';
 import { questions } from '@/lib/database/schema';
 import { eq } from 'drizzle-orm';
@@ -6,7 +7,7 @@ import { eq } from 'drizzle-orm';
 // GET a single question by ID (optional, but good practice)
 export async function GET(
   _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -15,8 +16,7 @@ export async function GET(
       return NextResponse.json({ error: 'Question not found' }, { status: 404 });
     }
     return NextResponse.json(question[0], { status: 200 });
-  } catch (error) {
-    console.error('Error fetching question:', error);
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch question' }, { status: 500 });
   }
 }
@@ -24,7 +24,7 @@ export async function GET(
 // UPDATE a question by ID
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -35,7 +35,7 @@ export async function PUT(
     if (!text || !topic || !explanation) {
         return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
-    
+
     const updatedQuestion = await db.update(questions).set({
         subject,
         topic,
@@ -54,8 +54,7 @@ export async function PUT(
     }
 
     return NextResponse.json(updatedQuestion[0], { status: 200 });
-  } catch (error) {
-    console.error('Error updating question:', error);
+  } catch {
     return NextResponse.json({ error: 'Failed to update question' }, { status: 500 });
   }
 }
@@ -63,7 +62,7 @@ export async function PUT(
 // DELETE a question by ID
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -74,8 +73,7 @@ export async function DELETE(
     }
 
     return NextResponse.json({ message: 'Question deleted successfully' }, { status: 200 });
-  } catch (error) {
-    console.error('Error deleting question:', error);
+  } catch {
     return NextResponse.json({ error: 'Failed to delete question' }, { status: 500 });
   }
-} 
+}

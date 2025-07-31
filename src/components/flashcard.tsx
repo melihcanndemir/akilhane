@@ -4,8 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getFlashcardRecommendation, type FlashcardRecommendationOutput } from '../ai/flows/flashcard-recommendation';
 import { Button } from '@/components/ui/button';
-import { 
-  ArrowLeft
+import {
+  ArrowLeft,
 } from 'lucide-react';
 import Link from 'next/link';
 import VoiceAssistant from './voice-assistant';
@@ -23,7 +23,7 @@ interface Flashcard {
   nextReview?: Date;
   reviewCount: number;
   confidence: number; // 1-5 scale
-  options?: Array<{ text: string; isCorrect: boolean }>; // Added for multiple choice questions
+  options?: Array<{ text: string; isCorrect: boolean }> | undefined; // Added for multiple choice questions
 }
 
 interface FlashcardProps {
@@ -33,7 +33,7 @@ interface FlashcardProps {
 
 const FlashcardComponent: React.FC<FlashcardProps> = ({ subject, isDemoMode = false }) => {
   // Check demo mode from localStorage
-  const demoModeActive = isDemoMode || 
+  const demoModeActive = isDemoMode ||
                         (typeof window !== 'undefined' && localStorage.getItem('btk_demo_mode') === 'true');
 
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
@@ -46,7 +46,7 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject, isDemoMode = fa
     total: 0,
     reviewed: 0,
     mastered: 0,
-    needsReview: 0
+    needsReview: 0,
   });
   const [aiRecommendation, setAiRecommendation] = useState<FlashcardRecommendationOutput | null>(null);
   const [isLoadingRecommendation, setIsLoadingRecommendation] = useState(false);
@@ -56,68 +56,61 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject, isDemoMode = fa
   useEffect(() => {
     const loadFlashcards = async () => {
       try {
-        console.log('🎯 Flashcard Component - Loading flashcards for subject:', subject);
-        console.log('🎯 Flashcard Component - Demo mode:', demoModeActive);
 
         if (demoModeActive) {
           // Demo mode - load demo flashcards
           const demoFlashcards = getDemoFlashcards(subject);
-          console.log('🎯 Flashcard Component - Demo flashcards found:', demoFlashcards.length);
-          
+
           setFlashcards(demoFlashcards);
           setStats({
             total: demoFlashcards.length,
             reviewed: demoFlashcards.filter(f => f.reviewCount > 0).length,
             mastered: demoFlashcards.filter(f => f.confidence >= 4).length,
-            needsReview: demoFlashcards.filter(f => f.confidence < 4).length
+            needsReview: demoFlashcards.filter(f => f.confidence < 4).length,
           });
           return;
         }
 
         // USE DIRECT LOCALSTORAGE
-        console.log('🎯 Flashcard Component - Loading from localStorage...');
-        
+
         // Get questions from LocalStorage
-        const getQuestionsFromStorage = (): any[] => {
-          if (typeof window === 'undefined') return [];
+        const getQuestionsFromStorage = (): { subject: string; id: string; text: string; options?: Array<{ text: string; isCorrect: boolean }>; explanation: string; topic?: string; difficulty: string }[] => {
+          if (typeof window === 'undefined') {return [];}
           try {
             const stored = localStorage.getItem('exam_training_questions');
             const questions = stored ? JSON.parse(stored) : [];
-            return questions.filter((q: any) => q.subject === subject);
+            return questions.filter((q: { subject: string }) => q.subject === subject);
           } catch {
             return [];
           }
         };
 
         const questions = getQuestionsFromStorage();
-        
+
         if (questions.length === 0) {
           throw new Error('Bu ders için henüz soru bulunmuyor');
         }
-        
-        const flashcardData: Flashcard[] = questions.map((q: any) => ({
+
+        const flashcardData: Flashcard[] = questions.map((q: { id: string; text: string; options?: Array<{ text: string; isCorrect: boolean }>; explanation: string; topic?: string; difficulty: string }) => ({
           id: q.id,
           question: q.text,
-          answer: q.options ? q.options.find((opt: any) => opt.isCorrect)?.text || 'Cevap bulunamadı' : q.explanation,
+          answer: q.options ? q.options.find((opt: { isCorrect: boolean; text: string }) => opt.isCorrect)?.text || 'Cevap bulunamadı' : q.explanation,
           explanation: q.explanation,
           topic: q.topic || 'Genel',
           difficulty: q.difficulty,
           reviewCount: 0,
           confidence: 3, // Default confidence
-          options: q.options
+          options: q.options,
         }));
-        
-        console.log('🎯 Flashcard Component - Loaded flashcards:', flashcardData.length);
-        
+
         setFlashcards(flashcardData);
         setStats({
           total: flashcardData.length,
           reviewed: flashcardData.filter(f => f.reviewCount > 0).length,
           mastered: flashcardData.filter(f => f.confidence >= 4).length,
-          needsReview: flashcardData.filter(f => f.confidence < 4).length
+          needsReview: flashcardData.filter(f => f.confidence < 4).length,
         });
       } catch (error) {
-        console.error('Error loading flashcards:', error);
         // Show user-friendly error message
         alert(`Flashcard yüklenirken hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`);
       }
@@ -137,22 +130,22 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject, isDemoMode = fa
 
   const handleConfidence = (level: number) => {
     setConfidence(level);
-    
+
     // Update flashcard stats
     const updatedFlashcards = [...flashcards];
     const currentCard = updatedFlashcards[currentIndex];
-    
+
     if (currentCard) {
       currentCard.confidence = level;
       currentCard.reviewCount += 1;
       currentCard.lastReviewed = new Date();
-      
+
       // Calculate next review date based on confidence (spaced repetition)
       const daysUntilNextReview = calculateNextReview(level, currentCard.reviewCount);
       currentCard.nextReview = new Date(Date.now() + daysUntilNextReview * 24 * 60 * 60 * 1000);
-      
+
       setFlashcards(updatedFlashcards);
-      
+
       // Update stats
       updateStats(updatedFlashcards);
     }
@@ -174,12 +167,12 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject, isDemoMode = fa
     const reviewed = cards.filter(c => c.lastReviewed).length;
     const mastered = cards.filter(c => c.confidence >= 4 && c.reviewCount >= 3).length;
     const needsReview = cards.filter(c => !c.nextReview || c.nextReview <= now).length;
-    
+
     setStats({
       total: cards.length,
       reviewed,
       mastered,
-      needsReview
+      needsReview,
     });
   };
 
@@ -188,7 +181,7 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject, isDemoMode = fa
     try {
       // Get performance data from localStorage
       const performanceData = typeof window !== 'undefined' ? localStorage.getItem('performanceData') || '{}' : '{}';
-      
+
       // Get current flashcard progress with real data
       const flashcardProgress = flashcards.map(card => ({
         id: card.id,
@@ -197,27 +190,23 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject, isDemoMode = fa
         confidence: card.confidence,
         reviewCount: card.reviewCount,
         lastReviewed: card.lastReviewed,
-        nextReview: card.nextReview
+        nextReview: card.nextReview,
       }));
-      
+
       const flashcardData = JSON.stringify(flashcardProgress);
-      
-      console.log('Getting AI recommendation for subject:', subject);
-      console.log('Flashcard data:', flashcardProgress.length, 'cards');
-      
+
       const recommendation = await getFlashcardRecommendation({
         userId: 'user-123',
-        subject: subject,
-        performanceData: performanceData,
+        subject,
+        performanceData,
         currentFlashcardData: flashcardData,
-        studyMode: studyMode,
-        targetStudyTime: 30 // 30 minutes default
+        studyMode,
+        targetStudyTime: 30, // 30 minutes default
       });
-      
+
       setAiRecommendation(recommendation);
-      console.log('AI recommendation received:', recommendation);
-    } catch (error) {
-      console.error('Error getting AI recommendation:', error);
+    } catch {
+      //do nothing
     } finally {
       setIsLoadingRecommendation(false);
     }
@@ -252,7 +241,7 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject, isDemoMode = fa
 
   const getCardsForStudyMode = () => {
     const now = new Date();
-    
+
     switch (studyMode) {
       case 'review':
         return flashcards.filter(c => !c.nextReview || c.nextReview <= now);
@@ -268,8 +257,7 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject, isDemoMode = fa
 
   // Handle voice commands
   const handleVoiceCommand = (command: string) => {
-    console.log('🎤 Voice command received:', command);
-    
+
     switch (command) {
       case 'next':
         if (currentIndex < filteredCards.length - 1) {
@@ -294,7 +282,6 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject, isDemoMode = fa
         setShowAnswer(false);
         break;
       default:
-        console.log('Unknown voice command:', command);
     }
   };
 
@@ -312,7 +299,7 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject, isDemoMode = fa
             </h1>
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
               <p className="text-lg text-gray-600 dark:text-gray-300 mb-4">
-                {filteredCards.length === 0 
+                {filteredCards.length === 0
                   ? `${studyMode === 'review' ? 'Tekrar' : studyMode === 'new' ? 'Yeni' : 'Zor'} modunda gösterilecek kart bulunamadı.`
                   : 'Bu konu için flashcard bulunamadı.'
                 }
@@ -356,9 +343,9 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject, isDemoMode = fa
           <div className="mb-8">
             <div className="flex flex-wrap items-center gap-4 mb-4">
               <Link href="/dashboard">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   className="flex items-center gap-2 min-h-[44px] px-4 text-base hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
                 >
                   <ArrowLeft className="w-4 h-4" />
@@ -370,7 +357,7 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject, isDemoMode = fa
               </h1>
             </div>
           </div>
-          
+
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md text-center">
@@ -467,7 +454,7 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject, isDemoMode = fa
                 Güven: {Math.round(aiRecommendation.confidence * 100)}%
               </span>
             </div>
-            
+
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <h4 className="font-medium text-indigo-700 dark:text-indigo-300 mb-2">
@@ -477,7 +464,7 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject, isDemoMode = fa
                   {aiRecommendation.reasoning}
                 </p>
               </div>
-              
+
               <div>
                 <h4 className="font-medium text-indigo-700 dark:text-indigo-300 mb-2">
                   Odaklanılacak Konular:
@@ -494,7 +481,7 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject, isDemoMode = fa
                 </div>
               </div>
             </div>
-            
+
             <div className="mt-4 p-3 bg-white dark:bg-gray-800 rounded border">
               <h4 className="font-medium text-gray-800 dark:text-white mb-2">
                 📚 Çalışma Stratejisi
@@ -506,7 +493,7 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject, isDemoMode = fa
                 Tahmini süre: {aiRecommendation.estimatedTime} dakika
               </div>
             </div>
-            
+
             <button
               onClick={() => {
                 setStudyMode(aiRecommendation.recommendedStudyMode);
@@ -551,13 +538,13 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject, isDemoMode = fa
                     {currentCard.difficulty}
                   </span>
                 </div>
-                
+
                 <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
                   {currentCard.question}
                 </h2>
-                
+
                 {/* Şıkları göster - Eğer options varsa ve soru içinde "aşağıdakilerden" veya "hangisi" gibi ifadeler geçiyorsa */}
-                {currentCard.options && (currentCard.question.toLowerCase().includes('aşağıdakilerden') || 
+                {currentCard.options && (currentCard.question.toLowerCase().includes('aşağıdakilerden') ||
                                         currentCard.question.toLowerCase().includes('hangisi')) && (
                   <div className="w-full text-left mb-4">
                     <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
@@ -569,11 +556,11 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject, isDemoMode = fa
                     </div>
                   </div>
                 )}
-                
+
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   Cevabı görmek için tıklayın
                 </p>
-                
+
                 <div className="mt-4 text-sm text-gray-400 dark:text-gray-500">
                   {currentIndex + 1} / {filteredCards.length}
                 </div>
@@ -591,17 +578,17 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject, isDemoMode = fa
                     Cevap
                   </span>
                 </div>
-                
+
                 <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
                   {currentCard.answer}
                 </h3>
-                
+
                 <div className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-4 w-full">
                   <p className="text-sm text-gray-700 dark:text-gray-300">
                     {currentCard.explanation}
                   </p>
                 </div>
-                
+
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   Geri dönmek için tıklayın
                 </p>
@@ -622,7 +609,7 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject, isDemoMode = fa
               <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 text-center">
                 Bu soruyu ne kadar iyi biliyorsunuz?
               </h3>
-              
+
               <div className="flex justify-center gap-4">
                 {[1, 2, 3, 4, 5].map((level) => (
                   <button
@@ -641,7 +628,7 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject, isDemoMode = fa
                   </button>
                 ))}
               </div>
-              
+
               <div className="text-center mt-4 text-sm text-gray-600 dark:text-gray-400">
                 {confidence === 1 && 'Hiç bilmiyorum'}
                 {confidence === 2 && 'Biraz biliyorum'}
@@ -662,14 +649,14 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject, isDemoMode = fa
           >
             ← Önceki
           </button>
-          
+
           <button
             onClick={shuffleCards}
                           className="px-6 py-3 bg-indigo-600 dark:bg-indigo-700 text-white rounded-lg font-medium hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors"
           >
             🔀 Karıştır
           </button>
-          
+
           <button
             onClick={nextCard}
             disabled={currentIndex === filteredCards.length - 1}
@@ -705,4 +692,4 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject, isDemoMode = fa
   );
 };
 
-export default FlashcardComponent; 
+export default FlashcardComponent;

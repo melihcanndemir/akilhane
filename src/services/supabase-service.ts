@@ -30,7 +30,6 @@ export class UserService {
       .single();
 
     if (error) {
-      console.error('Error creating user:', error);
       return null;
     }
 
@@ -38,31 +37,19 @@ export class UserService {
   }
 
   static async getUserById(id: string): Promise<User | null> {
-    console.log('🔍 UserService.getUserById - Input ID:', id);
-    
+
     try {
       const { data, error } = await supabase
         .from('users')
         .select('*')
         .eq('id', id)
         .single();
-
-      console.log('🔍 UserService.getUserById - Response data:', data);
-      console.log('🔍 UserService.getUserById - Response error:', error);
-
       if (error) {
-        console.error('❌ UserService.getUserById - Error details:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        });
         return null;
       }
 
       return data;
-    } catch (err) {
-      console.error('❌ UserService.getUserById - Unexpected error:', err);
+    } catch {
       return null;
     }
   }
@@ -73,9 +60,8 @@ export class SubjectService {
   static async getSubjects(): Promise<Subject[]> {
     // Get current user for filtering
     const { data: { user } } = await supabase.auth.getUser();
-    
+
     if (!user) {
-      console.log('No authenticated user found');
       return [];
     }
 
@@ -87,7 +73,6 @@ export class SubjectService {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching subjects:', error);
       return [];
     }
 
@@ -95,8 +80,7 @@ export class SubjectService {
   }
 
   static async createSubject(subject: InsertTables<'subjects'>): Promise<Subject | null> {
-    console.log('🎯 SubjectService.createSubject - Input:', subject);
-    
+
     const { data, error } = await supabase
       .from('subjects')
       .insert({
@@ -107,11 +91,7 @@ export class SubjectService {
       .select()
       .single();
 
-    console.log('🎯 SubjectService.createSubject - Response data:', data);
-    console.log('🎯 SubjectService.createSubject - Response error:', error);
-
     if (error) {
-      console.error('Error creating subject:', error);
       return null;
     }
 
@@ -121,12 +101,11 @@ export class SubjectService {
   static async updateSubject(id: string, updates: UpdateTables<'subjects'>): Promise<Subject | null> {
     // Get current user for verification
     const { data: { user } } = await supabase.auth.getUser();
-    
+
     if (!user) {
-      console.error('No authenticated user found');
       return null;
     }
-    
+
     const { data, error } = await supabase
       .from('subjects')
       .update({
@@ -139,7 +118,6 @@ export class SubjectService {
       .single();
 
     if (error) {
-      console.error('Error updating subject:', error);
       return null;
     }
 
@@ -149,12 +127,11 @@ export class SubjectService {
   static async deleteSubject(id: string): Promise<boolean> {
     // Get current user for verification
     const { data: { user } } = await supabase.auth.getUser();
-    
+
     if (!user) {
-      console.error('No authenticated user found');
       return false;
     }
-    
+
     const { error } = await supabase
       .from('subjects')
       .delete()
@@ -162,7 +139,6 @@ export class SubjectService {
       .eq('created_by', user.id); // Only delete own subjects
 
     if (error) {
-      console.error('Error deleting subject:', error);
       return false;
     }
 
@@ -179,9 +155,8 @@ export class QuestionService {
   static async getQuestionsBySubject(subject: string): Promise<Question[]> {
     // Get current user for filtering
     const { data: { user } } = await supabase.auth.getUser();
-    
+
     if (!user) {
-      console.log('No authenticated user found');
       return [];
     }
 
@@ -194,7 +169,6 @@ export class QuestionService {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching questions:', error);
       return [];
     }
 
@@ -204,12 +178,11 @@ export class QuestionService {
   static async createQuestion(question: InsertTables<'questions'>): Promise<Question | null> {
     // Get current user for created_by field
     const { data: { user } } = await supabase.auth.getUser();
-    
+
     if (!user) {
-      console.error('No authenticated user found');
       return null;
     }
-    
+
     const { data, error } = await supabase
       .from('questions')
       .insert({
@@ -222,7 +195,6 @@ export class QuestionService {
       .single();
 
     if (error) {
-      console.error('Error creating question:', error);
       return null;
     }
 
@@ -232,12 +204,11 @@ export class QuestionService {
   static async updateQuestion(id: string, updates: UpdateTables<'questions'>): Promise<Question | null> {
     // Get current user for verification
     const { data: { user } } = await supabase.auth.getUser();
-    
+
     if (!user) {
-      console.error('No authenticated user found');
       return null;
     }
-    
+
     const { data, error } = await supabase
       .from('questions')
       .update({
@@ -250,7 +221,6 @@ export class QuestionService {
       .single();
 
     if (error) {
-      console.error('Error updating question:', error);
       return null;
     }
 
@@ -260,12 +230,11 @@ export class QuestionService {
   static async deleteQuestion(id: string): Promise<boolean> {
     // Get current user for verification
     const { data: { user } } = await supabase.auth.getUser();
-    
+
     if (!user) {
-      console.error('No authenticated user found');
       return false;
     }
-    
+
     const { error } = await supabase
       .from('questions')
       .delete()
@@ -273,7 +242,6 @@ export class QuestionService {
       .eq('created_by', user.id); // Only delete own questions
 
     if (error) {
-      console.error('Error deleting question:', error);
       return false;
     }
 
@@ -294,7 +262,6 @@ export class QuizResultService {
       .single();
 
     if (error) {
-      console.error('Error saving quiz result:', error);
       return null;
     }
 
@@ -309,7 +276,6 @@ export class QuizResultService {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching quiz results:', error);
       return [];
     }
 
@@ -324,7 +290,6 @@ export class QuizResultService {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching quiz results:', error);
       return [];
     }
 
@@ -345,7 +310,6 @@ export class PerformanceAnalyticsService {
       .single();
 
     if (error) {
-      console.error('Error saving analytics:', error);
       return null;
     }
 
@@ -360,7 +324,6 @@ export class PerformanceAnalyticsService {
       .order('last_updated', { ascending: false });
 
     if (error) {
-      console.error('Error fetching analytics:', error);
       return [];
     }
 
@@ -381,7 +344,6 @@ export class AIRecommendationService {
       .single();
 
     if (error) {
-      console.error('Error saving AI recommendation:', error);
       return null;
     }
 
@@ -396,7 +358,6 @@ export class AIRecommendationService {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching AI recommendations:', error);
       return [];
     }
 
@@ -418,7 +379,6 @@ export class FlashcardProgressService {
       .single();
 
     if (error) {
-      console.error('Error saving flashcard progress:', error);
       return null;
     }
 
@@ -433,7 +393,6 @@ export class FlashcardProgressService {
       .order('updated_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching flashcard progress:', error);
       return [];
     }
 
@@ -449,10 +408,9 @@ export class FlashcardProgressService {
       .order('updated_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching flashcard progress:', error);
       return [];
     }
 
     return data || [];
   }
-} 
+}

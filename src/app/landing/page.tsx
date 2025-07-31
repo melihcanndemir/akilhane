@@ -6,41 +6,41 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Brain, 
-  Zap, 
-  BookOpen, 
-  TrendingUp, 
-  Shield, 
+import {
+  Brain,
+  Zap,
+  BookOpen,
+  TrendingUp,
+  Shield,
   Clock,
   CheckCircle,
   ArrowRight,
   Play,
   Users,
   Award,
-  Code2,       
-  Server,      
-  BrainCircuit, 
-  GitMerge,     
-  Globe,       
-  Layers,      
-  FileCode,    
-  Palette,     
-  Package,     
+  Code2,
+  Server,
+  BrainCircuit,
+  GitMerge,
+  Globe,
+  Layers,
+  FileCode,
+  Palette,
+  Package,
   Database,
-  HardDrive,   
-  Network,     
-  Key,         
-  Bot,         
-  Cpu,         
-  MessageSquare, 
-  Lightbulb,   
-  UserCheck,   
-  GitBranch,   
-  ShieldCheck, 
-  Code,        
-  Sparkles,    
-  Smartphone,  
+  HardDrive,
+  Network,
+  Key,
+  Bot,
+  Cpu,
+  MessageSquare,
+  Lightbulb,
+  UserCheck,
+  GitBranch,
+  ShieldCheck,
+  Code,
+  Sparkles,
+  Smartphone,
 } from 'lucide-react';
 import MobileNav from '@/components/mobile-nav';
 
@@ -49,11 +49,11 @@ export default function LandingPage() {
     <div className="min-h-screen bg-background">
       {/* Navigation Header - Consistent with all pages */}
       <MobileNav />
-      
+
       {/* Main Content */}
       <div className="container mx-auto px-4 py-4">
         <div className="max-w-6xl mx-auto">
-          
+
           {/* Hero Section */}
           <section className="text-center py-8 lg:py-12">
             {/* Hackathon Badge */}
@@ -77,18 +77,18 @@ export default function LandingPage() {
 
             {/* Subtitle */}
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
-              Yapay zeka ile desteklenen akıllı test sistemi, flashcard'lar ve AI tutor ile 
+              Yapay zeka ile desteklenen akıllı test sistemi, flashcard&apos;lar ve AI tutor ile
               öğrenme deneyiminizi kişiselleştirin.
             </p>
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-              <Button 
+              <Button
                 onClick={() => {
                   localStorage.setItem('btk_demo_mode', 'true');
                   window.location.href = '/demo';
                 }}
-                size="lg" 
+                size="lg"
                 className="w-full sm:w-auto text-lg px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-600 hover:to-purple-600 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
               >
                 <Sparkles className="h-5 w-5 mr-2" />
@@ -97,7 +97,7 @@ export default function LandingPage() {
               <Link href="/dashboard">
                 <Button variant="outline" size="lg" className="w-full sm:w-auto text-lg px-8 py-3 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0 transition-all duration-300 hover:scale-105">
                   <Brain className="h-5 w-5 mr-2" />
-                  Dashboard'a Git
+                  Dashboard&apos;a Git
                 </Button>
               </Link>
             </div>
@@ -144,10 +144,10 @@ export default function LandingPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {/* AI-Powered Learning */}
-              <motion.div 
+              <motion.div
                 className="rounded-xl border-gradient-question bg-white dark:bg-gray-800 p-[1px]"
                 whileHover={{ scale: 1.02, y: -5 }}
-                transition={{ type: "spring", stiffness: 300 }}
+                transition={{ type: 'spring', stiffness: 300 }}
               >
                 <Card className="h-full w-full rounded-[11px] border-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20">
                 <CardHeader>
@@ -217,11 +217,11 @@ export default function LandingPage() {
                     <div className="w-12 h-12 bg-gradient-to-br from-orange-600 to-red-600 rounded-lg flex items-center justify-center mb-4">
                     <BookOpen className="h-6 w-6 text-white" />
                   </div>
-                    <CardTitle className="text-xl font-semibold text-foreground">Akıllı Flashcard'lar</CardTitle>
+                    <CardTitle className="text-xl font-semibold text-foreground">Akıllı Flashcard&apos;lar</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground mb-4">
-                    AI tarafından önerilen flashcard'lar ile etkili tekrar sistemleri
+                    AI tarafından önerilen flashcard&apos;lar ile etkili tekrar sistemleri
                   </p>
                   <div className="flex flex-wrap gap-2">
                     <Badge variant="secondary">Spaced Repetition</Badge>
@@ -428,13 +428,13 @@ export default function LandingPage() {
           {/* Demo CTA Section */}
           <section id="demo" className="py-16">
             <div className="glass-card p-8 rounded-xl text-center">
-              <h2 className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Hemen Demo'yu Deneyin
-              </h2>
+                              <h2 className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Hemen Demo&apos;yu Deneyin
+                </h2>
               <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
                 BTK Hackathon için özel hazırlanmış demo veriler ile platformun tüm özelliklerini keşfedin
               </p>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 max-w-4xl mx-auto">
                 <div className="border-gradient-question p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
                   <div className="h-full w-full border-0 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 dark:from-blue-500/20 dark:to-indigo-500/20 rounded-[11px] p-6 text-center">
@@ -459,16 +459,16 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              <Button 
+              <Button
                 onClick={() => {
                   localStorage.setItem('btk_demo_mode', 'true');
                   window.location.href = '/demo';
                 }}
-                size="lg" 
+                size="lg"
                 className="text-lg px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
               >
                 <Play className="h-5 w-5 mr-2" />
-                Demo'yu Başlat
+                Demo&apos;yu Başlat
                 <ArrowRight className="h-5 w-5 ml-2" />
               </Button>
             </div>
@@ -484,11 +484,11 @@ export default function LandingPage() {
                 AI destekli kişiselleştirilmiş eğitim deneyimi ile hedeflerinize ulaşın
               </p>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
               <div className="border-gradient-question p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
                 <Card className="h-full w-full rounded-[11px] border-0 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 dark:from-blue-500/20 dark:to-indigo-500/20 cursor-pointer">
-                <div 
+                <div
                   onClick={() => {
                     localStorage.setItem('btk_demo_mode', 'true');
                     window.location.href = '/quiz';
@@ -546,16 +546,16 @@ export default function LandingPage() {
               <Link href="/dashboard">
                 <Button size="lg" className="w-full sm:w-auto text-lg px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-600 hover:to-purple-600 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                   <Brain className="h-5 w-5 mr-2" />
-                  Dashboard'a Git
+                  Dashboard&apos;a Git
                 </Button>
               </Link>
-              <Button 
+              <Button
                 onClick={() => {
                   localStorage.setItem('btk_demo_mode', 'true');
                   window.location.href = '/demo';
                 }}
-                variant="outline" 
-                size="lg" 
+                variant="outline"
+                size="lg"
                 className="w-full sm:w-auto text-lg px-8 py-3 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0 transition-all duration-300 hover:scale-105"
               >
                 <Play className="h-5 w-5 mr-2" />
@@ -568,4 +568,4 @@ export default function LandingPage() {
       </div>
     </div>
   );
-} 
+}

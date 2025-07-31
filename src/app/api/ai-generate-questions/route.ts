@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
 import { generateQuestions, type QuestionGenerationInput } from '@/ai/flows/question-generator';
 import { supabase } from '@/lib/supabase';
 import { shouldUseDemoData } from '@/data/demo-data';
@@ -7,7 +8,6 @@ export const runtime = 'nodejs';
 
 // Mock question generation for demo/development when API key is not available
 function generateMockQuestions(input: QuestionGenerationInput) {
-  console.log('🎲 Generating mock questions:', input);
   const questions = [];
   const typeTemplates = {
     'multiple-choice': {
@@ -104,27 +104,27 @@ function generateMockQuestions(input: QuestionGenerationInput) {
     },
   };
 
-  const templates = typeTemplates[input.type][input.language || 'tr'] || typeTemplates[input.type]['tr'];
-  
+  const templates = typeTemplates[input.type][input.language || 'tr'] || typeTemplates[input.type].tr;
+
   // Generate requested number of questions, cycling through templates if needed
   for (let i = 0; i < input.count; i++) {
     const template = templates[i % templates.length];
     const questionNumber = i + 1;
-    
+
     // Customize each question slightly to add variety
-    const customizedText = template.text.replace(
+    const customizedText = template?.text?.replace(
       input.topic,
-      `${input.topic} (Soru ${questionNumber})`
-    );
-    
+      `${input.topic} (Soru ${questionNumber})`,
+    ) || `Question ${questionNumber} about ${input.topic}`;
+
     questions.push({
       text: customizedText,
-      options: template.options || [],
-      explanation: input.language === 'en' 
+      options: template?.options || [],
+      explanation: input.language === 'en'
         ? `This question tests understanding of ${input.topic} in ${input.subject}.`
         : `Bu soru ${input.subject} dersindeki ${input.topic} konusunun anlaşılmasını test eder.`,
       topic: input.topic,
-      formula: template.formula,
+      formula: (template as { formula?: string })?.formula,
       difficulty: input.difficulty,
       keywords: [input.subject, input.topic],
       learningObjective: input.language === 'en'
@@ -132,8 +132,6 @@ function generateMockQuestions(input: QuestionGenerationInput) {
         : `${input.topic} kavramlarını anlama`,
     });
   }
-
-  console.log('📊 Total questions generated:', questions.length);
 
   return {
     questions,
@@ -145,7 +143,7 @@ function generateMockQuestions(input: QuestionGenerationInput) {
       generationTimestamp: new Date().toISOString(),
     },
     qualityScore: 0.75, // Mock quality score
-    suggestions: input.language === 'en' 
+    suggestions: input.language === 'en'
       ? ['This is a demo generation. Connect to Google AI for better results.']
       : ['Bu bir demo üretimdir. Daha iyi sonuçlar için Google AI\'ya bağlanın.'],
   };
@@ -154,12 +152,12 @@ function generateMockQuestions(input: QuestionGenerationInput) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json() as QuestionGenerationInput;
-    
+
     // Validate input
     if (!body.subject || !body.topic || !body.difficulty || !body.type || !body.count) {
       return NextResponse.json(
         { error: 'Missing required fields: subject, topic, difficulty, type, count' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -167,47 +165,23 @@ export async function POST(request: NextRequest) {
     if (!shouldUseDemoData()) {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        console.log('⚠️ No authentication found, allowing anonymous AI generation');
       }
     }
 
-    console.log('🤖 AI Question Generation Request:', {
-      subject: body.subject,
-      topic: body.topic,
-      type: body.type,
-      difficulty: body.difficulty,
-      count: body.count,
-    });
-
     let result;
-    
+
     // Check if Google AI API key is available (support multiple key names)
     const hasApiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY || process.env.GOOGLE_AI_API_KEY;
-    
+
     // Debug environment variables
-    console.log('🔍 Environment Variables Debug:', {
-      GEMINI_API_KEY: process.env.GEMINI_API_KEY ? '✅ SET' : '❌ MISSING',
-      GOOGLE_GENAI_API_KEY: process.env.GOOGLE_GENAI_API_KEY ? '✅ SET' : '❌ MISSING',
-      GOOGLE_AI_API_KEY: process.env.GOOGLE_AI_API_KEY ? '✅ SET' : '❌ MISSING',
-      hasApiKey: !!hasApiKey,
-      shouldUseDemoData: shouldUseDemoData(),
-    });
-    
+
     if (!hasApiKey || shouldUseDemoData()) {
-      console.log('📝 Using mock question generation (no API key or demo mode)');
       result = generateMockQuestions(body);
-      console.log('📊 Mock generation result:', {
-        questionsCount: result.questions.length,
-        subjects: result.metadata.subject,
-        topic: result.metadata.topic,
-        firstQuestion: result.questions[0]?.text
-      });
     } else {
       try {
         // Call the AI generation flow
         result = await generateQuestions(body);
-      } catch (aiError) {
-        console.error('AI generation failed, falling back to mock:', aiError);
+      } catch {
         result = generateMockQuestions(body);
       }
     }
@@ -232,21 +206,19 @@ export async function POST(request: NextRequest) {
             created_at: new Date().toISOString(),
           });
         }
-      } catch (logError) {
-        console.error('Failed to log AI generation:', logError);
+      } catch {
         // Don't fail the request if logging fails
       }
     }
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error('AI Question Generation Error:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to generate questions',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

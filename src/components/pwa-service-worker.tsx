@@ -7,24 +7,19 @@ export default function PWAServiceWorker() {
     const registerServiceWorker = async () => {
       if ('serviceWorker' in navigator) {
         try {
-          console.log('🔧 Registering Service Worker...');
-          
+
           const registration = await navigator.serviceWorker.register('/sw.js', {
             scope: '/',
-            updateViaCache: 'none'
+            updateViaCache: 'none',
           });
-
-          console.log('✅ Service Worker registered successfully:', registration);
 
           // Check for updates
           registration.addEventListener('updatefound', () => {
-            console.log('🔄 Service Worker update found');
             const newWorker = registration.installing;
-            
+
             if (newWorker) {
               newWorker.addEventListener('statechange', () => {
                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  console.log('🆕 New version available');
                   // You can show a notification to the user here
                 }
               });
@@ -40,11 +35,10 @@ export default function PWAServiceWorker() {
             }
           });
 
-        } catch (error) {
-          console.error('❌ Service Worker registration failed:', error);
+        } catch {
+          //do nothing
         }
       } else {
-        console.log('⚠️ Service Worker not supported');
       }
     };
 
@@ -52,4 +46,4 @@ export default function PWAServiceWorker() {
   }, []);
 
   return null; // This component doesn't render anything
-} 
+}

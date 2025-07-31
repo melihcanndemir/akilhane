@@ -6,6 +6,7 @@ export interface DemoPerformanceData {
   averageScore: number;
   totalTests: number;
   weakTopics: string[];
+  strongTopics: string[];
   lastUpdated: string;
 }
 
@@ -90,7 +91,7 @@ export const demoSubjects = [
     difficulty: 'Orta',
     questionCount: 156,
     isActive: true,
-  }
+  },
 ];
 
 // Rich performance data - BTK Hackathon
@@ -100,6 +101,7 @@ export const demoPerformanceData: DemoPerformanceData[] = [
     averageScore: 87,
     totalTests: 24,
     weakTopics: ['Türev Uygulamaları', 'İntegral Hesabı', 'Logaritma'],
+    strongTopics: ['Geometri', 'Cebir', 'Analiz'],
     lastUpdated: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
   },
   {
@@ -107,6 +109,7 @@ export const demoPerformanceData: DemoPerformanceData[] = [
     averageScore: 73,
     totalTests: 18,
     weakTopics: ['Elektrik ve Manyetizma', 'Dalga Hareketi', 'Modern Fizik'],
+    strongTopics: ['Mekanik', 'Termodinamik', 'Elektrik'],
     lastUpdated: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(), // 5 hours ago
   },
   {
@@ -114,6 +117,7 @@ export const demoPerformanceData: DemoPerformanceData[] = [
     averageScore: 91,
     totalTests: 15,
     weakTopics: ['Organik Kimya', 'Elektrokimya'],
+    strongTopics: ['Kimyasal Reaksiyonlar', 'Anorganik Kimya', 'Kimyasal Bağlar'],
     lastUpdated: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
   },
   {
@@ -121,6 +125,7 @@ export const demoPerformanceData: DemoPerformanceData[] = [
     averageScore: 82,
     totalTests: 21,
     weakTopics: ['Genetik', 'Ekoloji', 'Hücre Bölünmesi'],
+    strongTopics: ['Hücre Biyolojisi', 'Sistemler', 'Dokular'],
     lastUpdated: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(), // 3 hours ago
   },
   {
@@ -128,6 +133,7 @@ export const demoPerformanceData: DemoPerformanceData[] = [
     averageScore: 95,
     totalTests: 32,
     weakTopics: ['Osmanlı Duraklama Dönemi'],
+    strongTopics: ['Tarih', 'Tarihsel Olaylar', 'Tarihsel Süreçler'],
     lastUpdated: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 minutes ago
   },
   {
@@ -135,6 +141,7 @@ export const demoPerformanceData: DemoPerformanceData[] = [
     averageScore: 89,
     totalTests: 28,
     weakTopics: ['Divan Edebiyatı', 'Çağdaş Türk Edebiyatı'],
+    strongTopics: ['Dil Bilgisi', 'Edebiyat', 'Çağdaş Edebiyat'],
     lastUpdated: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
   },
   {
@@ -142,8 +149,9 @@ export const demoPerformanceData: DemoPerformanceData[] = [
     averageScore: 78,
     totalTests: 19,
     weakTopics: ['Grammar Tenses', 'Reading Comprehension', 'Vocabulary'],
+    strongTopics: ['Yabancı Dil', 'Gramatik', 'Okuma'],
     lastUpdated: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6 saat önce
-  }
+  },
 ];
 
 // Son test sonuçları - Çeşitli performans seviyeleri
@@ -210,7 +218,7 @@ export const demoRecentResults: DemoQuizResult[] = [
     timeSpent: 2100, // 35 dakika
     weakTopics: ['Grammar Tenses', 'Vocabulary'],
     createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
-  }
+  },
 ];
 
 // Total statistics - BTK Hackathon
@@ -218,7 +226,7 @@ export const demoTotalStats: DemoTotalStats = {
   totalTests: 157, // High usage indicator
   averageScore: 84.2, // Good success rate
   totalTimeSpent: 4680, // 78 hours (in minutes)
-  totalSubjects: 7 // Various subject areas
+  totalSubjects: 7, // Various subject areas
 };
 
 // AI Recommendations - Show AI features for BTK Hackathon
@@ -243,7 +251,7 @@ export const demoAIRecommendations = [
     recommendedDifficulty: 'Zor' as const,
     reasoning: 'Tarih konusunda çok başarılısınız! Zor seviye sorularla kendinizi daha da geliştirebilirsiniz.',
     createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-  }
+  },
 ];
 
 // Flashcard İlerleme Verileri
@@ -274,7 +282,7 @@ export const demoFlashcardProgress = {
     reviewCount: 8,
     lastReviewed: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
     nextReview: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-  }
+  },
 };
 
 // Demo user profile
@@ -288,8 +296,8 @@ export const demoUser = {
     defaultSubject: 'Matematik',
     questionsPerQuiz: 20,
     difficulty: 'Orta' as const,
-    theme: 'system' as const
-  }
+    theme: 'system' as const,
+  },
 };
 
 // BTK Hackathon Analytics Demo Data
@@ -342,49 +350,49 @@ export const demoAnalyticsData: DemoAnalyticsData = {
   improvement: 18.5, // 18.5% improvement
   weakTopics: [
     'Türev Uygulamaları',
-    'Elektrik ve Manyetizma', 
+    'Elektrik ve Manyetizma',
     'Organik Kimya',
     'Grammar Tenses',
-    'Divan Edebiyatı'
+    'Divan Edebiyatı',
   ],
   strongTopics: [
     'Tarih',
     'Geometri',
     'Anorganik Kimya',
     'Coğrafya',
-    'Türk Dili'
+    'Türk Dili',
   ],
   recentActivity: [
     {
       type: 'quiz',
       score: 95,
       timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      subject: 'Matematik'
+      subject: 'Matematik',
     },
     {
       type: 'flashcard',
       score: 88,
       timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-      subject: 'Fizik'
+      subject: 'Fizik',
     },
     {
       type: 'quiz',
       score: 100,
       timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-      subject: 'Tarih'
+      subject: 'Tarih',
     },
     {
       type: 'ai_chat',
       score: 92,
       timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
-      subject: 'Kimya'
+      subject: 'Kimya',
     },
     {
       type: 'quiz',
       score: 75,
       timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-      subject: 'İngilizce'
-    }
+      subject: 'İngilizce',
+    },
   ],
   weeklyProgress: [
     { day: 'Pazartesi', score: 78, tests: 3 },
@@ -393,7 +401,7 @@ export const demoAnalyticsData: DemoAnalyticsData = {
     { day: 'Perşembe', score: 88, tests: 4 },
     { day: 'Cuma', score: 91, tests: 6 },
     { day: 'Cumartesi', score: 87, tests: 3 },
-    { day: 'Pazar', score: 84, tests: 2 }
+    { day: 'Pazar', score: 84, tests: 2 },
   ],
   subjectDistribution: [
     { subject: 'Matematik', percentage: 28, color: '#3b82f6' },
@@ -401,53 +409,43 @@ export const demoAnalyticsData: DemoAnalyticsData = {
     { subject: 'Fizik', percentage: 18, color: '#f59e0b' },
     { subject: 'Kimya', percentage: 15, color: '#ef4444' },
     { subject: 'Türk Dili', percentage: 12, color: '#8b5cf6' },
-    { subject: 'İngilizce', percentage: 5, color: '#06b6d4' }
+    { subject: 'İngilizce', percentage: 5, color: '#06b6d4' },
   ],
   timeDistribution: [
     { hour: 9, minutes: 45 },   // Morning work
     { hour: 14, minutes: 120 }, // Afternoon work
     { hour: 19, minutes: 90 },  // Evening work
-    { hour: 21, minutes: 60 }   // Night work
+    { hour: 21, minutes: 60 },   // Night work
   ],
   difficultyBreakdown: [
     { level: 'Kolay', correct: 387, total: 425 },     // 91% success
-    { level: 'Orta', correct: 456, total: 542 },      // 84% success  
-    { level: 'Zor', correct: 206, total: 280 }        // 74% success
-  ]
+    { level: 'Orta', correct: 456, total: 542 },      // 84% success
+    { level: 'Zor', correct: 206, total: 280 },        // 74% success
+  ],
 };
 
 // Utility functions
-export const getDemoDataForUser = (userId: string) => {
-  return {
+export const getDemoDataForUser = (userId: string) => ({
     performanceData: demoPerformanceData,
     recentResults: demoRecentResults,
     totalStats: demoTotalStats,
     aiRecommendations: demoAIRecommendations,
     flashcardProgress: demoFlashcardProgress,
-    user: { ...demoUser, id: userId }
-  };
-};
+    user: { ...demoUser, id: userId },
+  });
 
 export const shouldUseDemoData = (): boolean => {
   if (typeof window === 'undefined') {
-    console.log('🔍 Demo Mode Check: Server-side rendering, returning false');
     return false; // Return false during SSR for API mode
   }
-  
+
   const urlParams = new URLSearchParams(window.location.search);
   const demoParam = urlParams.get('demo') === 'true';
   const localStorageDemo = localStorage.getItem('btk_demo_mode');
-  
+
   // Default to false if no localStorage value is set - use API instead
   const shouldUseDemo = demoParam || localStorageDemo === 'true';
-  
-  console.log('🔍 Demo Mode Check:', {
-    url: window.location.href,
-    demoParam,
-    localStorageDemo,
-    result: shouldUseDemo
-  });
-  
+
   return shouldUseDemo;
 };
 
@@ -460,19 +458,18 @@ export const toggleDemoMode = (enabled: boolean) => {
 
 // Demo data loading function
 export const loadDemoDataToLocalStorage = () => {
-  if (typeof window === 'undefined') return;
-  
+  if (typeof window === 'undefined') {return;}
+
   const demoData = getDemoDataForUser(demoUser.id);
-  
+
   // Demo data to localStorage
   localStorage.setItem('guestUser', JSON.stringify(demoData.user));
   localStorage.setItem('guestQuizResults', JSON.stringify(demoData.recentResults));
   localStorage.setItem('guestPerformanceData', JSON.stringify(demoData.performanceData));
   localStorage.setItem('guestFlashcardProgress', JSON.stringify(demoData.flashcardProgress));
   localStorage.setItem('guestAIRecommendations', JSON.stringify(demoData.aiRecommendations));
-  
-  console.log('🎯 BTK Hackathon Demo verileri yüklendi!');
-}; 
+
+};
 
 // Demo Questions for BTK Hackathon
 export const demoQuestions = {
@@ -509,7 +506,7 @@ export const demoQuestions = {
       difficulty: 'İleri',
       tags: ['integral', 'analiz'],
       createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
-    }
+    },
   ],
   'subj_fizik_002': [
     {
@@ -544,7 +541,7 @@ export const demoQuestions = {
       difficulty: 'İleri',
       tags: ['termodinamik', 'enerji', 'korunum'],
       createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    }
+    },
   ],
   'subj_kimya_003': [
     {
@@ -568,7 +565,7 @@ export const demoQuestions = {
       difficulty: 'İleri',
       tags: ['molekül geometrisi', 'su', 'hibridizasyon'],
       createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    }
+    },
   ],
   'subj_tarih_004': [
     {
@@ -592,7 +589,7 @@ export const demoQuestions = {
       difficulty: 'Orta',
       tags: ['cumhuriyet', 'atatürk', 'kuruluş'],
       createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-    }
+    },
   ],
   'subj_biyoloji_005': [
     {
@@ -616,7 +613,7 @@ export const demoQuestions = {
       difficulty: 'İleri',
       tags: ['dna', 'watson', 'crick', 'genetik'],
       createdAt: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
-    }
+    },
   ],
   'subj_edebiyat_006': [
     {
@@ -640,7 +637,7 @@ export const demoQuestions = {
       difficulty: 'İleri',
       tags: ['divan edebiyatı', 'gazel', 'nazım'],
       createdAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-    }
+    },
   ],
   'subj_ingilizce_007': [
     {
@@ -649,9 +646,9 @@ export const demoQuestions = {
       question: 'Which sentence is grammatically correct?',
       options: [
         'She don\'t like coffee',
-        'She doesn\'t likes coffee', 
+        'She doesn\'t likes coffee',
         'She doesn\'t like coffee',
-        'She not like coffee'
+        'She not like coffee',
       ],
       correctAnswer: 2, // She doesn't like coffee
       explanation: 'Third person singular uses "doesn\'t" and base form of verb.',
@@ -669,19 +666,15 @@ export const demoQuestions = {
       difficulty: 'Başlangıç',
       tags: ['irregular verbs', 'past tense'],
       createdAt: new Date(Date.now() - 1 * 60 * 1000).toISOString(),
-    }
-  ]
+    },
+  ],
 };
 
 // Get demo questions for a specific subject
-export const getDemoQuestions = (subjectId: string) => {
-  return demoQuestions[subjectId as keyof typeof demoQuestions] || [];
-};
+export const getDemoQuestions = (subjectId: string) => demoQuestions[subjectId as keyof typeof demoQuestions] || [];
 
 // Get all demo questions
-export const getAllDemoQuestions = () => {
-  return Object.values(demoQuestions).flat();
-};
+export const getAllDemoQuestions = () => Object.values(demoQuestions).flat();
 
 // Demo Flashcards for BTK Hackathon
 export const demoFlashcards = {
@@ -699,8 +692,8 @@ export const demoFlashcards = {
         { text: 'Fonksiyonun değişim hızı', isCorrect: true },
         { text: 'Fonksiyonun integrali', isCorrect: false },
         { text: 'Fonksiyonun tersi', isCorrect: false },
-        { text: 'Fonksiyonun kökü', isCorrect: false }
-      ]
+        { text: 'Fonksiyonun kökü', isCorrect: false },
+      ],
     },
     {
       id: 'fc_mat_002',
@@ -715,8 +708,8 @@ export const demoFlashcards = {
         { text: 'a² + b² = c²', isCorrect: true },
         { text: 'a + b = c', isCorrect: false },
         { text: 'a² - b² = c²', isCorrect: false },
-        { text: 'a × b = c', isCorrect: false }
-      ]
+        { text: 'a × b = c', isCorrect: false },
+      ],
     },
     {
       id: 'fc_mat_003',
@@ -731,9 +724,9 @@ export const demoFlashcards = {
         { text: 'Fonksiyonun yaklaştığı değer', isCorrect: true },
         { text: 'Fonksiyonun maksimum değeri', isCorrect: false },
         { text: 'Fonksiyonun minimum değeri', isCorrect: false },
-        { text: 'Fonksiyonun ortalama değeri', isCorrect: false }
-      ]
-    }
+        { text: 'Fonksiyonun ortalama değeri', isCorrect: false },
+      ],
+    },
   ],
   'Fizik': [
     {
@@ -749,8 +742,8 @@ export const demoFlashcards = {
         { text: 'Eylemsizlik yasası', isCorrect: true },
         { text: 'F = ma', isCorrect: false },
         { text: 'Etki-tepki yasası', isCorrect: false },
-        { text: 'Kütle çekim yasası', isCorrect: false }
-      ]
+        { text: 'Kütle çekim yasası', isCorrect: false },
+      ],
     },
     {
       id: 'fc_fiz_002',
@@ -765,9 +758,9 @@ export const demoFlashcards = {
         { text: 'Yüklü parçacıkların hareketi', isCorrect: true },
         { text: 'Elektronların durması', isCorrect: false },
         { text: 'Manyetik alan', isCorrect: false },
-        { text: 'Işık hızı', isCorrect: false }
-      ]
-    }
+        { text: 'Işık hızı', isCorrect: false },
+      ],
+    },
   ],
   'Kimya': [
     {
@@ -783,9 +776,9 @@ export const demoFlashcards = {
         { text: 'Maddenin en küçük parçacığı', isCorrect: true },
         { text: 'Molekülün yarısı', isCorrect: false },
         { text: 'Elektronun çekirdeği', isCorrect: false },
-        { text: 'İyonun tersi', isCorrect: false }
-      ]
-    }
+        { text: 'İyonun tersi', isCorrect: false },
+      ],
+    },
   ],
   'Tarih': [
     {
@@ -801,9 +794,9 @@ export const demoFlashcards = {
         { text: 'İstanbul', isCorrect: true },
         { text: 'Ankara', isCorrect: false },
         { text: 'Bursa', isCorrect: false },
-        { text: 'İzmir', isCorrect: false }
-      ]
-    }
+        { text: 'İzmir', isCorrect: false },
+      ],
+    },
   ],
   'Biyoloji': [
     {
@@ -819,9 +812,9 @@ export const demoFlashcards = {
         { text: 'Mitokondri', isCorrect: true },
         { text: 'Kloroplast', isCorrect: false },
         { text: 'Ribozom', isCorrect: false },
-        { text: 'Çekirdek', isCorrect: false }
-      ]
-    }
+        { text: 'Çekirdek', isCorrect: false },
+      ],
+    },
   ],
   'Türk Dili ve Edebiyatı': [
     {
@@ -837,9 +830,9 @@ export const demoFlashcards = {
         { text: 'Taaşşuk-u Talat ve Fitnat', isCorrect: true },
         { text: 'Araba Sevdası', isCorrect: false },
         { text: 'Mai ve Siyah', isCorrect: false },
-        { text: 'Aşk-ı Memnu', isCorrect: false }
-      ]
-    }
+        { text: 'Aşk-ı Memnu', isCorrect: false },
+      ],
+    },
   ],
   'İngilizce': [
     {
@@ -855,18 +848,14 @@ export const demoFlashcards = {
         { text: 'Brought', isCorrect: true },
         { text: 'Bringed', isCorrect: false },
         { text: 'Brung', isCorrect: false },
-        { text: 'Brang', isCorrect: false }
-      ]
-    }
-  ]
+        { text: 'Brang', isCorrect: false },
+      ],
+    },
+  ],
 };
 
 // Get demo flashcards for a specific subject
-export const getDemoFlashcards = (subject: string) => {
-  return demoFlashcards[subject as keyof typeof demoFlashcards] || [];
-};
+export const getDemoFlashcards = (subject: string) => demoFlashcards[subject as keyof typeof demoFlashcards] || [];
 
 // Get all demo flashcards
-export const getAllDemoFlashcards = () => {
-  return Object.values(demoFlashcards).flat();
-}; 
+export const getAllDemoFlashcards = () => Object.values(demoFlashcards).flat();

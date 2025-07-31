@@ -6,5 +6,5 @@ const hasApiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY
 
 export const ai = genkit({
   plugins: hasApiKey ? [googleAI()] : [],
-  model: hasApiKey ? 'googleai/gemini-2.0-flash' : undefined,
+  ...(hasApiKey && { model: 'googleai/gemini-2.0-flash' }),
 });

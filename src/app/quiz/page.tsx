@@ -24,7 +24,7 @@ class SubjectLocalStorageService {
   private static readonly STORAGE_KEY = 'exam_training_subjects';
 
   static getSubjects(): Subject[] {
-    if (typeof window === 'undefined') return [];
+    if (typeof window === 'undefined') {return [];}
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       return stored ? JSON.parse(stored) : [];
@@ -38,8 +38,8 @@ class SubjectLocalStorageService {
 class QuestionLocalStorageService {
   private static readonly STORAGE_KEY = 'exam_training_questions';
 
-  static getQuestions(): any[] {
-    if (typeof window === 'undefined') return [];
+  static getQuestions(): unknown[] {
+    if (typeof window === 'undefined') {return [];}
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       return stored ? JSON.parse(stored) : [];
@@ -48,9 +48,9 @@ class QuestionLocalStorageService {
     }
   }
 
-  static getQuestionsBySubject(subject: string): any[] {
+  static getQuestionsBySubject(subject: string): unknown[] {
     const questions = this.getQuestions();
-    return questions.filter(q => q.subject === subject);
+    return questions.filter((q: unknown) => (q as { subject: string }).subject === subject);
   }
 }
 
@@ -67,14 +67,11 @@ function QuizPageContent() {
     const loadSubjects = async () => {
       try {
         setLoading(true);
-        console.log('🎯 Quiz Page - Loading subjects from localStorage...');
-        
+
         // Demo mode control
         const demoMode = shouldUseDemoData();
         setIsDemoMode(demoMode);
-        
-        console.log('🎯 Quiz Page - Demo mode check:', { demoMode });
-        
+
         if (demoMode) {
           // Demo subjects
           const demoSubjects: Subject[] = [
@@ -101,7 +98,7 @@ function QuizPageContent() {
               difficulty: 'İleri',
               isActive: true,
               questionCount: 167,
-            }
+            },
           ];
           setSubjects(demoSubjects);
           return;
@@ -109,25 +106,23 @@ function QuizPageContent() {
 
         // Directly use localStorage
         const localSubjects = SubjectLocalStorageService.getSubjects();
-        
+
         // Calculate question count for each subject
         const subjectsWithQuestionCount = localSubjects.map(subject => {
           const questions = QuestionLocalStorageService.getQuestionsBySubject(subject.name);
           return {
             ...subject,
-            questionCount: questions.length
+            questionCount: questions.length,
           };
         });
-        
+
         // Filter only active courses with questions
-        const activeSubjectsWithQuestions = subjectsWithQuestionCount.filter(subject => 
-          subject.isActive && subject.questionCount > 0
+        const activeSubjectsWithQuestions = subjectsWithQuestionCount.filter(subject =>
+          subject.isActive && subject.questionCount > 0,
         );
-        
-        console.log('🎯 Quiz Page - Loaded subjects:', activeSubjectsWithQuestions);
+
         setSubjects(activeSubjectsWithQuestions);
-      } catch (error) {
-        console.error('🎯 Quiz Page - Error loading subjects:', error);
+      } catch {
       } finally {
         setLoading(false);
       }
@@ -141,13 +136,7 @@ function QuizPageContent() {
       // Check if there are real questions for this subject
       const questionsForSubject = QuestionLocalStorageService.getQuestionsBySubject(selectedSubject);
       const hasRealQuestions = questionsForSubject.length > 0;
-      
-      console.log('🎯 Quiz Page - Subject questions check:', {
-        subject: selectedSubject,
-        questionCount: questionsForSubject.length,
-        hasRealQuestions
-      });
-      
+
       if (hasRealQuestions) {
         // Use real questions - don't set demo mode
         const quizUrl = `/quiz?subject=${encodeURIComponent(selectedSubject)}`;
@@ -164,7 +153,7 @@ function QuizPageContent() {
   if (subject && subject.length > 0) {
     // Demo mode control
     const isDemoMode = shouldUseDemoData();
-    
+
     return <QuizComponent subject={subject} isDemoMode={isDemoMode} />;
   }
 
@@ -173,10 +162,10 @@ function QuizPageContent() {
       <div className="max-w-4xl mx-auto">
         {/* Back button */}
         <div className="mb-6">
-          <Button 
-            onClick={() => window.location.href = '/'} 
-            variant="outline" 
-            size="sm" 
+          <Button
+            onClick={() => window.location.href = '/'}
+            variant="outline"
+            size="sm"
             className="flex items-center gap-2 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -197,7 +186,7 @@ function QuizPageContent() {
             )}
           </div>
           <p className="text-lg text-gray-600 dark:text-gray-300">
-            Bilgilerinizi test etmek için bir ders seçin ve quiz'e başlayın.
+            Bilgilerinizi test etmek için bir ders seçin ve quiz&apos;e başlayın.
           </p>
         </div>
 
@@ -224,15 +213,15 @@ function QuizPageContent() {
                   Henüz soru içeren aktif ders bulunmuyor
                 </p>
                 <div className="space-y-2">
-                  <Button 
-                    onClick={() => router.push('/subject-manager')} 
+                  <Button
+                    onClick={() => router.push('/subject-manager')}
                     className="mr-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
                   >
                     <GraduationCap className="w-4 h-4 mr-2" />
                     Ders Ekle
                   </Button>
-                  <Button 
-                    onClick={() => router.push('/question-manager')} 
+                  <Button
+                    onClick={() => router.push('/question-manager')}
                     variant="outline"
                     className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
                   >
@@ -249,8 +238,8 @@ function QuizPageContent() {
                   </SelectTrigger>
                   <SelectContent>
                     {subjects.map((subject) => (
-                      <SelectItem 
-                        key={subject.id} 
+                      <SelectItem
+                        key={subject.id}
                         value={subject.name}
                         className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white"
                       >
@@ -260,14 +249,14 @@ function QuizPageContent() {
                   </SelectContent>
                 </Select>
 
-                <Button 
-                  onClick={handleStartQuiz} 
+                <Button
+                  onClick={handleStartQuiz}
                   disabled={!selectedSubject}
                   className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0"
                   size="lg"
                 >
                   <Play className="w-4 h-4 mr-2" />
-                  Quiz'e Başla
+                  Quiz&apos;e Başla
                 </Button>
               </>
             )}
@@ -281,22 +270,16 @@ function QuizPageContent() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {subjects.map((subject) => (
-                <Card 
-                  key={subject.id} 
+                <Card
+                  key={subject.id}
                   className="cursor-pointer hover:shadow-lg transition-shadow border-gradient-question"
                   onClick={() => {
                     setSelectedSubject(subject.name);
-                    
+
                     // Check if there are real questions for this subject
                     const questionsForSubject = QuestionLocalStorageService.getQuestionsBySubject(subject.name);
                     const hasRealQuestions = questionsForSubject.length > 0;
-                    
-                    console.log('🎯 Quiz Page - Card click - Subject questions check:', {
-                      subject: subject.name,
-                      questionCount: questionsForSubject.length,
-                      hasRealQuestions
-                    });
-                    
+
                     if (hasRealQuestions) {
                       // Use real questions - don't set demo mode
                       const quizUrl = `/quiz?subject=${encodeURIComponent(subject.name)}`;

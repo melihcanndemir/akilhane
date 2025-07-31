@@ -28,7 +28,7 @@ class SubjectLocalStorageService {
   private static readonly STORAGE_KEY = 'exam_training_subjects';
 
   static getSubjects(): Subject[] {
-    if (typeof window === 'undefined') return [];
+    if (typeof window === 'undefined') {return [];}
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       return stored ? JSON.parse(stored) : [];
@@ -38,11 +38,11 @@ class SubjectLocalStorageService {
   }
 
   static saveSubjects(subjects: Subject[]): void {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined') {return;}
     try {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(subjects));
-    } catch (error) {
-      console.error('Error saving subjects to localStorage:', error);
+    } catch {
+      //do nothing
     }
   }
 
@@ -61,7 +61,7 @@ class SubjectLocalStorageService {
   static updateSubject(id: string, updates: Partial<Subject>): Subject | null {
     const subjects = this.getSubjects();
     const index = subjects.findIndex(s => s.id === id);
-    if (index === -1) return null;
+    if (index === -1) {return null;}
 
     const existingSubject = subjects[index];
     if (existingSubject) {
@@ -84,8 +84,8 @@ class SubjectLocalStorageService {
   static deleteSubject(id: string): boolean {
     const subjects = this.getSubjects();
     const filtered = subjects.filter(s => s.id !== id);
-    if (filtered.length === subjects.length) return false;
-    
+    if (filtered.length === subjects.length) {return false;}
+
     this.saveSubjects(filtered);
     return true;
   }
@@ -93,7 +93,7 @@ class SubjectLocalStorageService {
   static toggleActive(id: string): Subject | null {
     const subjects = this.getSubjects();
     const index = subjects.findIndex(s => s.id === id);
-    if (index === -1) return null;
+    if (index === -1) {return null;}
 
     const existingSubject = subjects[index];
     if (existingSubject) {
@@ -122,7 +122,7 @@ const SubjectManager = () => {
     name: '',
     description: '',
     category: '',
-    difficulty: 'Orta'
+    difficulty: 'Orta',
   });
   const [useSupabase, setUseSupabase] = useState(false);
   const { toast } = useToast();
@@ -130,48 +130,42 @@ const SubjectManager = () => {
   const loadSubjects = async () => {
     try {
       setIsLoading(true);
-      
+
       // Use demo data for demo mode
       if (shouldUseDemoData()) {
-        console.log('🎯 Subject Manager - Using Demo Data');
         setSubjects(demoSubjects);
         setUseSupabase(false);
         return;
       }
 
       // Fetch data from API
-      console.log('🔐 Subject Manager - Fetching from API...');
       const response = await fetch('/api/subjects');
       const apiSubjects = await response.json();
-      
+
       // If API returns demo data and demo mode is off, show empty state
       if (apiSubjects.length > 0 && apiSubjects[0].createdBy === 'demo_user_btk_2025' && !shouldUseDemoData()) {
-        console.log('❌ Subject Manager - API returned demo data but demo mode is off, showing empty state');
         setSubjects([]);
         setUseSupabase(false);
         return;
       }
-      
+
       // If API returns real data, use it
       if (apiSubjects.length > 0 && apiSubjects[0].createdBy !== 'demo_user_btk_2025') {
-        console.log('✅ Subject Manager - Using API data');
         setSubjects(apiSubjects);
         setUseSupabase(true);
         return;
       }
 
       // If API returns empty, check localStorage
-      console.log('🔍 Subject Manager - API empty, checking localStorage...');
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session) {
-        console.log('❌ No session found, using localStorage');
         setUseSupabase(false);
         const localSubjects = SubjectLocalStorageService.getSubjects();
-        
+
         // Calculate real question count
         const getQuestionsFromStorage = () => {
-          if (typeof window === 'undefined') return [];
+          if (typeof window === 'undefined') {return [];}
           try {
             const stored = localStorage.getItem('exam_training_questions');
             return stored ? JSON.parse(stored) : [];
@@ -179,26 +173,24 @@ const SubjectManager = () => {
             return [];
           }
         };
-        
+
         const questions = getQuestionsFromStorage();
-        
+
         // Calculate real question count for each subject
         const updatedSubjects = localSubjects.map(subject => {
-          const questionCount = questions.filter((q: any) => q.subject === subject.name).length;
-          console.log(`🔍 Debug - Subject: ${subject.name}, Question count: ${questionCount}`);
+          const questionCount = questions.filter((q: { subject: string }) => q.subject === subject.name).length;
           return {
             ...subject,
-            questionCount
+            questionCount,
           };
         });
-        
+
         setSubjects(updatedSubjects);
         return;
       }
 
-      console.log('✅ Session found, using Supabase');
       setUseSupabase(true);
-      
+
       // Fetch data from Supabase
       const supabaseSubjects = await SubjectService.getSubjects();
       const mappedSupabaseSubjects: Subject[] = supabaseSubjects.map(s => ({
@@ -208,14 +200,13 @@ const SubjectManager = () => {
         category: s.category,
         difficulty: s.difficulty,
         questionCount: s.question_count,
-        isActive: s.is_active
+        isActive: s.is_active,
       }));
-      
+
       // Merge localStorage and Supabase data
-      console.log('🔄 Merging localStorage and Supabase data...');
       const localSubjects = SubjectLocalStorageService.getSubjects();
       const mergedSubjects = [...localSubjects];
-      
+
       // Check each subject in Supabase
       mappedSupabaseSubjects.forEach(supabaseSubject => {
         const existingIndex = mergedSubjects.findIndex(local => local.id === supabaseSubject.id);
@@ -227,10 +218,10 @@ const SubjectManager = () => {
           mergedSubjects.push(supabaseSubject);
         }
       });
-      
+
       // Calculate real question count
       const getQuestionsFromStorage = () => {
-        if (typeof window === 'undefined') return [];
+        if (typeof window === 'undefined') {return [];}
         try {
           const stored = localStorage.getItem('exam_training_questions');
           return stored ? JSON.parse(stored) : [];
@@ -238,21 +229,21 @@ const SubjectManager = () => {
           return [];
         }
       };
-      
+
       const questions = getQuestionsFromStorage();
-      
+
       // Calculate real question count for each subject
       const updatedMergedSubjects = mergedSubjects.map(subject => {
-        const questionCount = questions.filter((q: any) => q.subject === subject.name).length;
+        const questionCount = questions.filter((q: { subject: string }) => q.subject === subject.name).length;
         return {
           ...subject,
-          questionCount
+          questionCount,
         };
       });
-      
+
       setSubjects(updatedMergedSubjects);
-    } catch (error) {
-      console.error('❌ Error loading subjects:', error);
+    } catch {
+      //do nothing
       setSubjects([]);
     } finally {
       setIsLoading(false);
@@ -261,14 +252,12 @@ const SubjectManager = () => {
 
   const handleAddSubject = async () => {
     try {
-      console.log('🎯 handleAddSubject - useSupabase:', useSupabase);
-      console.log('🎯 handleAddSubject - formData:', formData);
-      
+
       if (!formData.name || !formData.description || !formData.category) {
         toast({
-          title: "Hata",
-          description: "Lütfen tüm alanları doldurun.",
-          variant: "destructive",
+          title: 'Hata',
+          description: 'Lütfen tüm alanları doldurun.',
+          variant: 'destructive',
         });
         return;
       }
@@ -279,20 +268,19 @@ const SubjectManager = () => {
         category: formData.category,
         difficulty: formData.difficulty,
         questionCount: 0,
-        isActive: true
+        isActive: true,
       };
 
       if (useSupabase) {
-        console.log('🎯 handleAddSubject - Using Supabase service');
         const result = await SubjectService.createSubject({
           name: formData.name,
           description: formData.description,
           category: formData.category,
           difficulty: formData.difficulty,
           question_count: 0,
-          is_active: true
+          is_active: true,
         });
-        
+
         if (result) {
           const mappedSubject: Subject = {
             id: result.id,
@@ -301,7 +289,7 @@ const SubjectManager = () => {
             category: result.category,
             difficulty: result.difficulty,
             questionCount: result.question_count,
-            isActive: result.is_active
+            isActive: result.is_active,
           };
           setSubjects(prev => [mappedSubject, ...prev]);
         }
@@ -311,18 +299,18 @@ const SubjectManager = () => {
       }
 
       toast({
-        title: "Başarılı",
-        description: "Ders başarıyla eklendi.",
+        title: 'Başarılı',
+        description: 'Ders başarıyla eklendi.',
       });
 
       setFormData({ name: '', description: '', category: '', difficulty: 'Orta' });
       setIsDialogOpen(false);
-    } catch (error) {
-      console.error('Error adding subject:', error);
+    } catch {
+      //do nothing
       toast({
-        title: "Hata",
-        description: "Ders eklenirken bir hata oluştu.",
-        variant: "destructive",
+        title: 'Hata',
+        description: 'Ders eklenirken bir hata oluştu.',
+        variant: 'destructive',
       });
     }
   };
@@ -331,9 +319,9 @@ const SubjectManager = () => {
     try {
       if (!formData.name || !formData.description || !formData.category) {
         toast({
-          title: "Hata",
-          description: "Lütfen tüm alanları doldurun.",
-          variant: "destructive",
+          title: 'Hata',
+          description: 'Lütfen tüm alanları doldurun.',
+          variant: 'destructive',
         });
         return;
       }
@@ -343,9 +331,9 @@ const SubjectManager = () => {
           name: formData.name,
           description: formData.description,
           category: formData.category,
-          difficulty: formData.difficulty
+          difficulty: formData.difficulty,
         });
-        
+
         if (result) {
           const mappedSubject: Subject = {
             id: result.id,
@@ -354,7 +342,7 @@ const SubjectManager = () => {
             category: result.category,
             difficulty: result.difficulty,
             questionCount: result.question_count,
-            isActive: result.is_active
+            isActive: result.is_active,
           };
           setSubjects(prev => prev.map(s => s.id === subject.id ? mappedSubject : s));
         }
@@ -363,28 +351,28 @@ const SubjectManager = () => {
           name: formData.name,
           description: formData.description,
           category: formData.category,
-          difficulty: formData.difficulty
+          difficulty: formData.difficulty,
         });
-        
+
         if (result) {
           setSubjects(prev => prev.map(s => s.id === subject.id ? result : s));
         }
       }
 
       toast({
-        title: "Başarılı",
-        description: "Ders başarıyla güncellendi.",
+        title: 'Başarılı',
+        description: 'Ders başarıyla güncellendi.',
       });
 
       setFormData({ name: '', description: '', category: '', difficulty: 'Orta' });
       setEditingSubject(null);
       setIsDialogOpen(false);
-    } catch (error) {
-      console.error('Error updating subject:', error);
+    } catch {
+      //do nothing
       toast({
-        title: "Hata",
-        description: "Ders güncellenirken bir hata oluştu.",
-        variant: "destructive",
+        title: 'Hata',
+        description: 'Ders güncellenirken bir hata oluştu.',
+        variant: 'destructive',
       });
     }
   };
@@ -404,15 +392,15 @@ const SubjectManager = () => {
       }
 
       toast({
-        title: "Başarılı",
-        description: "Ders başarıyla silindi.",
+        title: 'Başarılı',
+        description: 'Ders başarıyla silindi.',
       });
-    } catch (error) {
-      console.error('Error deleting subject:', error);
+    } catch {
+      //do nothing
       toast({
-        title: "Hata",
-        description: "Ders silinirken bir hata oluştu.",
-        variant: "destructive",
+        title: 'Hata',
+        description: 'Ders silinirken bir hata oluştu.',
+        variant: 'destructive',
       });
     }
   };
@@ -431,7 +419,7 @@ const SubjectManager = () => {
               category: result.category,
               difficulty: result.difficulty,
               questionCount: result.question_count,
-              isActive: result.is_active
+              isActive: result.is_active,
             };
             setSubjects(prev => prev.map(s => s.id === id ? mappedSubject : s));
           }
@@ -444,15 +432,15 @@ const SubjectManager = () => {
       }
 
       toast({
-        title: "Başarılı",
-        description: "Ders durumu güncellendi.",
+        title: 'Başarılı',
+        description: 'Ders durumu güncellendi.',
       });
-    } catch (error) {
-      console.error('Error toggling subject:', error);
+    } catch {
+      //do nothing
       toast({
-        title: "Hata",
-        description: "Ders durumu güncellenirken bir hata oluştu.",
-        variant: "destructive",
+        title: 'Hata',
+        description: 'Ders durumu güncellenirken bir hata oluştu.',
+        variant: 'destructive',
       });
     }
   };
@@ -463,7 +451,7 @@ const SubjectManager = () => {
       name: subject.name,
       description: subject.description,
       category: subject.category,
-      difficulty: subject.difficulty
+      difficulty: subject.difficulty,
     });
     setIsDialogOpen(true);
   };
@@ -475,7 +463,6 @@ const SubjectManager = () => {
   };
 
   useEffect(() => {
-    console.log('🚀 SubjectManager useEffect triggered');
     loadSubjects();
   }, []);
 
@@ -641,7 +628,7 @@ const SubjectManager = () => {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-500 dark:text-gray-400">Zorluk:</span>
-                    <Badge 
+                    <Badge
                       className={
                         subject.difficulty === 'Kolay' ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white border-0' :
                         subject.difficulty === 'Orta' ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0' :
@@ -659,7 +646,7 @@ const SubjectManager = () => {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-500 dark:text-gray-400">Durum:</span>
-                    <Badge 
+                    <Badge
                       className={subject.isActive ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white border-0' : 'bg-gradient-to-r from-gray-400 to-gray-500 text-white border-0'}
                     >
                       {subject.isActive ? 'Aktif' : 'Pasif'}
@@ -693,4 +680,4 @@ const SubjectManager = () => {
   );
 };
 
-export default SubjectManager; 
+export default SubjectManager;

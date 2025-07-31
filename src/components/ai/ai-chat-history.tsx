@@ -39,30 +39,29 @@ export default function AiChatHistory({ onSessionSelect, currentSessionId }: AiC
     try {
       setIsLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       let allSessions: AiChatSession[] = [];
-      
+
       // Try to fetch from Supabase first
       if (user) {
         try {
-          const url = search 
+          const url = search
             ? `/api/ai-chat?search=${encodeURIComponent(search)}&userId=${user.id}`
             : `/api/ai-chat?userId=${user.id}`;
-          
+
           const response = await fetch(url);
-          
+
           if (response.ok) {
             const data = await response.json();
             allSessions = data;
           }
         } catch {
-          console.log('❌ Failed to fetch from Supabase, using localStorage');
         }
       }
-      
+
       // Get sessions from localStorage
       const localSessions = localStorageService.getAIChatSessions();
-      
+
       // Convert localStorage sessions to the expected format
       const localFormattedSessions: AiChatSession[] = localSessions.map(session => ({
         id: session.id,
@@ -73,20 +72,19 @@ export default function AiChatHistory({ onSessionSelect, currentSessionId }: AiC
         messageCount: session.messages?.length || 0,
         lastMessageAt: session.lastMessageAt,
         createdAt: session.createdAt,
-        updatedAt: session.updatedAt
+        updatedAt: session.updatedAt,
       }));
-      
+
       // Combine Supabase and localStorage sessions
       const combinedSessions = [...allSessions, ...localFormattedSessions];
-      
+
       // Sort by last message date (newest first)
-      combinedSessions.sort((a, b) => 
-        new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime()
+      combinedSessions.sort((a, b) =>
+        new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime(),
       );
-      
+
       setSessions(combinedSessions);
-    } catch (error) {
-      console.error('Error fetching sessions:', error);
+    } catch {
       setSessions([]);
     } finally {
       setIsLoading(false);
@@ -97,14 +95,13 @@ export default function AiChatHistory({ onSessionSelect, currentSessionId }: AiC
     try {
       // Get user ID
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       let deletedFromSupabase = false;
-      
+
       // Try to delete from Supabase first
       if (user) {
         try {
-          console.log('🔍 Deleting session from Supabase:', { sessionId, userId: user.id });
-          
+
           const response = await fetch(`/api/ai-chat/${sessionId}?userId=${user.id}`, {
             method: 'DELETE',
           });
@@ -113,39 +110,37 @@ export default function AiChatHistory({ onSessionSelect, currentSessionId }: AiC
             deletedFromSupabase = true;
           }
         } catch {
-          console.log('❌ Failed to delete from Supabase, trying localStorage');
         }
       }
-      
+
       // Try to delete from localStorage
       try {
         const deletedFromLocal = localStorageService.deleteAIChatSession(sessionId);
         if (deletedFromLocal || deletedFromSupabase) {
           toast({
-            title: "Başarılı",
-            description: "Konuşma geçmişi silindi.",
+            title: 'Başarılı',
+            description: 'Konuşma geçmişi silindi.',
           });
           fetchSessions(searchTerm);
         } else {
           toast({
-            title: "Hata",
-            description: "Konuşma geçmişi bulunamadı.",
-            variant: "destructive",
+            title: 'Hata',
+            description: 'Konuşma geçmişi bulunamadı.',
+            variant: 'destructive',
           });
         }
       } catch {
         toast({
-          title: "Hata",
-          description: "Konuşma geçmişi silinirken bir hata oluştu.",
-          variant: "destructive",
+          title: 'Hata',
+          description: 'Konuşma geçmişi silinirken bir hata oluştu.',
+          variant: 'destructive',
         });
       }
     } catch {
-      console.error('Error deleting session');
       toast({
-        title: "Hata",
-        description: "Konuşma geçmişi silinirken bir hata oluştu.",
-        variant: "destructive",
+        title: 'Hata',
+        description: 'Konuşma geçmişi silinirken bir hata oluştu.',
+        variant: 'destructive',
       });
     }
   };
@@ -154,13 +149,11 @@ export default function AiChatHistory({ onSessionSelect, currentSessionId }: AiC
     fetchSessions(searchTerm);
   };
 
-
-
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
+
     if (diffInHours < 1) {
       return 'Az önce';
     } else if (diffInHours < 24) {
@@ -180,9 +173,9 @@ export default function AiChatHistory({ onSessionSelect, currentSessionId }: AiC
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>
-        <Button 
-          variant="outline" 
-          size="sm" 
+        <Button
+          variant="outline"
+          size="sm"
           className="gap-1 sm:gap-2 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0 text-xs sm:text-sm h-8 sm:h-9"
         >
           <History className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -212,7 +205,7 @@ export default function AiChatHistory({ onSessionSelect, currentSessionId }: AiC
             </div>
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="flex gap-3 mb-6 lg:mb-8">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 lg:w-5 lg:h-5 text-gray-400" />
@@ -224,9 +217,9 @@ export default function AiChatHistory({ onSessionSelect, currentSessionId }: AiC
               className="pl-10 lg:h-12 lg:text-base border-2 border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-800"
             />
           </div>
-          <Button 
-            onClick={handleSearch} 
-            size="sm" 
+          <Button
+            onClick={handleSearch}
+            size="sm"
             className="bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0 hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-200 lg:h-12 lg:px-6"
           >
             <Search className="w-4 h-4 lg:w-5 lg:h-5" />
@@ -250,7 +243,7 @@ export default function AiChatHistory({ onSessionSelect, currentSessionId }: AiC
                 {searchTerm ? 'Arama sonucu bulunamadı' : 'Henüz konuşma geçmişi yok'}
               </h3>
               <p className="text-sm lg:text-base text-gray-500 dark:text-gray-400 max-w-md mx-auto">
-                {searchTerm 
+                {searchTerm
                   ? 'Arama kriterlerinize uygun konuşma bulunamadı. Farklı kelimeler deneyin.'
                   : 'AI Tutor ile ilk konuşmanızı başlatın ve burada görünecek.'
                 }
@@ -258,11 +251,11 @@ export default function AiChatHistory({ onSessionSelect, currentSessionId }: AiC
             </div>
           ) : (
             sessions.map((session) => (
-              <Card 
-                key={session.sessionId} 
+              <Card
+                key={session.sessionId}
                 className={`group cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.02] border-2 ${
-                  currentSessionId === session.sessionId 
-                    ? 'ring-2 ring-blue-500 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-blue-200 dark:border-blue-700' 
+                  currentSessionId === session.sessionId
+                    ? 'ring-2 ring-blue-500 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-blue-200 dark:border-blue-700'
                     : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600'
                 }`}
                 onClick={() => {
@@ -287,7 +280,7 @@ export default function AiChatHistory({ onSessionSelect, currentSessionId }: AiC
                           </p>
                         </div>
                       </div>
-                      
+
                       {/* Stats row */}
                       <div className="flex items-center gap-4 mb-2">
                         <div className="flex items-center gap-1 text-xs lg:text-sm text-gray-600 dark:text-gray-300">
@@ -301,18 +294,18 @@ export default function AiChatHistory({ onSessionSelect, currentSessionId }: AiC
                           <span className="font-medium">{formatDate(session.lastMessageAt)}</span>
                         </div>
                       </div>
-                      
+
                       {/* Subject badge */}
                       <div className="flex items-center gap-1">
-                        <Badge 
-                          variant="secondary" 
+                        <Badge
+                          variant="secondary"
                           className="text-xs font-medium bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 dark:from-blue-900/30 dark:to-purple-900/30 dark:text-blue-200 border border-blue-200 dark:border-blue-700"
                         >
                           {session.subject}
                         </Badge>
                         {session.messageCount > 0 && (
-                          <Badge 
-                            variant="outline" 
+                          <Badge
+                            variant="outline"
                             className="text-xs font-medium text-green-600 border-green-300 dark:text-green-400 dark:border-green-700"
                           >
                             Aktif
@@ -320,7 +313,7 @@ export default function AiChatHistory({ onSessionSelect, currentSessionId }: AiC
                         )}
                       </div>
                     </div>
-                    
+
                     {/* Delete button */}
                     <Button
                       variant="ghost"
@@ -342,4 +335,4 @@ export default function AiChatHistory({ onSessionSelect, currentSessionId }: AiC
       </DialogContent>
     </Dialog>
   );
-} 
+}

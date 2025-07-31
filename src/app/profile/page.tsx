@@ -8,10 +8,10 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { 
-  User, 
-  Mail, 
-  Edit3, 
+import {
+  User,
+  Mail,
+  Edit3,
   Camera,
   Settings,
   Trophy,
@@ -21,7 +21,7 @@ import {
   Loader2,
   X,
   Lock,
-  Database
+  Database,
 } from 'lucide-react';
 import Link from 'next/link';
 import MobileNav from '@/components/mobile-nav';
@@ -53,8 +53,8 @@ function ProfileContent() {
   // Load user profile data
   useEffect(() => {
     const loadUserProfile = async () => {
-      if (authLoading) return;
-      
+      if (authLoading) {return;}
+
       if (!authUser) {
         // Redirect to login if not authenticated
         window.location.href = '/login';
@@ -63,14 +63,7 @@ function ProfileContent() {
 
       try {
         setIsLoading(true);
-        
-        console.log('🔍 Profile - Loading user profile for:', authUser.id);
-        console.log('🔍 Profile - Auth user data:', {
-          id: authUser.id,
-          email: authUser.email,
-          metadata: authUser.user_metadata
-        });
-        
+
         // Use Supabase Auth data directly
         setUser({
           id: authUser.id,
@@ -82,15 +75,11 @@ function ProfileContent() {
           totalTests: 0, // Will be calculated from quiz_results table
           averageScore: 0, // Will be calculated from performance_analytics
           totalTime: '0 saat', // Will be calculated from quiz_results
-          subjects: [] // Will be fetched from subjects table
+          subjects: [], // Will be fetched from subjects table
         });
-        
-        console.log('✅ Profile - User profile loaded from Auth data');
-        
-      } catch (error) {
-        console.error('❌ Profile - Error loading user profile:', error);
+
+      } catch {
         // Fallback to auth user data
-        console.log('🔄 Profile - Using fallback auth data');
         setUser({
           id: authUser.id,
           name: authUser.user_metadata?.full_name || 'Kullanıcı',
@@ -101,7 +90,7 @@ function ProfileContent() {
           totalTests: 0,
           averageScore: 0,
           totalTime: '0 saat',
-          subjects: []
+          subjects: [],
         });
       } finally {
         setIsLoading(false);
@@ -112,40 +101,33 @@ function ProfileContent() {
   }, [authUser, authLoading]);
 
   const handleSave = async () => {
-    if (!user || !authUser) return;
+    if (!user || !authUser) {return;}
 
     try {
       setIsSaving(true);
-      
-      console.log('💾 Profile - Saving user profile:', user.name);
-      
+
       // Update user profile in Supabase Auth
       const { error } = await supabase.auth.updateUser({
         data: {
-          full_name: user.name
-        }
+          full_name: user.name,
+        },
       });
 
       if (error) {
-        console.error('❌ Profile - Error updating profile:', error);
         throw error;
       }
-
-      console.log('✅ Profile - User profile updated successfully');
       setIsEditing(false);
-    } catch (error) {
-      console.error('❌ Profile - Error saving profile:', error);
+    } catch {
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleAvatarUpload = async (file: File) => {
-    if (!authUser) return;
+    if (!authUser) {return;}
 
     try {
       setIsUploading(true);
-      console.log('📸 Profile - Starting avatar upload');
 
       // Upload to our API route
       const formData = new FormData();
@@ -164,27 +146,22 @@ function ProfileContent() {
       const avatarUrl = data.url;
       const avatarPublicId = data.public_id;
 
-      console.log('✅ Profile - Avatar uploaded:', avatarUrl);
-
       // Update user metadata with new avatar URL and public ID
       const { error } = await supabase.auth.updateUser({
         data: {
           avatar_url: avatarUrl,
-          avatar_public_id: avatarPublicId
-        }
+          avatar_public_id: avatarPublicId,
+        },
       });
 
       if (error) {
-        console.error('❌ Profile - Error updating avatar:', error);
         throw error;
       }
 
       // Update local state
-      setUser(prev => prev ? { ...prev, avatar: avatarUrl, avatarPublicId: avatarPublicId } : null);
+      setUser(prev => prev ? { ...prev, avatar: avatarUrl, avatarPublicId } : null);
 
-      console.log('✅ Profile - Avatar updated successfully');
-    } catch (error) {
-      console.error('❌ Profile - Error uploading avatar:', error);
+    } catch {
       // For now, just show a simple alert
       alert('Fotoğraf yüklenirken bir hata oluştu. Lütfen tekrar deneyin.');
     } finally {
@@ -200,20 +177,13 @@ function ProfileContent() {
   };
 
   const handleDeleteAvatar = async () => {
-    console.log('🔍 Debug - Delete button clicked');
-    console.log('🔍 Debug - authUser:', authUser);
-    console.log('🔍 Debug - user:', user);
-    console.log('🔍 Debug - user?.avatar:', user?.avatar);
-    console.log('🔍 Debug - user?.avatarPublicId:', user?.avatarPublicId);
-    
+
     if (!authUser || !user?.avatar) {
-      console.log('❌ Debug - Early return, no avatar to delete');
       return;
     }
 
     try {
       setIsUploading(true);
-      console.log('🗑️ Profile - Deleting avatar');
 
       // Extract public ID from Cloudinary URL if not stored
       let publicId = user.avatarPublicId;
@@ -223,54 +193,44 @@ function ProfileContent() {
         const uploadIndex = urlParts.findIndex(part => part === 'upload');
         if (uploadIndex !== -1 && urlParts.length > uploadIndex + 2) {
           publicId = urlParts.slice(uploadIndex + 2).join('/').replace(/\.[^/.]+$/, ''); // Remove extension
-          console.log('🔍 Debug - Extracted public ID from URL:', publicId);
         }
       }
 
       // If we have public ID, delete from Cloudinary
       if (publicId) {
-        console.log('🗑️ Debug - Attempting to delete from Cloudinary with public ID:', publicId);
-        
+
         const response = await fetch('/api/delete-avatar', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ publicId: publicId }),
+          body: JSON.stringify({ publicId }),
         });
 
-        console.log('🗑️ Debug - Cloudinary deletion response status:', response.status);
-        
         if (!response.ok) {
-          const errorText = await response.text();
-          console.log('⚠️ Debug - Cloudinary deletion failed:', errorText);
+          await response.text();
         } else {
-          const result = await response.json();
-          console.log('✅ Debug - Cloudinary deletion successful:', result);
+          await response.json();
         }
       } else {
-        console.log('⚠️ Debug - No public ID found, skipping Cloudinary deletion');
       }
 
       // Update user metadata to remove avatar URL and public ID
       const { error } = await supabase.auth.updateUser({
         data: {
           avatar_url: null,
-          avatar_public_id: null
-        }
+          avatar_public_id: null,
+        },
       });
 
       if (error) {
-        console.error('❌ Profile - Error deleting avatar:', error);
         throw error;
       }
 
       // Update local state
       setUser(prev => prev ? { ...prev, avatar: undefined, avatarPublicId: undefined } : null);
 
-      console.log('✅ Profile - Avatar deleted successfully');
-    } catch (error) {
-      console.error('❌ Profile - Error deleting avatar:', error);
+    } catch {
       alert('Fotoğraf silinirken bir hata oluştu. Lütfen tekrar deneyin.');
     } finally {
       setIsUploading(false);
@@ -309,7 +269,7 @@ function ProfileContent() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
       {/* Navigation Header */}
       <MobileNav />
-      
+
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
@@ -329,13 +289,13 @@ function ProfileContent() {
           {/* Header */}
           <div className="mb-8">
             <Link href="/dashboard">
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 className="mb-4 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Dashboard'a Dön
+                Dashboard&apos;a Dön
               </Button>
             </Link>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
@@ -365,7 +325,7 @@ function ProfileContent() {
                             {user.name.split(' ').map(n => n[0]).join('')}
                           </AvatarFallback>
                         </Avatar>
-                        
+
                         {/* Camera Button */}
                         <Button
                           size="sm"
@@ -498,7 +458,7 @@ function ProfileContent() {
                         <div className="flex flex-wrap gap-2">
                           {user.subjects.length > 0 ? (
                             user.subjects.map((subject, index) => (
-                              <Badge 
+                              <Badge
                                 key={index}
                                 className="bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0"
                               >
@@ -513,7 +473,7 @@ function ProfileContent() {
                         </div>
                       </div>
                     </div>
-                    
+
                     {/* Action Buttons - At the bottom of the card */}
                     <div className="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700">
                       <div className="flex gap-3 flex-wrap">
@@ -595,4 +555,4 @@ export default function ProfilePage() {
       <ProfileContent />
     </Suspense>
   );
-} 
+}

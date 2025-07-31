@@ -22,7 +22,7 @@ class SubjectLocalStorageService {
   private static readonly STORAGE_KEY = 'exam_training_subjects';
 
   static getSubjects(): Subject[] {
-    if (typeof window === 'undefined') return [];
+    if (typeof window === 'undefined') {return [];}
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       return stored ? JSON.parse(stored) : [];
@@ -36,8 +36,8 @@ class SubjectLocalStorageService {
 class QuestionLocalStorageService {
   private static readonly STORAGE_KEY = 'exam_training_questions';
 
-  static getQuestions(): any[] {
-    if (typeof window === 'undefined') return [];
+  static getQuestions(): unknown[] {
+    if (typeof window === 'undefined') {return [];}
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       return stored ? JSON.parse(stored) : [];
@@ -46,9 +46,9 @@ class QuestionLocalStorageService {
     }
   }
 
-  static getQuestionsBySubject(subject: string): any[] {
+  static getQuestionsBySubject(subject: string): unknown[] {
     const questions = this.getQuestions();
-    return questions.filter(q => q.subject === subject);
+    return questions.filter((q: unknown) => (q as { subject: string }).subject === subject);
   }
 }
 
@@ -65,11 +65,11 @@ const FlashcardPageContent = () => {
     const loadSubjects = async () => {
       try {
         setIsLoading(true);
-        
+
         // Demo mode control
         const demoModeActive = shouldUseDemoData();
         setIsDemoMode(demoModeActive);
-        
+
         if (demoModeActive) {
           // Demo subjects
           const demoSubjects: Subject[] = [
@@ -96,7 +96,7 @@ const FlashcardPageContent = () => {
               difficulty: 'İleri',
               isActive: true,
               questionCount: 167,
-            }
+            },
           ];
           setSubjects(demoSubjects);
           return;
@@ -104,25 +104,23 @@ const FlashcardPageContent = () => {
 
         // Directly use localStorage
         const localSubjects = SubjectLocalStorageService.getSubjects();
-        
+
         // Calculate question count for each subject
         const subjectsWithQuestionCount = localSubjects.map(subject => {
           const questions = QuestionLocalStorageService.getQuestionsBySubject(subject.name);
           return {
             ...subject,
-            questionCount: questions.length
+            questionCount: questions.length,
           };
         });
-        
+
         // Filter subjects with questions
-        const subjectsWithQuestions = subjectsWithQuestionCount.filter(subject => 
-          subject.questionCount > 0
+        const subjectsWithQuestions = subjectsWithQuestionCount.filter(subject =>
+          subject.questionCount > 0,
         );
-        
-        console.log('🎯 Flashcard Page - Loaded subjects:', subjectsWithQuestions);
+
         setSubjects(subjectsWithQuestions);
-      } catch (error) {
-        console.error('Error loading subjects:', error);
+      } catch {
       } finally {
         setIsLoading(false);
       }
@@ -148,10 +146,10 @@ const FlashcardPageContent = () => {
         <div className="max-w-4xl mx-auto">
           {/* Back button */}
           <div className="mb-6">
-            <Button 
-              onClick={() => router.push('/dashboard')} 
-              variant="outline" 
-              size="sm" 
+            <Button
+              onClick={() => router.push('/dashboard')}
+              variant="outline"
+              size="sm"
               className="flex items-center gap-2 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -171,12 +169,12 @@ const FlashcardPageContent = () => {
                 </Badge>
               )}
             </div>
-            
+
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-8 mb-8">
               <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-6">
                 {isDemoMode ? 'Demo derslerinden birini seçin:' : 'Hangi konuyu çalışmak istiyorsunuz?'}
               </h2>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {subjects.length === 0 ? (
                   <div className="col-span-3 text-center py-8">
@@ -221,7 +219,7 @@ const FlashcardPageContent = () => {
                 )}
               </div>
             </div>
-            
+
             <div className="border-gradient-question bg-white dark:bg-gray-800 rounded-lg p-6">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-3">
                 🧠 Akıllı Öğrenme Özellikleri
@@ -258,8 +256,7 @@ const FlashcardPageContent = () => {
   );
 };
 
-const FlashcardPage = () => {
-  return (
+const FlashcardPage = () => (
     <Suspense fallback={
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-8 flex items-center justify-center">
         <div className="text-center">
@@ -271,6 +268,5 @@ const FlashcardPage = () => {
       <FlashcardPageContent />
     </Suspense>
   );
-};
 
-export default FlashcardPage; 
+export default FlashcardPage;

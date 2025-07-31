@@ -1,13 +1,14 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
+import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as schema from './schema';
 
 // Get database connection string from environment variables
 const connectionString = process.env.DATABASE_URL || process.env.SUPABASE_DB_URL || 'postgresql://localhost:5432/dummy';
 
 // Create PostgreSQL connection with better error handling
-let client: any;
-let db: any;
+let client: postgres.Sql | null;
+let db: PostgresJsDatabase<typeof schema> | null;
 
 try {
   client = postgres(connectionString, {
@@ -15,11 +16,10 @@ try {
     idle_timeout: 20,
     max_lifetime: 60 * 30,
   });
-  
+
   // Create Drizzle instance
   db = drizzle(client, { schema });
-} catch (error) {
-  console.warn('⚠️ Database connection could not be established (build time)', error);
+} catch {
   // Create a dummy client for build time
   client = null;
   db = null;
@@ -29,26 +29,23 @@ export { db };
 
 // Database health check
 export async function checkDatabaseHealth(): Promise<boolean> {
-  if (!client) return false;
+  if (!client) {return false;}
   try {
     await client`SELECT 1`;
-    console.log('✅ Database connection is healthy');
     return true;
-  } catch (error) {
-    console.error('❌ Database health check failed:', error);
+  } catch {
     return false;
   }
 }
 
 // Initialize database (create tables if needed)
 export async function initializeDatabase() {
-  if (!client) return;
+  if (!client) {return;}
   try {
     // Check if tables exist by querying one
     await client`SELECT 1 FROM users LIMIT 1`;
-    console.log('✅ Database tables already exist');
   } catch {
-    console.log('📦 Database tables not found, they will be created via Supabase migrations');
+    // Silent fail for database initialization
   }
 }
 
@@ -61,13 +58,11 @@ export async function closeDatabase() {
 
 // Test connection
 export async function testConnection() {
-  if (!client) return false;
+  if (!client) {return false;}
   try {
-    const result = await client`SELECT version()`;
-    console.log('✅ Connected to PostgreSQL:', result[0].version);
+    await client`SELECT version()`;
     return true;
-  } catch (error) {
-    console.error('❌ Failed to connect to database:', error);
+  } catch {
     return false;
   }
-} 
+}

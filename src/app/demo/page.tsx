@@ -6,11 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  Play, 
-  Pause, 
-  SkipForward, 
-  SkipBack, 
+import {
+  Play,
+  Pause,
+  SkipForward,
+  SkipBack,
   Mic,
   Brain,
   Users,
@@ -18,7 +18,7 @@ import {
   BarChart3,
   Zap,
   ArrowRight,
-  CheckCircle
+  CheckCircle,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import MobileNav from '@/components/mobile-nav';
@@ -35,36 +35,36 @@ interface DemoStep {
 const demoSteps: DemoStep[] = [
   {
     id: 1,
-    title: "AI Destekli Quiz",
-    description: "Kişiselleştirilmiş sorular ve anlık AI açıklamalar",
+    title: 'AI Destekli Quiz',
+    description: 'Kişiselleştirilmiş sorular ve anlık AI açıklamalar',
     action: "Quiz'i Dene",
     icon: <Brain className="h-6 w-6 text-white" />,
-    color: "from-blue-500 to-indigo-600"
+    color: 'from-blue-500 to-indigo-600',
   },
   {
     id: 2,
-    title: "Sesli Asistan",
-    description: "Türkçe sesli komutlarla etkileşim",
+    title: 'Sesli Asistan',
+    description: 'Türkçe sesli komutlarla etkileşim',
     action: "Sesli Asistan'ı Dene",
     icon: <Mic className="h-6 w-6 text-white" />,
-    color: "from-green-500 to-emerald-600"
+    color: 'from-green-500 to-emerald-600',
   },
   {
     id: 3,
-    title: "Flashcard Sistemi",
-    description: "Akıllı tekrar algoritması ile öğrenme",
+    title: 'Flashcard Sistemi',
+    description: 'Akıllı tekrar algoritması ile öğrenme',
     action: "Flashcard'ları Dene",
     icon: <BookOpen className="h-6 w-6 text-white" />,
-    color: "from-purple-500 to-pink-600"
+    color: 'from-purple-500 to-pink-600',
   },
   {
     id: 4,
-    title: "Performans Analizi",
-    description: "Detaylı istatistikler ve AI önerileri",
-    action: "Analizleri Gör",
+    title: 'Performans Analizi',
+    description: 'Detaylı istatistikler ve AI önerileri',
+    action: 'Analizleri Gör',
     icon: <BarChart3 className="h-6 w-6 text-white" />,
-    color: "from-orange-500 to-red-600"
-  }
+    color: 'from-orange-500 to-red-600',
+  },
 ];
 
 export default function DemoPage() {
@@ -85,10 +85,10 @@ export default function DemoPage() {
       title: `${step.title} başlatılıyor!`,
       description: step.description,
     });
-    
+
     // Ensure demo mode is active
     localStorage.setItem('btk_demo_mode', 'true');
-    
+
     // Navigate to the actual feature
     switch (step.id) {
       case 1:
@@ -112,7 +112,7 @@ export default function DemoPage() {
       // Ensure demo mode is active
       localStorage.setItem('btk_demo_mode', 'true');
       toast({
-        title: "Demo başlatıldı!",
+        title: 'Demo başlatıldı!',
         description: "AkılHane'nin özelliklerini keşfedin.",
       });
     }
@@ -152,7 +152,7 @@ export default function DemoPage() {
           <p className="text-xl text-gray-600 dark:text-gray-400 mb-6">
             AI destekli eğitim platformunun tüm özelliklerini keşfedin
           </p>
-          
+
           {/* Demo Controls */}
           <div className="flex items-center justify-center space-x-4 mb-8">
             <Button
@@ -164,7 +164,7 @@ export default function DemoPage() {
             >
               <SkipBack className="h-4 w-4" />
             </Button>
-            
+
             <Button
               onClick={handlePlayPause}
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
@@ -172,7 +172,7 @@ export default function DemoPage() {
               {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
               <span className="ml-2">{isPlaying ? 'Duraklat' : 'Başlat'}</span>
             </Button>
-            
+
             <Button
               variant="outline"
               size="sm"
@@ -249,7 +249,7 @@ export default function DemoPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card 
+              <Card
                 className={`cursor-pointer transition-all duration-300 hover:shadow-lg hover:border-gradient-question h-full ${
                   currentStep === index ? 'ring-2 ring-blue-500' : ''
                 } ${completedSteps.includes(step.id) ? 'bg-green-50 dark:bg-green-900/20' : ''}`}
@@ -291,7 +291,7 @@ export default function DemoPage() {
           <Card className="shadow-xl border-gradient-question bg-gradient-to-r from-blue-600 to-purple-600 text-white">
             <CardContent className="p-8">
               <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white drop-shadow-lg">
-                AkılHane'yi Deneyimlediniz mi?
+                AkılHane&apos;yi Deneyimlediniz mi?
               </h2>
               <p className="text-gray-900 dark:text-white mb-6 font-medium drop-shadow-md">
                 Ücretsiz hesap oluşturun ve AI destekli eğitim deneyiminin tamamını keşfedin!
@@ -323,4 +323,4 @@ export default function DemoPage() {
       </main>
     </div>
   );
-} 
+}

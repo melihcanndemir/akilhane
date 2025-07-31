@@ -1,17 +1,17 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect} from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  BookOpen, 
-  Brain, 
-  Target, 
-  TrendingUp, 
-  Clock, 
-  CheckCircle, 
+import {
+  BookOpen,
+  Brain,
+  Target,
+  TrendingUp,
+  Clock,
+  CheckCircle,
   XCircle,
   Settings,
   FileText,
@@ -24,7 +24,7 @@ import {
   UserX,
   Zap,
   Trophy,
-  Activity
+  Activity,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useLocalAuth } from '@/hooks/useLocalAuth';
@@ -32,16 +32,16 @@ import localStorageService from '@/services/localStorage-service';
 import AnalyticsDashboard from './analytics-dashboard';
 import MobileNav from './mobile-nav';
 import LoadingSpinner from './loading-spinner';
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  shouldUseDemoData, 
-  toggleDemoMode, 
+import {
+  shouldUseDemoData,
+  toggleDemoMode,
   loadDemoDataToLocalStorage,
   demoPerformanceData,
   demoRecentResults,
-  demoTotalStats
+  demoTotalStats,
 } from '@/data/demo-data';
 
 interface PerformanceData {
@@ -49,6 +49,7 @@ interface PerformanceData {
   averageScore: number;
   totalTests: number;
   weakTopics: string[];
+  strongTopics: string[];
   lastUpdated: string;
 }
 
@@ -58,8 +59,9 @@ interface QuizResult {
   score: number;
   totalQuestions: number;
   timeSpent: number;
-  weakTopics: string[];
+  weakTopics: string[] | Record<string, number>;
   createdAt: string;
+  isDemo?: boolean;
 }
 
 interface TotalStats {
@@ -72,14 +74,14 @@ interface TotalStats {
 export default function EnhancedDashboard() {
   const { user, loading, isGuest, isAuthenticated } = useLocalAuth();
   const { toast } = useToast();
-  
+
   const [performanceData, setPerformanceData] = useState<PerformanceData[]>([]);
   const [recentResults, setRecentResults] = useState<QuizResult[]>([]);
   const [totalStats, setTotalStats] = useState<TotalStats>({
     totalTests: 0,
     averageScore: 0,
     totalTimeSpent: 0,
-    totalSubjects: 0
+    totalSubjects: 0,
   });
   const [storageInfo, setStorageInfo] = useState({ used: 0, available: 0, percentage: 0 });
   const [showAnalytics, setShowAnalytics] = useState(false);
@@ -89,7 +91,7 @@ export default function EnhancedDashboard() {
     studyPreferences: {
       questionsPerQuiz: 10,
       timeLimit: 30,
-    }
+    },
   });
 
   // Safely initialize the demo data state
@@ -97,23 +99,17 @@ export default function EnhancedDashboard() {
     setUseDemoData(shouldUseDemoData());
   }, []);
 
-  useEffect(() => {
-    if (user && !loading) {
-      loadUserData();
-    }
-  }, [user?.id, loading, useDemoData]);
-
   // Load user settings
   useEffect(() => {
     const loadSettings = () => {
       try {
         const settings = localStorageService.getUserSettings();
         setUserSettings(settings);
-      } catch (error) {
-        console.error('Error loading user settings:', error);
+      } catch {
+        //do nothing
       }
     };
-    
+
     loadSettings();
 
     // Listen for storage changes to update settings in real-time
@@ -124,174 +120,219 @@ export default function EnhancedDashboard() {
     };
 
     window.addEventListener('storage', handleStorageChange);
-    
+
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
 
-  const loadUserData = async () => {
-    if (!user) return;
-    
-    setIsLoading(true);
-    try {
-      // BTK Hackathon Demo Mode
-      if (useDemoData) {
-        setPerformanceData(demoPerformanceData);
-        setRecentResults(demoRecentResults);
-        setTotalStats(demoTotalStats);
-        setStorageInfo({ used: 2048, available: 5242880, percentage: 0.04 });
-        
-        setIsLoading(false);
-        return;
-      }
-      
-      // USE DIRECT LOCALSTORAGE
-      console.log('🎯 Enhanced Dashboard - Loading from localStorage...');
-      
-      // Fetch data from LocalStorage
-      const getDataFromStorage = () => {
-        if (typeof window === 'undefined') return null;
-        
-        try {
-          // Load appropriate quiz results based on demo mode
-          const quizResultsKey = useDemoData ? 'exam_training_demo_quiz_results' : 'exam_training_quiz_results';
-          const quizResults = localStorage.getItem(quizResultsKey);
-          const results = quizResults ? JSON.parse(quizResults) : [];
-          
-          // Filter out demo results if not in demo mode
-          const filteredResults = useDemoData ? results : results.filter((result: any) => !result.isDemo);
-          
-          // Get subject information from Subjects
-          const subjects = localStorage.getItem('exam_training_subjects');
-          const subjectsData = subjects ? JSON.parse(subjects) : [];
-          
-          if (filteredResults.length === 0) {
-            // If there are no quiz results, return empty data
-            return {
-              performanceData: [],
-              recentResults: [],
-              totalStats: {
-                totalTests: 0,
-                averageScore: 0,
-                totalTimeSpent: 0,
-                totalSubjects: subjectsData.length
-              },
-              storageInfo: { used: 0, available: 5242880, percentage: 0 }
-            };
-          }
-          
-          // Calculate performance data
-          const performanceMap: Record<string, any> = {};
-          filteredResults.forEach((result: any) => {
-            if (!performanceMap[result.subject]) {
-              performanceMap[result.subject] = {
-                totalTests: 0,
-                totalScore: 0,
-                weakTopics: {}
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (!user) {return;}
+
+      setIsLoading(true);
+      try {
+        // BTK Hackathon Demo Mode
+        if (useDemoData) {
+          setPerformanceData(demoPerformanceData);
+          setRecentResults(demoRecentResults);
+          setTotalStats(demoTotalStats);
+          setStorageInfo({ used: 2048, available: 5242880, percentage: 0.04 });
+
+          setIsLoading(false);
+          return;
+        }
+
+        // USE DIRECT LOCALSTORAGE
+
+        // Fetch data from LocalStorage
+        const getDataFromStorage = () => {
+          if (typeof window === 'undefined') {return null;}
+
+          try {
+            // Load appropriate quiz results based on demo mode
+            const quizResultsKey = useDemoData ? 'exam_training_demo_quiz_results' : 'exam_training_quiz_results';
+            const quizResults = localStorage.getItem(quizResultsKey);
+            const results = quizResults ? JSON.parse(quizResults) : [];
+
+            // Filter out demo results if not in demo mode
+            const filteredResults = useDemoData ? results : results.filter((result: QuizResult) => !result.isDemo);
+
+            // Get subject information from Subjects
+            const subjects = localStorage.getItem('exam_training_subjects');
+            const subjectsData = subjects ? JSON.parse(subjects) : [];
+
+            if (filteredResults.length === 0) {
+              // If there are no quiz results, return empty data
+              return {
+                performanceData: [],
+                recentResults: [],
+                totalStats: {
+                  totalTests: 0,
+                  averageScore: 0,
+                  totalTimeSpent: 0,
+                  totalSubjects: subjectsData.length,
+                },
+                storageInfo: { used: 0, available: 5242880, percentage: 0 },
               };
             }
-            performanceMap[result.subject].totalTests++;
-            performanceMap[result.subject].totalScore += result.score;
-            
-            // Add weak topics
-            if (result.weakTopics) {
-              Object.entries(result.weakTopics).forEach(([topic, count]) => {
-                performanceMap[result.subject].weakTopics[topic] = 
-                  (performanceMap[result.subject].weakTopics[topic] || 0) + (count as number);
+
+            // Calculate performance data
+            const performanceMap: Record<string, { totalTests: number; totalScore: number; totalQuestions: number; weakTopics: Record<string, number> }> = {};
+                        filteredResults.forEach((result: QuizResult) => {
+                if (!performanceMap[result.subject]) {
+                  performanceMap[result.subject] = {
+                    totalTests: 0,
+                    totalScore: 0,
+                    totalQuestions: 0,
+                    weakTopics: {},
+                  };
+                }
+                const subjectData = performanceMap[result.subject]!;
+                subjectData.totalTests++;
+                subjectData.totalScore += result.score;
+                subjectData.totalQuestions += result.totalQuestions;
+
+                // Add weak topics
+                if (result.weakTopics && typeof result.weakTopics === 'object' && !Array.isArray(result.weakTopics)) {
+                  Object.entries(result.weakTopics).forEach(([topic, count]) => {
+                    subjectData.weakTopics[topic] =
+                      (subjectData.weakTopics[topic] || 0) + count;
+                  });
+                }
               });
-            }
+
+            const performanceData = Object.entries(performanceMap).map(([subject, data]) => {
+              // Calculate strong topics for this subject (topics not in weak topics)
+              const allTopicsInSubject = new Set<string>();
+              const topicPerformance: Record<string, { correct: number; total: number }> = {};
+
+              // Collect all topics from this subject's results
+              filteredResults
+                .filter((result: QuizResult) => result.subject === subject)
+                .forEach((result: QuizResult) => {
+                  const {weakTopics} = result;
+                  if (weakTopics && typeof weakTopics === 'object' && !Array.isArray(weakTopics)) {
+                    Object.keys(weakTopics).forEach(topic => {
+                      allTopicsInSubject.add(topic);
+                      if (!topicPerformance[topic]) {
+                        topicPerformance[topic] = { correct: 0, total: 0 };
+                      }
+                      const weakCount = weakTopics[topic] || 0;
+                      topicPerformance[topic].total += 3;
+                      topicPerformance[topic].correct += Math.max(0, 3 - weakCount);
+                    });
+                  }
+                });
+
+              // Find strong topics (not in weak topics and good performance)
+              const strongTopics = Array.from(allTopicsInSubject)
+                .filter(topic => {
+                  const performance = topicPerformance[topic];
+                  if (!performance || performance.total < 2) {return false;}
+
+                  const successRate = (performance.correct / performance.total) * 100;
+                  return successRate >= 70 && !data.weakTopics[topic];
+                })
+                .slice(0, 2);
+
+              return {
+                subject,
+                averageScore: Math.round((data.totalScore / data.totalQuestions) * 100),
+                totalTests: data.totalTests,
+                weakTopics: Object.entries(data.weakTopics)
+                  .sort(([,a], [,b]) => (b) - (a))
+                  .slice(0, 3)
+                  .map(([topic]) => topic),
+                strongTopics, // Add strong topics to performance data
+                lastUpdated: new Date().toISOString(),
+              };
+            });
+
+            // Recent results
+            const recentResults = filteredResults
+              .slice(-5)
+              .map((result: QuizResult) => ({
+                id: result.id,
+                subject: result.subject,
+                score: result.score,
+                totalQuestions: result.totalQuestions,
+                timeSpent: result.timeSpent || 0,
+                weakTopics: result.weakTopics ? Object.keys(result.weakTopics) : [],
+                createdAt: result.createdAt,
+              }));
+
+            // Total stats
+            const totalTests = filteredResults.length;
+            const totalCorrectAnswers = filteredResults.reduce((sum: number, result: QuizResult) => sum + result.score, 0);
+            const totalQuestions = filteredResults.reduce((sum: number, result: QuizResult) => sum + result.totalQuestions, 0);
+            const averageScore = totalQuestions > 0 ? Math.round((totalCorrectAnswers / totalQuestions) * 100) : 0;
+            const totalTimeSpent = filteredResults.reduce((sum: number, result: QuizResult) => sum + (result.timeSpent || 0), 0);
+
+            const totalStats = {
+              totalTests,
+              averageScore,
+              totalTimeSpent: Math.floor(totalTimeSpent / 60), // convert to minutes
+              totalSubjects: subjectsData.length,
+            };
+
+            // Storage info (simple calculation)
+            const used = JSON.stringify(filteredResults).length + JSON.stringify(subjectsData).length;
+            const storageInfo = {
+              used,
+              available: 5242880, // 5MB
+              percentage: Math.min((used / 5242880) * 100, 100),
+            };
+
+            return {
+              performanceData,
+              recentResults,
+              totalStats,
+              storageInfo,
+            };
+          } catch {
+            //do nothing
+            return null;
+          }
+        };
+
+        const data = getDataFromStorage();
+
+        if (data) {
+          setPerformanceData(data.performanceData);
+          setRecentResults(data.recentResults);
+          setTotalStats(data.totalStats);
+          setStorageInfo(data.storageInfo);
+        } else {
+          // Fallback boş data
+          setPerformanceData([]);
+          setRecentResults([]);
+          setTotalStats({
+            totalTests: 0,
+            averageScore: 0,
+            totalTimeSpent: 0,
+            totalSubjects: 0,
           });
-          
-          const performanceData = Object.entries(performanceMap).map(([subject, data]: [string, any]) => ({
-            subject,
-            averageScore: Math.round((data.totalScore / data.totalTests) * 100),
-            totalTests: data.totalTests,
-            weakTopics: Object.entries(data.weakTopics)
-              .sort(([,a], [,b]) => (b as number) - (a as number))
-              .slice(0, 3)
-              .map(([topic]) => topic),
-            lastUpdated: new Date().toISOString()
-          }));
-          
-          // Recent results
-          const recentResults = filteredResults
-            .slice(-5)
-            .map((result: any) => ({
-              id: result.id,
-              subject: result.subject,
-              score: result.score,
-              totalQuestions: result.totalQuestions,
-              timeSpent: result.timeSpent || 0,
-              weakTopics: result.weakTopics ? Object.keys(result.weakTopics) : [],
-              createdAt: result.createdAt
-            }));
-          
-          // Total stats
-          const totalTests = filteredResults.length;
-          const totalScore = filteredResults.reduce((sum: number, result: any) => sum + result.score, 0);
-          const averageScore = totalTests > 0 ? Math.round((totalScore / totalTests) * 100) : 0;
-          const totalTimeSpent = filteredResults.reduce((sum: number, result: any) => sum + (result.timeSpent || 0), 0);
-          
-          const totalStats = {
-            totalTests,
-            averageScore,
-            totalTimeSpent: Math.floor(totalTimeSpent / 60), // convert to minutes
-            totalSubjects: subjectsData.length
-          };
-          
-          // Storage info (simple calculation)
-          const used = JSON.stringify(filteredResults).length + JSON.stringify(subjectsData).length;
-          const storageInfo = {
-            used,
-            available: 5242880, // 5MB
-            percentage: Math.min((used / 5242880) * 100, 100)
-          };
-          
-          return {
-            performanceData,
-            recentResults,
-            totalStats,
-            storageInfo
-          };
-        } catch (error) {
-          console.error('Error loading data from localStorage:', error);
-          return null;
+          setStorageInfo({ used: 0, available: 5242880, percentage: 0 });
         }
-      };
-      
-      const data = getDataFromStorage();
-      
-      if (data) {
-        setPerformanceData(data.performanceData);
-        setRecentResults(data.recentResults);
-        setTotalStats(data.totalStats);
-        setStorageInfo(data.storageInfo);
-      } else {
-        // Fallback boş data
-        setPerformanceData([]);
-        setRecentResults([]);
-        setTotalStats({
-          totalTests: 0,
-          averageScore: 0,
-          totalTimeSpent: 0,
-          totalSubjects: 0
-        });
-        setStorageInfo({ used: 0, available: 5242880, percentage: 0 });
+      } catch {
+        //do nothing
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error('Error loading user data:', error);
-    } finally {
-      setIsLoading(false);
+    };
+
+    if (user && !loading) {
+      loadUserData();
     }
-  };
+  }, [user, loading, useDemoData]);
 
   const handleExportData = () => {
     if (!isGuest) {
       toast({
-        title: "Bu özellik sadece misafir kullanıcılar içindir",
-        description: "Giriş yapmış kullanıcılar verilerini profil ayarlarından yönetebilir.",
-        variant: "destructive"
+        title: 'Bu özellik sadece misafir kullanıcılar içindir',
+        description: 'Giriş yapmış kullanıcılar verilerini profil ayarlarından yönetebilir.',
+        variant: 'destructive',
       });
       return;
     }
@@ -305,16 +346,16 @@ export default function EnhancedDashboard() {
       a.download = `akilhane-backup-${new Date().toISOString().split('T')[0]}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      
+
       toast({
-        title: "Veriler başarıyla dışa aktarıldı",
-        description: "Yedek dosyanız indirildi. Bu dosyayı güvenli bir yerde saklayın.",
+        title: 'Veriler başarıyla dışa aktarıldı',
+        description: 'Yedek dosyanız indirildi. Bu dosyayı güvenli bir yerde saklayın.',
       });
     } catch {
       toast({
-        title: "Dışa aktarma hatası",
-        description: "Veriler dışa aktarılırken bir hata oluştu.",
-        variant: "destructive"
+        title: 'Dışa aktarma hatası',
+        description: 'Veriler dışa aktarılırken bir hata oluştu.',
+        variant: 'destructive',
       });
     }
   };
@@ -322,9 +363,9 @@ export default function EnhancedDashboard() {
   const handleImportData = () => {
     if (!isGuest) {
       toast({
-        title: "Bu özellik sadece misafir kullanıcılar içindir",
-        description: "Giriş yapmış kullanıcılar verilerini profil ayarlarından yönetebilir.",
-        variant: "destructive"
+        title: 'Bu özellik sadece misafir kullanıcılar içindir',
+        description: 'Giriş yapmış kullanıcılar verilerini profil ayarlarından yönetebilir.',
+        variant: 'destructive',
       });
       return;
     }
@@ -340,11 +381,11 @@ export default function EnhancedDashboard() {
           try {
             const data = JSON.parse(e.target?.result as string);
             const success = localStorageService.importAllData(data);
-            
+
             if (success) {
               toast({
-                title: "Veriler başarıyla içe aktarıldı",
-                description: "Yedek verileriniz geri yüklendi. Sayfa yenileniyor...",
+                title: 'Veriler başarıyla içe aktarıldı',
+                description: 'Yedek verileriniz geri yüklendi. Sayfa yenileniyor...',
               });
               setTimeout(() => window.location.reload(), 1500);
             } else {
@@ -352,9 +393,9 @@ export default function EnhancedDashboard() {
             }
           } catch {
             toast({
-              title: "İçe aktarma hatası",
-              description: "Dosya formatı geçersiz veya bozuk.",
-              variant: "destructive"
+              title: 'İçe aktarma hatası',
+              description: 'Dosya formatı geçersiz veya bozuk.',
+              variant: 'destructive',
             });
           }
         };
@@ -368,12 +409,12 @@ export default function EnhancedDashboard() {
     const newDemoMode = !useDemoData;
     setUseDemoData(newDemoMode);
     toggleDemoMode(newDemoMode);
-    
+
     if (newDemoMode) {
       loadDemoDataToLocalStorage();
       toast({
-        title: "🎯 BTK Hackathon Demo Modu Aktif",
-        description: "Demo veriler yüklendi. Sayfa yenileniyor...",
+        title: '🎯 BTK Hackathon Demo Modu Aktif',
+        description: 'Demo veriler yüklendi. Sayfa yenileniyor...',
       });
       setTimeout(() => window.location.reload(), 1000);
     } else {
@@ -382,8 +423,8 @@ export default function EnhancedDashboard() {
         localStorage.removeItem('exam_training_demo_quiz_results');
       }
       toast({
-        title: "Demo modu kapatıldı",
-        description: "Demo testler temizlendi. Gerçek veriler kullanılacak. Sayfa yenileniyor...",
+        title: 'Demo modu kapatıldı',
+        description: 'Demo testler temizlendi. Gerçek veriler kullanılacak. Sayfa yenileniyor...',
       });
       setTimeout(() => window.location.reload(), 1000);
     }
@@ -404,7 +445,7 @@ export default function EnhancedDashboard() {
           <CardHeader>
             <CardTitle>Giriş Gerekli</CardTitle>
             <CardDescription>
-              Dashboard'a erişmek için giriş yapmanız gerekiyor.
+              Dashboard&apos;a erişmek için giriş yapmanız gerekiyor.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -420,7 +461,7 @@ export default function EnhancedDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <MobileNav />
-      
+
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -432,7 +473,7 @@ export default function EnhancedDashboard() {
                 AkılHane Dashboard
               </h1>
               <p className="text-gray-600 dark:text-gray-400 mt-2">
-                Hoş geldiniz, {isGuest ? (user as any)?.name : (user as any)?.email || 'Kullanıcı'}! 
+                Hoş geldiniz, {isGuest ? (user && 'name' in user ? user.name : 'Kullanıcı') : user?.email || 'Kullanıcı'}!
                 {isGuest && (
                   <span className="ml-2 inline-flex items-center">
                     <UserX className="h-4 w-4 mr-1" />
@@ -447,7 +488,7 @@ export default function EnhancedDashboard() {
                 )}
               </p>
             </div>
-            
+
             {/* Controls Section - Mobile: Stacked, Desktop: Right aligned */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               {/* Switches Group */}
@@ -473,7 +514,7 @@ export default function EnhancedDashboard() {
                   <Label htmlFor="analytics-mode" className="hover:text-indigo-600 transition-colors">Analitik Görünüm</Label>
                 </div>
               </div>
-              
+
               {/* Settings Button - Separate Group */}
               <div className="flex justify-start sm:justify-end">
                 <Link href="/settings">
@@ -492,7 +533,7 @@ export default function EnhancedDashboard() {
             <Alert className="mb-6 border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20">
               <Trophy className="h-4 w-4" />
               <AlertDescription>
-                <strong>🎯 BTK Hackathon Demo Modu Aktif!</strong> Bu veriler jüri sunumu için hazırlanmış demo verileridir. 
+                <strong>🎯 BTK Hackathon Demo Modu Aktif!</strong> Bu veriler jüri sunumu için hazırlanmış demo verileridir.
                 Gerçek kullanım deneyimini görmek için demo modunu kapatabilirsiniz.
                 <div className="mt-2 text-xs text-orange-700 dark:text-orange-300">
                   ✨ 157 test • %84.2 başarı oranı • 7 farklı konu • 78 saat çalışma
@@ -506,7 +547,7 @@ export default function EnhancedDashboard() {
             <Alert className="mb-6 border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20">
               <Users className="h-4 w-4" />
               <AlertDescription>
-                <strong>Misafir modunda kullanıyorsunuz.</strong> Verileriniz sadece bu cihazda saklanıyor. 
+                <strong>Misafir modunda kullanıyorsunuz.</strong> Verileriniz sadece bu cihazda saklanıyor.
                 Kalıcı kayıt için{' '}
                 <Link href="/login?mode=register" className="text-blue-600 hover:underline font-medium">
                   ücretsiz hesap oluşturun
@@ -543,7 +584,7 @@ export default function EnhancedDashboard() {
                     <span>{storageInfo.percentage.toFixed(1)}%</span>
                   </div>
                   <div className="progress-gradient-bg rounded-full h-2">
-                    <div 
+                    <div
                       className="progress-gradient h-2 rounded-full transition-all duration-300"
                       style={{ width: `${storageInfo.percentage}%` }}
                     />
@@ -643,10 +684,10 @@ export default function EnhancedDashboard() {
                           <div key={index} className="border-b border-gray-100 dark:border-gray-800 pb-4 last:border-b-0">
                             <div className="flex items-center justify-between mb-2">
                               <h4 className="font-semibold text-lg">{subject.subject}</h4>
-                              <Badge 
+                              <Badge
                                 className={`text-sm ${
-                                  subject.averageScore >= 80 ? 'badge-gradient-high' : 
-                                  subject.averageScore >= 70 ? 'badge-gradient-medium' : 
+                                  subject.averageScore >= 80 ? 'badge-gradient-high' :
+                                  subject.averageScore >= 70 ? 'badge-gradient-medium' :
                                   'badge-gradient-low'
                                 }`}
                               >
@@ -654,7 +695,7 @@ export default function EnhancedDashboard() {
                               </Badge>
                             </div>
                             <div className="progress-gradient-bg rounded-full mb-2">
-                              <div 
+                              <div
                                 className="progress-gradient h-2 rounded-full transition-all duration-300"
                                 style={{ width: `${subject.averageScore}%` }}
                               />
@@ -675,6 +716,23 @@ export default function EnhancedDashboard() {
                                   {subject.weakTopics.length > 3 && (
                                     <Badge variant="outline" className="text-xs">
                                       +{subject.weakTopics.length - 3} diğer
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                            {subject.strongTopics && subject.strongTopics.length > 0 && (
+                              <div className="mt-2">
+                                <p className="text-xs text-green-600 mb-1">Güçlü olduğunuz konular:</p>
+                                <div className="flex flex-wrap gap-1">
+                                  {subject.strongTopics.slice(0, 2).map((topic, i) => (
+                                    <Badge key={i} variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800">
+                                      {topic}
+                                    </Badge>
+                                  ))}
+                                  {subject.strongTopics.length > 2 && (
+                                    <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800">
+                                      +{subject.strongTopics.length - 2} diğer
                                     </Badge>
                                   )}
                                 </div>
@@ -718,17 +776,17 @@ export default function EnhancedDashboard() {
                               </p>
                             </div>
                             <div className="flex items-center space-x-2">
-                              <Badge 
+                              <Badge
                                 className={`${
-                                  (result.score / result.totalQuestions) >= 0.8 ? 'badge-gradient-high' : 
-                                  (result.score / result.totalQuestions) >= 0.7 ? 'badge-gradient-medium' : 
+                                  (result.score / result.totalQuestions) >= 0.8 ? 'badge-gradient-high' :
+                                  (result.score / result.totalQuestions) >= 0.7 ? 'badge-gradient-medium' :
                                   'badge-gradient-low'
                                 }`}
                               >
                                 %{Math.round((result.score / result.totalQuestions) * 100)}
                               </Badge>
-                              {(result.score / result.totalQuestions) >= 0.8 ? 
-                                <CheckCircle className="h-4 w-4 text-green-500" /> : 
+                              {(result.score / result.totalQuestions) >= 0.8 ?
+                                <CheckCircle className="h-4 w-4 text-green-500" /> :
                                 <XCircle className="h-4 w-4 text-red-500" />
                               }
                             </div>
@@ -748,7 +806,7 @@ export default function EnhancedDashboard() {
 
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
-              <Card className="border-gradient-question hover:shadow-lg transition-shadow cursor-pointer hover:scale-105 transition-transform duration-200">
+              <Card className="border-gradient-question hover:shadow-lg cursor-pointer hover:scale-105 transition-transform duration-200">
                 <Link href="/quiz">
                   <CardContent className="p-8 text-center">
                     <Zap className="h-10 w-10 mx-auto mb-4 text-blue-600" />
@@ -760,7 +818,7 @@ export default function EnhancedDashboard() {
                 </Link>
               </Card>
 
-              <Card className="border-gradient-question hover:shadow-lg transition-shadow cursor-pointer hover:scale-105 transition-transform duration-200">
+              <Card className="border-gradient-question hover:shadow-lg cursor-pointer hover:scale-105 transition-transform duration-200">
                 <Link href="/flashcard">
                   <CardContent className="p-8 text-center">
                     <Brain className="h-10 w-10 mx-auto mb-4 text-green-600" />
@@ -770,7 +828,7 @@ export default function EnhancedDashboard() {
                 </Link>
               </Card>
 
-              <Card className="border-gradient-question hover:shadow-lg transition-shadow cursor-pointer hover:scale-105 transition-transform duration-200">
+              <Card className="border-gradient-question hover:shadow-lg cursor-pointer hover:scale-105 transition-transform duration-200">
                 <Link href="/ai-chat">
                   <CardContent className="p-8 text-center">
                     <BookOpen className="h-10 w-10 mx-auto mb-4 text-purple-600" />
@@ -780,7 +838,7 @@ export default function EnhancedDashboard() {
                 </Link>
               </Card>
 
-              <Card className="border-gradient-question hover:shadow-lg transition-shadow cursor-pointer hover:scale-105 transition-transform duration-200">
+              <Card className="border-gradient-question hover:shadow-lg cursor-pointer hover:scale-105 transition-transform duration-200">
                 <Link href="/subject-manager">
                   <CardContent className="p-8 text-center">
                     <Database className="h-10 w-10 mx-auto mb-4 text-indigo-600" />

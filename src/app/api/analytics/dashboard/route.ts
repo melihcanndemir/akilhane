@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
 import { db } from '@/lib/database/connection';
 import { quizResults } from '@/lib/database/schema';
 import { sql, desc } from 'drizzle-orm';
@@ -55,49 +56,49 @@ export async function GET(request: NextRequest) {
     for (const result of userResults) {
         try {
             const topics: Record<string, number> = JSON.parse(result.weakTopics || '{}');
-            
+
             // For each topic in this result
             for(const topic in topics) {
                 // Track as weak topic
                 allWeakTopics.set(topic, (allWeakTopics.get(topic) || 0) + 1);
-                
+
                 // Track performance for strong topic calculation
                 if (!allTopics.has(topic)) {
                     allTopics.set(topic, { total: 0, correct: 0, incorrect: 0 });
                 }
-                
+
                 const topicData = allTopics.get(topic)!;
                 // The number in weakTopics represents incorrect answers
                 const incorrectCount = topics[topic] ?? 0;
                 // Estimate total questions for this topic (this is an approximation)
                 const estimatedTotal = Math.max(incorrectCount * 2, 3); // Assume at least 3 questions per topic
-                
+
                 topicData.total += estimatedTotal;
                 topicData.incorrect += incorrectCount;
                 topicData.correct += (estimatedTotal - incorrectCount);
             }
         } catch { /* ignore */ }
     }
-    
+
     // Sort weak topics by frequency
     const sortedWeakTopics = Array.from(allWeakTopics.entries())
         .sort(([, a], [, b]) => b - a)
         .map(([topic]) => topic);
-    
+
     // Identify strong topics as those with >80% correct answers and enough data
     let strongTopics = Array.from(allTopics.entries())
         .filter(([, data]) => {
             // Only consider topics with enough data (at least 1 question)
-            if (data.total < 1) return false;
-            
+            if (data.total < 1) {return false;}
+
             // Calculate percentage of correct answers
             const correctPercentage = (data.correct / data.total) * 100;
-            
+
             // Consider strong if consistently getting 60% or more correct
             return correctPercentage >= 60;
         })
         .map(([topic]) => topic);
-    
+
     // If no strong topics found, use some default topics based on the subject
     if (strongTopics.length === 0) {
         // Extract subjects from the results
@@ -109,7 +110,7 @@ export async function GET(request: NextRequest) {
                 return 'Matematik';
             }
         }));
-        
+
         // For each unique subject, add a default strong topic
         subjects.forEach(subject => {
             if (subject === 'Matematik') {
@@ -133,11 +134,10 @@ export async function GET(request: NextRequest) {
         strongTopics.push('Matematik - Temel İşlemler');
     }
 
-    
     // A topic should not be both strong and weak
     // Remove topics that are in the weak topics list from the strong topics list
     strongTopics = strongTopics.filter(topic => !sortedWeakTopics.includes(topic));
-    
+
     // If there are still no strong subjects, add Mathematics by default
     if (strongTopics.length === 0) {
         strongTopics.push('Matematik - Temel İşlemler');
@@ -145,8 +145,8 @@ export async function GET(request: NextRequest) {
 
     const response = {
       totalQuestions: totalQuestionsSum,
-      correctAnswers: correctAnswers,
-      averageScore: averageScore,
+      correctAnswers,
+      averageScore,
       studyTime: totalTimeMinutes,
       streak: 5,
       rank: 1,

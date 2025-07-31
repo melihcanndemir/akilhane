@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
 import { v2 as cloudinary } from 'cloudinary';
 
 // Configure Cloudinary
@@ -25,15 +26,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No public ID provided' }, { status: 400 });
     }
 
-    console.log('🗑️ Deleting avatar from Cloudinary - Original publicId:', publicId);
-
     // Try multiple public ID formats
     const formats = [
       publicId,
-      publicId.replace(/\.[^/.]+$/, ""), // Without extension
+      publicId.replace(/\.[^/.]+$/, ''), // Without extension
       publicId.replace(/^akilhane-avatars\//, ''), // Remove folder prefix
       `akilhane-avatars/${publicId}`, // With folder
-      `akilhane-avatars/${publicId.replace(/\.[^/.]+$/, "")}` // Folder + no extension
+      `akilhane-avatars/${publicId.replace(/\.[^/.]+$/, '')}`, // Folder + no extension
     ];
 
     let deleted = false;
@@ -41,45 +40,38 @@ export async function POST(request: NextRequest) {
 
     for (const format of formats) {
       try {
-        console.log('🔍 Trying format:', format);
-        
         const result = await cloudinary.uploader.destroy(format, {
           resource_type: 'image',
-          type: 'upload'
+          type: 'upload',
         });
 
-        console.log('📊 Cloudinary response:', result);
-
         if (result.result === 'ok' || result.result === 'deleted') {
-          console.log('✅ Deleted successfully with format:', format);
           deleted = true;
           successfulFormat = format;
           break;
         }
-      } catch (error) {
-        console.log('❌ Failed format:', format, error);
+      } catch {
+        // Do nothing
       }
     }
 
     if (!deleted) {
-      console.log('❌ All deletion attempts failed');
       return NextResponse.json(
-        { error: 'All deletion attempts failed' }, 
-        { status: 500 }
+        { error: 'All deletion attempts failed' },
+        { status: 500 },
       );
     }
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       deletedFormat: successfulFormat,
-      message: 'Avatar deleted successfully'
+      message: 'Avatar deleted successfully',
     });
 
-  } catch (error) {
-    console.error('Avatar deletion error:', error);
+  } catch {
     return NextResponse.json(
-      { error: 'Deletion failed' }, 
-      { status: 500 }
+      { error: 'Deletion failed' },
+      { status: 500 },
     );
   }
-} 
+}

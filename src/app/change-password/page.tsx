@@ -6,13 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
+import {
   Lock,
   Eye,
   EyeOff,
   ArrowLeft,
   Loader2,
-  CheckCircle
+  CheckCircle,
 } from 'lucide-react';
 import Link from 'next/link';
 import MobileNav from '@/components/mobile-nav';
@@ -33,7 +33,7 @@ function ChangePasswordContent() {
   const [passwordForm, setPasswordForm] = useState<PasswordChangeForm>({
     currentPassword: '',
     newPassword: '',
-    confirmPassword: ''
+    confirmPassword: '',
   });
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [passwordError, setPasswordError] = useState('');
@@ -69,26 +69,22 @@ function ChangePasswordContent() {
 
     try {
       setIsChangingPassword(true);
-      console.log('🔐 Password Change - Changing password');
 
       const { error } = await supabase.auth.updateUser({
-        password: passwordForm.newPassword
+        password: passwordForm.newPassword,
       });
 
       if (error) {
-        console.error('❌ Password Change - Error changing password:', error);
         setPasswordError('Şifre değiştirilirken bir hata oluştu. Lütfen tekrar deneyin.');
         return;
       }
-
-      console.log('✅ Password Change - Password changed successfully');
       setPasswordSuccess('Şifreniz başarıyla değiştirildi!');
-      
+
       // Reset form
       setPasswordForm({
         currentPassword: '',
         newPassword: '',
-        confirmPassword: ''
+        confirmPassword: '',
       });
 
       // Hide password fields
@@ -96,8 +92,7 @@ function ChangePasswordContent() {
       setShowNewPassword(false);
       setShowConfirmPassword(false);
 
-    } catch (error) {
-      console.error('❌ Password Change - Error changing password:', error);
+    } catch {
       setPasswordError('Şifre değiştirilirken bir hata oluştu. Lütfen tekrar deneyin.');
     } finally {
       setIsChangingPassword(false);
@@ -107,8 +102,8 @@ function ChangePasswordContent() {
   const handlePasswordFormChange = (field: keyof PasswordChangeForm, value: string) => {
     setPasswordForm(prev => ({ ...prev, [field]: value }));
     // Clear messages when user starts typing
-    if (passwordError) setPasswordError('');
-    if (passwordSuccess) setPasswordSuccess('');
+    if (passwordError) {setPasswordError('');}
+    if (passwordSuccess) {setPasswordSuccess('');}
   };
 
   if (authLoading) {
@@ -143,7 +138,7 @@ function ChangePasswordContent() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
       {/* Navigation Header */}
       <MobileNav />
-      
+
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
@@ -169,9 +164,9 @@ function ChangePasswordContent() {
           {/* Header */}
           <div className="mb-8">
             <Link href="/profile">
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 className="mb-4 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
@@ -209,7 +204,7 @@ function ChangePasswordContent() {
                   <div className="relative">
                     <Input
                       id="currentPassword"
-                      type={showCurrentPassword ? "text" : "password"}
+                      type={showCurrentPassword ? 'text' : 'password'}
                       value={passwordForm.currentPassword}
                       onChange={(e) => handlePasswordFormChange('currentPassword', e.target.value)}
                       placeholder="Mevcut şifrenizi girin"
@@ -236,7 +231,7 @@ function ChangePasswordContent() {
                   <div className="relative">
                     <Input
                       id="newPassword"
-                      type={showNewPassword ? "text" : "password"}
+                      type={showNewPassword ? 'text' : 'password'}
                       value={passwordForm.newPassword}
                       onChange={(e) => handlePasswordFormChange('newPassword', e.target.value)}
                       placeholder="En az 6 karakter"
@@ -263,7 +258,7 @@ function ChangePasswordContent() {
                   <div className="relative">
                     <Input
                       id="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
+                      type={showConfirmPassword ? 'text' : 'password'}
                       value={passwordForm.confirmPassword}
                       onChange={(e) => handlePasswordFormChange('confirmPassword', e.target.value)}
                       placeholder="Yeni şifrenizi tekrar girin"
@@ -335,4 +330,4 @@ export default function ChangePasswordPage() {
       <ChangePasswordContent />
     </Suspense>
   );
-} 
+}

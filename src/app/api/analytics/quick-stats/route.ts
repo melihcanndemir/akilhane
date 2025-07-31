@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
 import { db } from '@/lib/database/connection';
 import { quizResults } from '@/lib/database/schema';
 import { sql, avg, sum, count } from 'drizzle-orm';
@@ -35,9 +36,8 @@ export async function GET(request: NextRequest) {
       averageScore: stats.averageScore ? Math.round(Number(stats.averageScore)) : 0,
       totalTimeSpent: Number(stats.totalTimeSpent) || 0,
     });
-    
-  } catch (error) {
-    console.error('Error fetching quick stats:', error);
+
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch quick stats' }, { status: 500 });
   }
-} 
+}

@@ -64,6 +64,41 @@ interface AIChatSession {
   updatedAt: string;
 }
 
+interface UserSettings {
+  studyPreferences: {
+    defaultSubject: string;
+    questionsPerQuiz: number;
+    timeLimit: number;
+    showTimer: boolean;
+    autoSubmit: boolean;
+  };
+  notifications: {
+    email: boolean;
+    push: boolean;
+    reminders: boolean;
+    achievements: boolean;
+  };
+  appearance: {
+    fontSize: 'small' | 'medium' | 'large';
+    compactMode: boolean;
+    theme: 'light' | 'dark' | 'system';
+  };
+}
+
+interface ExportedData {
+  quizResults: QuizResult[];
+  flashcardProgress: FlashcardProgress[];
+  performanceData: PerformanceData[];
+  aiRecommendations: AIRecommendation[];
+  exportDate: string;
+}
+
+interface StorageSize {
+  used: number;
+  available: number;
+  percentage: number;
+}
+
 class LocalStorageService {
   private static instance: LocalStorageService;
 
@@ -79,24 +114,23 @@ class LocalStorageService {
   }
 
   private getItem<T>(key: string, defaultValue: T): T {
-    if (!this.isClient()) return defaultValue;
-    
+    if (!this.isClient()) {return defaultValue;}
+
     try {
       const item = localStorage.getItem(key);
       return item ? JSON.parse(item) : defaultValue;
-    } catch (error) {
-      console.error(`Error reading ${key} from localStorage:`, error);
+    } catch {
       return defaultValue;
     }
   }
 
   private setItem<T>(key: string, value: T): void {
-    if (!this.isClient()) return;
-    
+    if (!this.isClient()) {return;}
+
     try {
       localStorage.setItem(key, JSON.stringify(value));
-    } catch (error) {
-      console.error(`Error saving ${key} to localStorage:`, error);
+    } catch {
+      // Silent fail for localStorage errors
     }
   }
 
@@ -110,15 +144,15 @@ class LocalStorageService {
     const newResult: QuizResult = {
       ...result,
       id: `quiz_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     };
-    
+
     results.push(newResult);
     this.setItem('guestQuizResults', results);
-    
+
     // Update performance data
     this.updatePerformanceData(result.userId, result.subject, result.score, result.totalQuestions, result.timeSpent, result.weakTopics);
-    
+
     return newResult;
   }
 
@@ -142,25 +176,25 @@ class LocalStorageService {
 
   getFlashcardProgressBySubject(userId: string, subject: string): FlashcardProgress[] {
     return this.getFlashcardProgress().filter(
-      progress => progress.userId === userId && progress.subject === subject
+      progress => progress.userId === userId && progress.subject === subject,
     );
   }
 
   saveFlashcardProgress(progress: Omit<FlashcardProgress, 'id' | 'createdAt' | 'updatedAt'>): FlashcardProgress {
     const progressMap: Record<string, FlashcardProgress> = this.getItem('guestFlashcardProgress', {});
     const key = `${progress.userId}_${progress.subject}_${progress.cardId}`;
-    
+
     const existingProgress = progressMap[key];
     const newProgress: FlashcardProgress = {
       ...progress,
       id: existingProgress?.id || `flashcard_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       createdAt: existingProgress?.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     };
-    
+
     progressMap[key] = newProgress;
     this.setItem('guestFlashcardProgress', progressMap);
-    
+
     return newProgress;
   }
 
@@ -175,14 +209,14 @@ class LocalStorageService {
 
   getPerformanceDataBySubject(userId: string, subject: string): PerformanceData | null {
     return this.getPerformanceData().find(
-      data => data.userId === userId && data.subject === subject
+      data => data.userId === userId && data.subject === subject,
     ) || null;
   }
 
   private updatePerformanceData(userId: string, subject: string, score: number, totalQuestions: number, timeSpent: number, weakTopics: string[]): void {
     const performanceData = this.getPerformanceData();
     const existingIndex = performanceData.findIndex(
-      data => data.userId === userId && data.subject === subject
+      data => data.userId === userId && data.subject === subject,
     );
 
     const scorePercentage = (score / totalQuestions) * 100;
@@ -207,7 +241,7 @@ class LocalStorageService {
           totalTests,
           averageTimeSpent: Math.round(newAverageTimeSpent * 100) / 100,
           weakTopics: combinedWeakTopics,
-          lastUpdated: new Date().toISOString()
+          lastUpdated: new Date().toISOString(),
         };
       }
     } else {
@@ -220,9 +254,9 @@ class LocalStorageService {
         totalTests: 1,
         averageTimeSpent: Math.round(timeSpentMinutes * 100) / 100,
         weakTopics,
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
       };
-      
+
       performanceData.push(newPerformanceData);
     }
 
@@ -243,16 +277,16 @@ class LocalStorageService {
     const newRecommendation: AIRecommendation = {
       ...recommendation,
       id: `ai_rec_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     };
-    
+
     recommendations.push(newRecommendation);
-    
+
     // Keep only last 50 recommendations to prevent localStorage bloat
     if (recommendations.length > 50) {
       recommendations.splice(0, recommendations.length - 50);
     }
-    
+
     this.setItem('guestAIRecommendations', recommendations);
     return newRecommendation;
   }
@@ -265,13 +299,13 @@ class LocalStorageService {
     totalSubjects: number;
   } {
     const performanceData = this.getPerformanceDataByUser(userId);
-    
+
     if (performanceData.length === 0) {
       return {
         totalTests: 0,
         averageScore: 0,
         totalTimeSpent: 0,
-        totalSubjects: 0
+        totalSubjects: 0,
       };
     }
 
@@ -284,7 +318,7 @@ class LocalStorageService {
       totalTests,
       averageScore: Math.round(averageScore * 100) / 100,
       totalTimeSpent: Math.round(totalTimeSpent * 100) / 100,
-      totalSubjects: performanceData.length
+      totalSubjects: performanceData.length,
     };
   }
 
@@ -296,31 +330,31 @@ class LocalStorageService {
 
   // Data management
   clearAllData(): void {
-    if (!this.isClient()) return;
-    
+    if (!this.isClient()) {return;}
+
     const keys = [
       'guestQuizResults',
       'guestFlashcardProgress',
       'guestPerformanceData',
-      'guestAIRecommendations'
+      'guestAIRecommendations',
     ];
-    
+
     keys.forEach(key => localStorage.removeItem(key));
   }
 
-  exportAllData(): any {
-    if (!this.isClient()) return null;
-    
+  exportAllData(): ExportedData | null {
+    if (!this.isClient()) {return null;}
+
     return {
       quizResults: this.getQuizResults(),
       flashcardProgress: this.getFlashcardProgress(),
       performanceData: this.getPerformanceData(),
       aiRecommendations: this.getAIRecommendations(),
-      exportDate: new Date().toISOString()
+      exportDate: new Date().toISOString(),
     };
   }
 
-  importAllData(data: any): boolean {
+  importAllData(data: ExportedData): boolean {
     try {
       if (data.quizResults) {
         this.setItem('guestQuizResults', data.quizResults);
@@ -335,36 +369,35 @@ class LocalStorageService {
         this.setItem('guestAIRecommendations', data.aiRecommendations);
       }
       return true;
-    } catch (error) {
-      console.error('Error importing data:', error);
+    } catch {
       return false;
     }
   }
 
   // Data size monitoring
-  getStorageSize(): { used: number; available: number; percentage: number } {
-    if (!this.isClient()) return { used: 0, available: 0, percentage: 0 };
-    
+  getStorageSize(): StorageSize {
+    if (!this.isClient()) {return { used: 0, available: 0, percentage: 0 };}
+
     let used = 0;
     for (const key in localStorage) {
       if (localStorage.hasOwnProperty(key)) {
         used += localStorage[key].length + key.length;
       }
     }
-    
+
     // Approximate localStorage limit (5MB in most browsers)
     const available = 5 * 1024 * 1024;
     const percentage = (used / available) * 100;
-    
+
     return {
       used,
       available,
-      percentage: Math.round(percentage * 100) / 100
+      percentage: Math.round(percentage * 100) / 100,
     };
   }
 
   // User Settings
-  getUserSettings(): any {
+  getUserSettings(): UserSettings {
     return this.getItem('userSettings', {
       studyPreferences: {
         defaultSubject: '',
@@ -380,14 +413,14 @@ class LocalStorageService {
         achievements: true,
       },
       appearance: {
-        fontSize: 'medium',
+        fontSize: 'medium' as const,
         compactMode: false,
-        theme: 'system',
-      }
+        theme: 'system' as const,
+      },
     });
   }
 
-  saveUserSettings(settings: any): void {
+  saveUserSettings(settings: UserSettings): void {
     this.setItem('userSettings', settings);
   }
 
@@ -409,13 +442,13 @@ class LocalStorageService {
   saveAIChatSession(session: Omit<AIChatSession, 'id' | 'createdAt' | 'updatedAt' | 'messageCount'>): AIChatSession {
     const sessions = this.getAIChatSessions();
     const existingIndex = sessions.findIndex(s => s.sessionId === session.sessionId);
-    
+
     const newSession: AIChatSession = {
       ...session,
       id: `ai_chat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       messageCount: session.messages?.length || 0,
       createdAt: existingIndex >= 0 && sessions[existingIndex] ? sessions[existingIndex].createdAt : new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     };
 
     if (existingIndex >= 0) {
@@ -431,18 +464,18 @@ class LocalStorageService {
   updateAIChatSession(sessionId: string, updates: Partial<AIChatSession>): boolean {
     const sessions = this.getAIChatSessions();
     const sessionIndex = sessions.findIndex(s => s.sessionId === sessionId);
-    
-    if (sessionIndex === -1) return false;
-    
+
+    if (sessionIndex === -1) {return false;}
+
     const existingSession = sessions[sessionIndex];
-    if (!existingSession) return false;
-    
+    if (!existingSession) {return false;}
+
     sessions[sessionIndex] = {
       ...existingSession,
       ...updates,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     };
-    
+
     this.setItem('aiChatSessions', sessions);
     return true;
   }
@@ -450,9 +483,9 @@ class LocalStorageService {
   deleteAIChatSession(sessionId: string): boolean {
     const sessions = this.getAIChatSessions();
     const filteredSessions = sessions.filter(s => s.sessionId !== sessionId);
-    
-    if (filteredSessions.length === sessions.length) return false;
-    
+
+    if (filteredSessions.length === sessions.length) {return false;}
+
     this.setItem('aiChatSessions', filteredSessions);
     return true;
   }
@@ -460,27 +493,27 @@ class LocalStorageService {
   addMessageToSession(sessionId: string, message: Omit<AIChatMessage, 'id' | 'timestamp'>): AIChatMessage {
     const sessions = this.getAIChatSessions();
     const sessionIndex = sessions.findIndex(s => s.sessionId === sessionId);
-    
+
     if (sessionIndex === -1) {
       throw new Error(`Session ${sessionId} not found`);
     }
-    
+
     const existingSession = sessions[sessionIndex];
     if (!existingSession) {
       throw new Error(`Session ${sessionId} not found`);
     }
-    
+
     const newMessage: AIChatMessage = {
       ...message,
       id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
-    
+
     existingSession.messages.push(newMessage);
     existingSession.messageCount = existingSession.messages.length;
     existingSession.lastMessageAt = newMessage.timestamp;
     existingSession.updatedAt = new Date().toISOString();
-    
+
     this.setItem('aiChatSessions', sessions);
     return newMessage;
   }
@@ -488,14 +521,14 @@ class LocalStorageService {
   searchAIChatSessions(userId: string, searchTerm: string): AIChatSession[] {
     const sessions = this.getAIChatSessionsByUser(userId);
     const term = searchTerm.toLowerCase();
-    
-    return sessions.filter(session => 
+
+    return sessions.filter(session =>
       session.title?.toLowerCase().includes(term) ||
       session.subject.toLowerCase().includes(term) ||
-      session.messages.some(msg => msg.content.toLowerCase().includes(term))
+      session.messages.some(msg => msg.content.toLowerCase().includes(term)),
     );
   }
 }
 
 export const localStorageService = LocalStorageService.getInstance();
-export default localStorageService; 
+export default localStorageService;

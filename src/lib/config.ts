@@ -7,20 +7,20 @@
 export const AI_CONFIG = {
   // Check for multiple possible API key environment variable names
   apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY || process.env.GOOGLE_AI_API_KEY,
-  hasApiKey: !!(process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY || process.env.GOOGLE_AI_API_KEY),
-  model: 'googleai/gemini-2.0-flash'
+  hasApiKey: Boolean(process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY || process.env.GOOGLE_AI_API_KEY),
+  model: 'googleai/gemini-2.0-flash',
 };
 
 // Supabase Configuration
 export const SUPABASE_CONFIG = {
   url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
   anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  databaseUrl: process.env.DATABASE_URL
+  databaseUrl: process.env.DATABASE_URL,
 };
 
 // Google OAuth Configuration
 export const GOOGLE_CONFIG = {
-  clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+  clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
 };
 
 // Cloudinary Configuration
@@ -29,7 +29,7 @@ export const CLOUDINARY_CONFIG = {
   apiKey: process.env.CLOUDINARY_API_KEY,
   apiSecret: process.env.CLOUDINARY_API_SECRET,
   publicCloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-  hasConfig: !!(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET)
+  hasConfig: Boolean(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET),
 };
 
 // App Configuration
@@ -37,7 +37,7 @@ export const APP_CONFIG = {
   nodeEnv: process.env.NODE_ENV,
   isDevelopment: process.env.NODE_ENV === 'development',
   isProduction: process.env.NODE_ENV === 'production',
-  demoMode: process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
+  demoMode: process.env.NEXT_PUBLIC_DEMO_MODE === 'true',
 };
 
 // Configuration validation function
@@ -59,12 +59,12 @@ export function validateConfig() {
 
   // Check Cloudinary configuration (optional)
   if (!CLOUDINARY_CONFIG.hasConfig) {
-    console.warn('⚠️ Cloudinary configuration incomplete - avatar uploads will not work');
+    //do nothing
   }
 
   // Check Google OAuth (optional)
   if (!GOOGLE_CONFIG.clientId) {
-    console.warn('⚠️ Google OAuth client ID missing - Google sign-in will not work');
+    //do nothing
   }
 
   return {
@@ -72,31 +72,31 @@ export function validateConfig() {
     issues,
     configs: {
       supabase: {
-        hasUrl: !!SUPABASE_CONFIG.url,
-        hasAnonKey: !!SUPABASE_CONFIG.anonKey,
-        hasDatabaseUrl: !!SUPABASE_CONFIG.databaseUrl
+        hasUrl: Boolean(SUPABASE_CONFIG.url),
+        hasAnonKey: Boolean(SUPABASE_CONFIG.anonKey),
+        hasDatabaseUrl: Boolean(SUPABASE_CONFIG.databaseUrl),
       },
       ai: {
         hasApiKey: AI_CONFIG.hasApiKey,
-        keySource: AI_CONFIG.hasApiKey ? 
-          (process.env.GEMINI_API_KEY ? 'GEMINI_API_KEY' : 
-           process.env.GOOGLE_GENAI_API_KEY ? 'GOOGLE_GENAI_API_KEY' : 
-           'GOOGLE_AI_API_KEY') : 'none'
+        keySource: AI_CONFIG.hasApiKey ?
+          (process.env.GEMINI_API_KEY ? 'GEMINI_API_KEY' :
+           process.env.GOOGLE_GENAI_API_KEY ? 'GOOGLE_GENAI_API_KEY' :
+           'GOOGLE_AI_API_KEY') : 'none',
       },
       cloudinary: {
         hasConfig: CLOUDINARY_CONFIG.hasConfig,
-        hasCloudName: !!CLOUDINARY_CONFIG.cloudName,
-        hasApiKey: !!CLOUDINARY_CONFIG.apiKey,
-        hasApiSecret: !!CLOUDINARY_CONFIG.apiSecret
+        hasCloudName: Boolean(CLOUDINARY_CONFIG.cloudName),
+        hasApiKey: Boolean(CLOUDINARY_CONFIG.apiKey),
+        hasApiSecret: Boolean(CLOUDINARY_CONFIG.apiSecret),
       },
       google: {
-        hasClientId: !!GOOGLE_CONFIG.clientId
+        hasClientId: Boolean(GOOGLE_CONFIG.clientId),
       },
       app: {
         environment: APP_CONFIG.nodeEnv,
-        demoMode: APP_CONFIG.demoMode
-      }
-    }
+        demoMode: APP_CONFIG.demoMode,
+      },
+    },
   };
 }
 
@@ -104,8 +104,7 @@ export function validateConfig() {
 if (APP_CONFIG.isDevelopment) {
   const validation = validateConfig();
   if (validation.issues.length > 0) {
-    console.warn('⚠️ Configuration Issues:', validation.issues);
+    //do nothing
   } else {
-    console.log('✅ All required configurations are set');
   }
 }

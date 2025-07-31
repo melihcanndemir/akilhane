@@ -10,7 +10,7 @@ export async function GET() {
     NODE_ENV: process.env.NODE_ENV || 'development',
   };
 
-  const hasApiKey = !!(process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY || process.env.GOOGLE_AI_API_KEY);
+  const hasApiKey = Boolean(process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY || process.env.GOOGLE_AI_API_KEY);
 
   return NextResponse.json({
     environment: 'server',
@@ -18,4 +18,4 @@ export async function GET() {
     envVars,
     timestamp: new Date().toISOString(),
   });
-} 
+}

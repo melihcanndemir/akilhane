@@ -13,8 +13,10 @@ export class QuizRepository {
     score: number,
     totalQuestions: number,
     timeSpent: number,
-    weakTopics: Record<string, number>
+    weakTopics: Record<string, number>,
   ): Promise<void> {
+    if (!db) {throw new Error('Database connection not available');}
+
     try {
       // First, ensure the user exists. If not, create a guest user.
       await db
@@ -25,7 +27,7 @@ export class QuizRepository {
           email: `${userId}@guest.com`,
         })
         .onConflictDoNothing();
-        
+
       await db.insert(quizResults).values({
         userId,
         subject,
@@ -38,10 +40,9 @@ export class QuizRepository {
 
       // Update performance analytics
       await this.updatePerformanceAnalytics(userId, subject);
-      
-      console.log(`✅ Quiz result saved for user ${userId}, subject ${subject}`);
+
     } catch (error) {
-      console.error('❌ Error saving quiz result:', error);
+      //do nothing
       throw error;
     }
   }
@@ -50,6 +51,8 @@ export class QuizRepository {
    * Get quiz results for a user and subject
    */
   static async getQuizResults(userId: string, subject: string): Promise<QuizResult[]> {
+    if (!db) {throw new Error('Database connection not available');}
+
     try {
       const results = await db
         .select({
@@ -63,20 +66,19 @@ export class QuizRepository {
         .where(
           and(
             eq(quizResults.userId, userId),
-            eq(quizResults.subject, subject)
-          )
+            eq(quizResults.subject, subject),
+          ),
         )
         .orderBy(desc(quizResults.createdAt));
 
-      return results.map((result: any) => ({
+      return results.map((result) => ({
         score: result.score,
         totalQuestions: result.totalQuestions,
         timeSpent: result.timeSpent,
         weakTopics: JSON.parse(result.weakTopics),
-        date: new Date(result.createdAt).toISOString(),
+        date: result.createdAt.toISOString(),
       }));
     } catch (error) {
-      console.error('❌ Error getting quiz results:', error);
       throw error;
     }
   }
@@ -85,6 +87,8 @@ export class QuizRepository {
    * Get all quiz results for a user
    */
   static async getAllQuizResults(userId: string): Promise<Record<string, QuizResult[]>> {
+    if (!db) {throw new Error('Database connection not available');}
+
     try {
       const results = await db
         .select({
@@ -100,14 +104,14 @@ export class QuizRepository {
         .orderBy(desc(quizResults.createdAt));
 
       const groupedResults: Record<string, QuizResult[]> = {};
-      
-      results.forEach((result: any) => {
+
+      results.forEach((result) => {
         const quizResult: QuizResult = {
           score: result.score,
           totalQuestions: result.totalQuestions,
           timeSpent: result.timeSpent,
           weakTopics: JSON.parse(result.weakTopics),
-          date: new Date(result.createdAt).toISOString(),
+          date: result.createdAt.toISOString(),
         };
 
         if (!groupedResults[result.subject]) {
@@ -118,7 +122,6 @@ export class QuizRepository {
 
       return groupedResults;
     } catch (error) {
-      console.error('❌ Error getting all quiz results:', error);
       throw error;
     }
   }
@@ -127,10 +130,12 @@ export class QuizRepository {
    * Get recent quiz results (last N tests)
    */
   static async getRecentQuizResults(
-    userId: string, 
-    subject: string, 
-    limit: number = 10
+    userId: string,
+    subject: string,
+    limit: number = 10,
   ): Promise<QuizResult[]> {
+    if (!db) {throw new Error('Database connection not available');}
+
     try {
       const results = await db
         .select({
@@ -144,21 +149,20 @@ export class QuizRepository {
         .where(
           and(
             eq(quizResults.userId, userId),
-            eq(quizResults.subject, subject)
-          )
+            eq(quizResults.subject, subject),
+          ),
         )
         .orderBy(desc(quizResults.createdAt))
         .limit(limit);
 
-      return results.map((result: any) => ({
+      return results.map((result) => ({
         score: result.score,
         totalQuestions: result.totalQuestions,
         timeSpent: result.timeSpent,
         weakTopics: JSON.parse(result.weakTopics),
-        date: new Date(result.createdAt).toISOString(),
+        date: result.createdAt.toISOString(),
       }));
     } catch (error) {
-      console.error('❌ Error getting recent quiz results:', error);
       throw error;
     }
   }
@@ -167,18 +171,20 @@ export class QuizRepository {
    * Update performance analytics for a user and subject
    */
   private static async updatePerformanceAnalytics(userId: string, subject: string): Promise<void> {
+    if (!db) {throw new Error('Database connection not available');}
+
     try {
       const results = await this.getQuizResults(userId, subject);
-      
-      if (results.length === 0) return;
+
+      if (results.length === 0) {return;}
 
       const totalTests = results.length;
-      const averageScore = results.reduce((acc, result) => 
-        acc + (result.score / result.totalQuestions) * 100, 0
+      const averageScore = results.reduce((acc, result) =>
+        acc + (result.score / result.totalQuestions) * 100, 0,
       ) / totalTests;
-      
-      const averageTimeSpent = results.reduce((acc, result) => 
-        acc + result.timeSpent, 0
+
+      const averageTimeSpent = results.reduce((acc, result) =>
+        acc + result.timeSpent, 0,
       ) / totalTests / 60; // Convert to minutes
 
       // Aggregate weak topics
@@ -190,7 +196,7 @@ export class QuizRepository {
       });
 
       const analyticsId = `analytics_${userId}_${subject}`;
-      
+
       await db
         .insert(performanceAnalytics)
         .values({
@@ -214,9 +220,7 @@ export class QuizRepository {
           },
         });
 
-      console.log(`✅ Performance analytics updated for user ${userId}, subject ${subject}`);
     } catch (error) {
-      console.error('❌ Error updating performance analytics:', error);
       throw error;
     }
   }
@@ -225,6 +229,8 @@ export class QuizRepository {
    * Get performance analytics for a user and subject
    */
   static async getPerformanceAnalytics(userId: string, subject: string) {
+    if (!db) {throw new Error('Database connection not available');}
+
     try {
       const analytics = await db
         .select()
@@ -232,8 +238,8 @@ export class QuizRepository {
         .where(
           and(
             eq(performanceAnalytics.userId, userId),
-            eq(performanceAnalytics.subject, subject)
-          )
+            eq(performanceAnalytics.subject, subject),
+          ),
         )
         .limit(1);
 
@@ -242,15 +248,18 @@ export class QuizRepository {
       }
 
       const result = analytics[0];
+      if (!result) {
+        return null;
+      }
+
       return {
         averageScore: result.averageScore,
         totalTests: result.totalTests,
         averageTimeSpent: result.averageTimeSpent,
         weakTopics: JSON.parse(result.weakTopics),
-        lastUpdated: new Date(result.lastUpdated),
+        lastUpdated: result.lastUpdated,
       };
     } catch (error) {
-      console.error('❌ Error getting performance analytics:', error);
       throw error;
     }
   }
@@ -259,22 +268,23 @@ export class QuizRepository {
    * Get all performance analytics for a user
    */
   static async getAllPerformanceAnalytics(userId: string) {
+    if (!db) {throw new Error('Database connection not available');}
+
     try {
       const analytics = await db
         .select()
         .from(performanceAnalytics)
         .where(eq(performanceAnalytics.userId, userId));
 
-      return analytics.map((result: any) => ({
+      return analytics.map((result) => ({
         subject: result.subject,
         averageScore: result.averageScore,
         totalTests: result.totalTests,
         averageTimeSpent: result.averageTimeSpent,
         weakTopics: JSON.parse(result.weakTopics),
-        lastUpdated: new Date(result.lastUpdated),
+        lastUpdated: result.lastUpdated,
       }));
     } catch (error) {
-      console.error('❌ Error getting all performance analytics:', error);
       throw error;
     }
   }
@@ -283,14 +293,16 @@ export class QuizRepository {
    * Delete quiz results for a user and subject
    */
   static async deleteQuizResults(userId: string, subject: string): Promise<void> {
+    if (!db) {throw new Error('Database connection not available');}
+
     try {
       await db
         .delete(quizResults)
         .where(
           and(
             eq(quizResults.userId, userId),
-            eq(quizResults.subject, subject)
-          )
+            eq(quizResults.subject, subject),
+          ),
         );
 
       // Also delete performance analytics
@@ -299,14 +311,12 @@ export class QuizRepository {
         .where(
           and(
             eq(performanceAnalytics.userId, userId),
-            eq(performanceAnalytics.subject, subject)
-          )
+            eq(performanceAnalytics.subject, subject),
+          ),
         );
 
-      console.log(`✅ Quiz results deleted for user ${userId}, subject ${subject}`);
     } catch (error) {
-      console.error('❌ Error deleting quiz results:', error);
       throw error;
     }
   }
-} 
+}

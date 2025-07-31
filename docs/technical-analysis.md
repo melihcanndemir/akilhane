@@ -1,28 +1,28 @@
-# 🏗️ AkılHane - Kapsamlı Proje Analizi
+# 🏗️ AkılHane - Comprehensive Project Analysis
 
-## 📋 İçindekiler
-1. [Genel Mimari Yapı](#1--genel-mimari-yapı)
-2. [Klasör Yapısı ve Amaçları](#2--klasör-yapısı-ve-amaçları)
-3. [Ana Bileşenlerin İletişimi](#3--ana-bileşenlerin-iletişimi)
-4. [Kod Kalitesi Analizi](#4--kod-kalitesi-analizi)
-5. [Güvenlik ve Performans](#5--güvenlik-ve-performans)
-6. [Test Yapısı](#6--test-yapısı)
-7. [Refactoring Önerileri](#7--refactoring-önerileri)
-8. [Teknik Dokümantasyon Özeti](#8--teknik-dokümantasyon-özeti)
+## 📋 Table of Contents
+1. [General Architecture Structure](#1--general-architecture-structure)
+2. [Folder Structure and Purposes](#2--folder-structure-and-purposes)
+3. [Main Component Communication](#3--main-component-communication)
+4. [Code Quality Analysis](#4--code-quality-analysis)
+5. [Security and Performance](#5--security-and-performance)
+6. [Testing Structure](#6--testing-structure)
+7. [Refactoring Recommendations](#7--refactoring-recommendations)
+8. [Technical Documentation Summary](#8--technical-documentation-summary)
 
-## 1. 📐 Genel Mimari Yapı
+## 1. 📐 General Architecture Structure
 
-### **Teknoloji Yığını:**
+### **Technology Stack:**
 - **Frontend:** Next.js 15.3.3 (React 18.3.1) + TypeScript
 - **Styling:** Tailwind CSS + Radix UI + Framer Motion
 - **Backend:** Next.js API Routes + Server Actions
-- **Veritabanı:** PostgreSQL (Supabase) + Drizzle ORM
-- **AI Entegrasyonu:** Google Genkit + Gemini AI
+- **Database:** PostgreSQL (Supabase) + Drizzle ORM
+- **AI Integration:** Google Genkit + Gemini AI
 - **Auth:** Supabase Auth
-- **Storage:** Cloudinary (avatar yönetimi)
+- **Storage:** Cloudinary (avatar management)
 - **PWA:** next-pwa
 
-### **Katmanlar:**
+### **Layers:**
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -43,82 +43,82 @@
 └─────────────────────────────────────────────────────────┘
 ```
 
-## 2. 📁 Klasör Yapısı ve Amaçları
+## 2. 📁 Folder Structure and Purposes
 
 ### **`/src/app/` - Next.js App Router**
-- **Sayfa Routes:** Her klasör bir route'u temsil eder
-  - `dashboard/` - Ana kontrol paneli
-  - `quiz/` - Test çözme modülü
-  - `flashcard/` - Flashcard öğrenme sistemi
-  - `ai-chat/` - AI sohbet arayüzü
-  - `subject-manager/` - Ders yönetimi
-  - `question-manager/` - Soru yönetimi
-  - `profile/` - Kullanıcı profili
-  - `settings/` - Ayarlar
-  - `auth/` - Kimlik doğrulama sayfaları
+- **Page Routes:** Each folder represents a route
+  - `dashboard/` - Main control panel
+  - `quiz/` - Quiz solving module
+  - `flashcard/` - Flashcard learning system
+  - `ai-chat/` - AI chat interface
+  - `subject-manager/` - Subject management
+  - `question-manager/` - Question management
+  - `profile/` - User profile
+  - `settings/` - Settings
+  - `auth/` - Authentication pages
 
-### **`/src/ai/` - AI Entegrasyonu**
-- `flows/` - Genkit AI akışları
-  - `ai-tutor.ts` - AI öğretmen asistanı
-  - `ai-chat.ts` - Sohbet sistemi
-  - `flashcard-recommendation.ts` - Kişiselleştirilmiş kart önerileri
-  - `personalize-question-difficulty.ts` - Zorluk seviyesi kişiselleştirme
+### **`/src/ai/` - AI Integration**
+- `flows/` - Genkit AI flows
+  - `ai-tutor.ts` - AI teacher assistant
+  - `ai-chat.ts` - Chat system
+  - `flashcard-recommendation.ts` - Personalized card recommendations
+  - `personalize-question-difficulty.ts` - Difficulty level personalization
 
-### **`/src/components/` - React Bileşenleri**
-- `ui/` - Temel UI bileşenleri (Button, Card, Dialog vb.)
-- `ai/` - AI özellikli bileşenler
-- Ana bileşenler (Quiz, Dashboard, FlashCard vb.)
+### **`/src/components/` - React Components**
+- `ui/` - Basic UI components (Button, Card, Dialog, etc.)
+- `ai/` - AI-powered components
+- Main components (Quiz, Dashboard, FlashCard, etc.)
 
-### **`/src/lib/` - Yardımcı Kütüphaneler**
-- `database/` - Veritabanı yapılandırması
-  - `schema.ts` - Drizzle ORM şemaları
-  - `connection.ts` - DB bağlantı yönetimi
-  - `repositories/` - Repository pattern implementasyonu
+### **`/src/lib/` - Helper Libraries**
+- `database/` - Database configuration
+  - `schema.ts` - Drizzle ORM schemas
+  - `connection.ts` - DB connection management
+  - `repositories/` - Repository pattern implementation
 
-### **`/src/services/` - İş Mantığı Servisleri**
-- `performance-service.ts` - Performans analizi
-- `supabase-service.ts` - Supabase entegrasyonu
-- `localStorage-service.ts` - Local storage yönetimi
+### **`/src/services/` - Business Logic Services**
+- `performance-service.ts` - Performance analytics
+- `supabase-service.ts` - Supabase integration
+- `localStorage-service.ts` - Local storage management
 
 ### **`/src/hooks/` - Custom React Hooks**
-- `useAuth.ts` - Kimlik doğrulama hook'u
-- `useLocalAuth.ts` - Local auth yönetimi
-- `use-toast.ts` - Bildirim sistemi
+- `useAuth.ts` - Authentication hook
+- `useLocalAuth.ts` - Local auth management
+- `use-toast.ts` - Notification system
 
-## 3. 🔄 Ana Bileşenlerin İletişimi
+## 3. 🔄 Main Component Communication
 
-### **API Endpoint'leri:**
+### **API Endpoints:**
 ```typescript
 // Quiz API
-POST /api/quiz - Test oluştur
-GET  /api/quiz - Test sonuçlarını getir
+POST /api/quiz - Create test
+GET  /api/quiz - Get test results
 
 // Subjects API  
-GET  /api/subjects - Dersleri listele
-POST /api/subjects - Yeni ders ekle
-PUT  /api/subjects/[id] - Ders güncelle
-DELETE /api/subjects/[id] - Ders sil
+GET  /api/subjects - List subjects
+POST /api/subjects - Add new subject
+PUT  /api/subjects/[id] - Update subject
+DELETE /api/subjects/[id] - Delete subject
 
 // Questions API
-GET  /api/questions - Soruları listele
-POST /api/questions - Yeni soru ekle
-PUT  /api/questions/[id] - Soru güncelle
-DELETE /api/questions/[id] - Soru sil
+GET  /api/questions - List questions
+POST /api/questions - Add new question
+PUT  /api/questions/[id] - Update question
+DELETE /api/questions/[id] - Delete question
 
 // AI Chat API
-POST /api/ai-chat/sessions - Yeni oturum başlat
-POST /api/ai-chat/messages - Mesaj gönder
-GET  /api/ai-chat/history - Sohbet geçmişi
+POST /api/ai-chat/sessions - Start new session
+POST /api/ai-chat/messages - Send message
+GET  /api/ai-chat/history - Chat history
 
 // Analytics API
-GET  /api/analytics - Performans analizleri
+GET  /api/analytics - Performance analytics
 
 // Avatar API
-POST /api/upload-avatar - Avatar yükle
-DELETE /api/delete-avatar - Avatar sil
+POST /api/upload-avatar - Upload avatar
+DELETE /api/delete-avatar - Delete avatar
 ```
 
-### **Veri Akışı:**
+### **Data Flow:**
 ```
 User Action → React Component → API Route/Server Action
                                         ↓
@@ -129,68 +129,67 @@ User Action → React Component → API Route/Server Action
                                   Database
 ```
 
-### **AI Flow Örneği:**
+### **AI Flow Example:**
 ```typescript
 // AI Tutor Flow
-1. Kullanıcı soruya yardım ister
-2. Component → AI Tutor API çağrısı
+1. User requests help with question
+2. Component → AI Tutor API call
 3. Genkit Flow → Google Gemini
-4. Yapılandırılmış yanıt → UI'da gösterim
+4. Structured response → UI display
 ```
 
-## 4. 📊 Kod Kalitesi Analizi
+## 4. 📊 Code Quality Analysis
 
-### **✅ Güçlü Yönler:**
-1. **TypeScript Strict Mode:** Tam tip güvenliği
-2. **Repository Pattern:** Temiz veri erişim katmanı
-3. **Modüler Yapı:** İyi organize edilmiş klasör yapısı
-4. **AI Entegrasyonu:** Genkit ile yapılandırılmış AI flow'ları
-5. **Modern UI:** Radix UI + Tailwind CSS kombinasyonu
-6. **PWA Desteği:** Offline çalışma kabiliyeti
-7. **Responsive Design:** Tüm cihazlarda uyumlu
-8. **Gradient Design Language:** Tutarlı görsel dil
+### **✅ Strengths:**
+1. **TypeScript Strict Mode:** Full type safety
+2. **Repository Pattern:** Clean data access layer
+3. **Modular Structure:** Well-organized folder structure
+4. **AI Integration:** Structured AI flows with Genkit
+5. **Modern UI:** Radix UI + Tailwind CSS combination
+6. **PWA Support:** Offline working capability
+7. **Responsive Design:** Compatible across all devices
+8. **Gradient Design Language:** Consistent visual language
 
-### **⚠️ İyileştirme Alanları:**
-1. **Test Eksikliği:** Hiç test dosyası bulunmuyor
-2. **Error Boundary Eksikliği:** Global hata yakalama yok
-3. **TypeScript Build Hataları:** `ignoreBuildErrors: true` kullanılmış
-4. **ESLint Devre Dışı:** `ignoreDuringBuilds: true`
-5. **Çevre Değişkeni Validasyonu:** .env validasyon eksik
-6. **API Rate Limiting:** DDoS koruması yok
-7. **Logging Sistemi:** Merkezi log yönetimi eksik
+### **⚠️ Areas for Improvement:**
+1. **Missing Tests:** No test files present
+2. **Missing Error Boundary:** No global error handling
+3. **TypeScript Build Errors:** Using `ignoreBuildErrors: true`
+4. **ESLint Disabled:** Using `ignoreDuringBuilds: true`
+5. **Environment Variable Validation:** Missing .env validation
+6. **API Rate Limiting:** No DDoS protection
+7. **Logging System:** Missing centralized log management
 
-## 5. 🔒 Güvenlik ve Performans
+## 5. 🔒 Security and Performance
 
-### **Güvenlik:**
-- ✅ Supabase RLS (Row Level Security) kullanımı
-- ✅ TypeScript tip güvenliği
-- ✅ Cloudinary ile güvenli dosya yükleme
-- ✅ JWT token yönetimi
-- ✅ HTTPS zorunluluğu
-- ⚠️ API rate limiting eksik
-- ⚠️ Input sanitization bazı yerlerde eksik
-- ⚠️ CSRF koruması eksik
-- ⚠️ Security headers eksik
+### **Security:**
+- ✅ Supabase RLS (Row Level Security) implementation
+- ✅ TypeScript type safety
+- ✅ Secure file uploads with Cloudinary
+- ✅ JWT token management
+- ✅ HTTPS enforcement
+- ⚠️ Missing API rate limiting
+- ⚠️ Input sanitization missing in some areas
+- ⚠️ Missing CSRF protection
+- ⚠️ Missing security headers
 
-### **Performans:**
-- ✅ Next.js SSR/SSG optimizasyonları
-- ✅ PWA ile offline destek
-- ✅ Lazy loading bileşenler
+### **Performance:**
+- ✅ Next.js SSR/SSG optimizations
+- ✅ PWA with offline support
+- ✅ Lazy loading components
 - ✅ Image optimization (Next/Image)
 - ✅ Code splitting
-- ⚠️ Bundle size optimizasyonu yapılabilir
-- ⚠️ Database query optimizasyonu gerekebilir
-- ⚠️ Redis cache katmanı eklenebilir
-- ⚠️ CDN entegrasyonu yapılabilir
+- ⚠️ Bundle size optimization can be improved
+- ⚠️ Database query optimization may be needed
+- ⚠️ Redis cache layer can be added
+- ⚠️ CDN integration can be implemented
 
-## 6. 🧪 Test Yapısı
+## 6. 🧪 Testing Structure
 
-### **Mevcut Durum:** 
-Test dosyası bulunmuyor ❌
+### **Current Status:** 
+No test files present ❌
 
-### **Önerilen Test Stratejisi:**
+### **Recommended Testing Strategy:**
 ```typescript
-// Klasör yapısı
 src/
   __tests__/
     unit/
@@ -215,37 +214,37 @@ src/
         - auth-flow.test.ts
 ```
 
-### **Önerilen Test Araçları:**
+### **Recommended Testing Tools:**
 - **Unit Tests:** Jest + React Testing Library
 - **Integration Tests:** Jest + Supertest
-- **E2E Tests:** Playwright veya Cypress
+- **E2E Tests:** Playwright or Cypress
 - **AI Flow Tests:** Genkit Test Utils
 
-## 7. 🔧 Refactoring Önerileri
+## 7. 🔧 Refactoring Recommendations
 
-### **1. Kod Tekrarları:**
+### **1. Code Duplication:**
 ```typescript
-// Problem: Tekrarlanan Supabase auth kontrolü
+// Problem: Repeated Supabase auth checks
 const { data: { user } } = await supabase.auth.getUser();
 
-// Çözüm: Custom hook
+// Solution: Custom hook
 function useSupabaseUser() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    // Merkezi user yönetimi
+    // Centralized user management
   }, []);
   
   return { user, loading };
 }
 ```
 
-### **2. Karmaşık Fonksiyonlar:**
+### **2. Complex Functions:**
 ```typescript
-// Problem: Quiz bileşenindeki handleAnswer fonksiyonu çok uzun
+// Problem: handleAnswer function in Quiz component is too long
 
-// Çözüm: Parçalara ayırma
+// Solution: Break into smaller parts
 const answerHandlers = {
   validate: validateAnswer,
   updateScore: updateScore,
@@ -258,9 +257,9 @@ function handleAnswer(answer: string) {
 }
 ```
 
-### **3. API Response Standardizasyonu:**
+### **3. API Response Standardization:**
 ```typescript
-// Önerilen response wrapper
+// Recommended response wrapper
 interface ApiResponse<T> {
   success: boolean;
   data?: T;
@@ -276,7 +275,7 @@ interface ApiResponse<T> {
   };
 }
 
-// Kullanım
+// Usage
 export function createApiResponse<T>(
   data?: T, 
   error?: any
@@ -294,7 +293,7 @@ export function createApiResponse<T>(
 }
 ```
 
-### **4. Error Handling Standardizasyonu:**
+### **4. Error Handling Standardization:**
 ```typescript
 // Global error handler
 class AppError extends Error {
@@ -333,69 +332,69 @@ export function validateEnv() {
 }
 ```
 
-## 8. 📚 Teknik Dokümantasyon Özeti
+## 8. 📚 Technical Documentation Summary
 
-### **Hızlı Başlangıç:**
+### **Quick Start:**
 ```bash
-# 1. Repoyu klonla
+# 1. Clone repository
 git clone https://github.com/melihcanndemir/akilhane.git
 cd akilhane
 
-# 2. Bağımlılıkları yükle
+# 2. Install dependencies
 npm install
 
-# 3. Çevre değişkenlerini ayarla
+# 3. Set up environment variables
 cp .env.example .env.local
-# .env.local dosyasını düzenle
+# Edit .env.local file
 
-# 4. Veritabanını hazırla
+# 4. Prepare database
 npm run db:generate
 npm run db:migrate
 npm run db:init
 
-# 5. Geliştirme sunucusunu başlat
+# 5. Start development server
 npm run dev
 
-# 6. Genkit UI (opsiyonel)
+# 6. Genkit UI (optional)
 npm run genkit:dev
 ```
 
-### **Temel Veri Modelleri:**
+### **Core Data Models:**
 
 #### **Users Table:**
 - `id`: CUID2 primary key
 - `email`: Unique email
-- `name`: Kullanıcı adı
+- `name`: User name
 - `createdAt`, `updatedAt`: Timestamps
 
 #### **Subjects Table:**
 - `id`: CUID2 primary key
-- `name`: Ders adı
-- `description`: Açıklama
-- `category`: Kategori
-- `difficulty`: Zorluk seviyesi
-- `questionCount`: Soru sayısı
-- `isActive`: Aktiflik durumu
+- `name`: Subject name
+- `description`: Description
+- `category`: Category
+- `difficulty`: Difficulty level
+- `questionCount`: Question count
+- `isActive`: Active status
 
 #### **Questions Table:**
 - `id`: CUID2 primary key
 - `subjectId`: Foreign key to subjects
-- `type`: Soru tipi (multiple-choice, true-false, vb.)
-- `text`: Soru metni
+- `type`: Question type (multiple-choice, true-false, etc.)
+- `text`: Question text
 - `options`: JSON array of options
-- `correctAnswer`: Doğru cevap
-- `explanation`: Açıklama
+- `correctAnswer`: Correct answer
+- `explanation`: Explanation
 
 #### **Quiz Results Table:**
 - `id`: CUID2 primary key
 - `userId`: Foreign key to users
-- `subject`: Konu
-- `score`: Puan
-- `totalQuestions`: Toplam soru
-- `timeSpent`: Harcanan süre
-- `weakTopics`: Zayıf konular (JSON)
+- `subject`: Subject
+- `score`: Score
+- `totalQuestions`: Total questions
+- `timeSpent`: Time spent
+- `weakTopics`: Weak topics (JSON)
 
-### **Kritik Bağımlılıklar:**
+### **Critical Dependencies:**
 ```json
 {
   "next": "15.3.3",
@@ -410,22 +409,22 @@ npm run genkit:dev
 ```
 
 ### **Deployment Checklist:**
-- [ ] Supabase projesi oluştur
-- [ ] Cloudinary hesabı aç
-- [ ] Google AI API key al
-- [ ] Environment variables ayarla
-- [ ] Database migration'ları çalıştır
-- [ ] Vercel/Railway'e deploy et
-- [ ] Custom domain ayarla
-- [ ] SSL sertifikası aktif et
-- [ ] Monitoring kurulumu yap
-- [ ] Backup stratejisi belirle
+- [ ] Create Supabase project
+- [ ] Set up Cloudinary account
+- [ ] Get Google AI API key
+- [ ] Configure environment variables
+- [ ] Run database migrations
+- [ ] Deploy to Vercel/Railway
+- [ ] Set up custom domain
+- [ ] Enable SSL certificate
+- [ ] Set up monitoring
+- [ ] Define backup strategy
 
-### **Monitoring ve Maintenance:**
-- **Error Tracking:** Sentry entegrasyonu önerilir
-- **Analytics:** Google Analytics veya Plausible
-- **Performance:** Lighthouse CI entegrasyonu
-- **Uptime:** UptimeRobot veya Pingdom
-- **Logs:** Vercel Logs veya custom solution
+### **Monitoring and Maintenance:**
+- **Error Tracking:** Sentry integration recommended
+- **Analytics:** Google Analytics or Plausible
+- **Performance:** Lighthouse CI integration
+- **Uptime:** UptimeRobot or Pingdom
+- **Logs:** Vercel Logs or custom solution
 
-Bu proje, modern web development best practice'lerini takip eden, AI destekli bir eğitim platformudur. Kod kalitesi yüksek, mimari sağlam ancak test coverage ve bazı güvenlik optimizasyonları eklenmelidir.
+This project is an AI-powered educational platform following modern web development best practices. Code quality is high, architecture is solid, but test coverage and some security optimizations should be added.

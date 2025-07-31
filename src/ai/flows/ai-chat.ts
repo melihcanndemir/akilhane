@@ -9,7 +9,7 @@ const AiChatInputSchema = z.object({
   conversationHistory: z.array(z.object({
     role: z.enum(['user', 'assistant']),
     content: z.string(),
-    timestamp: z.string()
+    timestamp: z.string(),
   })).describe('Önceki konuşma geçmişi'),
   context: z.string().optional().describe('Ek bağlam bilgisi (soru, konu vs.)'),
 });
@@ -27,28 +27,25 @@ const AiChatOutputSchema = z.object({
 export type AiChatOutput = z.infer<typeof AiChatOutputSchema>;
 
 export async function getAiChatResponse(
-  input: AiChatInput
+  input: AiChatInput,
 ): Promise<AiChatOutput> {
-  console.log('🚀 AI Chat Input Received:', input.message);
   try {
     const response = await aiChatFlow(input);
-    console.log('✅ AI Chat Response Generated.');
     return response;
-  } catch (error) {
-    console.error('❌ AI Chat Flow Error:', error);
+  } catch {
     return {
-        response: "Üzgünüm, bir hata oluştu ve isteğinizi işleyemedim. Lütfen daha sonra tekrar deneyin.",
+        response: 'Üzgünüm, bir hata oluştu ve isteğinizi işleyemedim. Lütfen daha sonra tekrar deneyin.',
         confidence: 0.1,
         suggestedTopics: [],
         followUpQuestions: [],
-        learningTips: []
-    }
+        learningTips: [],
+    };
   }
 }
 
 const PromptInputSchema = z.object({
     ...AiChatInputSchema.shape,
-    conversationHistory: z.string().describe("Formata dönüştürülmüş konuşma geçmişi metni"),
+    conversationHistory: z.string().describe('Formata dönüştürülmüş konuşma geçmişi metni'),
 });
 
 const prompt = ai.definePrompt({
@@ -113,8 +110,8 @@ const aiChatFlow = ai.defineFlow(
     });
 
     if (!output) {
-      throw new Error("AI output was null or undefined.");
+      throw new Error('AI output was null or undefined.');
     }
     return output;
-  }
+  },
 );

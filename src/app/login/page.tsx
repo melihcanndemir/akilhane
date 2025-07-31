@@ -8,17 +8,17 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  Mail, 
-  Lock, 
-  Eye, 
-  EyeOff, 
-  ArrowRight, 
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
   Play,
   GraduationCap,
   Brain,
   Users,
-  Target
+  Target,
 } from 'lucide-react';
 import Link from 'next/link';
 import { signInWithEmail, signInWithGoogle, signUpWithEmail } from '@/lib/supabase';
@@ -26,7 +26,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 function LoginPageContent() {
   const searchParams = useSearchParams();
-  const [isLogin, setIsLogin] = useState(searchParams.get('mode') === 'register' ? false : true);
+  const [isLogin, setIsLogin] = useState(searchParams.get('mode') !== 'register');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -44,9 +44,9 @@ function LoginPageContent() {
     try {
       if (isLogin) {
         const { error } = await signInWithEmail(email, password);
-        if (error) throw error;
+        if (error) {throw error;}
         toast({
-          title: "Giriş başarılı!",
+          title: 'Giriş başarılı!',
           description: "AkılHane'ye hoş geldiniz!",
         });
         router.push('/');
@@ -54,9 +54,9 @@ function LoginPageContent() {
         // Validate password confirmation
         if (password !== confirmPassword) {
           toast({
-            title: "Hata!",
-            description: "Şifreler eşleşmiyor. Lütfen tekrar deneyin.",
-            variant: "destructive",
+            title: 'Hata!',
+            description: 'Şifreler eşleşmiyor. Lütfen tekrar deneyin.',
+            variant: 'destructive',
           });
           setIsLoading(false);
           return;
@@ -65,19 +65,19 @@ function LoginPageContent() {
         // Validate password length
         if (password.length < 6) {
           toast({
-            title: "Hata!",
-            description: "Şifre en az 6 karakter olmalıdır.",
-            variant: "destructive",
+            title: 'Hata!',
+            description: 'Şifre en az 6 karakter olmalıdır.',
+            variant: 'destructive',
           });
           setIsLoading(false);
           return;
         }
 
         const { error } = await signUpWithEmail(email, password);
-        if (error) throw error;
+        if (error) {throw error;}
         toast({
-          title: "Kayıt başarılı!",
-          description: "E-posta adresinizi doğrulayın ve giriş yapın.",
+          title: 'Kayıt başarılı!',
+          description: 'E-posta adresinizi doğrulayın ve giriş yapın.',
         });
         setIsLogin(true);
         // Clear form fields
@@ -86,11 +86,11 @@ function LoginPageContent() {
         setConfirmPassword('');
       }
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Bir hata oluştu. Lütfen tekrar deneyin.";
+      const errorMessage = error instanceof Error ? error.message : 'Bir hata oluştu. Lütfen tekrar deneyin.';
       toast({
-        title: "Hata!",
+        title: 'Hata!',
         description: errorMessage,
-        variant: "destructive",
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
@@ -101,13 +101,13 @@ function LoginPageContent() {
     setIsGoogleLoading(true);
     try {
       const { error } = await signInWithGoogle();
-      if (error) throw error;
+      if (error) {throw error;}
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Google ile giriş yapılamadı.";
+      const errorMessage = error instanceof Error ? error.message : 'Google ile giriş yapılamadı.';
       toast({
-        title: "Google girişi başarısız!",
+        title: 'Google girişi başarısız!',
         description: errorMessage,
-        variant: "destructive",
+        variant: 'destructive',
       });
     } finally {
       setIsGoogleLoading(false);
@@ -116,7 +116,7 @@ function LoginPageContent() {
 
   const handleGuestMode = () => {
     toast({
-      title: "Misafir modu",
+      title: 'Misafir modu',
       description: "Giriş yapmadan AkılHane'yi keşfedin!",
     });
     router.push('/');
@@ -124,7 +124,7 @@ function LoginPageContent() {
 
   const handleLiveDemo = () => {
     toast({
-      title: "Canlı Demo",
+      title: 'Canlı Demo',
       description: "AkılHane'nin tüm özelliklerini keşfedin!",
     });
     router.push('/demo');
@@ -172,7 +172,7 @@ function LoginPageContent() {
                 {isLogin ? 'Hoş Geldiniz' : 'Hesap Oluşturun'}
               </CardTitle>
               <CardDescription>
-                {isLogin 
+                {isLogin
                   ? 'Hesabınıza giriş yapın ve öğrenmeye devam edin'
                   : 'Ücretsiz hesap oluşturun ve AI destekli eğitime başlayın'
                 }
@@ -389,18 +389,18 @@ function LoginPageContent() {
           transition={{ delay: 0.2 }}
           className="mt-8 grid grid-cols-2 gap-4"
         >
-          <motion.div 
+          <motion.div
             className="text-center p-4 rounded-lg border-gradient-question bg-white dark:bg-gray-800"
             whileHover={{ scale: 1.05, y: -5 }}
-            transition={{ type: "spring", stiffness: 300 }}
+            transition={{ type: 'spring', stiffness: 300 }}
           >
             <GraduationCap className="h-6 w-6 mx-auto mb-2 text-blue-600" />
             <p className="text-sm font-medium text-gray-800 dark:text-white">AI Destekli Öğrenme</p>
           </motion.div>
-          <motion.div 
+          <motion.div
             className="text-center p-4 rounded-lg border-gradient-question bg-white dark:bg-gray-800"
             whileHover={{ scale: 1.05, y: -5 }}
-            transition={{ type: "spring", stiffness: 300 }}
+            transition={{ type: 'spring', stiffness: 300 }}
           >
             <Target className="h-6 w-6 mx-auto mb-2 text-indigo-600" />
             <p className="text-sm font-medium text-gray-800 dark:text-white">Kişiselleştirilmiş</p>
@@ -417,4 +417,4 @@ export default function LoginPage() {
       <LoginPageContent />
     </Suspense>
   );
-} 
+}
