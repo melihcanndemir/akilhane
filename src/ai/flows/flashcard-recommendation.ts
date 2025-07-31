@@ -17,7 +17,7 @@ import { getPerformanceHistoryForSubject } from '@/services/performance-service'
 const getPerformanceHistoryTool = ai.defineTool(
   {
     name: 'getPerformanceHistoryForSubject',
-    description: "Kullanıcının belirli bir ders için geçmiş quiz performansını alır. Her biri skor ve toplam soru içeren quiz sonuçları dizisi döndürür.",
+    description: 'Kullanıcının belirli bir ders için geçmiş quiz performansını alır. Her biri skor ve toplam soru içeren quiz sonuçları dizisi döndürür.',
     inputSchema: z.object({
       subject: z.string().describe('Performans geçmişi alınacak ders.'),
       userId: z.string().describe('Kullanıcının ID\'si.'),
@@ -30,7 +30,7 @@ const getPerformanceHistoryTool = ai.defineTool(
         weakTopics: z.record(z.string(), z.number()),
     })),
   },
-  async (input) => getPerformanceHistoryForSubject(input.subject, input.userId)
+  async (input) => getPerformanceHistoryForSubject(input.subject, input.userId),
 );
 
 const FlashcardRecommendationInputSchema = z.object({
@@ -56,12 +56,12 @@ const FlashcardRecommendationOutputSchema = z.object({
 export type FlashcardRecommendationOutput = z.infer<typeof FlashcardRecommendationOutputSchema>;
 
 export async function getFlashcardRecommendation(
-  input: FlashcardRecommendationInput
+  input: FlashcardRecommendationInput,
 ): Promise<FlashcardRecommendationOutput> {
   // Store the performance data in our mock "service" so the tool can access it.
   const performanceHistory = JSON.parse(input.performanceData);
   (getPerformanceHistoryForSubject as unknown as { __setData: (data: unknown) => void }).__setData(performanceHistory);
-  
+
   return flashcardRecommendationFlow(input);
 }
 
@@ -129,5 +129,5 @@ const flashcardRecommendationFlow = ai.defineFlow(
   async input => {
     const {output} = await prompt(input);
     return output!;
-  }
-); 
+  },
+);

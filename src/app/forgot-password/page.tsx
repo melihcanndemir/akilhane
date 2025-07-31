@@ -7,11 +7,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  Mail, 
-  ArrowLeft, 
+import {
+  Mail,
+  ArrowLeft,
   CheckCircle,
-  Brain
+  Brain,
 } from 'lucide-react';
 import Link from 'next/link';
 import { resetPassword } from '@/lib/supabase';
@@ -30,18 +30,18 @@ export default function ForgotPasswordPage() {
 
     try {
       const { error } = await resetPassword(email);
-      if (error) throw error;
-      
+      if (error) {throw error;}
+
       setIsSuccess(true);
       toast({
-        title: "E-posta gönderildi!",
-        description: "Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.",
+        title: 'E-posta gönderildi!',
+        description: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.',
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
-        title: "Hata!",
-        description: error.message || "Şifre sıfırlama e-postası gönderilemedi.",
-        variant: "destructive",
+        title: 'Hata!',
+        description: error instanceof Error ? error.message : 'Şifre sıfırlama e-postası gönderilemedi.',
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
@@ -62,7 +62,7 @@ export default function ForgotPasswordPage() {
                 <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
               </div>
             </div>
-            
+
             <Card className="shadow-xl border-0 glass-card">
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl font-bold text-green-600 dark:text-green-400">
@@ -128,7 +128,7 @@ export default function ForgotPasswordPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={(e) => { void handleSubmit(e); }} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">E-posta</Label>
                   <div className="relative">
@@ -164,7 +164,7 @@ export default function ForgotPasswordPage() {
               <div className="text-center">
                 <Link
                   href="/login"
-                  className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 flex items-center justify-center hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:px-3 hover:py-1 hover:rounded-lg transition-all duration-200"
+                  className="text-sm text-blue-600  dark:text-blue-400 dark:hover:text-blue-300 flex items-center justify-center hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:px-3 hover:py-1 hover:rounded-lg transition-all duration-200"
                 >
                   <ArrowLeft className="h-4 w-4 mr-1" />
                   Giriş sayfasına dön
@@ -176,4 +176,4 @@ export default function ForgotPasswordPage() {
       </div>
     </div>
   );
-} 
+}

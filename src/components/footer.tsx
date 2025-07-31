@@ -94,9 +94,9 @@ export default function Footer() {
             © {new Date().getFullYear()} AkılHane. Tüm hakları saklıdır.
           </p>
           <p className="text-sm text-gray-400 mt-2">
-            <a 
-              href="https://www.linkedin.com/in/melihcandemir/" 
-              target="_blank" 
+            <a
+              href="https://www.linkedin.com/in/melihcandemir/"
+              target="_blank"
               rel="noopener noreferrer"
               className="text-blue-500 hover:text-blue-600 transition-colors duration-200 font-medium"
             >
@@ -108,4 +108,4 @@ export default function Footer() {
       </div>
     </footer>
   );
-} 
+}

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { User } from '@supabase/supabase-js';
+import { useState, useEffect, useMemo } from 'react';
+import type { User } from '@supabase/supabase-js';
 import { useAuth } from './useAuth';
 
 interface GuestUser {
@@ -50,7 +50,7 @@ export function useLocalAuth() {
   const initializeGuestUser = () => {
     try {
       const storedGuestUser = localStorage.getItem('guestUser');
-      
+
       if (storedGuestUser) {
         const parsed = JSON.parse(storedGuestUser);
         setGuestUser(parsed);
@@ -65,22 +65,21 @@ export function useLocalAuth() {
             defaultSubject: 'Matematik',
             questionsPerQuiz: 10,
             difficulty: 'Medium',
-            theme: 'system'
-          }
+            theme: 'system',
+          },
         };
-        
+
         localStorage.setItem('guestUser', JSON.stringify(newGuestUser));
         setGuestUser(newGuestUser);
       }
-    } catch (error) {
-      console.error('Error initializing guest user:', error);
+    } catch {
       // Create fallback guest user
       const fallbackGuestUser: GuestUser = {
         id: `guest_fallback_${Date.now()}`,
         name: 'Misafir Kullanıcı',
         isGuest: true,
         createdAt: new Date().toISOString(),
-        preferences: {}
+        preferences: {},
       };
       setGuestUser(fallbackGuestUser);
     } finally {
@@ -100,7 +99,7 @@ export function useLocalAuth() {
     if (guestUser) {
       const updatedUser = {
         ...guestUser,
-        preferences: { ...guestUser.preferences, ...preferences }
+        preferences: { ...guestUser.preferences, ...preferences },
       };
       setGuestUser(updatedUser);
       localStorage.setItem('guestUser', JSON.stringify(updatedUser));
@@ -118,7 +117,7 @@ export function useLocalAuth() {
 
   // Export guest data for backup
   const exportGuestData = () => {
-    if (!guestUser) return null;
+    if (!guestUser) {return null;}
 
     const data = {
       user: guestUser,
@@ -126,14 +125,14 @@ export function useLocalAuth() {
       flashcardProgress: JSON.parse(localStorage.getItem('guestFlashcardProgress') || '{}'),
       performanceData: JSON.parse(localStorage.getItem('guestPerformanceData') || '[]'),
       settings: JSON.parse(localStorage.getItem('userSettings') || '{}'),
-      exportDate: new Date().toISOString()
+      exportDate: new Date().toISOString(),
     };
 
     return data;
   };
 
   // Import guest data from backup
-  const importGuestData = (data: any) => {
+  const importGuestData = (data: { user?: GuestUser; quizResults?: unknown[]; flashcardProgress?: Record<string, unknown>; performanceData?: unknown[]; settings?: Record<string, unknown> }) => {
     try {
       if (data.user) {
         localStorage.setItem('guestUser', JSON.stringify(data.user));
@@ -152,25 +151,24 @@ export function useLocalAuth() {
         localStorage.setItem('userSettings', JSON.stringify(data.settings));
       }
       return true;
-    } catch (error) {
-      console.error('Error importing guest data:', error);
+    } catch {
       return false;
     }
   };
 
   // Migrate guest data to Supabase when user registers
   const migrateToSupabase = async () => {
-    if (!guestUser || supabaseUser) return false;
+    if (!guestUser || supabaseUser) {return false;}
 
     try {
       const guestData = exportGuestData();
-      
+
       // Store guest data in Supabase user metadata or separate migration endpoint
       // This would need to be implemented in your API
       const response = await fetch('/api/migrate-guest-data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(guestData)
+        body: JSON.stringify(guestData),
       });
 
       if (response.ok) {
@@ -178,19 +176,18 @@ export function useLocalAuth() {
         return true;
       }
       return false;
-    } catch (error) {
-      console.error('Error migrating guest data:', error);
+    } catch {
       return false;
     }
   };
 
-  // Determine current user (Supabase user takes precedence)
-  const currentUser: AuthUser = supabaseUser 
-    ? { ...supabaseUser, isGuest: false } as SupabaseAuthUser
-    : guestUser;
+  // Determine current user (Supabase user takes precedence) - Memoized to prevent infinite re-renders
+  const currentUser: AuthUser = useMemo(() => supabaseUser
+      ? { ...supabaseUser, isGuest: false } as SupabaseAuthUser
+      : guestUser, [supabaseUser, guestUser]);
 
-  const isAuthenticated = !!(supabaseUser || guestUser);
-  const isGuest = !supabaseUser && !!guestUser;
+  const isAuthenticated = Boolean(supabaseUser || guestUser);
+  const isGuest = !supabaseUser && Boolean(guestUser);
 
   return {
     user: currentUser,
@@ -205,6 +202,6 @@ export function useLocalAuth() {
     exportGuestData,
     importGuestData,
     migrateToSupabase,
-    initializeGuestUser
+    initializeGuestUser,
   };
-} 
+}

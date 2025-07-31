@@ -10,10 +10,11 @@
   <br>
 </div>
 
-<!-- Optional: Add a GIF of the app in action -->
-<!-- <div align="center">
-  <img src="https://i.imgur.com/your-demo-gif-url.gif" alt="AkılHane Demo GIF">
-</div> -->
+<!-- Landing Page Demo GIF -->
+<div align="center">
+  <img src="assets/demo/landing-demo.gif" alt="AkılHane Landing Page Demo" width="800">
+  <p><em>🎬 Canlı demo görüntüsü - AkılHane ana sayfası etkileşimleri</em></p>
+</div>
 
 ## ✨ Neden AkılHane?
 
@@ -23,6 +24,7 @@ Bu proje, **BTK Akademi & Google Cloud & Girişimcilik Vakfı Hackathon'25** iç
 
 ## 🚀 Ana Özellikler
 
+-   🤖 **AI Destekli Soru Üretimi:** Google Gemini AI ile otomatik olarak yüksek kaliteli sorular oluşturan, konu ve zorluk seviyesine göre özelleştirilebilen akıllı sistem.
 -   🧠 **Kişiselleştirilmiş Öğrenme Asistanı:** Performansınıza göre size özel testler ve konular öneren akıllı sistem.
 -   🎓 **AI Tutor ile Anında Yardım:** Anlamadığınız sorularda size ipuçları veren, adım adım çözüm sunan ve konuyu özetleyen yapay zeka öğretmeni.
 -   💬 **Etkileşimli AI Sohbet:** Ders konuları hakkında yapay zeka ile sohbet etme ve derinlemesine bilgi alma imkanı.
@@ -60,7 +62,7 @@ Bu proje, **BTK Akademi & Google Cloud & Girişimcilik Vakfı Hackathon'25** iç
   <a href="https://www.radix-ui.com/" target="_blank"><img src="https://img.shields.io/badge/Radix_UI-111827?style=for-the-badge&logo=radix-ui&logoColor=white" alt="Radix UI"></a>
   <a href="https://www.framer.com/motion/" target="_blank"><img src="https://img.shields.io/badge/Framer_Motion-EF008F?style=for-the-badge&logo=framer&logoColor=white" alt="Framer Motion"></a>
   <a href="https://web.dev/progressive-web-apps/" target="_blank"><img src="https://img.shields.io/badge/PWA-4285F4?style=for-the-badge&logo=pwa&logoColor=white" alt="PWA"></a>
-  <a href="https://www.i18next.com/" target="_blank"><img src="https://img.shields.io/badge/i18next-26A69A?style=for-the-badge&logo=i18next&logoColor=white" alt="i18next"></a>
+
   <a href="https://cloudinary.com/" target="_blank"><img src="https://img.shields.io/badge/Cloudinary-3448C6?style=for-the-badge&logo=cloudinary&logoColor=white" alt="Cloudinary"></a>
 </div>
 
@@ -73,17 +75,70 @@ Bu proje, **BTK Akademi & Google Cloud & Girişimcilik Vakfı Hackathon'25** iç
 - **🎯 SEO Optimized:** Server-side rendering and meta tags for better search visibility
 - **☁️ Cloudinary Integration:** Secure image upload and management
 - **🔐 Supabase Auth:** Complete authentication system with real-time updates
+- **🤖 AI-Powered Question Generation:** Generate high-quality exam questions using Google's Gemini AI with advanced JSON parsing and error handling
+- **✅ Question Review Workflow:** Review and approve AI-generated questions before adding to question bank with optional answer visibility
+
+- **📱 Mobile-Responsive AI Interface:** Fully responsive AI question generation and review interface
+- **💾 Hybrid Data Storage:** LocalStorage for offline functionality, Supabase for authenticated users
 
 ## 🏗️ Teknik Derinlik ve Mimari
 
-Bu proje, modern ve ölçeklenebilir bir mimari üzerine kurulmuştur.
+Bu proje, **enterprise-level** bir mimari üzerine kurulmuş olup modern web development best practice'lerini takip eder.
 
--   **Full-Stack Next.js 15:** Hem sunucu taraflı render etme (SSR) hem de istemci taraflı (CSR) yeteneklerini bir arada kullanarak yüksek performans ve esneklik sağlar.
--   **Type-Safe Veritabanı:** **Drizzle ORM** ve **SQLite** kullanarak tamamen tip güvenli bir veritabanı katmanı oluşturulmuştur. Bu, SQL injection gibi zafiyetleri engeller ve geliştirme sürecini hızlandırır.
--   **Gelişmiş AI Akışları:** **Genkit Framework** kullanılarak sadece basit API çağrıları yapılmamış, birden fazla AI modelini (Google Gemini, vb.) ve veri kaynaklarını birleştiren karmaşık "flow"lar tasarlanmıştır. Bu, AI çıktılarının daha güvenilir ve amaca yönelik olmasını sağlar.
--   **Modüler ve Bileşen Tabanlı Arayüz:** **Radix UI** ve **Tailwind CSS** kullanılarak hem erişilebilir hem de yeniden kullanılabilir, modern bir UI kütüphanesi oluşturulmuştur.
--   **Cloudinary Avatar Sistemi:** Güvenli avatar yükleme, silme ve yönetimi için Cloudinary entegrasyonu.
--   **Supabase Auth Entegrasyonu:** Gerçek kullanıcı verileri ve güvenli kimlik doğrulama.
+### **🎯 Katmanlı Mimari Yapısı:**
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Presentation Layer                   │
+│  (React Components + Next.js Pages + Tailwind CSS)     │
+├─────────────────────────────────────────────────────────┤
+│                    Business Logic Layer                 │
+│     (Services + API Routes + Server Actions)           │
+├─────────────────────────────────────────────────────────┤
+│                      AI Layer                          │
+│        (Genkit Flows + Google Gemini)                  │
+├─────────────────────────────────────────────────────────┤
+│                   Data Access Layer                     │
+│      (Drizzle ORM + Repository Pattern)                │
+├─────────────────────────────────────────────────────────┤
+│                    Database Layer                       │
+│         (PostgreSQL via Supabase)                      │
+└─────────────────────────────────────────────────────────┘
+```
+
+### **🔧 Ana Teknoloji Yığını:**
+-   **Frontend:** Next.js 15.3.3 (React 18.3.1) + TypeScript
+-   **Styling:** Tailwind CSS + Radix UI + Framer Motion  
+-   **Backend:** Next.js API Routes + Server Actions
+-   **Veritabanı:** PostgreSQL (Supabase) + Drizzle ORM
+-   **AI Entegrasyonu:** Google Genkit + Gemini AI
+-   **Auth:** Supabase Auth + Row Level Security (RLS)
+-   **Storage:** Cloudinary (avatar yönetimi) + Supabase Storage
+-   **PWA:** next-pwa + Service Workers
+
+### **🚀 AI-Powered Features:**
+-   **Intelligent Question Generation:** Google Gemini ile otomatik soru üretimi
+-   **Quality Validation System:** AI ile kalite skorlama ve doğrulama
+-   **Personalized Learning:** Performans bazlı zorluk seviyesi ayarlama
+-   **Interactive AI Tutor:** Gerçek zamanlı öğrenme desteği
+-   **Spaced Repetition Algorithm:** Bilimsel tekrar optimizasyonu
+
+## 📚 Detaylı Teknik Dokümantasyon
+
+### **🤖 AI & Deployment Rehberleri:**
+- 📖 **[AI Question Generation Guide](docs/AI_QUESTION_GENERATION.md)** - AI destekli soru üretimi detayları
+- 🚀 **[AI Deployment Guide](docs/AI_DEPLOYMENT_GUIDE.md)** - Google Gemini entegrasyonu ve production setup
+- 🔧 **[Environment Setup](docs/ENVIRONMENT_SETUP.md)** - Çevre değişkenleri konfigürasyonu
+
+### **☁️ Infrastructure & Storage:**
+- 🗄️ **[Supabase Storage Setup](docs/STORAGE-SETUP-GUIDE.md)** - Cloud storage ve dosya yönetimi
+- ⚡ **[Edge Functions Setup](docs/EDGE_FUNCTIONS_SETUP.md)** - Serverless fonksiyon deployment
+
+### **🏗️ Architecture & Analysis:**
+- 🎯 **[Project Blueprint](docs/BLUEPRINT.md)** - Proje temel yapısı ve tasarım kılavuzu
+- 📊 **[Technical Analysis](docs/TECHNICAL-ANALYSIS.md)** - Kapsamlı kod kalitesi ve mimari analizi
+
+> **💡 Pro Tip:** Bu dokümantasyonlar, projenin **enterprise-ready** seviyede olduğunu ve **production deployment** için hazır olduğunu gösterir.
 
 <details>
 <summary><b>🗺️ Proje Genel Mimarisi (Mermaid Şeması)</b></summary>
@@ -192,12 +247,21 @@ npm install
 ```
 3.  **`.env.local` dosyasını oluşturun:** `.env.example` dosyasını kopyalayarak kendi API anahtarlarınızı ekleyin.
     ```
-    GOOGLE_API_KEY=your_google_api_key_here
+    # AI Configuration (Required for AI question generation)
+    GEMINI_API_KEY=your_google_ai_api_key_here
+    
+    # Supabase Configuration
+    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+    DATABASE_URL=your_database_url
+    
+    # Cloudinary Configuration (Optional)
     CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
     CLOUDINARY_API_KEY=your_cloudinary_api_key
     CLOUDINARY_API_SECRET=your_cloudinary_api_secret
-    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+    
+    # Demo Mode (Optional)
+    NEXT_PUBLIC_DEMO_MODE=false
     ```
 4.  **Veritabanını hazırlayın ve başlatın:**
 ```bash
@@ -247,6 +311,11 @@ npm run db:studio
 <details>
 <summary><b>📁 Yeni Sayfalar ve Özellikler</b></summary>
 <br>
+
+### **🤖 AI Destekli Özellikler**
+- **`/question-manager`** - AI destekli soru üretimi ve yönetimi
+- **`/ai-chat`** - AI Tutor ile etkileşimli sohbet
+- **`/flashcard`** - AI destekli akıllı flashcard sistemi
 
 ### **👤 Profil Yönetimi**
 - **`/profile`** - Gelişmiş profil ayarları, avatar yönetimi

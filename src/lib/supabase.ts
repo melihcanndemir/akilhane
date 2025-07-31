@@ -263,33 +263,31 @@ export type UpdateTables<T extends keyof Database['public']['Tables']> = Databas
 export const checkAuth = async () => {
   try {
     const { data: { session }, error } = await supabase.auth.getSession();
-    
+
     if (error) {
-      console.error('Auth kontrol hatası:', error);
       return { isLoggedIn: false, user: null, error };
     }
 
     return {
-      isLoggedIn: !!session,
+      isLoggedIn: Boolean(session),
       user: session?.user || null,
-      error: null
+      error: null,
     };
   } catch (error) {
-    console.error('Auth kontrol hatası:', error);
     return { isLoggedIn: false, user: null, error };
   }
 };
 
 // 🚨 IF NOT LOGGED IN, DO NOT PROCESS
 export const requireAuth = async <T>(
-  operation: () => Promise<T>
+  operation: () => Promise<T>,
 ): Promise<{ success: boolean; data?: T; message: string }> => {
   const { isLoggedIn } = await checkAuth();
-  
+
   if (!isLoggedIn) {
     return {
       success: false,
-      message: 'Oturum açmanız gerekiyor!'
+      message: 'Oturum açmanız gerekiyor!',
     };
   }
 
@@ -298,12 +296,12 @@ export const requireAuth = async <T>(
     return {
       success: true,
       data,
-      message: 'İşlem başarılı'
+      message: 'İşlem başarılı',
     };
   } catch (error) {
     return {
       success: false,
-      message: 'İşlem başarısız: ' + error
+      message: `İşlem başarısız: ${  error}`,
     };
   }
 };
@@ -329,8 +327,8 @@ export const signInWithGoogle = async () => {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${window.location.origin}/auth/callback`
-    }
+      redirectTo: `${window.location.origin}/auth/callback`,
+    },
   });
   return { data, error };
 };
@@ -342,14 +340,14 @@ export const signOut = async () => {
 
 export const resetPassword = async (email: string) => {
   const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/auth/reset-password`
+    redirectTo: `${window.location.origin}/auth/reset-password`,
   });
   return { data, error };
 };
 
 export const updatePassword = async (password: string) => {
   const { data, error } = await supabase.auth.updateUser({
-    password: password
+    password,
   });
   return { data, error };
 };

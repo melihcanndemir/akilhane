@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
 import { QuestionRepository } from '@/lib/database/repositories/question-repository';
 import { initializeDatabase } from '@/lib/database/connection';
 import { shouldUseDemoData, getDemoQuestions } from '@/data/demo-data';
@@ -11,40 +12,31 @@ export async function POST(request: NextRequest) {
     if (!subject) {
       return NextResponse.json(
         { error: 'Subject is required' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Demo mode check - Server-side check with header
     const demoHeader = request.headers.get('x-demo-mode') === 'true';
     const isDemoMode = demoHeader;
-    
-    console.log('🎮 Quiz API - Demo mode check:', {
-      demoHeader,
-      isDemoMode,
-      subject
-    });
 
     if (isDemoMode) {
-      console.log('🎮 Quiz API - Using demo questions for subject:', subject);
-      
+
       // Map subject name to subject ID
       const subjectNameToId = {
         'Matematik': 'subj_matematik_001',
-        'Fizik': 'subj_fizik_002', 
+        'Fizik': 'subj_fizik_002',
         'Kimya': 'subj_kimya_003',
         'Tarih': 'subj_tarih_004',
         'Biyoloji': 'subj_biyoloji_005',
         'Türk Dili ve Edebiyatı': 'subj_edebiyat_006',
-        'İngilizce': 'subj_ingilizce_007'
+        'İngilizce': 'subj_ingilizce_007',
       };
-      
+
       const subjectId = subjectNameToId[subject as keyof typeof subjectNameToId] || subject;
-      console.log('🎮 Quiz API - Subject name to ID mapping:', { subject, subjectId });
-      
+
       const demoQuestions = getDemoQuestions(subjectId);
-      console.log('🎮 Quiz API - Raw demo questions found:', demoQuestions.length);
-      
+
       // Apply difficulty filter
       let filteredQuestions = demoQuestions;
       if (difficulty && difficulty !== 'all') {
@@ -55,38 +47,34 @@ export async function POST(request: NextRequest) {
       const shuffled = filteredQuestions.sort(() => 0.5 - Math.random());
       const selectedQuestions = shuffled.slice(0, Math.min(questionCount, shuffled.length));
 
-      console.log('🎮 Quiz API - Final selected questions:', selectedQuestions.length);
-
       if (selectedQuestions.length === 0) {
-        console.log('🎮 Quiz API - No questions found, available subjects:', Object.keys(subjectNameToId));
         return NextResponse.json(
           { error: `No questions found for subject "${subject}". Available subjects: ${Object.keys(subjectNameToId).join(', ')}` },
-          { status: 404 }
+          { status: 404 },
         );
       }
 
       return NextResponse.json({
         questions: selectedQuestions,
         totalQuestions: selectedQuestions.length,
-        subject: subject,
-        difficulty: difficulty || 'all'
+        subject,
+        difficulty: difficulty || 'all',
       });
     }
 
-    console.log('🎮 Quiz API - Using normal database flow');
     // Normal API flow
     initializeDatabase();
 
     const questions = await QuestionRepository.getRandomQuestions(
       subject,
       questionCount,
-      difficulty === 'all' ? undefined : difficulty
+      difficulty === 'all' ? undefined : difficulty,
     );
 
     if (questions.length === 0) {
       return NextResponse.json(
         { error: 'No questions found for this subject' },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -94,33 +82,31 @@ export async function POST(request: NextRequest) {
       questions,
       totalQuestions: questions.length,
       subject,
-      difficulty: difficulty || 'all'
+      difficulty: difficulty || 'all',
     });
 
-  } catch (error) {
-    console.error('❌ Error generating quiz:', error);
-    
+  } catch {
     // Check if demo mode should be used in case of error
     if (shouldUseDemoData()) {
       const body = await request.json();
       const { subject } = body;
-      
+
       if (subject) {
         const demoQuestions = getDemoQuestions(subject);
         const shuffled = demoQuestions.sort(() => 0.5 - Math.random()).slice(0, 3);
-        
+
         return NextResponse.json({
           questions: shuffled,
           totalQuestions: shuffled.length,
-          subject: subject,
-          difficulty: 'all'
+          subject,
+          difficulty: 'all',
         });
       }
     }
-    
+
     return NextResponse.json(
       { error: 'Failed to generate quiz' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -137,7 +123,7 @@ export async function GET(request: NextRequest) {
     if (!userId) {
       return NextResponse.json(
         { error: 'User ID is required' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -155,11 +141,10 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(data, { status: 200 });
-  } catch (error) {
-    console.error('❌ Error getting quiz results:', error);
+  } catch {
     return NextResponse.json(
       { error: 'Failed to get quiz results' },
-      { status: 500 }
+      { status: 500 },
     );
   }
-} 
+}

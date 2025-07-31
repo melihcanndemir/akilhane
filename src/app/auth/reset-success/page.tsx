@@ -4,11 +4,11 @@ import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
+import {
   CheckCircle,
   Brain,
   ArrowLeft,
-  Shield
+  Shield,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -38,7 +38,7 @@ export default function ResetSuccessPage() {
               <Brain className="h-8 w-8 text-white" />
             </div>
           </div>
-          
+
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
             AkılHane
           </h1>
@@ -49,7 +49,7 @@ export default function ResetSuccessPage() {
               <CheckCircle className="h-12 w-12 text-green-600 dark:text-green-400" />
             </div>
           </div>
-          
+
           <Card className="shadow-xl border-0 glass-card">
             <CardHeader className="text-center">
               <CardTitle className="text-2xl font-bold text-green-600 dark:text-green-400 flex items-center justify-center gap-2">
@@ -66,7 +66,7 @@ export default function ResetSuccessPage() {
                   <strong>Güvenlik Notu:</strong> Hesabınızın güvenliği için şifrenizi kimseyle paylaşmayın.
                 </p>
               </div>
-              
+
               <Button
                 onClick={() => router.push('/login')}
                 className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
@@ -74,7 +74,7 @@ export default function ResetSuccessPage() {
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Giriş Yap
               </Button>
-              
+
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 5 saniye sonra otomatik olarak giriş sayfasına yönlendirileceksiniz.
               </p>
@@ -84,4 +84,4 @@ export default function ResetSuccessPage() {
       </div>
     </div>
   );
-} 
+}

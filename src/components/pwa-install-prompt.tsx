@@ -5,6 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Download, X, Smartphone, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// Extend Navigator interface for iOS Safari standalone property
+declare global {
+  interface Navigator {
+    standalone?: boolean;
+  }
+}
+
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
   readonly userChoice: Promise<{
@@ -23,9 +30,7 @@ export default function PWAInstallPrompt() {
 
   useEffect(() => {
     // Check if PWA features are supported
-    const checkSupport = () => {
-      return 'serviceWorker' in navigator && 'BeforeInstallPromptEvent' in window;
-    };
+    const checkSupport = () => 'serviceWorker' in navigator && 'BeforeInstallPromptEvent' in window;
 
     // Check if app is already installed
     const checkIfInstalled = () => {
@@ -33,17 +38,17 @@ export default function PWAInstallPrompt() {
       if (window.matchMedia('(display-mode: standalone)').matches) {
         return true;
       }
-      
+
       // Check for iOS Safari standalone
-      if ((window.navigator as any).standalone === true) {
+      if (window.navigator.standalone === true) {
         return true;
       }
-      
+
       // Check document referrer for app context
       if (document.referrer.includes('android-app://')) {
         return true;
       }
-      
+
       return false;
     };
 
@@ -54,13 +59,13 @@ export default function PWAInstallPrompt() {
         if (dismissed) {
           const dismissedTime = parseInt(dismissed);
           const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
-          
+
           // If dismissed less than 7 days ago, don't show
           return dismissedTime > sevenDaysAgo;
         }
         return false;
-      } catch (error) {
-        console.warn('localStorage not available:', error);
+      } catch {
+        //do nothing
         return false;
       }
     };
@@ -75,20 +80,15 @@ export default function PWAInstallPrompt() {
       return;
     }
 
-    console.log('🔍 PWA Install: Listening for beforeinstallprompt event');
-
     const handler = (e: BeforeInstallPromptEvent) => {
-      console.log('🎯 beforeinstallprompt event fired');
       e.preventDefault();
       setDeferredPrompt(e);
-      
+
       // Show prompt after a delay if conditions are met
       setTimeout(() => {
         if (!checkDismissalStatus() && !checkIfInstalled()) {
-          console.log('✅ Showing PWA install prompt');
           setShowInstallPrompt(true);
         } else {
-          console.log('❌ PWA install prompt blocked - dismissed or installed');
         }
       }, 3000);
     };
@@ -98,14 +98,13 @@ export default function PWAInstallPrompt() {
 
     // Listen for app install
     const installHandler = () => {
-      console.log('🎉 PWA installed successfully!');
       setIsInstalled(true);
       setShowInstallPrompt(false);
       // Clear dismissal status
       try {
         localStorage.removeItem('pwa-install-dismissed');
-      } catch (error) {
-        console.warn('localStorage not available:', error);
+      } catch {
+        //do nothing
       }
     };
 
@@ -113,7 +112,7 @@ export default function PWAInstallPrompt() {
 
     // For iOS, we need to check periodically if the app was added to home screen
     const checkIOSInstall = () => {
-      if ((window.navigator as any).standalone === true) {
+      if (window.navigator.standalone === true) {
         installHandler();
       }
     };
@@ -130,26 +129,23 @@ export default function PWAInstallPrompt() {
 
   const handleInstall = async () => {
     if (!deferredPrompt) {
-      console.warn('❌ No deferred prompt available');
+      //do nothing
       return;
     }
 
     try {
-      console.log('🚀 Triggering install prompt');
       await deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
-      
+
       if (outcome === 'accepted') {
-        console.log('✅ User accepted the install prompt');
         setShowInstallPrompt(false);
       } else {
-        console.log('❌ User dismissed the install prompt');
         handleDismiss();
       }
-      
+
       setDeferredPrompt(null);
-    } catch (error) {
-      console.error('❌ Error during install:', error);
+    } catch {
+      //do nothing
       handleDismiss();
     }
   };
@@ -157,39 +153,26 @@ export default function PWAInstallPrompt() {
   const handleDismiss = () => {
     setShowInstallPrompt(false);
     setIsDismissed(true);
-    
+
     // Remember dismissal for 7 days
     try {
       localStorage.setItem('pwa-install-dismissed', Date.now().toString());
-      console.log('📅 PWA install dismissed for 7 days');
-    } catch (error) {
-      console.warn('localStorage not available:', error);
+    } catch {
+      //do nothing
     }
   };
 
   const handleRemindLater = () => {
     setShowInstallPrompt(false);
     setIsDismissed(true);
-    
+
     // Remember dismissal for 7 days
     try {
       localStorage.setItem('pwa-install-dismissed', Date.now().toString());
-      console.log('⏰ PWA install reminder set for 7 days');
-    } catch (error) {
-      console.warn('localStorage not available:', error);
+    } catch {
+      //do nothing
     }
   };
-
-  // Debug info (remove in production)
-  useEffect(() => {
-    console.log('🐛 PWA Install Debug:', {
-      isSupported,
-      isInstalled,
-      isDismissed,
-      showInstallPrompt,
-      hasDeferredPrompt: !!deferredPrompt
-    });
-  }, [isSupported, isInstalled, isDismissed, showInstallPrompt, deferredPrompt]);
 
   // Don't render if any blocking condition is true
   if (!isSupported || isInstalled || isDismissed || !showInstallPrompt) {
@@ -214,7 +197,7 @@ export default function PWAInstallPrompt() {
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 dark:text-white text-base">
-                  AkılHane'i Yükle
+                  AkılHane&apos;i Yükle
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   Daha hızlı erişim
@@ -232,9 +215,9 @@ export default function PWAInstallPrompt() {
           {/* Content */}
           <div className="mb-6">
             <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
-              AkılHane'i ana ekranınıza ekleyerek daha hızlı erişim sağlayın ve çevrimdışı çalışın.
+              AkılHane&apos;i ana ekranınıza ekleyerek daha hızlı erişim sağlayın ve çevrimdışı çalışın.
             </p>
-            
+
             {/* Benefits */}
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
@@ -254,16 +237,16 @@ export default function PWAInstallPrompt() {
 
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-2">
-            <Button 
-              onClick={handleInstall} 
+            <Button
+                                onClick={() => { void handleInstall(); }}
               className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white min-h-[44px] text-sm font-medium border-0"
               size="sm"
             >
               <Download className="w-4 h-4 mr-2" />
               Yükle
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={handleRemindLater}
               size="sm"
               className="min-h-[44px] text-sm font-medium hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"

@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/database/connection';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
+import { getDb } from '@/lib/database/connection';
 import { quizResults } from '@/lib/database/schema';
 import { sql } from 'drizzle-orm';
 
@@ -19,6 +20,7 @@ export async function GET(request: NextRequest) {
 
   try {
     // 1. Get all results for the user
+    const db = getDb();
     const userResults = await db
       .select({
         subject: quizResults.subject,
@@ -40,11 +42,11 @@ export async function GET(request: NextRequest) {
       if (!performanceMap.has(result.subject)) {
         performanceMap.set(result.subject, { scores: [], totalQuestions: [], weakTopics: {} });
       }
-      
+
       const entry = performanceMap.get(result.subject)!;
       entry.scores.push(result.score);
       entry.totalQuestions.push(result.totalQuestions);
-      
+
       try {
         const topics = JSON.parse(result.weakTopics || '{}');
         for (const topic in topics) {
@@ -65,9 +67,9 @@ export async function GET(request: NextRequest) {
       const sortedWeakTopics = Object.entries(data.weakTopics)
         .sort(([, a], [, b]) => b - a)
         .map(([topic]) => topic);
-        
+
       return {
-        subject: subject,
+        subject,
         averageScore: Math.round(averageScore),
         totalTests: data.scores.length,
         weakTopics: sortedWeakTopics.slice(0, 3), // Return top 3 weak topics
@@ -76,8 +78,8 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json(performanceData);
-    
+
   } catch {
     return NextResponse.json({ error: 'Failed to fetch performance data' }, { status: 500 });
   }
-} 
+}

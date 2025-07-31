@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
 import { SubjectRepository } from '@/lib/database/repositories/subject-repository';
 import { initializeDatabase } from '@/lib/database/connection';
 import { shouldUseDemoData } from '@/data/demo-data';
@@ -92,7 +93,7 @@ const demoSubjectsData = [
     createdBy: 'demo_user_btk_2025',
     createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-  }
+  },
 ];
 
 export async function POST(request: NextRequest) {
@@ -101,7 +102,7 @@ export async function POST(request: NextRequest) {
     if (shouldUseDemoData()) {
       return NextResponse.json(
         { error: 'Demo modunda yeni ders eklenemez' },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -115,7 +116,7 @@ export async function POST(request: NextRequest) {
     if (!name || !description || !category || !difficulty) {
       return NextResponse.json(
         { error: 'Missing required fields: name, description, category, difficulty' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -123,7 +124,7 @@ export async function POST(request: NextRequest) {
     if (!['Başlangıç', 'Orta', 'İleri'].includes(difficulty)) {
       return NextResponse.json(
         { error: 'Difficulty must be one of: Başlangıç, Orta, İleri' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -137,17 +138,16 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(
-      { 
+      {
         message: 'Subject created successfully',
-        subjectId 
+        subjectId,
       },
-      { status: 201 }
+      { status: 201 },
     );
-  } catch (error) {
-    console.error('❌ Error creating subject:', error);
+  } catch {
     return NextResponse.json(
       { error: 'Failed to create subject' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -159,70 +159,58 @@ export async function GET(request: NextRequest) {
     const difficulty = searchParams.get('difficulty');
     const isActive = searchParams.get('isActive');
     const search = searchParams.get('search');
-    
+
     // Demo mode check - Check URL parameter or header on server-side
     const demoParam = searchParams.get('demo') === 'true';
     const demoHeader = request.headers.get('x-demo-mode') === 'true';
     const isDemoMode = demoParam || demoHeader;
-    
-    console.log('📊 Subjects API - Demo mode check:', {
-      demoParam,
-      demoHeader,
-      isDemoMode,
-      url: request.url
-    });
-    
+
     if (isDemoMode) {
-      console.log('📊 Subjects API - Returning demo subjects:', demoSubjectsData.length);
+
       let filteredSubjects = [...demoSubjectsData];
 
       // Apply filters
       if (category) {
         filteredSubjects = filteredSubjects.filter(s => s.category === category);
       }
-      
+
       if (difficulty) {
         filteredSubjects = filteredSubjects.filter(s => s.difficulty === difficulty);
       }
-      
+
       if (isActive !== null) {
         const activeFilter = isActive === 'true';
         filteredSubjects = filteredSubjects.filter(s => s.isActive === activeFilter);
       }
-      
+
       if (search) {
         const searchLower = search.toLowerCase();
-        filteredSubjects = filteredSubjects.filter(s => 
+        filteredSubjects = filteredSubjects.filter(s =>
           s.name.toLowerCase().includes(searchLower) ||
-          s.description.toLowerCase().includes(searchLower)
+          s.description.toLowerCase().includes(searchLower),
         );
       }
 
-      console.log('📊 Subjects API - Filtered demo subjects:', filteredSubjects.length);
       return NextResponse.json(filteredSubjects, { status: 200 });
     }
 
     // 🔍 Session control - Check if the user is logged in
-    console.log('🔐 Subjects API - Checking authentication...');
+
     const { isLoggedIn, user } = await checkAuth();
-    
+
     if (!isLoggedIn) {
-      console.log('❌ Subjects API - No session found, returning empty data');
       return NextResponse.json([], { status: 200 });
     }
 
-    console.log('✅ Subjects API - Session found, using database, user:', user?.id);
-    console.log('📊 Subjects API - Using normal database flow');
-    
     // Normal API flow - only if the user is logged in
     initializeDatabase();
 
     // Build filters with user isolation
     const filters: Record<string, string | boolean> = {};
-    if (category) filters.category = category;
-    if (difficulty) filters.difficulty = difficulty;
-    if (isActive !== null) filters.isActive = isActive === 'true';
-    if (search) filters.search = search;
+    if (category) {filters.category = category;}
+    if (difficulty) {filters.difficulty = difficulty;}
+    if (isActive !== null) {filters.isActive = isActive === 'true';}
+    if (search) {filters.search = search;}
 
     // Add user filter for data isolation
     if (user?.id) {
@@ -233,14 +221,12 @@ export async function GET(request: NextRequest) {
     const subjects = await SubjectRepository.getAllSubjects(filters);
 
     return NextResponse.json(subjects, { status: 200 });
-  } catch (error) {
-    console.error('❌ Error getting subjects:', error);
-    
+  } catch {
     // If there is an error, return demo data
     if (shouldUseDemoData()) {
       return NextResponse.json(demoSubjectsData, { status: 200 });
     }
-    
+
     // Return empty array instead of error for better UX
     return NextResponse.json([], { status: 200 });
   }
@@ -258,7 +244,7 @@ export async function PUT(request: NextRequest) {
     if (!id) {
       return NextResponse.json(
         { error: 'Subject ID is required' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -266,7 +252,7 @@ export async function PUT(request: NextRequest) {
     if (difficulty && !['Başlangıç', 'Orta', 'İleri'].includes(difficulty)) {
       return NextResponse.json(
         { error: 'Difficulty must be one of: Başlangıç, Orta, İleri' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -281,13 +267,12 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(
       { message: 'Subject updated successfully' },
-      { status: 200 }
+      { status: 200 },
     );
-  } catch (error) {
-    console.error('❌ Error updating subject:', error);
+  } catch {
     return NextResponse.json(
       { error: 'Failed to update subject' },
-      { status: 500 }
+      { status: 500 },
     );
   }
-} 
+}

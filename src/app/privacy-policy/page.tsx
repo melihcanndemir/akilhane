@@ -6,7 +6,7 @@ export default function PrivacyPolicyPage() {
     <div className="min-h-screen bg-background">
       {/* Navigation Header */}
       <MobileNav />
-      
+
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
@@ -28,10 +28,10 @@ export default function PrivacyPolicyPage() {
             <h1 className="text-4xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Gizlilik Politikası
             </h1>
-            
+
             <div className="prose prose-gray dark:prose-invert max-w-none">
               <p className="text-lg mb-6 text-muted-foreground">
-                Bu Gizlilik Politikası, AkılHane platformunu kullandığınızda kişisel verilerinizin nasıl toplandığını, kullanıldığını ve korunduğunu açıklar. AkılHane'yi kullanarak aşağıda açıklanan şartları kabul etmiş olursunuz.
+                Bu Gizlilik Politikası, AkılHane platformunu kullandığınızda kişisel verilerinizin nasıl toplandığını, kullanıldığını ve korunduğunu açıklar. AkılHane&apos;yi kullanarak aşağıda açıklanan şartları kabul etmiş olursunuz.
               </p>
 
               <section className="mb-8">
@@ -105,24 +105,24 @@ export default function PrivacyPolicyPage() {
             {/* Last Updated */}
             <div className="mt-8 pt-6 border-t border-border">
               <p className="text-sm text-muted-foreground">
-                Son Güncelleme: {new Date().toLocaleDateString('tr-TR', { 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
+                Son Güncelleme: {new Date().toLocaleDateString('tr-TR', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
                 })}
               </p>
             </div>
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 mt-6">
-              <Link 
-                href="/" 
+              <Link
+                href="/"
                 className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium rounded-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
               >
                 Ana Sayfaya Dön
               </Link>
-              <Link 
-                href="/terms-of-service" 
+              <Link
+                href="/terms-of-service"
                 className="inline-flex items-center justify-center px-6 py-3 border border-border hover:bg-muted text-foreground font-medium rounded-lg transition-all duration-300 hover:scale-105"
               >
                 Kullanım Şartları

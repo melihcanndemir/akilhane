@@ -16,20 +16,42 @@ export interface AiChatSession {
   userId: string;
   sessionId: string;
   subject: string;
-  title?: string;
+  title?: string | undefined;
   messageCount: number;
   lastMessageAt: string;
   createdAt: string;
   updatedAt: string;
 }
 
+// Supabase data types
+type SupabaseSessionData = {
+  id: string;
+  user_id: string;
+  session_id: string;
+  subject: string;
+  title?: string;
+  message_count: number;
+  last_message_at: string;
+  created_at: string;
+  updated_at: string;
+};
+
+type SupabaseMessageData = {
+  id: string;
+  user_id: string;
+  session_id: string;
+  subject: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+  created_at: string;
+};
+
 export class AiChatRepository {
   // Create a new chat session
   static async createSession(userId: string, subject: string, title?: string): Promise<AiChatSession> {
-    console.log('🔍 Repository: createSession called with userId:', userId, 'subject:', subject);
     const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    console.log('🔍 Repository: Generated sessionId:', sessionId);
-    
+
     const insertData = {
       user_id: userId,
       session_id: sessionId,
@@ -38,24 +60,18 @@ export class AiChatRepository {
       message_count: 0,
       last_message_at: new Date().toISOString(),
     };
-    
-    console.log('🔍 Repository: Inserting data:', insertData);
-    
+
     const { data, error } = await supabase
       .from('ai_chat_sessions')
       .insert(insertData)
       .select()
       .single();
 
-    console.log('🔍 Repository: Supabase response - data:', data, 'error:', error);
-
     if (error) {
-      console.error('❌ Repository: Supabase error:', error);
-      throw error;
+      throw new Error(`Failed to create session: ${error.message}`);
     }
-    
+
     const mappedSession = this.mapSessionFromSupabase(data);
-    console.log('✅ Repository: Mapped session:', mappedSession);
     return mappedSession;
   }
 
@@ -67,7 +83,7 @@ export class AiChatRepository {
       .eq('user_id', userId)
       .order('last_message_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {throw new Error(`Failed to get sessions: ${error.message}`);}
     return data.map(this.mapSessionFromSupabase);
   }
 
@@ -80,8 +96,8 @@ export class AiChatRepository {
       .single();
 
     if (error) {
-      if (error.code === 'PGRST116') return null; // No rows returned
-      throw error;
+      if (error.code === 'PGRST116') {return null;} // No rows returned
+      throw new Error(`Failed to get session: ${error.message}`);
     }
     return this.mapSessionFromSupabase(data);
   }
@@ -95,7 +111,7 @@ export class AiChatRepository {
       .eq('user_id', userId)
       .order('timestamp', { ascending: true });
 
-    if (error) throw error;
+    if (error) {throw new Error(`Failed to get messages: ${error.message}`);}
     return data.map(this.mapMessageFromSupabase);
   }
 
@@ -105,7 +121,7 @@ export class AiChatRepository {
     sessionId: string,
     subject: string,
     role: 'user' | 'assistant',
-    content: string
+    content: string,
   ): Promise<AiChatMessage> {
     const { data, error } = await supabase
       .from('ai_chat_history')
@@ -120,7 +136,7 @@ export class AiChatRepository {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {throw new Error(`Failed to add message: ${error.message}`);}
 
     // Update session message count and last message time
     const currentSession = await this.getSessionBySessionId(sessionId);
@@ -149,7 +165,7 @@ export class AiChatRepository {
       .eq('session_id', sessionId)
       .eq('user_id', userId);
 
-    if (error) throw error;
+    if (error) {throw new Error(`Failed to update session title: ${error.message}`);}
   }
 
   // Delete a session and all its messages
@@ -162,7 +178,7 @@ export class AiChatRepository {
         .eq('session_id', sessionId)
         .eq('user_id', userId);
 
-      if (messagesError) throw messagesError;
+      if (messagesError) {throw messagesError;}
 
       // Delete the session
       const { error: sessionError } = await supabase
@@ -171,11 +187,10 @@ export class AiChatRepository {
         .eq('session_id', sessionId)
         .eq('user_id', userId);
 
-      if (sessionError) throw sessionError;
+      if (sessionError) {throw sessionError;}
 
       return true;
-    } catch (error) {
-      console.error('Error deleting session:', error);
+    } catch {
       return false;
     }
   }
@@ -188,17 +203,17 @@ export class AiChatRepository {
       .eq('user_id', userId)
       .order('last_message_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {throw new Error(`Failed to search sessions: ${error.message}`);}
 
     // Filter sessions that contain the search term in title or have messages with the term
     const filteredSessions = [];
-    
+
     for (const session of data) {
       const messages = await this.getMessagesBySessionId(session.session_id, userId);
-      const hasMatchingContent = messages.some(msg => 
-        msg.content.toLowerCase().includes(searchTerm.toLowerCase())
+      const hasMatchingContent = messages.some(msg =>
+        msg.content.toLowerCase().includes(searchTerm.toLowerCase()),
       );
-      
+
       if (session.title?.toLowerCase().includes(searchTerm.toLowerCase()) || hasMatchingContent) {
         filteredSessions.push(this.mapSessionFromSupabase(session));
       }
@@ -209,8 +224,7 @@ export class AiChatRepository {
 
   // Get recent sessions (last 10)
   static async getRecentSessions(userId: string, limit: number = 10): Promise<AiChatSession[]> {
-    console.log('🔍 Repository: getRecentSessions called with userId:', userId);
-    
+
     const { data, error } = await supabase
       .from('ai_chat_sessions')
       .select('*')
@@ -218,20 +232,16 @@ export class AiChatRepository {
       .order('last_message_at', { ascending: false })
       .limit(limit);
 
-    console.log('🔍 Repository: Supabase response - data:', data?.length || 0, 'error:', error);
-    
     if (error) {
-      console.error('❌ Repository: Supabase error:', error);
-      throw error;
+      throw new Error(`Failed to get recent sessions: ${error.message}`);
     }
-    
+
     const mappedSessions = data.map(this.mapSessionFromSupabase);
-    console.log('✅ Repository: Mapped sessions:', mappedSessions.length);
     return mappedSessions;
   }
 
   // Helper methods to map Supabase data to our interfaces
-  private static mapSessionFromSupabase(data: any): AiChatSession {
+  private static mapSessionFromSupabase(data: SupabaseSessionData): AiChatSession {
     return {
       id: data.id,
       userId: data.user_id,
@@ -245,7 +255,7 @@ export class AiChatRepository {
     };
   }
 
-  private static mapMessageFromSupabase(data: any): AiChatMessage {
+  private static mapMessageFromSupabase(data: SupabaseMessageData): AiChatMessage {
     return {
       id: data.id,
       userId: data.user_id,
@@ -257,4 +267,4 @@ export class AiChatRepository {
       createdAt: data.created_at,
     };
   }
-} 
+}

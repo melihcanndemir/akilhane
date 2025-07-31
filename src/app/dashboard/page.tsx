@@ -1,6 +1,6 @@
 'use client';
 
-import EnhancedDashboard from "@/components/enhanced-dashboard";
+import EnhancedDashboard from '@/components/enhanced-dashboard';
 
 export default function DashboardPage() {
   return (
@@ -10,4 +10,4 @@ export default function DashboardPage() {
       </main>
     </div>
   );
-} 
+}

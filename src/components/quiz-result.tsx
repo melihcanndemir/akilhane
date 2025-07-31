@@ -76,7 +76,7 @@ export const QuizResult: React.FC<QuizResultProps> = ({
             initial={{ scale: 0 }}
             animate={{ scale: 1, rotate: 360 }}
             transition={{ delay: 0.2, type: 'spring' }}
-            className={`p-4 bg-gray-100 dark:bg-gray-800 rounded-full mb-4`}
+            className={'p-4 bg-gray-100 dark:bg-gray-800 rounded-full mb-4'}
           >
             <Award className={`h-12 w-12 ${feedback.iconColor}`} />
           </motion.div>
@@ -142,4 +142,4 @@ export const QuizResult: React.FC<QuizResultProps> = ({
       </Card>
     </motion.div>
   );
-}; 
+};

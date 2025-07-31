@@ -30,14 +30,13 @@ const getPerformanceHistoryTool = ai.defineTool(
         weakTopics: z.record(z.string(), z.number()),
     })),
   },
-  async (input) => getPerformanceHistoryForSubject(input.subject, input.userId)
+  async (input) => getPerformanceHistoryForSubject(input.subject, input.userId),
 );
-
 
 const PersonalizeQuestionDifficultyInputSchema = z.object({
   userId: z.string().describe('The ID of the user.'),
   subject: z.string().describe('The subject for which to personalize question difficulty (e.g., Finansal Tablo Analizi).'),
-  performanceData: z.string().describe("A stringified JSON object of the user's performance data from localStorage. The tool will handle this data.")
+  performanceData: z.string().describe("A stringified JSON object of the user's performance data from localStorage. The tool will handle this data."),
 });
 export type PersonalizeQuestionDifficultyInput = z.infer<typeof PersonalizeQuestionDifficultyInputSchema>;
 
@@ -47,13 +46,13 @@ const PersonalizeQuestionDifficultyOutputSchema = z.object({
 export type PersonalizeQuestionDifficultyOutput = z.infer<typeof PersonalizeQuestionDifficultyOutputSchema>;
 
 export async function personalizeQuestionDifficulty(
-  input: PersonalizeQuestionDifficultyInput
+  input: PersonalizeQuestionDifficultyInput,
 ): Promise<PersonalizeQuestionDifficultyOutput> {
   // Store the performance data in our mock "service" so the tool can access it.
   // In a real app, the tool would fetch this from a database.
   const performanceHistory = JSON.parse(input.performanceData);
   (getPerformanceHistoryForSubject as unknown as { __setData: (data: unknown) => void }).__setData(performanceHistory);
-  
+
   return personalizeQuestionDifficultyFlow(input);
 }
 
@@ -89,5 +88,5 @@ const personalizeQuestionDifficultyFlow = ai.defineFlow(
   async input => {
     const {output} = await prompt(input);
     return output!;
-  }
+  },
 );

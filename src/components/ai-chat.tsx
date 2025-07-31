@@ -3,9 +3,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAiChatResponse, type AiChatOutput } from '../ai/flows/ai-chat';
-import { 
+import {
   Mic,
-  Send
+  Send,
 } from 'lucide-react';
 import VoiceAssistant from './voice-assistant';
 import MobileNav from './mobile-nav';
@@ -47,19 +47,19 @@ const AiChatComponent: React.FC<AiChatProps> = ({ subject, context }) => {
       id: 'welcome',
       role: 'assistant',
       content: `Merhaba! Ben ${subject} konusunda sana yardım etmek için buradayım. 🎓\n\nNe konuda yardıma ihtiyacın var? Sorularını sorabilir, konuları tartışabiliriz. Ben önceki konuşmalarımızı da hatırlarım! 💬`,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
     setMessages([welcomeMessage]);
   }, [subject]);
 
   const sendMessage = async () => {
-    if (!inputMessage.trim() || isLoading) return;
+    if (!inputMessage.trim() || isLoading) {return;}
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       role: 'user',
       content: inputMessage,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     setMessages(prev => [...prev, userMessage]);
@@ -71,32 +71,31 @@ const AiChatComponent: React.FC<AiChatProps> = ({ subject, context }) => {
       const conversationHistory = messages.map(msg => ({
         role: msg.role,
         content: msg.content,
-        timestamp: msg.timestamp
+        timestamp: msg.timestamp,
       }));
 
       const response = await getAiChatResponse({
         message: inputMessage,
-        subject: subject,
-        conversationHistory: conversationHistory,
-        context: context
+        subject,
+        conversationHistory,
+        context,
       });
 
       const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: response.response,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
       setMessages(prev => [...prev, assistantMessage]);
       setAiResponse(response);
-    } catch (error) {
-      console.error('Error getting AI response:', error);
+    } catch {
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: 'Üzgünüm, şu anda cevap veremiyorum. Lütfen biraz sonra tekrar dene. 😔',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
@@ -126,8 +125,7 @@ const AiChatComponent: React.FC<AiChatProps> = ({ subject, context }) => {
 
   // Handle voice commands
   const handleVoiceCommand = (command: string) => {
-    console.log('🎤 AI Chat voice command received:', command);
-    
+
     switch (command) {
       case 'send':
         if (inputMessage.trim()) {
@@ -142,8 +140,8 @@ const AiChatComponent: React.FC<AiChatProps> = ({ subject, context }) => {
         const helpMessage: ChatMessage = {
           id: Date.now().toString(),
           role: 'assistant',
-          content: `Sesli komutlar:\n• "Gönder" - Mesajı gönder\n• "Temizle" - Sohbeti temizle\n• "Yardım" - Bu mesajı göster\n• "Soru" - Soru sor\n• "Açıkla" - Konu açıklaması iste`,
-          timestamp: new Date().toISOString()
+          content: 'Sesli komutlar:\n• "Gönder" - Mesajı gönder\n• "Temizle" - Sohbeti temizle\n• "Yardım" - Bu mesajı göster\n• "Soru" - Soru sor\n• "Açıkla" - Konu açıklaması iste',
+          timestamp: new Date().toISOString(),
         };
         setMessages(prev => [...prev, helpMessage]);
         break;
@@ -154,7 +152,7 @@ const AiChatComponent: React.FC<AiChatProps> = ({ subject, context }) => {
         setInputMessage('Bu konuyu detaylı açıklayabilir misin?');
         break;
       default:
-        console.log('Unknown AI Chat voice command:', command);
+        // Unknown command
     }
   };
 
@@ -197,12 +195,12 @@ const AiChatComponent: React.FC<AiChatProps> = ({ subject, context }) => {
                     {voiceMode === 'dictation' ? 'Yazma' : 'Asistan'}
                   </button>
                 )}
-                
+
                 <button
                   onClick={() => setShowVoiceAssistant(!showVoiceAssistant)}
                   className={`px-3 py-1 rounded-lg text-sm transition-colors flex items-center gap-2 ${
-                    showVoiceAssistant 
-                      ? 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800' 
+                    showVoiceAssistant
+                      ? 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800'
                       : 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800'
                   }`}
                 >
@@ -243,7 +241,7 @@ const AiChatComponent: React.FC<AiChatProps> = ({ subject, context }) => {
                     }`}>
                       {new Date(message.timestamp).toLocaleTimeString('tr-TR', {
                         hour: '2-digit',
-                        minute: '2-digit'
+                        minute: '2-digit',
                       })}
                     </div>
                   </div>
@@ -354,7 +352,7 @@ const AiChatComponent: React.FC<AiChatProps> = ({ subject, context }) => {
                 />
               </div>
               <button
-                onClick={sendMessage}
+                onClick={() => { void sendMessage(); }}
                 disabled={!inputMessage.trim() || isLoading}
                 className="bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center p-3 sm:px-6 sm:py-3 sm:gap-2"
               >

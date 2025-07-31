@@ -7,15 +7,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  Lock, 
-  Eye, 
+import {
+  Lock,
+  Eye,
   EyeOff,
   CheckCircle,
   AlertCircle,
   Brain,
   ArrowLeft,
-  Loader2
+  Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -37,7 +37,7 @@ function ResetPasswordContent() {
   useEffect(() => {
     const checkResetToken = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       // If no session and no access token, the reset link is invalid
       if (!session && !searchParams.get('access_token')) {
         setIsValidToken(false);
@@ -49,21 +49,21 @@ function ResetPasswordContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (password !== confirmPassword) {
       toast({
-        title: "Hata!",
-        description: "Şifreler eşleşmiyor.",
-        variant: "destructive",
+        title: 'Hata!',
+        description: 'Şifreler eşleşmiyor.',
+        variant: 'destructive',
       });
       return;
     }
 
     if (password.length < 6) {
       toast({
-        title: "Hata!",
-        description: "Şifre en az 6 karakter olmalıdır.",
-        variant: "destructive",
+        title: 'Hata!',
+        description: 'Şifre en az 6 karakter olmalıdır.',
+        variant: 'destructive',
       });
       return;
     }
@@ -73,22 +73,22 @@ function ResetPasswordContent() {
     try {
       const { error } = await updatePassword(password);
 
-      if (error) throw error;
-      
+      if (error) {throw error;}
+
       setIsSuccess(true);
       toast({
-        title: "Başarılı!",
-        description: "Şifreniz başarıyla güncellendi.",
+        title: 'Başarılı!',
+        description: 'Şifreniz başarıyla güncellendi.',
       });
 
       // Redirect to success page
       router.push('/auth/reset-success');
 
-    } catch (error: any) {
+    } catch (error) {
       toast({
-        title: "Hata!",
-        description: error.message || "Şifre güncellenirken bir hata oluştu.",
-        variant: "destructive",
+        title: 'Hata!',
+        description: error instanceof Error ? error.message : 'Şifre güncellenirken bir hata oluştu.',
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
@@ -110,7 +110,7 @@ function ResetPasswordContent() {
                 <AlertCircle className="h-8 w-8 text-red-600 dark:text-red-400" />
               </div>
             </div>
-            
+
             <Card className="shadow-xl border-0 glass-card">
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl font-bold text-red-600 dark:text-red-400">
@@ -160,7 +160,7 @@ function ResetPasswordContent() {
                 <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
               </div>
             </div>
-            
+
             <Card className="shadow-xl border-0 glass-card">
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl font-bold text-green-600 dark:text-green-400">
@@ -224,14 +224,14 @@ function ResetPasswordContent() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={(e) => { void handleSubmit(e); }} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="password">Yeni Şifre</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
                       id="password"
-                      type={showPassword ? "text" : "password"}
+                      type={showPassword ? 'text' : 'password'}
                       placeholder="En az 6 karakter"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -255,7 +255,7 @@ function ResetPasswordContent() {
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
                       id="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
+                      type={showConfirmPassword ? 'text' : 'password'}
                       placeholder="Şifrenizi tekrar girin"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
@@ -318,4 +318,4 @@ export default function ResetPasswordPage() {
       <ResetPasswordContent />
     </Suspense>
   );
-} 
+}

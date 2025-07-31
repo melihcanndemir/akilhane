@@ -1,25 +1,25 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import { Moon, Sun } from "lucide-react"
-import { useTheme } from "next-themes"
+import * as React from 'react';
+import { Moon, Sun } from 'lucide-react';
+import { useTheme } from 'next-themes';
 
-import { Button } from "@/components/ui/button"
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from '@/components/ui/dropdown-menu';
 
 export function ThemeToggle() {
-  const { setTheme } = useTheme()
+  const { setTheme } = useTheme();
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           size="icon"
           className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0 transition-all"
         >
@@ -29,25 +29,25 @@ export function ThemeToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem 
-          onClick={() => setTheme("light")}
+        <DropdownMenuItem
+          onClick={() => setTheme('light')}
           className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white"
         >
           Açık
         </DropdownMenuItem>
-        <DropdownMenuItem 
-          onClick={() => setTheme("dark")}
+        <DropdownMenuItem
+          onClick={() => setTheme('dark')}
           className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white"
         >
           Koyu
         </DropdownMenuItem>
-        <DropdownMenuItem 
-          onClick={() => setTheme("system")}
+        <DropdownMenuItem
+          onClick={() => setTheme('system')}
           className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white"
         >
           Sistem
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }

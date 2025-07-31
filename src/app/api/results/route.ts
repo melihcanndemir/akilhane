@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/database/connection';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
+import { getDb } from '@/lib/database/connection';
 import { quizResults } from '@/lib/database/schema';
 import { desc, eq } from 'drizzle-orm';
 
@@ -14,6 +15,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    const db = getDb();
     const results = await db
       .select()
       .from(quizResults)
@@ -22,8 +24,7 @@ export async function GET(request: NextRequest) {
       .limit(limit);
 
     return NextResponse.json(results);
-  } catch (error) {
-    console.error('Error fetching quiz results:', error);
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch quiz results' }, { status: 500 });
   }
 }
@@ -38,6 +39,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    const db = getDb();
     const newResult = await db.insert(quizResults).values({
       userId,
       subject,
@@ -50,11 +52,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(newResult[0], { status: 201 });
   } catch (error) {
-    console.error('Error saving quiz result:', error);
     // Check for specific DB errors if needed
     if (error instanceof Error && error.message.includes('FOREIGN KEY constraint failed')) {
        return NextResponse.json({ error: 'User does not exist. Cannot save result.' }, { status: 400 });
     }
     return NextResponse.json({ error: 'Failed to save quiz result' }, { status: 500 });
   }
-} 
+}

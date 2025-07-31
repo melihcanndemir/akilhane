@@ -1,31 +1,31 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { 
-  BookOpen, 
-  Brain, 
-  Target, 
-  TrendingUp, 
-  Clock, 
-  CheckCircle, 
+import {
+  BookOpen,
+  Brain,
+  Target,
+  TrendingUp,
+  Clock,
+  CheckCircle,
   XCircle,
   Plus,
   Settings,
   BarChart3,
   FileText,
   Users,
-  Database
+  Database,
 } from 'lucide-react';
 import Link from 'next/link';
 import AnalyticsDashboard from './analytics-dashboard';
 import MobileNav from './mobile-nav';
 import LoadingSpinner from './loading-spinner';
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 interface PerformanceData {
   subject: string;
@@ -105,14 +105,13 @@ const mockRecentResults: QuizResult[] = [
   },
 ];
 
-
 export default function Dashboard() {
   const [performanceData, setPerformanceData] = useState<PerformanceData[]>([]);
   const [recentResults, setRecentResults] = useState<QuizResult[]>([]);
   const [totalStats, setTotalStats] = useState<TotalStats>({ totalTests: 0, averageScore: 0, totalTimeSpent: 0 });
   const [isLoading, setIsLoading] = useState(true);
   const [showAnalytics, setShowAnalytics] = useState(false);
-  
+
   // return the useMockData parameter
   const [useMockData, setUseMockData] = useState(() => {
     if (typeof window === 'undefined') {
@@ -122,17 +121,9 @@ export default function Dashboard() {
     return saved !== null ? JSON.parse(saved) : true;
   });
 
-  useEffect(() => {
-    // Save preference to localStorage whenever it changes
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('useMockData', JSON.stringify(useMockData));
-    }
-    loadDashboardData();
-  }, [useMockData]);
-
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     setIsLoading(true);
-    
+
     // return the useMockData parameter
     if (useMockData) {
       setPerformanceData(mockPerformanceData);
@@ -158,7 +149,7 @@ export default function Dashboard() {
         setIsLoading(false);
         return;
       }
-      
+
       const headers = new Headers({ 'x-user-id': userId });
 
       const [performanceResponse, resultsResponse, statsResponse] = await Promise.all([
@@ -170,13 +161,12 @@ export default function Dashboard() {
       const perfData = performanceResponse.ok ? await performanceResponse.json() : [];
       const resData = resultsResponse.ok ? await resultsResponse.json() : [];
       const statsData = statsResponse.ok ? await statsResponse.json() : { totalTests: 0, averageScore: 0, totalTimeSpent: 0 };
-      
+
       setPerformanceData(perfData);
       setRecentResults(resData);
       setTotalStats(statsData);
 
-    } catch (error) {
-      console.error('Error loading real dashboard data:', error);
+    } catch {
       // If any fetch fails, clear all data
       setPerformanceData([]);
       setRecentResults([]);
@@ -184,7 +174,15 @@ export default function Dashboard() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [useMockData]);
+
+  useEffect(() => {
+    // Save preference to localStorage whenever it changes
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('useMockData', JSON.stringify(useMockData));
+    }
+    loadDashboardData();
+  }, [useMockData, loadDashboardData]);
 
   const handleStatCardClick = (sectionId: string) => {
     document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
@@ -192,15 +190,15 @@ export default function Dashboard() {
 
   const getScoreColor = (score: number) => {
     // Evaluate percentage values correctly
-    if (score >= 80) return 'text-blue-600';
-    if (score >= 60) return 'text-yellow-600';
+    if (score >= 80) {return 'text-blue-600';}
+    if (score >= 60) {return 'text-yellow-600';}
     return 'text-red-600';
   };
 
   const getScoreBadge = (score: number) => {
     // Evaluate percentage values correctly
-    if (score >= 80) return <Badge className="bg-blue-100 text-blue-800">Mükemmel</Badge>;
-    if (score >= 60) return <Badge className="bg-yellow-100 text-yellow-800">İyi</Badge>;
+    if (score >= 80) {return <Badge className="bg-blue-100 text-blue-800">Mükemmel</Badge>;}
+    if (score >= 60) {return <Badge className="bg-yellow-100 text-yellow-800">İyi</Badge>;}
     return <Badge className="bg-red-100 text-red-800">Geliştirilmeli</Badge>;
   };
 
@@ -246,18 +244,18 @@ export default function Dashboard() {
                   </Button>
                 </Link>
                 <Link href="/settings">
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
+                  <Button
+                    size="sm"
+                    variant="outline"
                     className="flex items-center gap-2 hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors"
                   >
                     <Settings className="w-4 h-4" />
                     <span className="hidden sm:inline">Ayarlar</span>
                   </Button>
                 </Link>
-                <Button 
+                <Button
                   size="sm"
-                  variant="outline" 
+                  variant="outline"
                   className="flex items-center gap-2 hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors"
                   onClick={() => setShowAnalytics(!showAnalytics)}
                 >
@@ -270,9 +268,9 @@ export default function Dashboard() {
           {/* Analytics Dashboard */}
           {showAnalytics && (
             <div className="mb-8">
-              <AnalyticsDashboard 
-                key={`analytics-${useMockData ? 'mock' : 'real'}`} 
-                useMockData={useMockData} 
+              <AnalyticsDashboard
+                key={`analytics-${useMockData ? 'mock' : 'real'}`}
+                useMockData={useMockData}
               />
             </div>
           )}
@@ -324,7 +322,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card 
+            <Card
               onClick={() => handleStatCardClick('performance-analytics-section')}
               className="cursor-pointer hover:bg-muted/50 transition-colors glass-card"
             >
@@ -334,7 +332,7 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {performanceData.length > 0 
+                  {performanceData.length > 0
                     ? performanceData.reduce((acc, data) => acc + data.weakTopics.length, 0)
                     : 0}
                 </div>
@@ -419,8 +417,8 @@ export default function Dashboard() {
                 ) : (
                   <div className="space-y-4">
                     {recentResults.map((result) => {
-                      const percentage = result.totalQuestions > 0 
-                        ? Math.round((result.score / result.totalQuestions) * 100) 
+                      const percentage = result.totalQuestions > 0
+                        ? Math.round((result.score / result.totalQuestions) * 100)
                         : 0;
 
                       return (

@@ -6,7 +6,7 @@ export default function TermsOfServicePage() {
     <div className="min-h-screen bg-background">
       {/* Navigation Header */}
       <MobileNav />
-      
+
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
@@ -28,10 +28,10 @@ export default function TermsOfServicePage() {
             <h1 className="text-4xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Kullanım Şartları
             </h1>
-            
+
             <div className="prose prose-gray dark:prose-invert max-w-none">
               <p className="text-lg mb-6 text-muted-foreground">
-                Bu Kullanım Şartları, AkılHane platformunu kullanımınızı düzenler. AkılHane'ye erişerek veya kullanarak bu şartlara uymayı kabul etmiş olursunuz.
+                Bu Kullanım Şartları, AkılHane platformunu kullanımınızı düzenler. AkılHane&apos;ye erişerek veya kullanarak bu şartlara uymayı kabul etmiş olursunuz.
               </p>
 
               <section className="mb-8">
@@ -39,7 +39,7 @@ export default function TermsOfServicePage() {
                   1. Şartların Kabulü
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  AkılHane'ye kayıt olarak veya kullanarak bu Kullanım Şartları'nı ve Gizlilik Politikası'nı kabul etmiş olursunuz. Kabul etmiyorsanız lütfen platformu kullanmayınız.
+                  AkılHane&apos;ye kayıt olarak veya kullanarak bu Kullanım Şartları&apos;nı ve Gizlilik Politikası&apos;nı kabul etmiş olursunuz. Kabul etmiyorsanız lütfen platformu kullanmayınız.
                 </p>
               </section>
 
@@ -48,7 +48,7 @@ export default function TermsOfServicePage() {
                   2. Platformun Kullanımı
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  AkılHane'yi kişisel ve ticari olmayan eğitim amaçlı kullanabilirsiniz. Platformu kötüye kullanmamayı veya yetkisiz erişim girişiminde bulunmamayı kabul edersiniz.
+                  AkılHane&apos;yi kişisel ve ticari olmayan eğitim amaçlı kullanabilirsiniz. Platformu kötüye kullanmamayı veya yetkisiz erişim girişiminde bulunmamayı kabul edersiniz.
                 </p>
               </section>
 
@@ -66,7 +66,7 @@ export default function TermsOfServicePage() {
                   4. Sınırlamalar ve Sorumluluk Reddi
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  AkılHane "olduğu gibi" sunulmaktadır ve herhangi bir garanti verilmemektedir. Platformun kullanımından doğabilecek zararlardan sorumlu değiliz.
+                  AkılHane &quot;olduğu gibi&quot; sunulmaktadır ve herhangi bir garanti verilmemektedir. Platformun kullanımından doğabilecek zararlardan sorumlu değiliz.
                 </p>
               </section>
 
@@ -86,14 +86,14 @@ export default function TermsOfServicePage() {
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 mt-8 pt-6 border-t border-border">
-              <Link 
-                href="/" 
+              <Link
+                href="/"
                 className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium rounded-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
               >
                 Ana Sayfaya Dön
               </Link>
-              <Link 
-                href="/privacy-policy" 
+              <Link
+                href="/privacy-policy"
                 className="inline-flex items-center justify-center px-6 py-3 border border-border hover:bg-muted text-foreground font-medium rounded-lg transition-all duration-300 hover:scale-105"
               >
                 Gizlilik Politikası

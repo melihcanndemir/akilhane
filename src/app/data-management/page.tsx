@@ -4,7 +4,18 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import {
   Cloud,
   Download,
   Upload,
@@ -16,29 +27,43 @@ import {
   AlertTriangle,
   Calendar,
   HardDrive,
-  Shield
+  Shield,
 } from 'lucide-react';
 import Link from 'next/link';
 import MobileNav from '@/components/mobile-nav';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/lib/supabase';
+import { useToast } from '@/hooks/use-toast';
+import { DataBackupService } from '@/services/data-backup-service';
 
 function DataManagementContent() {
   const { user: authUser, loading: authLoading } = useAuth();
+  const { toast } = useToast();
   const [isBackingUp, setIsBackingUp] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [lastBackup, setLastBackup] = useState<string>('2025-01-15T10:30:00.000Z');
+  const [lastBackup, setLastBackup] = useState<string | null>(null);
   const [backupSuccess, setBackupSuccess] = useState('');
   const [restoreSuccess, setRestoreSuccess] = useState('');
   const [clearSuccess, setClearSuccess] = useState('');
   const [deleteError, setDeleteError] = useState('');
 
-  // Redirect if not authenticated
+  // Redirect if not authenticated and load last backup timestamp
   useEffect(() => {
     if (!authLoading && !authUser) {
       window.location.href = '/login';
+    }
+
+    // Load last backup timestamp
+    const loadLastBackup = async () => {
+      if (authUser) {
+        const timestamp = await DataBackupService.getLastBackupTimestamp(authUser.id);
+        setLastBackup(timestamp);
+      }
+    };
+
+    if (authUser) {
+      loadLastBackup();
     }
   }, [authLoading, authUser]);
 
@@ -46,91 +71,94 @@ function DataManagementContent() {
     try {
       setIsBackingUp(true);
       setBackupSuccess('');
-      
-      console.log('☁️ Data Management - Starting cloud backup');
-      
-      // Simulate backup process
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Update last backup time
-      setLastBackup(new Date().toISOString());
-      setBackupSuccess('Verileriniz başarıyla yedeklendi!');
-      
-      console.log('✅ Data Management - Backup completed successfully');
-      
-    } catch (error) {
-      console.error('❌ Data Management - Backup error:', error);
+
+      // Create real backup
+      const backupData = await DataBackupService.createBackup();
+
+      if (backupData) {
+        // Update last backup time
+        setLastBackup(backupData.timestamp);
+        setBackupSuccess('Verileriniz başarıyla yedeklendi!');
+      } else {
+        throw new Error('Yedekleme işlemi başarısız oldu');
+      }
+
+    } catch {
+      setBackupSuccess(''); // Clear success message
+      setDeleteError('Yedekleme işlemi başarısız oldu. Lütfen tekrar deneyin.');
     } finally {
       setIsBackingUp(false);
     }
   };
 
   const handleRestore = async () => {
+
     try {
       setIsRestoring(true);
       setRestoreSuccess('');
-      
-      console.log('📥 Data Management - Starting data restore');
-      
-      // Simulate restore process
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      setRestoreSuccess('Verileriniz başarıyla geri yüklendi!');
-      
-      console.log('✅ Data Management - Restore completed successfully');
-      
-    } catch (error) {
-      console.error('❌ Data Management - Restore error:', error);
+
+      // Restore from real backup
+      const success = await DataBackupService.restoreFromBackup();
+
+      if (success) {
+        setRestoreSuccess('Verileriniz başarıyla geri yüklendi!');
+      } else {
+        throw new Error('Geri yükleme işlemi başarısız oldu');
+      }
+
+    } catch {
+      setRestoreSuccess(''); // Clear success message
+      setDeleteError('Geri yükleme işlemi başarısız oldu. Lütfen tekrar deneyin.');
     } finally {
       setIsRestoring(false);
     }
   };
 
   const handleClearData = async () => {
-    if (!confirm('Tüm bulut verilerinizi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.')) {
-      return;
-    }
 
     try {
       setIsClearing(true);
       setClearSuccess('');
-      
-      console.log('🗑️ Data Management - Starting data clear');
-      
-      // Simulate clear process
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      setClearSuccess('Bulut verileriniz başarıyla silindi!');
-      
-      console.log('✅ Data Management - Data clear completed successfully');
-      
-    } catch (error) {
-      console.error('❌ Data Management - Clear error:', error);
+
+      // Clear real cloud data
+      const success = await DataBackupService.clearAllCloudData();
+
+      if (success) {
+        setClearSuccess('Bulut verileriniz başarıyla silindi!');
+        setLastBackup(null); // Reset backup timestamp
+      } else {
+        throw new Error('Veri silme işlemi başarısız oldu');
+      }
+
+    } catch {
+      setClearSuccess(''); // Clear success message
+      setDeleteError('Veri silme işlemi başarısız oldu. Lütfen tekrar deneyin.');
     } finally {
       setIsClearing(false);
     }
   };
 
   const handleDeleteAccount = async () => {
-    if (!confirm('Hesabınızı kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz ve tüm verileriniz kaybolacak.')) {
-      return;
-    }
 
     try {
       setIsDeleting(true);
       setDeleteError('');
-      
-      console.log('💀 Data Management - Starting account deletion');
-      
-      // Simulate deletion process
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Redirect to logout
-      await supabase.auth.signOut();
-      window.location.href = '/';
-      
-    } catch (error) {
-      console.error('❌ Data Management - Delete account error:', error);
+
+      // Delete account with real service
+      const success = await DataBackupService.deleteAccount();
+
+      if (success) {
+        // Show success message briefly before redirect
+        toast({
+          title: 'Hesap Silindi',
+          description: 'Hesabınız başarıyla silindi. Ana sayfaya yönlendiriliyorsunuz...',
+        });
+        // DataBackupService already handles logout and redirect
+      } else {
+        throw new Error('Hesap silme işlemi başarısız oldu');
+      }
+
+    } catch {
       setDeleteError('Hesap silme işlemi başarısız oldu. Lütfen tekrar deneyin.');
     } finally {
       setIsDeleting(false);
@@ -169,7 +197,7 @@ function DataManagementContent() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
       {/* Navigation Header */}
       <MobileNav />
-      
+
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
@@ -195,9 +223,9 @@ function DataManagementContent() {
           {/* Header */}
           <div className="mb-8">
             <Link href="/profile">
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 className="mb-4 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
@@ -214,7 +242,7 @@ function DataManagementContent() {
 
           {/* Data Management Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
+
             {/* Cloud Backup */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -228,7 +256,7 @@ function DataManagementContent() {
                     Bulut Yedekleme
                   </CardTitle>
                   <CardDescription>
-                    Notlarınızı güvenle buluta yedekleyin
+                    Tüm ders verilerinizi ve test sonuçlarınızı güvenle buluta yedekleyin
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -238,10 +266,10 @@ function DataManagementContent() {
                       <span className="text-sm text-gray-600 dark:text-gray-400">Son yedekleme:</span>
                     </div>
                     <span className="text-sm font-medium text-gray-800 dark:text-white">
-                      {new Date(lastBackup).toLocaleDateString('tr-TR')}
+                      {lastBackup ? new Date(lastBackup).toLocaleDateString('tr-TR') : 'Henüz yedekleme yapılmamış'}
                     </span>
                   </div>
-                  
+
                   {backupSuccess && (
                     <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
                       <div className="flex items-center gap-2">
@@ -250,9 +278,9 @@ function DataManagementContent() {
                       </div>
                     </div>
                   )}
-                  
+
                   <Button
-                    onClick={handleBackup}
+                    onClick={() => { void handleBackup(); }}
                     disabled={isBackingUp}
                     className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 w-full"
                   >
@@ -280,7 +308,7 @@ function DataManagementContent() {
                     Veri Geri Yükleme
                   </CardTitle>
                   <CardDescription>
-                    Önceki yedekten notlarınızı geri yükleyin
+                    Önceki yedekten tüm verilerinizi geri yükleyin
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -292,7 +320,7 @@ function DataManagementContent() {
                       </p>
                     </div>
                   </div>
-                  
+
                   {restoreSuccess && (
                     <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
                       <div className="flex items-center gap-2">
@@ -301,19 +329,36 @@ function DataManagementContent() {
                       </div>
                     </div>
                   )}
-                  
-                  <Button
-                    onClick={handleRestore}
-                    disabled={isRestoring}
-                    className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white border-0 w-full"
-                  >
-                    {isRestoring ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Download className="w-4 h-4 mr-2" />
-                    )}
-                    {isRestoring ? 'Geri Yükleniyor...' : 'Yedekten Geri Yükle'}
-                  </Button>
+
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        disabled={isRestoring}
+                        className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white border-0 w-full"
+                      >
+                        {isRestoring ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <Download className="w-4 h-4 mr-2" />
+                        )}
+                        {isRestoring ? 'Geri Yükleniyor...' : 'Yedekten Geri Yükle'}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Yedekten Geri Yükle</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Mevcut verilerinizi yedekten geri yüklemek istediğinizden emin misiniz? Bu işlem mevcut verilerinizi değiştirebilir.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>İptal</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => { void handleRestore(); }}>
+                          Geri Yükle
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </CardContent>
               </Card>
             </motion.div>
@@ -343,7 +388,7 @@ function DataManagementContent() {
                       </p>
                     </div>
                   </div>
-                  
+
                   {clearSuccess && (
                     <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
                       <div className="flex items-center gap-2">
@@ -352,19 +397,36 @@ function DataManagementContent() {
                       </div>
                     </div>
                   )}
-                  
-                  <Button
-                    onClick={handleClearData}
-                    disabled={isClearing}
-                    className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white border-0 w-full"
-                  >
-                    {isClearing ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Trash2 className="w-4 h-4 mr-2" />
-                    )}
-                    {isClearing ? 'Temizleniyor...' : 'Tüm Bulut Verilerini Temizle'}
-                  </Button>
+
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        disabled={isClearing}
+                        className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white border-0 w-full"
+                      >
+                        {isClearing ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-4 h-4 mr-2" />
+                        )}
+                        {isClearing ? 'Temizleniyor...' : 'Tüm Bulut Verilerini Temizle'}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Bulut Verilerini Temizle</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Tüm bulut verilerinizi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>İptal</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => { void handleClearData(); }}>
+                          Temizle
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </CardContent>
               </Card>
             </motion.div>
@@ -394,25 +456,45 @@ function DataManagementContent() {
                       </p>
                     </div>
                   </div>
-                  
+
                   {deleteError && (
                     <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
                       <p className="text-sm text-red-600 dark:text-red-400">{deleteError}</p>
                     </div>
                   )}
-                  
-                  <Button
-                    onClick={handleDeleteAccount}
-                    disabled={isDeleting}
-                    className="bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white border-0 w-full"
-                  >
-                    {isDeleting ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <UserX className="w-4 h-4 mr-2" />
-                    )}
-                    {isDeleting ? 'Hesap Siliniyor...' : 'Hesabımı Sil'}
-                  </Button>
+
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        disabled={isDeleting}
+                        className="bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white border-0 w-full"
+                      >
+                        {isDeleting ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <UserX className="w-4 h-4 mr-2" />
+                        )}
+                        {isDeleting ? 'Hesap Siliniyor...' : 'Hesabımı Sil'}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Hesabı Sil</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Hesabınızı kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz ve tüm verileriniz kaybolacak.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>İptal</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => { void handleDeleteAccount(); }}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          Hesabı Sil
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </CardContent>
               </Card>
             </motion.div>
@@ -475,4 +557,4 @@ export default function DataManagementPage() {
       <DataManagementContent />
     </Suspense>
   );
-} 
+}

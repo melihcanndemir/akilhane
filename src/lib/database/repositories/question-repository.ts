@@ -1,7 +1,26 @@
 import { eq, and, desc, sql, like } from 'drizzle-orm';
-import { db } from '../connection';
+import { getDb } from '../connection';
 import { questions, subjects } from '../schema';
-import type { Question } from '@/lib/types';
+import type { Question, QuestionType } from '@/lib/types';
+
+// Type for database result - what actually comes from the database
+type QuestionResult = {
+  id: string;
+  subjectId: string;
+  subject: string;
+  topic: string;
+  type: string;
+  difficulty: string;
+  text: string;
+  options: string;
+  correctAnswer: string;
+  explanation: string;
+  formula: string | null;
+  createdBy: string | null;
+  isActive: boolean;
+  createdAt: Date; // Database returns Date objects, not strings
+  updatedAt: Date;
+};
 
 export class QuestionRepository {
   /**
@@ -17,20 +36,24 @@ export class QuestionRepository {
     correctAnswer: string,
     explanation: string,
     formula?: string,
-    createdBy?: string
+    createdBy?: string,
   ): Promise<string> {
     try {
       const id = `question_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
+
       // Get subject ID from subject name
+      const db = getDb();
       const subjectResult = await db.select({ id: subjects.id }).from(subjects).where(eq(subjects.name, subject)).limit(1);
-      
+
       if (subjectResult.length === 0) {
         throw new Error(`Subject not found: ${subject}`);
       }
-      
-      const subjectId = subjectResult[0].id;
-      
+
+      const subjectId = subjectResult[0]?.id;
+      if (!subjectId) {
+        throw new Error(`Invalid subject ID for: ${subject}`);
+      }
+
       await db.insert(questions).values({
         id,
         subjectId,
@@ -42,18 +65,16 @@ export class QuestionRepository {
         options: JSON.stringify(options),
         correctAnswer,
         explanation,
-        formula,
-        createdBy,
+        formula: formula || null,
+        createdBy: createdBy || null,
         isActive: true,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
 
-      console.log(`✅ Question created: ${id}`);
       return id;
     } catch (error) {
-      console.error('❌ Error creating question:', error);
-      throw error;
+      throw new Error(`Failed to create question: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -62,9 +83,10 @@ export class QuestionRepository {
    */
   static async getQuestionsBySubject(subject: string, limit?: number, userId?: string): Promise<Question[]> {
     try {
+      const db = getDb();
       const conditions = [
         eq(questions.subject, subject),
-        eq(questions.isActive, true)
+        eq(questions.isActive, true),
       ];
 
       // Add user filter if userId is provided
@@ -84,20 +106,19 @@ export class QuestionRepository {
 
       const results = await query;
 
-      return results.map((result: any) => ({
+      return results.map((result: QuestionResult) => ({
         id: result.id,
         subject: result.subject,
-        type: result.type as any,
-        difficulty: result.difficulty as any,
+        type: result.type as QuestionType,
+        difficulty: result.difficulty as 'Easy' | 'Medium' | 'Hard',
         text: result.text,
         topic: result.topic,
-        options: JSON.parse(result.options),
+        options: JSON.parse(result.options) as Array<{ text: string; isCorrect: boolean }>,
         explanation: result.explanation,
         formula: result.formula,
       }));
     } catch (error) {
-      console.error('❌ Error getting questions by subject:', error);
-      throw error;
+      throw new Error(`Failed to get questions by subject: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -106,10 +127,11 @@ export class QuestionRepository {
    */
   static async getQuestionsByTopic(subject: string, topic: string, limit?: number, userId?: string): Promise<Question[]> {
     try {
+      const db = getDb();
       const conditions = [
         eq(questions.subject, subject),
         eq(questions.topic, topic),
-        eq(questions.isActive, true)
+        eq(questions.isActive, true),
       ];
 
       // Add user filter if userId is provided
@@ -129,20 +151,19 @@ export class QuestionRepository {
 
       const results = await query;
 
-      return results.map((result: any) => ({
+      return results.map((result: QuestionResult) => ({
         id: result.id,
         subject: result.subject,
-        type: result.type as any,
-        difficulty: result.difficulty as any,
+        type: result.type as QuestionType,
+        difficulty: result.difficulty as 'Easy' | 'Medium' | 'Hard',
         text: result.text,
         topic: result.topic,
-        options: JSON.parse(result.options),
+        options: JSON.parse(result.options) as Array<{ text: string; isCorrect: boolean }>,
         explanation: result.explanation,
         formula: result.formula,
       }));
     } catch (error) {
-      console.error('❌ Error getting questions by topic:', error);
-      throw error;
+      throw new Error(`Failed to get questions by topic: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -150,16 +171,17 @@ export class QuestionRepository {
    * Get questions by difficulty
    */
   static async getQuestionsByDifficulty(
-    subject: string, 
-    difficulty: 'Easy' | 'Medium' | 'Hard', 
+    subject: string,
+    difficulty: 'Easy' | 'Medium' | 'Hard',
     limit?: number,
-    userId?: string
+    userId?: string,
   ): Promise<Question[]> {
     try {
+      const db = getDb();
       const conditions = [
         eq(questions.subject, subject),
         eq(questions.difficulty, difficulty),
-        eq(questions.isActive, true)
+        eq(questions.isActive, true),
       ];
 
       // Add user filter if userId is provided
@@ -179,20 +201,19 @@ export class QuestionRepository {
 
       const results = await query;
 
-      return results.map((result: any) => ({
+      return results.map((result: QuestionResult) => ({
         id: result.id,
         subject: result.subject,
-        type: result.type as any,
-        difficulty: result.difficulty as any,
+        type: result.type as QuestionType,
+        difficulty: result.difficulty as 'Easy' | 'Medium' | 'Hard',
         text: result.text,
         topic: result.topic,
-        options: JSON.parse(result.options),
+        options: JSON.parse(result.options) as Array<{ text: string; isCorrect: boolean }>,
         explanation: result.explanation,
         formula: result.formula,
       }));
     } catch (error) {
-      console.error('❌ Error getting questions by difficulty:', error);
-      throw error;
+      throw new Error(`Failed to get questions by difficulty: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -200,15 +221,16 @@ export class QuestionRepository {
    * Get random questions for quiz
    */
   static async getRandomQuestions(
-    subject: string, 
-    count: number, 
+    subject: string,
+    count: number,
     difficulty?: 'Easy' | 'Medium' | 'Hard',
-    userId?: string
+    userId?: string,
   ): Promise<Question[]> {
     try {
+      const db = getDb();
       const conditions = [
         eq(questions.subject, subject),
-        eq(questions.isActive, true)
+        eq(questions.isActive, true),
       ];
 
       // Add user filter if userId is provided
@@ -216,34 +238,33 @@ export class QuestionRepository {
         conditions.push(eq(questions.createdBy, userId));
       }
 
-      let query = db
-        .select()
-        .from(questions)
-        .where(and(...conditions));
-
+      // Add difficulty filter if provided
       if (difficulty) {
-        query = query.where(eq(questions.difficulty, difficulty));
+        conditions.push(eq(questions.difficulty, difficulty));
       }
 
-      const results = await query.limit(count);
+      const results = await db
+        .select()
+        .from(questions)
+        .where(and(...conditions))
+        .limit(count);
 
       // Shuffle results
       const shuffled = results.sort(() => Math.random() - 0.5);
 
-      return shuffled.map((result: any) => ({
+      return shuffled.map((result: QuestionResult) => ({
         id: result.id,
         subject: result.subject,
-        type: result.type as any,
-        difficulty: result.difficulty as any,
+        type: result.type as QuestionType,
+        difficulty: result.difficulty as 'Easy' | 'Medium' | 'Hard',
         text: result.text,
         topic: result.topic,
-        options: JSON.parse(result.options),
+        options: JSON.parse(result.options) as Array<{ text: string; isCorrect: boolean }>,
         explanation: result.explanation,
         formula: result.formula,
       }));
     } catch (error) {
-      console.error('❌ Error getting random questions:', error);
-      throw error;
+      throw new Error(`Failed to get random questions: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -251,16 +272,17 @@ export class QuestionRepository {
    * Search questions by text
    */
   static async searchQuestions(
-    subject: string, 
-    searchTerm: string, 
+    subject: string,
+    searchTerm: string,
     limit?: number,
-    userId?: string
+    userId?: string,
   ): Promise<Question[]> {
     try {
+      const db = getDb();
       const conditions = [
         eq(questions.subject, subject),
         eq(questions.isActive, true),
-        like(questions.text, `%${searchTerm}%`)
+        like(questions.text, `%${searchTerm}%`),
       ];
 
       // Add user filter if userId is provided
@@ -280,20 +302,19 @@ export class QuestionRepository {
 
       const results = await query;
 
-      return results.map((result: any) => ({
+      return results.map((result: QuestionResult) => ({
         id: result.id,
         subject: result.subject,
-        type: result.type as any,
-        difficulty: result.difficulty as any,
+        type: result.type as QuestionType,
+        difficulty: result.difficulty as 'Easy' | 'Medium' | 'Hard',
         text: result.text,
         topic: result.topic,
-        options: JSON.parse(result.options),
+        options: JSON.parse(result.options) as Array<{ text: string; isCorrect: boolean }>,
         explanation: result.explanation,
         formula: result.formula,
       }));
     } catch (error) {
-      console.error('❌ Error searching questions:', error);
-      throw error;
+      throw new Error(`Failed to search questions: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -312,32 +333,31 @@ export class QuestionRepository {
       correctAnswer: string;
       explanation: string;
       formula: string;
-    }>
+    }>,
   ): Promise<void> {
     try {
-      const updateData: any = {
+      const db = getDb();
+      const updateData: Record<string, unknown> = {
         updatedAt: new Date(),
       };
 
-      if (updates.subject) updateData.subject = updates.subject;
-      if (updates.topic) updateData.topic = updates.topic;
-      if (updates.type) updateData.type = updates.type;
-      if (updates.difficulty) updateData.difficulty = updates.difficulty;
-      if (updates.text) updateData.text = updates.text;
-      if (updates.options) updateData.options = JSON.stringify(updates.options);
-      if (updates.correctAnswer) updateData.correctAnswer = updates.correctAnswer;
-      if (updates.explanation) updateData.explanation = updates.explanation;
-      if (updates.formula !== undefined) updateData.formula = updates.formula;
+      if (updates.subject) {updateData.subject = updates.subject;}
+      if (updates.topic) {updateData.topic = updates.topic;}
+      if (updates.type) {updateData.type = updates.type;}
+      if (updates.difficulty) {updateData.difficulty = updates.difficulty;}
+      if (updates.text) {updateData.text = updates.text;}
+      if (updates.options) {updateData.options = JSON.stringify(updates.options);}
+      if (updates.correctAnswer) {updateData.correctAnswer = updates.correctAnswer;}
+      if (updates.explanation) {updateData.explanation = updates.explanation;}
+      if (updates.formula !== undefined) {updateData.formula = updates.formula;}
 
       await db
         .update(questions)
         .set(updateData)
         .where(eq(questions.id, id));
 
-      console.log(`✅ Question updated: ${id}`);
     } catch (error) {
-      console.error('❌ Error updating question:', error);
-      throw error;
+      throw new Error(`Failed to update question: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -346,18 +366,17 @@ export class QuestionRepository {
    */
   static async deleteQuestion(id: string): Promise<void> {
     try {
+      const db = getDb();
       await db
         .update(questions)
-        .set({ 
+        .set({
           isActive: false,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         })
         .where(eq(questions.id, id));
 
-      console.log(`✅ Question deleted: ${id}`);
     } catch (error) {
-      console.error('❌ Error deleting question:', error);
-      throw error;
+      throw new Error(`Failed to delete question: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -366,9 +385,10 @@ export class QuestionRepository {
    */
   static async getQuestionStats(subject: string, userId?: string) {
     try {
+      const db = getDb();
       const conditions = [
         eq(questions.subject, subject),
-        eq(questions.isActive, true)
+        eq(questions.isActive, true),
       ];
 
       // Add user filter if userId is provided
@@ -388,8 +408,7 @@ export class QuestionRepository {
 
       return stats[0];
     } catch (error) {
-      console.error('❌ Error getting question stats:', error);
-      throw error;
+      throw new Error(`Failed to get question stats: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -398,9 +417,10 @@ export class QuestionRepository {
    */
   static async getTopicsBySubject(subject: string, userId?: string): Promise<string[]> {
     try {
+      const db = getDb();
       const conditions = [
         eq(questions.subject, subject),
-        eq(questions.isActive, true)
+        eq(questions.isActive, true),
       ];
 
       // Add user filter if userId is provided
@@ -413,10 +433,9 @@ export class QuestionRepository {
         .from(questions)
         .where(and(...conditions));
 
-      return results.map((result: any) => result.topic);
+      return results.map((result: { topic: string }) => result.topic);
     } catch (error) {
-      console.error('❌ Error getting topics by subject:', error);
-      throw error;
+      throw new Error(`Failed to get topics by subject: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
-} 
+}

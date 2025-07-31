@@ -11,7 +11,7 @@ const AiTutorInputSchema = z.object({
   difficulty: z.enum(['Kolay', 'Orta', 'Zor']).optional().describe('The difficulty level of the question.'),
   options: z.array(z.object({
     text: z.string(),
-    isCorrect: z.boolean()
+    isCorrect: z.boolean(),
   })).optional().describe('The multiple choice options for the question.'),
   correctAnswer: z.string().optional().describe('The correct answer text.'),
   explanation: z.string().optional().describe('The standard explanation for the correct answer.'),
@@ -38,30 +38,28 @@ function translateDifficulty(difficulty: string): 'Kolay' | 'Orta' | 'Zor' | und
     'hard': 'Zor',
     'EASY': 'Kolay',
     'MEDIUM': 'Orta',
-    'HARD': 'Zor'
+    'HARD': 'Zor',
   };
-  
+
   return difficultyMap[difficulty] || undefined;
 }
 
 export async function getAiTutorHelp(
-  input: AiTutorInput
+  input: AiTutorInput,
 ): Promise<AiTutorOutput> {
   try {
     // Translate difficulty from English to Turkish
     const translatedInput = {
       ...input,
-      difficulty: input.difficulty ? translateDifficulty(input.difficulty) : input.difficulty
+      difficulty: input.difficulty ? translateDifficulty(input.difficulty) : input.difficulty,
     };
-    
+
     return await aiTutorFlow(translatedInput);
-  } catch (error) {
-    console.error('❌ AI Tutor error:', error);
-    
+  } catch {
     // Return fallback response
     return {
       help: 'Şu anda AI asistanına erişilemiyor. Lütfen daha sonra tekrar deneyin.',
-      confidence: 0
+      confidence: 0,
     };
   }
 }
@@ -126,5 +124,5 @@ const aiTutorFlow = ai.defineFlow(
   async input => {
     const {output} = await prompt(input);
     return output!;
-  }
-); 
+  },
+);

@@ -59,9 +59,9 @@ export default function MobileNav() {
           <div className="hidden md:flex items-center gap-1">
             {navLinks.map(({ href, label, icon: Icon }) => (
               <Link key={href} href={href}>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className="flex items-center gap-1.5 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
                 >
                   <Icon className="w-4 h-4" />
@@ -69,9 +69,9 @@ export default function MobileNav() {
                 </Button>
               </Link>
             ))}
-            
+
             <ThemeToggle />
-            
+
             {/* Authentication Status */}
             {loading ? (
               <div className="w-8 h-8 animate-pulse bg-gray-200 dark:bg-gray-700 rounded-full" />
@@ -110,7 +110,7 @@ export default function MobileNav() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={logout} className="flex items-center gap-2 text-red-600 dark:text-red-400">
+                  <DropdownMenuItem onClick={() => { void logout(); }} className="flex items-center gap-2 text-red-600 dark:text-red-400">
                     <LogOut className="w-4 h-4" />
                     Çıkış Yap
                   </DropdownMenuItem>
@@ -136,18 +136,18 @@ export default function MobileNav() {
                 </Button>
               </Link>
             )}
-            
+
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="icon" 
+                <Button
+                  variant="outline"
+                  size="icon"
                   className="glass-card-inner hover:scale-105 transition-all duration-300"
                 >
                   <Menu className="h-6 w-6" />
                 </Button>
               </SheetTrigger>
-              <SheetContent 
+              <SheetContent
                 side="right"
                 className="glass-sheet"
               >
@@ -173,7 +173,7 @@ export default function MobileNav() {
                       <div className="space-y-3">
                         {/* User Information */}
                         <div className="glass-card-inner p-3 rounded-lg shadow-lg">
-                          <div className="flex items-start gap-3 text-sm text-foreground">
+                          <div className="flex items-center gap-3 text-sm text-foreground">
                             <Avatar className="w-8 h-8 flex-shrink-0">
                               <AvatarImage src={user?.user_metadata?.avatar_url} alt={user?.user_metadata?.full_name || user?.email} />
                               <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-medium">
@@ -181,16 +181,13 @@ export default function MobileNav() {
                               </AvatarFallback>
                             </Avatar>
                             <div className="min-w-0 flex-1">
-                              <span className="font-medium break-words break-all block">{user.email}</span>
-                              {user.user_metadata?.full_name && (
-                                <div className="text-xs text-muted-foreground mt-1">
-                                  {user.user_metadata.full_name}
-                                </div>
-                              )}
+                              <span className="font-medium break-words break-all block">
+                                {user.user_metadata?.full_name || user.email?.split('@')[0] || 'Kullanıcı'}
+                              </span>
                             </div>
                           </div>
                         </div>
-                        
+
                         {/* Profile Link - Now at the top */}
                         <Link
                           href="/profile"
@@ -200,7 +197,7 @@ export default function MobileNav() {
                           <UserCircle className="w-5 h-5 group-hover:text-white transition-colors duration-300" />
                           <span className="font-medium group-hover:text-white transition-colors duration-300">Profilim</span>
                         </Link>
-                        
+
                         {/* Logout button */}
                         <Button
                           onClick={() => {
@@ -229,14 +226,14 @@ export default function MobileNav() {
                           <span className="font-medium group-hover:text-white transition-colors duration-300">{label}</span>
                         </Link>
                       ))}
-                      
+
                       {/* Settings is now in navLinks, so no need for separate link */}
                     </div>
-                    
+
                     {/* Extra spacing for scroll */}
                     <div className="h-4"></div>
                   </div>
-                  
+
                   {/* Fixed Footer - Theme Toggle */}
                   <div className="flex-shrink-0 border-t border-white/20 dark:border-white/10 p-4 pt-3">
                     <ThemeToggle />

@@ -3,18 +3,18 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Target, 
-  Clock, 
-  Brain, 
+import {
+  TrendingUp,
+  TrendingDown,
+  Target,
+  Clock,
+  Brain,
   Award,
   Activity,
   BarChart3,
   LineChart,
   PieChart,
-  Sparkles
+  Sparkles,
 } from 'lucide-react';
 import { demoAnalyticsData } from '@/data/demo-data';
 
@@ -33,7 +33,7 @@ interface AnalyticsData {
     type: string;
     score: number;
     timestamp: string;
-    subject?: string;
+    subject?: string | undefined;
   }>;
   weeklyProgress?: Array<{
     day: string;
@@ -45,6 +45,21 @@ interface AnalyticsData {
     percentage: number;
     color: string;
   }>;
+}
+
+interface QuizResult {
+  totalQuestions: number;
+  score: number;
+  timeSpent?: number;
+  weakTopics?: Record<string, number>;
+  completedAt: string;
+  subject?: string;
+  isDemo?: boolean;
+}
+
+interface Subject {
+  name: string;
+  isActive: boolean;
 }
 
 interface AnalyticsDashboardProps {
@@ -64,7 +79,7 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
     improvement: 0,
     weakTopics: [],
     strongTopics: [],
-    recentActivity: []
+    recentActivity: [],
   });
 
   const [isLoading, setIsLoading] = useState(true);
@@ -73,7 +88,7 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
     const generateMockData = () => {
       // Use rich demo data for BTK Hackathon
       if (useMockData) {
-        console.log("🎯 BTK Demo Analytics Data yükleniyor...");
+
         setAnalytics(demoAnalyticsData);
       } else {
         // Simple mock data (old version)
@@ -88,7 +103,7 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
           improvement: Math.floor(Math.random() * 20) + 5,
           weakTopics: ['Finansal Analiz', 'Muhasebe', 'İstatistik'],
           strongTopics: ['Matematik', 'Ekonomi', 'Yönetim'],
-          recentActivity: []
+          recentActivity: [],
         };
         setAnalytics(mockData);
       }
@@ -97,29 +112,27 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
 
     const fetchRealData = async () => {
       try {
-        console.log("🎯 Analytics Dashboard - Loading from localStorage...");
-        
+
         // Get data from localStorage
         const getAnalyticsFromStorage = () => {
-          if (typeof window === 'undefined') return null;
-          
+          if (typeof window === 'undefined') {return null;}
+
           try {
             // Calculate analytics from quiz results
             const quizResultsKey = useMockData ? 'exam_training_demo_quiz_results' : 'exam_training_quiz_results';
             const quizResults = localStorage.getItem(quizResultsKey);
-            const results = quizResults ? JSON.parse(quizResults) : [];
-            
+            const results: QuizResult[] = quizResults ? JSON.parse(quizResults) : [];
+
             // Filter out demo results if not in demo mode
-            const filteredResults = useMockData ? results : results.filter((result: any) => !result.isDemo);
-            
+            const filteredResults = useMockData ? results : results.filter((result: QuizResult) => !result.isDemo);
+
             // Get subject information from Subjects
             const subjects = localStorage.getItem('exam_training_subjects');
-            const subjectsData = subjects ? JSON.parse(subjects) : [];
-            
-            // Get question information from Questions
-            const questions = localStorage.getItem('exam_training_questions');
-            questions ? JSON.parse(questions) : [];
-            
+            const subjectsData: Subject[] = subjects ? JSON.parse(subjects) : [];
+
+            // Get question information from Questions (not currently used)
+            // const questions = localStorage.getItem('exam_training_questions');
+
             if (filteredResults.length === 0) {
               // If there are no quiz results, use simple mock data
               return {
@@ -133,47 +146,82 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
                 improvement: 0,
                 weakTopics: [],
                 strongTopics: [],
-                recentActivity: []
+                recentActivity: [],
               };
             }
-            
+
             // Calculate analytics
-            const totalQuestions = filteredResults.reduce((sum: number, result: any) => sum + result.totalQuestions, 0);
-            const correctAnswers = filteredResults.reduce((sum: number, result: any) => sum + result.score, 0);
+            const totalQuestions = filteredResults.reduce((sum: number, result: QuizResult) => sum + result.totalQuestions, 0);
+            const correctAnswers = filteredResults.reduce((sum: number, result: QuizResult) => sum + result.score, 0);
             const averageScore = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
-            const studyTime = filteredResults.reduce((sum: number, result: any) => sum + (result.timeSpent || 0), 0);
-            
+            const studyTime = filteredResults.reduce((sum: number, result: QuizResult) => sum + (result.timeSpent || 0), 0);
+
             // Calculate weak topics
             const weakTopicsMap: Record<string, number> = {};
-            filteredResults.forEach((result: any) => {
+            filteredResults.forEach((result: QuizResult) => {
               if (result.weakTopics) {
                 Object.entries(result.weakTopics).forEach(([topic, count]) => {
-                  weakTopicsMap[topic] = (weakTopicsMap[topic] || 0) + (count as number);
+                  weakTopicsMap[topic] = (weakTopicsMap[topic] || 0) + (count);
                 });
               }
             });
-            
+
             const weakTopics = Object.entries(weakTopicsMap)
-              .sort(([,a], [,b]) => (b as number) - (a as number))
+              .sort(([,a], [,b]) => (b) - (a))
               .slice(0, 3)
               .map(([topic]) => topic);
-            
-            // Strong topics (most correctly answered topics)
-            const strongTopics = subjectsData
-              .filter((subject: any) => subject.isActive)
-              .slice(0, 3)
-              .map((subject: any) => subject.name);
-            
+
+            // Calculate strong topics based on actual performance
+            // Topics that are NOT in weak topics and have good performance
+            const allTopics = new Set<string>();
+            const topicPerformance: Record<string, { correct: number; total: number }> = {};
+
+            // Collect all topics from quiz results
+            filteredResults.forEach((result: QuizResult) => {
+              const {weakTopics} = result;
+              if (weakTopics && typeof weakTopics === 'object' && !Array.isArray(weakTopics)) {
+                Object.keys(weakTopics).forEach(topic => {
+                  allTopics.add(topic);
+                  if (!topicPerformance[topic]) {
+                    topicPerformance[topic] = { correct: 0, total: 0 };
+                  }
+                  // Estimate performance based on weak topics frequency
+                  const weakCount = weakTopics[topic] || 0;
+                  topicPerformance[topic].total += 3; // Assume 3 questions per topic
+                  topicPerformance[topic].correct += Math.max(0, 3 - weakCount);
+                });
+              }
+            });
+
+            // Calculate strong topics (topics with >70% success rate and not in weak topics)
+            const strongTopics = Array.from(allTopics)
+              .filter(topic => {
+                const performance = topicPerformance[topic];
+                if (!performance || performance.total < 2) {return false;} // Need at least 2 questions
+
+                const successRate = (performance.correct / performance.total) * 100;
+                return successRate >= 70 && !weakTopics.includes(topic);
+              })
+              .slice(0, 3);
+
+            // If no strong topics found, use some default topics
+            const defaultStrongTopics = strongTopics.length === 0 ?
+              subjectsData
+                .filter((subject: Subject) => subject.isActive)
+                .slice(0, 3)
+                .map((subject: Subject) => subject.name) :
+              strongTopics;
+
             // Recent activity
             const recentActivity = filteredResults
               .slice(-5)
-              .map((result: any) => ({
+              .map((result: QuizResult) => ({
                 type: 'Quiz',
-                score: result.score,
+                score: Math.round((result.score / result.totalQuestions) * 100),
                 timestamp: result.completedAt,
-                subject: result.subject
+                subject: result.subject,
               }));
-            
+
             return {
               totalQuestions,
               correctAnswers,
@@ -184,17 +232,17 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
               totalUsers: 1,
               improvement: Math.floor(Math.random() * 20) + 5,
               weakTopics,
-              strongTopics,
-              recentActivity
+              strongTopics: defaultStrongTopics,
+              recentActivity,
             };
-          } catch (error) {
-            console.error('Error loading analytics from localStorage:', error);
+          } catch {
+            //do nothing
             return null;
           }
         };
-        
+
         const analyticsData = getAnalyticsFromStorage();
-        
+
         if (analyticsData) {
           setAnalytics(prev => ({...prev, ...analyticsData}));
         } else {
@@ -210,12 +258,12 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
             improvement: 0,
             weakTopics: [],
             strongTopics: [],
-            recentActivity: []
+            recentActivity: [],
           };
           setAnalytics(fallbackData);
         }
-      } catch (error) {
-        console.error("Error loading analytics data:", error);
+      } catch {
+        //do nothing
       } finally {
         setIsLoading(false);
       }
@@ -223,27 +271,24 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
 
     // load data immediately when useMockData changes
     setIsLoading(true);
-    
+
     if (useMockData) {
-      console.log("Loading mock analytics data");
       generateMockData();
     } else {
-      console.log("Loading real analytics data");
       fetchRealData();
     }
-    
+
     return () => {};
   }, [useMockData]); // add useMockData as a dependency
 
   // add console log for debugging
   useEffect(() => {
-    console.log("Analytics data updated:", analytics);
   }, [analytics]);
 
   const getScoreColor = (score: number) => {
-    if (score >= 90) return 'text-green-600';
-    if (score >= 80) return 'text-blue-600';
-    if (score >= 70) return 'text-yellow-600';
+    if (score >= 90) {return 'text-green-600';}
+    if (score >= 80) {return 'text-blue-600';}
+    if (score >= 70) {return 'text-yellow-600';}
     return 'text-red-600';
   };
 
@@ -346,20 +391,20 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
                 <span>{analytics.averageScore}%</span>
               </div>
               <div className="progress-gradient-bg rounded-full h-2">
-                <div 
+                <div
                   className="progress-gradient h-2 rounded-full transition-all duration-300"
                   style={{ width: `${analytics.averageScore}%` }}
                 />
               </div>
             </div>
-            
+
             <div>
                <div className="flex justify-between text-sm mb-2 text-gray-700 dark:text-gray-300">
                 <span>Doğru Cevap Oranı</span>
                 <span>{analytics.totalQuestions > 0 ? Math.round((analytics.correctAnswers / analytics.totalQuestions) * 100) : 0}%</span>
               </div>
               <div className="progress-gradient-bg rounded-full h-2">
-                <div 
+                <div
                   className="progress-gradient h-2 rounded-full transition-all duration-300"
                   style={{ width: `${analytics.totalQuestions > 0 ? (analytics.correctAnswers / analytics.totalQuestions) * 100 : 0}%` }}
                 />
@@ -372,7 +417,7 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
                 <span>{formatTime(analytics.studyTime)}</span>
               </div>
               <div className="progress-gradient-bg rounded-full h-2">
-                <div 
+                <div
                   className="progress-gradient h-2 rounded-full transition-all duration-300"
                   style={{ width: `${Math.min((analytics.studyTime / 120) * 100, 100)}%` }}
                 />
@@ -503,21 +548,21 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
           <CardContent>
             <div className="space-y-4">
               {analytics.weeklyProgress.map((day, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 w-24">
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{day.day}</span>
+                <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">{day.day}</span>
                   </div>
-                  <div className="flex-1 mx-4">
+                  <div className="flex-1 mx-2 min-w-0">
                     <div className="progress-gradient-bg rounded-full h-3">
-                      <div 
+                      <div
                         className="progress-gradient h-3 rounded-full transition-all duration-300"
                         style={{ width: `${day.score}%` }}
                       />
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="font-semibold text-gray-700 dark:text-gray-300">%{day.score}</span>
-                    <Badge variant="outline" className="text-xs">
+                  <div className="flex items-center gap-2 text-sm min-w-0">
+                    <span className="font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">%{day.score}</span>
+                    <Badge variant="outline" className="text-xs whitespace-nowrap">
                       {day.tests} test
                     </Badge>
                   </div>
@@ -541,24 +586,24 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
           <CardContent>
             <div className="space-y-3">
               {analytics.subjectDistribution.map((subject, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div 
-                      className="w-4 h-4 rounded-full" 
+                <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div
+                      className="w-4 h-4 rounded-full flex-shrink-0"
                       style={{ backgroundColor: subject.color }}
                     ></div>
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{subject.subject}</span>
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">{subject.subject}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-32">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-20 sm:w-32 flex-shrink-0">
                       <div className="progress-gradient-bg rounded-full h-2">
-                        <div 
+                        <div
                           className="progress-gradient h-2 rounded-full transition-all duration-300"
                           style={{ width: `${subject.percentage}%` }}
                         />
                       </div>
                     </div>
-                    <span className="text-sm font-semibold w-12 text-gray-700 dark:text-gray-300">%{subject.percentage}</span>
+                    <span className="text-sm font-semibold w-12 text-gray-700 dark:text-gray-300 whitespace-nowrap">%{subject.percentage}</span>
                   </div>
                 </div>
               ))}
@@ -596,7 +641,7 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge 
+                    <Badge
                       className={`${getScoreColor(activity.score)} bg-transparent border border-gray-300 dark:border-gray-600`}
                     >
                       %{activity.score}
@@ -615,4 +660,4 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
       </Card>
     </div>
   );
-} 
+}

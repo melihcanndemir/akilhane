@@ -9,16 +9,27 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import {
-  Settings, 
-  Bell, 
-  Palette, 
-  Database, 
-  Trash2, 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import {
+  Settings,
+  Bell,
+  Palette,
+  Database,
+  Trash2,
   Download,
   Upload,
   BookOpen,
   GraduationCap,
-  Loader2
+  Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useTheme } from 'next-themes';
@@ -62,23 +73,37 @@ export default function SettingsPage() {
   const [customQuestionsValue, setCustomQuestionsValue] = useState('');
   const [customTimeValue, setCustomTimeValue] = useState('');
 
-
   useEffect(() => {
     const initializeSettings = async () => {
       setLoading(true);
-      
-      let loadedStudyPrefs = studyPreferences;
-      let loadedNotifications = notifications;
-      let loadedAppearance = appearance;
-      let loadedTheme = theme || 'system';
 
-      // 1. Load settings from localStorage first
+      // Default değerlerle başla
+      let loadedStudyPrefs = {
+        defaultSubject: '',
+        questionsPerQuiz: 10,
+        timeLimit: 30,
+        showTimer: true,
+        autoSubmit: false,
+      };
+      let loadedNotifications = {
+        email: true,
+        push: false,
+        reminders: true,
+        achievements: true,
+      };
+      let loadedAppearance = {
+        fontSize: 'medium',
+        compactMode: false,
+      };
+      let loadedTheme = 'system';
+
+      // 1. localStorage'dan ayarları yükle
       const saved = localStorage.getItem('userSettings');
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          if (parsed.studyPreferences) loadedStudyPrefs = { ...loadedStudyPrefs, ...parsed.studyPreferences };
-          if (parsed.notifications) loadedNotifications = { ...loadedNotifications, ...parsed.notifications };
+          if (parsed.studyPreferences) {loadedStudyPrefs = { ...loadedStudyPrefs, ...parsed.studyPreferences };}
+          if (parsed.notifications) {loadedNotifications = { ...loadedNotifications, ...parsed.notifications };}
           if (parsed.appearance) {
             loadedAppearance = { ...loadedAppearance, ...parsed.appearance };
             loadedTheme = parsed.appearance.theme || loadedTheme;
@@ -88,14 +113,14 @@ export default function SettingsPage() {
         }
       }
 
-      // 2. Fetch subjects from the API
+      // 2. API'den subjects'leri yükle
       try {
         const response = await fetch('/api/subjects');
         if (response.ok) {
           const subjectData = await response.json();
           setSubjects(subjectData);
 
-          // 3. Set default subject if needed, based on loaded or initial prefs
+          // 3. Default subject ayarla
           if (!loadedStudyPrefs.defaultSubject && subjectData.length > 0) {
             const firstActiveSubject = subjectData.find((s: Subject) => s.is_active);
             if (firstActiveSubject) {
@@ -107,42 +132,71 @@ export default function SettingsPage() {
         // Error fetching subjects
       }
 
-      // 4. Reconcile custom values for the UI
+      // 4. Custom değerleri ayarla
       const standardQuestionOptions = [5, 10, 15, 20];
       if (loadedStudyPrefs.questionsPerQuiz && !standardQuestionOptions.includes(loadedStudyPrefs.questionsPerQuiz)) {
         setCustomQuestionsValue(loadedStudyPrefs.questionsPerQuiz.toString());
-        loadedStudyPrefs.questionsPerQuiz = -1; // Set UI to "custom"
+        loadedStudyPrefs.questionsPerQuiz = -1;
       }
 
       const standardTimeOptions = [15, 30, 45, 60];
       if (loadedStudyPrefs.timeLimit && !standardTimeOptions.includes(loadedStudyPrefs.timeLimit)) {
         setCustomTimeValue(loadedStudyPrefs.timeLimit.toString());
-        loadedStudyPrefs.timeLimit = -1; // Set UI to "custom"
+        loadedStudyPrefs.timeLimit = -1;
       }
 
-      // 5. Set all states at once
+      // 5. State'leri ayarla
       setNotifications(loadedNotifications);
       setAppearance(loadedAppearance);
       setStudyPreferences(loadedStudyPrefs);
-      setTheme(loadedTheme); // Set the theme globally
-      
-      // 6. Apply visual styles from settings
+      setTheme(loadedTheme);
+
+      // 6. Görsel stilleri uygula
       const root = document.documentElement;
-      if (loadedAppearance.compactMode) root.classList.add('compact-mode');
-      else root.classList.remove('compact-mode');
-      
+      if (loadedAppearance.compactMode) {root.classList.add('compact-mode');}
+      else {root.classList.remove('compact-mode');}
+
       switch (loadedAppearance.fontSize) {
         case 'small': root.style.fontSize = '14px'; break;
         case 'medium': root.style.fontSize = '16px'; break;
         case 'large': root.style.fontSize = '18px'; break;
         default: root.style.fontSize = '16px'; break;
       }
-      
+
       setLoading(false);
     };
 
     initializeSettings();
-  }, [setTheme]); // Using setTheme in dependency array as it's a stable function from the hook.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Sadece mount time'da çalış
+
+  // Compact mode ve font size değişikliklerini anında uygula
+  useEffect(() => {
+    const root = document.documentElement;
+
+    // Kompakt mod ayarla
+    if (appearance.compactMode) {
+      root.classList.add('compact-mode');
+    } else {
+      root.classList.remove('compact-mode');
+    }
+
+    // Font size ayarla
+    switch (appearance.fontSize) {
+      case 'small':
+        root.style.fontSize = '14px';
+        break;
+      case 'medium':
+        root.style.fontSize = '16px';
+        break;
+      case 'large':
+        root.style.fontSize = '18px';
+        break;
+      default:
+        root.style.fontSize = '16px';
+        break;
+    }
+  }, [appearance.compactMode, appearance.fontSize]);
 
   const handleExportData = () => {
     // Export user data
@@ -183,9 +237,16 @@ export default function SettingsPage() {
               setAppearance(data.settings.appearance || appearance);
               setStudyPreferences(data.settings.studyPreferences || studyPreferences);
             }
-            alert('Veriler başarıyla içe aktarıldı!');
+            toast({
+              title: 'Başarılı',
+              description: 'Veriler başarıyla içe aktarıldı!',
+            });
           } catch {
-            alert('Dosya formatı geçersiz!');
+            toast({
+              title: 'Hata',
+              description: 'Dosya formatı geçersiz!',
+              variant: 'destructive',
+            });
           }
         };
         reader.readAsText(file);
@@ -195,10 +256,11 @@ export default function SettingsPage() {
   };
 
   const handleClearData = () => {
-    if (confirm('Tüm verileriniz silinecek. Bu işlem geri alınamaz. Devam etmek istiyor musunuz?')) {
-      localStorage.clear();
-      alert('Tüm veriler silindi!');
-    }
+    localStorage.clear();
+    toast({
+      title: 'Başarılı',
+      description: 'Tüm veriler silindi!',
+    });
   };
 
   const handleSaveSettings = () => {
@@ -217,7 +279,7 @@ export default function SettingsPage() {
       notifications,
       appearance: {
         ...appearance,
-        theme: theme, // Get the current theme from the hook
+        theme, // Get the current theme from the hook
       },
       studyPreferences: settingsToSave,
     };
@@ -390,8 +452,8 @@ export default function SettingsPage() {
               <CardContent className="space-y-4">
                 <div>
                   <Label htmlFor="default-subject">Varsayılan Ders</Label>
-                  <Select 
-                    value={studyPreferences.defaultSubject} 
+                  <Select
+                    value={studyPreferences.defaultSubject}
                     onValueChange={(value) => setStudyPreferences({...studyPreferences, defaultSubject: value})}
                     disabled={loading}
                   >
@@ -437,11 +499,11 @@ export default function SettingsPage() {
                 <div>
                   <Label htmlFor="questions-per-quiz">Test Başına Soru Sayısı</Label>
                    <div className="flex gap-2">
-                    <Select 
-                      value={studyPreferences.questionsPerQuiz === -1 ? 'custom' : studyPreferences.questionsPerQuiz.toString()} 
+                    <Select
+                      value={studyPreferences.questionsPerQuiz === -1 ? 'custom' : studyPreferences.questionsPerQuiz.toString()}
                       onValueChange={(value) => {
                         setStudyPreferences({...studyPreferences, questionsPerQuiz: value === 'custom' ? -1 : parseInt(value)});
-                        if (value !== 'custom') setCustomQuestionsValue('');
+                        if (value !== 'custom') {setCustomQuestionsValue('');}
                       }}
                     >
                       <SelectTrigger>
@@ -469,11 +531,11 @@ export default function SettingsPage() {
                 <div>
                   <Label htmlFor="time-limit">Zaman Limiti (dakika)</Label>
                   <div className="flex gap-2">
-                    <Select 
-                      value={studyPreferences.timeLimit === -1 ? 'custom' : studyPreferences.timeLimit.toString()} 
+                    <Select
+                      value={studyPreferences.timeLimit === -1 ? 'custom' : studyPreferences.timeLimit.toString()}
                        onValueChange={(value) => {
                         setStudyPreferences({...studyPreferences, timeLimit: value === 'custom' ? -1 : parseInt(value)});
-                        if (value !== 'custom') setCustomTimeValue('');
+                        if (value !== 'custom') {setCustomTimeValue('');}
                       }}
                     >
                       <SelectTrigger>
@@ -549,10 +611,31 @@ export default function SettingsPage() {
                 </div>
                 <Separator />
                 <div className="flex gap-2">
-                  <Button onClick={handleClearData} variant="destructive" className="flex-1 hover:bg-gradient-to-r hover:from-red-600 hover:to-pink-600 hover:text-white hover:border-0">
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Tüm Verileri Sil
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" className="flex-1 hover:bg-gradient-to-r hover:from-red-600 hover:to-pink-600 hover:text-white hover:border-0">
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Tüm Verileri Sil
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Tüm Verileri Sil</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Tüm verileriniz silinecek. Bu işlem geri alınamaz. Devam etmek istiyor musunuz?
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>İptal</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleClearData}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          Sil
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Dışa aktarılan veriler JSON formatında kaydedilir ve daha sonra içe aktarılabilir.
@@ -572,4 +655,4 @@ export default function SettingsPage() {
       </div>
     </div>
   );
-} 
+}

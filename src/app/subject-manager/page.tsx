@@ -5,10 +5,10 @@ import SubjectManager from '@/components/subject-manager';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Database, 
-  BookOpen, 
-  Brain, 
+import {
+  Database,
+  BookOpen,
+  Brain,
   GraduationCap,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -38,7 +38,7 @@ export default function SubjectManagerPage() {
   const [stats, setStats] = useState<Stats>({
     totalSubjects: 0,
     totalQuestions: 0,
-    totalCategories: 0
+    totalCategories: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isDemoMode, setIsDemoMode] = useState(false);
@@ -50,11 +50,11 @@ export default function SubjectManagerPage() {
   const loadStats = async () => {
     try {
       setIsLoading(true);
-      
+
       // Check if demo mode is active
       const demoMode = shouldUseDemoData();
       setIsDemoMode(demoMode);
-      
+
       if (demoMode) {
         // Use demo data for statistics
         const totalSubjects = demoSubjects.length;
@@ -65,12 +65,12 @@ export default function SubjectManagerPage() {
         setStats({
           totalSubjects,
           totalQuestions,
-          totalCategories
+          totalCategories,
         });
       } else {
         // Try to get data from localStorage first
         const getSubjectsFromStorage = () => {
-          if (typeof window === 'undefined') return [];
+          if (typeof window === 'undefined') {return [];}
           try {
             const stored = localStorage.getItem('exam_training_subjects');
             return stored ? JSON.parse(stored) : [];
@@ -80,7 +80,7 @@ export default function SubjectManagerPage() {
         };
 
         const localSubjects = getSubjectsFromStorage();
-        
+
         if (localSubjects.length > 0) {
           // Use localStorage data
           const totalSubjects = localSubjects.length;
@@ -91,14 +91,14 @@ export default function SubjectManagerPage() {
           setStats({
             totalSubjects,
             totalQuestions,
-            totalCategories
+            totalCategories,
           });
         } else {
           // Try API as fallback
           const response = await fetch('/api/subjects');
           if (response.ok) {
             const subjects: Subject[] = await response.json();
-            
+
             const totalSubjects = subjects.length;
             const totalQuestions = subjects.reduce((sum, subject) => sum + subject.questionCount, 0);
             const categories = new Set(subjects.map(subject => subject.category));
@@ -107,7 +107,7 @@ export default function SubjectManagerPage() {
             setStats({
               totalSubjects,
               totalQuestions,
-              totalCategories
+              totalCategories,
             });
           }
         }
@@ -149,8 +149,8 @@ export default function SubjectManagerPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Link href="/question-manager">
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       className="flex items-center gap-2 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
                     >
                       <Database className="w-4 h-4" />
@@ -187,4 +187,4 @@ export default function SubjectManagerPage() {
       </div>
     </div>
   );
-} 
+}

@@ -1,6 +1,8 @@
-import { eq, desc, like, count } from 'drizzle-orm';
-import { db } from '../connection';
+import { eq, desc, like, count, and } from 'drizzle-orm';
+import { getDb } from '../connection';
 import { subjects, questions } from '../schema';
+
+type SubjectRow = typeof subjects.$inferSelect;
 
 export interface Subject {
   id: string;
@@ -10,7 +12,7 @@ export interface Subject {
   difficulty: 'Başlangıç' | 'Orta' | 'İleri';
   questionCount: number;
   isActive: boolean;
-  createdBy?: string;
+  createdBy?: string | undefined;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -37,8 +39,9 @@ export class SubjectRepository {
    */
   static async createSubject(data: CreateSubjectData): Promise<string> {
     try {
+      const db = getDb();
       const id = `subject_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
+
       await db.insert(subjects).values({
         id,
         name: data.name,
@@ -47,15 +50,13 @@ export class SubjectRepository {
         difficulty: data.difficulty,
         questionCount: 0,
         isActive: true,
-        createdBy: data.createdBy,
+        createdBy: data.createdBy || null,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
 
-      console.log(`✅ Subject created: ${id}`);
       return id;
     } catch (error) {
-      console.error('❌ Error creating subject:', error);
       throw error;
     }
   }
@@ -70,50 +71,54 @@ export class SubjectRepository {
       isActive?: boolean;
       search?: string;
       userId?: string;
-    }
+    },
   ): Promise<Subject[]> {
     try {
-      let query = db.select().from(subjects);
+      const db = getDb();
+      const conditions = [];
 
       if (filters?.category) {
-        query = query.where(eq(subjects.category, filters.category));
+        conditions.push(eq(subjects.category, filters.category));
       }
 
       if (filters?.difficulty) {
-        query = query.where(eq(subjects.difficulty, filters.difficulty));
+        conditions.push(eq(subjects.difficulty, filters.difficulty));
       }
 
       if (filters?.isActive !== undefined) {
-        query = query.where(eq(subjects.isActive, filters.isActive));
+        conditions.push(eq(subjects.isActive, filters.isActive));
       }
 
       if (filters?.search) {
-        query = query.where(
-          like(subjects.name, `%${filters.search}%`)
-        );
+        conditions.push(like(subjects.name, `%${filters.search}%`));
       }
 
       // Add user filter if userId is provided
       if (filters?.userId) {
-        query = query.where(eq(subjects.createdBy, filters.userId));
+        conditions.push(eq(subjects.createdBy, filters.userId));
       }
 
-      const results = await query.orderBy(desc(subjects.createdAt));
-      
+      const baseQuery = db.select().from(subjects);
+
+      const results = conditions.length > 0
+        ? await baseQuery.where(and(...conditions)).orderBy(desc(subjects.createdAt))
+        : await baseQuery.orderBy(desc(subjects.createdAt));
+
       // Update question counts
       const subjectsWithCounts = await Promise.all(
-        results.map(async (subject: any) => {
+        results.map(async (subject: SubjectRow) => {
           const questionCount = await this.getQuestionCount(subject.id);
           return {
             ...subject,
+            difficulty: subject.difficulty as 'Başlangıç' | 'Orta' | 'İleri',
+            createdBy: subject.createdBy || undefined,
             questionCount,
           };
-        })
+        }),
       );
 
       return subjectsWithCounts;
     } catch (error) {
-      console.error('❌ Error getting subjects:', error);
       throw error;
     }
   }
@@ -123,6 +128,7 @@ export class SubjectRepository {
    */
   static async getSubjectById(id: string): Promise<Subject | null> {
     try {
+      const db = getDb();
       const result = await db
         .select()
         .from(subjects)
@@ -134,14 +140,19 @@ export class SubjectRepository {
       }
 
       const subject = result[0];
+      if (!subject) {
+        return null;
+      }
+
       const questionCount = await this.getQuestionCount(subject.id);
 
       return {
         ...subject,
+        difficulty: subject.difficulty as 'Başlangıç' | 'Orta' | 'İleri',
+        createdBy: subject.createdBy || undefined,
         questionCount,
       };
     } catch (error) {
-      console.error('❌ Error getting subject by ID:', error);
       throw error;
     }
   }
@@ -151,24 +162,23 @@ export class SubjectRepository {
    */
   static async updateSubject(id: string, data: UpdateSubjectData): Promise<void> {
     try {
-      const updateData: any = {
+      const db = getDb();
+      const updateData: Partial<typeof subjects.$inferInsert> = {
         updatedAt: new Date(),
       };
 
-      if (data.name !== undefined) updateData.name = data.name;
-      if (data.description !== undefined) updateData.description = data.description;
-      if (data.category !== undefined) updateData.category = data.category;
-      if (data.difficulty !== undefined) updateData.difficulty = data.difficulty;
-      if (data.isActive !== undefined) updateData.isActive = data.isActive;
+      if (data.name !== undefined) {updateData.name = data.name;}
+      if (data.description !== undefined) {updateData.description = data.description;}
+      if (data.category !== undefined) {updateData.category = data.category;}
+      if (data.difficulty !== undefined) {updateData.difficulty = data.difficulty;}
+      if (data.isActive !== undefined) {updateData.isActive = data.isActive;}
 
       await db
         .update(subjects)
         .set(updateData)
         .where(eq(subjects.id, id));
 
-      console.log(`✅ Subject updated: ${id}`);
     } catch (error) {
-      console.error('❌ Error updating subject:', error);
       throw error;
     }
   }
@@ -184,10 +194,9 @@ export class SubjectRepository {
         throw new Error('Cannot delete subject with existing questions');
       }
 
+      const db = getDb();
       await db.delete(subjects).where(eq(subjects.id, id));
-      console.log(`✅ Subject deleted: ${id}`);
     } catch (error) {
-      console.error('❌ Error deleting subject:', error);
       throw error;
     }
   }
@@ -202,17 +211,16 @@ export class SubjectRepository {
         throw new Error('Subject not found');
       }
 
+      const db = getDb();
       await db
         .update(subjects)
-        .set({ 
+        .set({
           isActive: !subject.isActive,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         })
         .where(eq(subjects.id, id));
 
-      console.log(`✅ Subject ${id} active status toggled to ${!subject.isActive}`);
     } catch (error) {
-      console.error('❌ Error toggling subject active status:', error);
       throw error;
     }
   }
@@ -222,14 +230,14 @@ export class SubjectRepository {
    */
   static async getQuestionCount(subjectId: string): Promise<number> {
     try {
+      const db = getDb();
       const result = await db
         .select({ count: count() })
         .from(questions)
         .where(eq(questions.subjectId, subjectId));
 
       return result[0]?.count || 0;
-    } catch (error) {
-      console.error('❌ Error getting question count:', error);
+    } catch {
       return 0;
     }
   }
@@ -239,31 +247,35 @@ export class SubjectRepository {
    */
   static async getSubjectsByCategory(category: string, userId?: string): Promise<Subject[]> {
     try {
-      let query = db
-        .select()
-        .from(subjects)
-        .where(eq(subjects.category, category));
+      const db = getDb();
+      const conditions = [eq(subjects.category, category)];
 
       // Add user filter if userId is provided
       if (userId) {
-        query = query.where(eq(subjects.createdBy, userId));
+        conditions.push(eq(subjects.createdBy, userId));
       }
+
+      const query = db
+        .select()
+        .from(subjects)
+        .where(and(...conditions));
 
       const results = await query.orderBy(desc(subjects.createdAt));
 
       const subjectsWithCounts = await Promise.all(
-        results.map(async (subject: any) => {
+        results.map(async (subject: SubjectRow) => {
           const questionCount = await this.getQuestionCount(subject.id);
           return {
             ...subject,
+            difficulty: subject.difficulty as 'Başlangıç' | 'Orta' | 'İleri',
+            createdBy: subject.createdBy || undefined,
             questionCount,
           };
-        })
+        }),
       );
 
       return subjectsWithCounts;
     } catch (error) {
-      console.error('❌ Error getting subjects by category:', error);
       throw error;
     }
   }
@@ -279,7 +291,7 @@ export class SubjectRepository {
   }> {
     try {
       const allSubjects = await this.getAllSubjects();
-      
+
       const stats = {
         totalSubjects: allSubjects.length,
         activeSubjects: allSubjects.filter(s => s.isActive).length,
@@ -289,20 +301,19 @@ export class SubjectRepository {
 
       // Count by category
       allSubjects.forEach(subject => {
-        stats.subjectsByCategory[subject.category] = 
+        stats.subjectsByCategory[subject.category] =
           (stats.subjectsByCategory[subject.category] || 0) + 1;
       });
 
       // Count by difficulty
       allSubjects.forEach(subject => {
-        stats.subjectsByDifficulty[subject.difficulty] = 
+        stats.subjectsByDifficulty[subject.difficulty] =
           (stats.subjectsByDifficulty[subject.difficulty] || 0) + 1;
       });
 
       return stats;
     } catch (error) {
-      console.error('❌ Error getting subject stats:', error);
       throw error;
     }
   }
-} 
+}

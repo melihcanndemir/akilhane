@@ -5,7 +5,8 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   eslint: {
-    ignoreDuringBuilds: true,
+    // Remove ignoreDuringBuilds to enable ESLint properly
+    // ignoreDuringBuilds: true,
   },
   images: {
     remotePatterns: [
