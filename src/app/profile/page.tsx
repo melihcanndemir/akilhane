@@ -26,6 +26,7 @@ import {
 import Link from 'next/link';
 import MobileNav from '@/components/mobile-nav';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
 
 interface UserProfile {
@@ -43,6 +44,7 @@ interface UserProfile {
 
 function ProfileContent() {
   const { user: authUser, loading: authLoading } = useAuth();
+  const { toast } = useToast();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -162,8 +164,12 @@ function ProfileContent() {
       setUser(prev => prev ? { ...prev, avatar: avatarUrl, avatarPublicId } : null);
 
     } catch {
-      // For now, just show a simple alert
-      alert('Fotoğraf yüklenirken bir hata oluştu. Lütfen tekrar deneyin.');
+      // Show error toast
+      toast({
+        title: 'Hata',
+        description: 'Fotoğraf yüklenirken bir hata oluştu. Lütfen tekrar deneyin.',
+        variant: 'destructive',
+      });
     } finally {
       setIsUploading(false);
     }
@@ -172,7 +178,7 @@ function ProfileContent() {
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      handleAvatarUpload(file);
+      void handleAvatarUpload(file);
     }
   };
 
@@ -231,7 +237,11 @@ function ProfileContent() {
       setUser(prev => prev ? { ...prev, avatar: undefined, avatarPublicId: undefined } : null);
 
     } catch {
-      alert('Fotoğraf silinirken bir hata oluştu. Lütfen tekrar deneyin.');
+      toast({
+        title: 'Hata',
+        description: 'Fotoğraf silinirken bir hata oluştu. Lütfen tekrar deneyin.',
+        variant: 'destructive',
+      });
     } finally {
       setIsUploading(false);
     }
@@ -344,7 +354,7 @@ function ProfileContent() {
                         {user?.avatar && (
                           <Button
                             size="sm"
-                            onClick={handleDeleteAvatar}
+                            onClick={() => { void handleDeleteAvatar(); }}
                             disabled={isUploading}
                             className="absolute -top-2 -right-2 rounded-full w-6 h-6 p-0 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white border-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                           >
@@ -508,7 +518,7 @@ function ProfileContent() {
                         ) : (
                           <>
                             <Button
-                              onClick={handleSave}
+                              onClick={() => { void handleSave(); }}
                               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0"
                               disabled={isSaving}
                             >

@@ -180,7 +180,7 @@ function LoginPageContent() {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Form */}
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={(e) => { void handleSubmit(e); }} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">E-posta</Label>
                   <div className="relative">
@@ -294,7 +294,7 @@ function LoginPageContent() {
               <Button
                 variant="outline"
                 className="w-full hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0 transition-all"
-                onClick={handleGoogleSignIn}
+                onClick={() => { void handleGoogleSignIn(); }}
                 disabled={isGoogleLoading}
               >
                 {isGoogleLoading ? (

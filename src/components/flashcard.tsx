@@ -11,6 +11,7 @@ import Link from 'next/link';
 import VoiceAssistant from './voice-assistant';
 import { getDemoFlashcards } from '@/data/demo-data';
 import MobileNav from '@/components/mobile-nav';
+import { useToast } from '@/hooks/use-toast';
 
 interface Flashcard {
   id: string;
@@ -32,6 +33,8 @@ interface FlashcardProps {
 }
 
 const FlashcardComponent: React.FC<FlashcardProps> = ({ subject, isDemoMode = false }) => {
+  const { toast } = useToast();
+
   // Check demo mode from localStorage
   const demoModeActive = isDemoMode ||
                         (typeof window !== 'undefined' && localStorage.getItem('btk_demo_mode') === 'true');
@@ -112,14 +115,18 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject, isDemoMode = fa
         });
       } catch (error) {
         // Show user-friendly error message
-        alert(`Flashcard yüklenirken hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`);
+        toast({
+          title: 'Hata',
+          description: `Flashcard yüklenirken hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`,
+          variant: 'destructive',
+        });
       }
     };
 
     if (subject) {
       loadFlashcards();
     }
-  }, [subject, demoModeActive]);
+  }, [subject, demoModeActive, toast]);
 
   const handleFlip = () => {
     setIsFlipped(!isFlipped);
@@ -429,7 +436,7 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject, isDemoMode = fa
               Zor
             </button>
             <button
-              onClick={getAiRecommendation}
+              onClick={() => { void getAiRecommendation(); }}
               disabled={isLoadingRecommendation}
               className="px-4 py-2 bg-indigo-600 dark:bg-indigo-700 text-white rounded-lg font-medium hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors disabled:opacity-50"
             >

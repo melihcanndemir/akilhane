@@ -238,7 +238,7 @@ export default function PWAInstallPrompt() {
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-2">
             <Button
-              onClick={handleInstall}
+                                onClick={() => { void handleInstall(); }}
               className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white min-h-[44px] text-sm font-medium border-0"
               size="sm"
             >

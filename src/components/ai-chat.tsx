@@ -352,7 +352,7 @@ const AiChatComponent: React.FC<AiChatProps> = ({ subject, context }) => {
                 />
               </div>
               <button
-                onClick={sendMessage}
+                onClick={() => { void sendMessage(); }}
                 disabled={!inputMessage.trim() || isLoading}
                 className="bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center p-3 sm:px-6 sm:py-3 sm:gap-2"
               >

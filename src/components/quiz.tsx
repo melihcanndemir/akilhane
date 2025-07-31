@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAiTutorHelp, type AiTutorOutput } from '../ai/flows/ai-tutor';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import remarkGfm from 'remark-gfm';
 import MobileNav from './mobile-nav';
 import { QuizResult } from './quiz-result';
 import LoadingSpinner from './loading-spinner';
+import { useToast } from '@/hooks/use-toast';
 
 interface Question {
   id: string;
@@ -57,6 +58,8 @@ interface UserSettings {
 }
 
 const QuizComponent: React.FC<QuizProps> = ({ subject, isDemoMode = false }) => {
+  const { toast } = useToast();
+
   // Save demo mode to localStorage
   useEffect(() => {
     if (typeof window !== 'undefined' && isDemoMode) {
@@ -351,7 +354,11 @@ const QuizComponent: React.FC<QuizProps> = ({ subject, isDemoMode = false }) => 
 
         if (localQuestions.length === 0) {
           // Show error message and redirect to home page
-          alert('Bu ders için henüz soru bulunmuyor');
+          toast({
+            title: 'Hata',
+            description: 'Bu ders için henüz soru bulunmuyor',
+            variant: 'destructive',
+          });
           window.location.href = '/';
           return;
         }
@@ -373,7 +380,11 @@ const QuizComponent: React.FC<QuizProps> = ({ subject, isDemoMode = false }) => 
 
       } catch (error) {
         // Show user-friendly error message
-        alert(`Soru yüklenirken hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`);
+        toast({
+          title: 'Hata',
+          description: `Soru yüklenirken hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`,
+          variant: 'destructive',
+        });
         window.location.href = '/';
       }
     };
@@ -396,63 +407,31 @@ const QuizComponent: React.FC<QuizProps> = ({ subject, isDemoMode = false }) => 
     return undefined;
   }, [startTime]);
 
-  // Timer for countdown (time limit)
-  useEffect(() => {
-    if (timeLimit && timeRemaining !== null && timeRemaining > 0 && !quizFinished) {
-      const timer = setInterval(() => {
-        setTimeRemaining(prev => {
-          if (prev === null || prev <= 1) {
-            // Time's up - auto submit if enabled
-            if (userSettings.studyPreferences.autoSubmit) {
-              handleFinish();
-            }
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+  // Helper function to calculate weak topics
+  const getWeakTopics = useCallback(() => {
+    const weakTopics: Record<string, number> = {};
 
-      return () => clearInterval(timer);
-    }
-    return undefined;
-  }, [timeLimit, timeRemaining, quizFinished, userSettings.studyPreferences.autoSubmit]);
-
-  const currentQuestion = questions[currentQuestionIndex];
-
-  const handleAnswerSelect = (index: number) => {
-    if (!showResult) {
-      setSelectedAnswer(index);
-    }
-  };
-
-  const handleSubmit = () => {
-    if (selectedAnswer !== null && currentQuestion) {
-      const isCorrect = currentQuestion.options[selectedAnswer]?.isCorrect ?? false;
-      if (isCorrect) {
-        setScore(score + 1);
+    // Track actual wrong answers from user answers
+    userAnswers.forEach(answer => {
+      if (!answer.isCorrect) {
+        weakTopics[answer.topic] = (weakTopics[answer.topic] || 0) + 1;
       }
+    });
 
-      // Save user answer
-      setUserAnswers(prev => [...prev, {
-        questionId: currentQuestion.id,
-        topic: currentQuestion.topic,
-        isCorrect,
-      }]);
-
-      setShowResult(true);
+    // Also include current question if answered incorrectly
+    const currentQuestion = questions[currentQuestionIndex];
+    if (currentQuestion && selectedAnswer !== null) {
+      const isCorrect = currentQuestion.options[selectedAnswer]?.isCorrect ?? false;
+      if (!isCorrect) {
+        weakTopics[currentQuestion.topic] = (weakTopics[currentQuestion.topic] || 0) + 1;
+      }
     }
-  };
 
-  const handleNext = () => {
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-      setSelectedAnswer(null);
-      setShowResult(false);
-      setAiTutorHelp(null);
-    }
-  };
+    return weakTopics;
+  }, [userAnswers, questions, currentQuestionIndex, selectedAnswer]);
 
-  const handleFinish = async () => {
+  // Function to handle quiz completion
+  const handleFinish = useCallback(async () => {
     const endTime = new Date();
     const totalTime = startTime ? Math.floor((endTime.getTime() - startTime.getTime()) / 1000) : 0;
 
@@ -516,6 +495,62 @@ const QuizComponent: React.FC<QuizProps> = ({ subject, isDemoMode = false }) => 
     } finally {
       setIsSaving(false);
     }
+  }, [startTime, getWeakTopics, userId, subject, score, totalQuestions, isDemoMode, setFinalResult, setQuizFinished, setIsSaving]);
+
+  // Timer for countdown (time limit)
+  useEffect(() => {
+    if (timeLimit && timeRemaining !== null && timeRemaining > 0 && !quizFinished) {
+      const timer = setInterval(() => {
+        setTimeRemaining(prev => {
+          if (prev === null || prev <= 1) {
+            // Time's up - auto submit if enabled
+            if (userSettings.studyPreferences.autoSubmit) {
+              handleFinish();
+            }
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+    return undefined;
+  }, [timeLimit, timeRemaining, quizFinished, userSettings.studyPreferences.autoSubmit, handleFinish]);
+
+  const currentQuestion = questions[currentQuestionIndex];
+
+  const handleAnswerSelect = (index: number) => {
+    if (!showResult) {
+      setSelectedAnswer(index);
+    }
+  };
+
+  const handleSubmit = () => {
+    if (selectedAnswer !== null && currentQuestion) {
+      const isCorrect = currentQuestion.options[selectedAnswer]?.isCorrect ?? false;
+      if (isCorrect) {
+        setScore(score + 1);
+      }
+
+      // Save user answer
+      setUserAnswers(prev => [...prev, {
+        questionId: currentQuestion.id,
+        topic: currentQuestion.topic,
+        isCorrect,
+      }]);
+
+      setShowResult(true);
+    }
+  };
+
+  const handleNext = () => {
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setSelectedAnswer(null);
+      setShowResult(false);
+      setAiTutorHelp(null);
+    }
   };
 
   const handleRetake = () => {
@@ -535,27 +570,6 @@ const QuizComponent: React.FC<QuizProps> = ({ subject, isDemoMode = false }) => 
     setFinalResult({ score: 0, totalQuestions: 0, timeSpent: 0, weakTopics: {} });
     setTimeRemaining(null);
     setTimeLimit(null);
-  };
-
-  const getWeakTopics = () => {
-    const weakTopics: Record<string, number> = {};
-
-    // Track actual wrong answers from user answers
-    userAnswers.forEach(answer => {
-      if (!answer.isCorrect) {
-        weakTopics[answer.topic] = (weakTopics[answer.topic] || 0) + 1;
-      }
-    });
-
-    // Also include current question if answered incorrectly
-    if (currentQuestion && selectedAnswer !== null) {
-      const isCorrect = currentQuestion.options[selectedAnswer]?.isCorrect ?? false;
-      if (!isCorrect) {
-        weakTopics[currentQuestion.topic] = (weakTopics[currentQuestion.topic] || 0) + 1;
-      }
-    }
-
-    return weakTopics;
   };
 
   // Handle voice commands
@@ -816,7 +830,7 @@ const QuizComponent: React.FC<QuizProps> = ({ subject, isDemoMode = false }) => 
                   {(['hint', 'explanation', 'step-by-step', 'concept-review'] as const).map((step) => (
                     <button
                       key={step}
-                      onClick={() => requestAiTutorHelp(step)}
+                      onClick={() => { void requestAiTutorHelp(step); }}
                       disabled={isLoadingTutor}
                       className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50"
                     >
@@ -876,7 +890,7 @@ const QuizComponent: React.FC<QuizProps> = ({ subject, isDemoMode = false }) => 
                 </button>
               ) : (
                 <button
-                  onClick={handleFinish}
+                  onClick={() => { void handleFinish(); }}
                   disabled={isSaving}
                   className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50"
                 >

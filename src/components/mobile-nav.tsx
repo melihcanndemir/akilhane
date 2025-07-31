@@ -110,7 +110,7 @@ export default function MobileNav() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={logout} className="flex items-center gap-2 text-red-600 dark:text-red-400">
+                  <DropdownMenuItem onClick={() => { void logout(); }} className="flex items-center gap-2 text-red-600 dark:text-red-400">
                     <LogOut className="w-4 h-4" />
                     Çıkış Yap
                   </DropdownMenuItem>
@@ -173,7 +173,7 @@ export default function MobileNav() {
                       <div className="space-y-3">
                         {/* User Information */}
                         <div className="glass-card-inner p-3 rounded-lg shadow-lg">
-                          <div className="flex items-start gap-3 text-sm text-foreground">
+                          <div className="flex items-center gap-3 text-sm text-foreground">
                             <Avatar className="w-8 h-8 flex-shrink-0">
                               <AvatarImage src={user?.user_metadata?.avatar_url} alt={user?.user_metadata?.full_name || user?.email} />
                               <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-medium">
@@ -181,12 +181,9 @@ export default function MobileNav() {
                               </AvatarFallback>
                             </Avatar>
                             <div className="min-w-0 flex-1">
-                              <span className="font-medium break-words break-all block">{user.email}</span>
-                              {user.user_metadata?.full_name && (
-                                <div className="text-xs text-muted-foreground mt-1">
-                                  {user.user_metadata.full_name}
-                                </div>
-                              )}
+                              <span className="font-medium break-words break-all block">
+                                {user.user_metadata?.full_name || user.email?.split('@')[0] || 'Kullanıcı'}
+                              </span>
                             </div>
                           </div>
                         </div>

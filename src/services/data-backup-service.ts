@@ -98,7 +98,7 @@ export class DataBackupService {
       await DataBackupService.updateLastBackupTimestamp(user.id);
       return backupData;
 
-          } catch (error) {
+          } catch {
         return null;
       }
   }
@@ -163,7 +163,7 @@ export class DataBackupService {
       }
 
       return data?.last_backup_at || null;
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -182,7 +182,7 @@ export class DataBackupService {
         });
 
       // Ignore errors in timestamp update
-    } catch (error) {
+    } catch {
       // Ignore errors in timestamp update
     }
   }
@@ -240,7 +240,7 @@ export class DataBackupService {
       await DataBackupService.restoreUserData(user.id, backupData);
       return true;
 
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -277,8 +277,8 @@ export class DataBackupService {
         supabase.from('subjects').delete().eq('created_by', userId),
       ]);
 
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -398,8 +398,8 @@ export class DataBackupService {
 
       // For authenticated users, we only restore Supabase data
       // LocalStorage data (guest data) is not restored for authenticated users
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -439,7 +439,7 @@ export class DataBackupService {
       // LocalStorage data remains untouched (user might have guest data they want to keep)
       return true;
 
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -490,7 +490,7 @@ export class DataBackupService {
       // Force sign out and redirect since user is deleted
       try {
         await supabase.auth.signOut();
-      } catch (signOutError) {
+      } catch {
         // Expected error since user is deleted
       }
 
@@ -507,7 +507,7 @@ export class DataBackupService {
 
       return true;
 
-    } catch (error) {
+    } catch {
       return false;
     }
   }

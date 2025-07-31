@@ -297,7 +297,7 @@ function ChangePasswordContent() {
 
                 {/* Action Button */}
                 <Button
-                  onClick={handlePasswordChange}
+                  onClick={() => { void handlePasswordChange(); }}
                   disabled={isChangingPassword || !passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword}
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 w-full"
                 >

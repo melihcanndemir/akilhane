@@ -560,7 +560,7 @@ const SubjectManager = () => {
                   </Select>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2 pt-4">
-                  <Button onClick={editingSubject ? () => handleEditSubject(editingSubject) : handleAddSubject} className="flex-1">
+                  <Button onClick={editingSubject ? () => { void handleEditSubject(editingSubject); } : () => { void handleAddSubject(); }} className="flex-1">
                     {editingSubject ? 'Güncelle' : 'Ekle'}
                   </Button>
                   <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="flex-1">
@@ -595,7 +595,7 @@ const SubjectManager = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleToggleActive(subject.id)}
+                      onClick={() => { void handleToggleActive(subject.id); }}
                       className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                     >
                       {subject.isActive ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
@@ -611,7 +611,7 @@ const SubjectManager = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleDeleteSubject(subject.id)}
+                      onClick={() => { void handleDeleteSubject(subject.id); }}
                       className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-200"
                     >
                       <Trash2 className="w-4 h-4" />

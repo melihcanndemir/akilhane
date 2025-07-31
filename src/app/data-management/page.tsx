@@ -5,6 +5,17 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import {
   Cloud,
   Download,
   Upload,
@@ -21,10 +32,12 @@ import {
 import Link from 'next/link';
 import MobileNav from '@/components/mobile-nav';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 import { DataBackupService } from '@/services/data-backup-service';
 
 function DataManagementContent() {
   const { user: authUser, loading: authLoading } = useAuth();
+  const { toast } = useToast();
   const [isBackingUp, setIsBackingUp] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
@@ -70,8 +83,7 @@ function DataManagementContent() {
         throw new Error('Yedekleme işlemi başarısız oldu');
       }
 
-    } catch (error) {
-      console.error('Backup error:', error);
+    } catch {
       setBackupSuccess(''); // Clear success message
       setDeleteError('Yedekleme işlemi başarısız oldu. Lütfen tekrar deneyin.');
     } finally {
@@ -80,9 +92,6 @@ function DataManagementContent() {
   };
 
   const handleRestore = async () => {
-    if (!confirm('Mevcut verilerinizi yedekten geri yüklemek istediğinizden emin misiniz? Bu işlem mevcut verilerinizi değiştirebilir.')) {
-      return;
-    }
 
     try {
       setIsRestoring(true);
@@ -97,8 +106,7 @@ function DataManagementContent() {
         throw new Error('Geri yükleme işlemi başarısız oldu');
       }
 
-    } catch (error) {
-      console.error('Restore error:', error);
+    } catch {
       setRestoreSuccess(''); // Clear success message
       setDeleteError('Geri yükleme işlemi başarısız oldu. Lütfen tekrar deneyin.');
     } finally {
@@ -107,9 +115,6 @@ function DataManagementContent() {
   };
 
   const handleClearData = async () => {
-    if (!confirm('Tüm bulut verilerinizi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.')) {
-      return;
-    }
 
     try {
       setIsClearing(true);
@@ -125,8 +130,7 @@ function DataManagementContent() {
         throw new Error('Veri silme işlemi başarısız oldu');
       }
 
-    } catch (error) {
-      console.error('Clear data error:', error);
+    } catch {
       setClearSuccess(''); // Clear success message
       setDeleteError('Veri silme işlemi başarısız oldu. Lütfen tekrar deneyin.');
     } finally {
@@ -135,9 +139,6 @@ function DataManagementContent() {
   };
 
   const handleDeleteAccount = async () => {
-    if (!confirm('Hesabınızı kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz ve tüm verileriniz kaybolacak.')) {
-      return;
-    }
 
     try {
       setIsDeleting(true);
@@ -148,14 +149,16 @@ function DataManagementContent() {
 
       if (success) {
         // Show success message briefly before redirect
-        alert('Hesabınız başarıyla silindi. Ana sayfaya yönlendiriliyorsunuz...');
+        toast({
+          title: 'Hesap Silindi',
+          description: 'Hesabınız başarıyla silindi. Ana sayfaya yönlendiriliyorsunuz...',
+        });
         // DataBackupService already handles logout and redirect
       } else {
         throw new Error('Hesap silme işlemi başarısız oldu');
       }
 
-    } catch (error) {
-      console.error('Delete account error:', error);
+    } catch {
       setDeleteError('Hesap silme işlemi başarısız oldu. Lütfen tekrar deneyin.');
     } finally {
       setIsDeleting(false);
@@ -277,7 +280,7 @@ function DataManagementContent() {
                   )}
 
                   <Button
-                    onClick={handleBackup}
+                    onClick={() => { void handleBackup(); }}
                     disabled={isBackingUp}
                     className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 w-full"
                   >
@@ -327,18 +330,35 @@ function DataManagementContent() {
                     </div>
                   )}
 
-                  <Button
-                    onClick={handleRestore}
-                    disabled={isRestoring}
-                    className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white border-0 w-full"
-                  >
-                    {isRestoring ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Download className="w-4 h-4 mr-2" />
-                    )}
-                    {isRestoring ? 'Geri Yükleniyor...' : 'Yedekten Geri Yükle'}
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        disabled={isRestoring}
+                        className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white border-0 w-full"
+                      >
+                        {isRestoring ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <Download className="w-4 h-4 mr-2" />
+                        )}
+                        {isRestoring ? 'Geri Yükleniyor...' : 'Yedekten Geri Yükle'}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Yedekten Geri Yükle</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Mevcut verilerinizi yedekten geri yüklemek istediğinizden emin misiniz? Bu işlem mevcut verilerinizi değiştirebilir.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>İptal</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => { void handleRestore(); }}>
+                          Geri Yükle
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </CardContent>
               </Card>
             </motion.div>
@@ -378,18 +398,35 @@ function DataManagementContent() {
                     </div>
                   )}
 
-                  <Button
-                    onClick={handleClearData}
-                    disabled={isClearing}
-                    className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white border-0 w-full"
-                  >
-                    {isClearing ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Trash2 className="w-4 h-4 mr-2" />
-                    )}
-                    {isClearing ? 'Temizleniyor...' : 'Tüm Bulut Verilerini Temizle'}
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        disabled={isClearing}
+                        className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white border-0 w-full"
+                      >
+                        {isClearing ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-4 h-4 mr-2" />
+                        )}
+                        {isClearing ? 'Temizleniyor...' : 'Tüm Bulut Verilerini Temizle'}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Bulut Verilerini Temizle</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Tüm bulut verilerinizi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>İptal</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => { void handleClearData(); }}>
+                          Temizle
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </CardContent>
               </Card>
             </motion.div>
@@ -426,18 +463,38 @@ function DataManagementContent() {
                     </div>
                   )}
 
-                  <Button
-                    onClick={handleDeleteAccount}
-                    disabled={isDeleting}
-                    className="bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white border-0 w-full"
-                  >
-                    {isDeleting ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <UserX className="w-4 h-4 mr-2" />
-                    )}
-                    {isDeleting ? 'Hesap Siliniyor...' : 'Hesabımı Sil'}
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        disabled={isDeleting}
+                        className="bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white border-0 w-full"
+                      >
+                        {isDeleting ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <UserX className="w-4 h-4 mr-2" />
+                        )}
+                        {isDeleting ? 'Hesap Siliniyor...' : 'Hesabımı Sil'}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Hesabı Sil</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Hesabınızı kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz ve tüm verileriniz kaybolacak.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>İptal</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => { void handleDeleteAccount(); }}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          Hesabı Sil
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </CardContent>
               </Card>
             </motion.div>

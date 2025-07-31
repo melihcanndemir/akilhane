@@ -9,6 +9,17 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import {
   Settings,
   Bell,
   Palette,
@@ -226,9 +237,16 @@ export default function SettingsPage() {
               setAppearance(data.settings.appearance || appearance);
               setStudyPreferences(data.settings.studyPreferences || studyPreferences);
             }
-            alert('Veriler başarıyla içe aktarıldı!');
+            toast({
+              title: 'Başarılı',
+              description: 'Veriler başarıyla içe aktarıldı!',
+            });
           } catch {
-            alert('Dosya formatı geçersiz!');
+            toast({
+              title: 'Hata',
+              description: 'Dosya formatı geçersiz!',
+              variant: 'destructive',
+            });
           }
         };
         reader.readAsText(file);
@@ -238,10 +256,11 @@ export default function SettingsPage() {
   };
 
   const handleClearData = () => {
-    if (confirm('Tüm verileriniz silinecek. Bu işlem geri alınamaz. Devam etmek istiyor musunuz?')) {
-      localStorage.clear();
-      alert('Tüm veriler silindi!');
-    }
+    localStorage.clear();
+    toast({
+      title: 'Başarılı',
+      description: 'Tüm veriler silindi!',
+    });
   };
 
   const handleSaveSettings = () => {
@@ -592,10 +611,31 @@ export default function SettingsPage() {
                 </div>
                 <Separator />
                 <div className="flex gap-2">
-                  <Button onClick={handleClearData} variant="destructive" className="flex-1 hover:bg-gradient-to-r hover:from-red-600 hover:to-pink-600 hover:text-white hover:border-0">
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Tüm Verileri Sil
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" className="flex-1 hover:bg-gradient-to-r hover:from-red-600 hover:to-pink-600 hover:text-white hover:border-0">
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Tüm Verileri Sil
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Tüm Verileri Sil</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Tüm verileriniz silinecek. Bu işlem geri alınamaz. Devam etmek istiyor musunuz?
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>İptal</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleClearData}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          Sil
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Dışa aktarılan veriler JSON formatında kaydedilir ve daha sonra içe aktarılabilir.
