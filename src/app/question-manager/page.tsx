@@ -190,7 +190,7 @@ export default function QuestionManager() {
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [aiGeneratedQuestions, setAIGeneratedQuestions] = useState<AIGeneratedQuestion[]>([]);
   const [aiGenerationResult, setAIGenerationResult] = useState<AIGenerationResult | null>(null);
-  const [selectedAIQuestions, setSelectedAIQuestions] = useState<Set<number>>(new Set());
+  const [selectedAIQuestions, setSelectedAIQuestions] = new Set<number>();
   const [activeAITab, setActiveAITab] = useState<string>('generate');
   const [showAnswers, setShowAnswers] = useState(false);
   const [dataRefreshTrigger, setDataRefreshTrigger] = useState(0);
@@ -318,8 +318,10 @@ export default function QuestionManager() {
 
       setSubjects(mappedSubjects);
 
-      // Sync Supabase subjects to localStorage
-      SubjectLocalStorageService.saveSubjects(mappedSubjects);
+      // Only sync to localStorage if we have data
+      if (mappedSubjects.length > 0) {
+        SubjectLocalStorageService.saveSubjects(mappedSubjects);
+      }
 
       if (mappedSubjects.length > 0 && mappedSubjects[0]) {
         const firstSubject = mappedSubjects[0];
@@ -419,10 +421,13 @@ export default function QuestionManager() {
             setQuestions(mappedQuestions);
 
             // Sync Supabase questions to localStorage for offline access
-            const allQuestions = QuestionLocalStorageService.getQuestions();
-            const updatedQuestions = allQuestions.filter(q => q.subject !== subjectToLoad);
-            updatedQuestions.push(...mappedQuestions);
-            QuestionLocalStorageService.saveQuestions(updatedQuestions);
+            // Only update if we have new questions
+            if (mappedQuestions.length > 0) {
+              const allQuestions = QuestionLocalStorageService.getQuestions();
+              const updatedQuestions = allQuestions.filter(q => q.subject !== subjectToLoad);
+              updatedQuestions.push(...mappedQuestions);
+              QuestionLocalStorageService.saveQuestions(updatedQuestions);
+            }
           } catch {
             // Fallback to localStorage if Supabase fails
             const localQuestions = QuestionLocalStorageService.getQuestionsBySubject(subjectToLoad);
