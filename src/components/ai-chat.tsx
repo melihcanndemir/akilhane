@@ -145,14 +145,17 @@ const AiChatComponent: React.FC<AiChatProps> = ({ subject, context }) => {
       // Continue with AI response...
       const sendAIResponse = async () => {
         try {
+          // Include the new user message in conversation history
+          const updatedHistory = [...messages, userMessage].map(msg => ({
+            role: msg.role,
+            content: msg.content,
+            timestamp: msg.timestamp,
+          }));
+
           const response = await getAiChatResponse({
             message: voiceTranscript,
             subject,
-            conversationHistory: messages.map(msg => ({
-              role: msg.role,
-              content: msg.content,
-              timestamp: msg.timestamp,
-            })),
+            conversationHistory: updatedHistory,
             context,
           });
 
