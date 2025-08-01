@@ -29,7 +29,7 @@ const AiChatComponent: React.FC<AiChatProps> = ({ subject, context }) => {
   const [aiResponse, setAiResponse] = useState<AiChatOutput | null>(null);
   const [showVoiceAssistant, setShowVoiceAssistant] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [voiceMode, setVoiceMode] = useState<'assistant' | 'dictation'>('assistant');
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto scroll to bottom
@@ -117,39 +117,20 @@ const AiChatComponent: React.FC<AiChatProps> = ({ subject, context }) => {
 
   const handleVoiceTranscript = (transcript: string) => {
     setInputMessage(transcript);
-    // Auto-send after voice input
+    // Auto-send after voice input for seamless UX
     setTimeout(() => {
-      sendMessage();
-    }, 500);
+      if (transcript.trim()) {
+        sendMessage();
+      }
+    }, 100);
   };
 
   // Handle voice commands
   const handleVoiceCommand = (command: string) => {
 
     switch (command) {
-      case 'send':
-        if (inputMessage.trim()) {
-          sendMessage();
-        }
-        break;
       case 'clear':
         clearChat();
-        break;
-      case 'help':
-        // Add help message
-        const helpMessage: ChatMessage = {
-          id: Date.now().toString(),
-          role: 'assistant',
-          content: 'Sesli komutlar:\n• "Gönder" - Mesajı gönder\n• "Temizle" - Sohbeti temizle\n• "Yardım" - Bu mesajı göster\n• "Soru" - Soru sor\n• "Açıkla" - Konu açıklaması iste',
-          timestamp: new Date().toISOString(),
-        };
-        setMessages(prev => [...prev, helpMessage]);
-        break;
-      case 'question':
-        setInputMessage('Bu konu hakkında bir soru sorabilir misin?');
-        break;
-      case 'explain':
-        setInputMessage('Bu konuyu detaylı açıklayabilir misin?');
         break;
       default:
         // Unknown command
@@ -180,22 +161,6 @@ const AiChatComponent: React.FC<AiChatProps> = ({ subject, context }) => {
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                {/* Voice Mode Toggle */}
-                {showVoiceAssistant && (
-                  <button
-                    onClick={() => setVoiceMode(voiceMode === 'assistant' ? 'dictation' : 'assistant')}
-                    className={`px-3 py-1 rounded-lg text-sm transition-colors flex items-center gap-2 ${
-                      voiceMode === 'dictation'
-                        ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800'
-                        : 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800'
-                    }`}
-                    title={voiceMode === 'assistant' ? 'Sesli Asistan Modu' : 'Sesli Yazma Modu'}
-                  >
-                    {voiceMode === 'dictation' ? '📝' : '🤖'}
-                    {voiceMode === 'dictation' ? 'Yazma' : 'Asistan'}
-                  </button>
-                )}
-
                 <button
                   onClick={() => setShowVoiceAssistant(!showVoiceAssistant)}
                   className={`px-3 py-1 rounded-lg text-sm transition-colors flex items-center gap-2 ${
@@ -383,7 +348,7 @@ const AiChatComponent: React.FC<AiChatProps> = ({ subject, context }) => {
         isListening={isListening}
         onListeningChange={setIsListening}
         show={showVoiceAssistant}
-        mode={voiceMode}
+        aiTutorOutput={aiResponse?.response || ''}
       />
     </div>
   );

@@ -9,13 +9,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { AiChatInput } from '@/ai/flows/ai-chat';
 import { getAiChatResponse } from '@/ai/flows/ai-chat';
-import { User, Sparkles, BrainCircuit, Lightbulb, Loader2, Plus, ChevronDown, BookOpen } from 'lucide-react';
+import { User, Sparkles, BrainCircuit, Lightbulb, Loader2, Plus, ChevronDown, BookOpen, Mic } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
 import { supabase } from '@/lib/supabase';
 import AiChatHistory from './ai-chat-history';
 import localStorageService from '@/services/localStorage-service';
+import VoiceAssistant from '../voice-assistant';
 
 // LocalStorage service for subjects
 class SubjectLocalStorageService {
@@ -66,6 +67,11 @@ export default function AiChatClient() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
+  
+  // Voice Assistant states
+  const [showVoiceAssistant, setShowVoiceAssistant] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+
 
   // Handle scroll events to show/hide scroll button
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -441,6 +447,29 @@ export default function AiChatClient() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Voice Assistant handlers
+  const handleVoiceTranscript = (transcript: string) => {
+    setInput(transcript);
+    // Auto-send after voice input for seamless UX
+    setTimeout(() => {
+      if (transcript.trim()) {
+        handleSendMessage(transcript);
+        setInput('');
+      }
+    }, 100);
+  };
+
+  const handleVoiceCommand = (command: string) => {
+    switch (command) {
+      case 'clear':
+        setMessages([]);
+        setSuggestions(null);
+        break;
+      default:
+        // Unknown command
+    }
+  };
+
   return (
     <div className="flex justify-center items-start min-h-screen bg-gray-50 dark:bg-gray-900 p-2 sm:p-4 pt-0">
       <Card className="w-full max-w-5xl h-[calc(100vh-4rem)] flex flex-col shadow-2xl mt-2 border-gradient-question p-0">
@@ -522,32 +551,48 @@ export default function AiChatClient() {
                 </div>
               </div>
             </div>
-            {isAuthenticated && (
-              <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-                <AiChatHistory
-                  onSessionSelect={handleSessionSelect}
-                  currentSessionId={currentSessionId || undefined}
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setCurrentSessionId(null);
-                    setMessages([
-                      {
-                        id: 'init',
-                        role: 'assistant',
-                        content: `Merhaba! Ben AkılHane AI Tutor'ınız. ${currentSubject} dersiyle ilgili aklınıza takılan her şeyi sorabilirsiniz. Hadi başlayalım!`,
-                      },
-                    ]);
-                  }}
-                  className="gap-1 sm:gap-2 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0 text-xs sm:text-sm h-8 sm:h-9"
-                >
-                  <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
-                  <span className="hidden sm:inline">Yeni</span>
-                </Button>
-              </div>
-            )}
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowVoiceAssistant(!showVoiceAssistant)}
+                className={`gap-1 sm:gap-2 text-xs sm:text-sm h-8 sm:h-9 ${
+                  showVoiceAssistant
+                    ? 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 border-red-300'
+                    : 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800 border-blue-300'
+                }`}
+              >
+                <Mic className={`w-3 h-3 sm:w-4 sm:h-4 ${isListening ? 'animate-pulse' : ''}`} />
+                <span className="hidden sm:inline">{showVoiceAssistant ? 'Sesli Kapat' : 'Sesli Asistan'}</span>
+              </Button>
+              
+              {isAuthenticated && (
+                <>
+                  <AiChatHistory
+                    onSessionSelect={handleSessionSelect}
+                    currentSessionId={currentSessionId || undefined}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setCurrentSessionId(null);
+                      setMessages([
+                        {
+                          id: 'init',
+                          role: 'assistant',
+                          content: `Merhaba! Ben AkılHane AI Tutor'ınız. ${currentSubject} dersiyle ilgili aklınıza takılan her şeyi sorabilirsiniz. Hadi başlayalım!`,
+                        },
+                      ]);
+                    }}
+                    className="gap-1 sm:gap-2 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0 text-xs sm:text-sm h-8 sm:h-9"
+                  >
+                    <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">Yeni</span>
+                  </Button>
+                </>
+              )}
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent className="flex-1 overflow-y-auto p-3 md:p-6 space-y-6" onScroll={handleScroll} ref={messagesContainerRef}>
@@ -666,6 +711,16 @@ export default function AiChatClient() {
           </form>
         </div>
       </Card>
+      
+      {/* Voice Assistant */}
+      <VoiceAssistant
+        onCommand={handleVoiceCommand}
+        onTranscript={handleVoiceTranscript}
+        isListening={isListening}
+        onListeningChange={setIsListening}
+        show={showVoiceAssistant}
+        aiTutorOutput={messages.length > 0 ? messages[messages.length - 1]?.content || '' : ''}
+      />
     </div>
   );
 }
