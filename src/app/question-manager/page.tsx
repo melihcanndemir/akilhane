@@ -23,6 +23,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
+import { useAuthStateListener } from '@/contexts/AuthContext';
+import AuthStatusIndicator from '@/components/auth-status-indicator';
 
 interface Subject {
   id: string;
@@ -179,6 +181,7 @@ export default function QuestionManager() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
   const { toast } = useToast();
+  const { refreshTrigger } = useAuthStateListener();
   
   // AI Generation states
   const [isAIDialogOpen, setIsAIDialogOpen] = useState(false);
@@ -228,12 +231,34 @@ export default function QuestionManager() {
     checkAuth();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((session) => {
-      setIsAuthenticated(!!session);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      const wasAuthenticated = isAuthenticated;
+      const nowAuthenticated = !!session;
+      
+      setIsAuthenticated(nowAuthenticated);
+      
+      // Handle auth state transitions
+      if (event === 'SIGNED_IN' && !wasAuthenticated && nowAuthenticated) {
+        console.log('🔄 User logged in - refreshing data without clearing existing...');
+        // Reload data but don't clear existing localStorage
+        await loadSubjects();
+        if (selectedSubject) {
+          await loadQuestions();
+        }
+      }
+      
+      if (event === 'SIGNED_OUT' && wasAuthenticated && !nowAuthenticated) {
+        console.log('👋 User logged out - keeping localStorage data...');
+        // Keep using localStorage data when logged out
+        await loadSubjects();
+        if (selectedSubject) {
+          await loadQuestions();
+        }
+      }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [isAuthenticated, selectedSubject]);
 
   // Handle hydration
   useEffect(() => {
@@ -243,13 +268,13 @@ export default function QuestionManager() {
   // Load subjects and questions
   useEffect(() => {
     loadSubjects();
-  }, []);
+  }, [refreshTrigger]);
 
   useEffect(() => {
     if (selectedSubject) {
       loadQuestions();
     }
-  }, [selectedSubject]);
+  }, [selectedSubject, refreshTrigger]);
 
   const loadSubjects = async () => {
     try {
@@ -296,45 +321,69 @@ export default function QuestionManager() {
         return;
       }
 
-      // First check authentication
-      console.log('🔐 Question Manager - Checking authentication...');
+      // First try to get data from localStorage (preserves all data)
+      console.log('🔐 Question Manager - Loading subjects...');
+      const localSubjects = SubjectLocalStorageService.getSubjects();
+      
+      // Check authentication
       const { data: { session } } = await supabase.auth.getSession();
       
-      if (!session) {
+      if (session) {
+        console.log('✅ Session found - loading from Supabase and merging with localStorage');
+        
+        try {
+          const supabaseSubjects = await SubjectService.getSubjects();
+          const mappedSupabaseSubjects: Subject[] = supabaseSubjects.map(s => ({
+            id: s.id,
+            name: s.name,
+            description: s.description,
+            category: s.category,
+            difficulty: s.difficulty,
+            questionCount: s.question_count,
+            isActive: s.is_active
+          }));
+          
+          // Merge localStorage and Supabase data (prioritize Supabase for authenticated users)
+          const mergedSubjects = [...mappedSupabaseSubjects];
+          
+          // Add any localStorage subjects that aren't in Supabase
+          localSubjects.forEach(localSubject => {
+            if (!mergedSubjects.find(s => s.name === localSubject.name)) {
+              mergedSubjects.push(localSubject);
+            }
+          });
+          
+          setSubjects(mergedSubjects);
+          
+          // Update localStorage with merged data
+          console.log('📦 Syncing merged subjects to localStorage...');
+          SubjectLocalStorageService.saveSubjects(mergedSubjects);
+          
+          if (mergedSubjects.length > 0 && mergedSubjects[0]) {
+            const firstSubject = mergedSubjects[0];
+            if (!selectedSubject) {
+              setSelectedSubject(firstSubject.name);
+              setFormData(prev => ({ ...prev, subject: firstSubject.name }));
+            }
+          }
+        } catch (error) {
+          console.error('Error loading from Supabase, falling back to localStorage:', error);
+          // Fallback to localStorage if Supabase fails
+          setSubjects(localSubjects);
+          if (localSubjects.length > 0 && localSubjects[0] && !selectedSubject) {
+            const firstSubject = localSubjects[0];
+            setSelectedSubject(firstSubject.name);
+            setFormData(prev => ({ ...prev, subject: firstSubject.name }));
+          }
+        }
+      } else {
         console.log('❌ No session found, using localStorage');
-        const localSubjects = SubjectLocalStorageService.getSubjects();
         setSubjects(localSubjects);
-        if (localSubjects.length > 0 && localSubjects[0]) {
+        if (localSubjects.length > 0 && localSubjects[0] && !selectedSubject) {
           const firstSubject = localSubjects[0];
           setSelectedSubject(firstSubject.name);
           setFormData(prev => ({ ...prev, subject: firstSubject.name }));
         }
-        return;
-      }
-
-      console.log('✅ Question Manager - Session found, using Supabase');
-      
-      const supabaseSubjects = await SubjectService.getSubjects();
-      const mappedSubjects: Subject[] = supabaseSubjects.map(s => ({
-        id: s.id,
-        name: s.name,
-        description: s.description,
-        category: s.category,
-        difficulty: s.difficulty,
-        questionCount: s.question_count,
-        isActive: s.is_active
-      }));
-      
-      setSubjects(mappedSubjects);
-      
-      // Sync Supabase subjects to localStorage
-      console.log('📦 Syncing Supabase subjects to localStorage...');
-      SubjectLocalStorageService.saveSubjects(mappedSubjects);
-      
-      if (mappedSubjects.length > 0 && mappedSubjects[0]) {
-        const firstSubject = mappedSubjects[0];
-        setSelectedSubject(firstSubject.name);
-        setFormData(prev => ({ ...prev, subject: firstSubject.name }));
       }
     } catch (error) {
       console.error('Error loading subjects:', error);
@@ -411,30 +460,56 @@ export default function QuestionManager() {
         return;
       }
 
-      // Check Supabase usage
-      console.log('🎯 Question Manager - Loading questions for subject:', subjectToLoad);
+      // First get localStorage questions
+      const localQuestions = QuestionLocalStorageService.getQuestionsBySubject(subjectToLoad);
       
-      const supabaseQuestions = await QuestionService.getQuestionsBySubject(subjectToLoad);
-      const mappedQuestions: Question[] = supabaseQuestions.map(q => ({
-        id: q.id,
-        subject: q.subject,
-        type: q.type as 'multiple-choice' | 'true-false' | 'calculation' | 'case-study',
-        difficulty: q.difficulty as 'Easy' | 'Medium' | 'Hard',
-        text: q.text,
-        options: JSON.parse(q.options),
-        explanation: q.explanation,
-        topic: q.topic,
-        formula: q.formula || ''
-      }));
+      // Check if authenticated to get Supabase data
+      const { data: { session } } = await supabase.auth.getSession();
       
-      setQuestions(mappedQuestions);
-      
-      // Sync Supabase questions to localStorage
-      console.log('📦 Syncing Supabase questions to localStorage...');
-      const allQuestions = QuestionLocalStorageService.getQuestions();
-      const updatedQuestions = allQuestions.filter(q => q.subject !== subjectToLoad);
-      updatedQuestions.push(...mappedQuestions);
-      QuestionLocalStorageService.saveQuestions(updatedQuestions);
+      if (session) {
+        console.log('🎯 Authenticated - Loading questions from Supabase and merging with localStorage');
+        
+        try {
+          const supabaseQuestions = await QuestionService.getQuestionsBySubject(subjectToLoad);
+          const mappedSupabaseQuestions: Question[] = supabaseQuestions.map(q => ({
+            id: q.id,
+            subject: q.subject,
+            type: q.type as 'multiple-choice' | 'true-false' | 'calculation' | 'case-study',
+            difficulty: q.difficulty as 'Easy' | 'Medium' | 'Hard',
+            text: q.text,
+            options: JSON.parse(q.options),
+            explanation: q.explanation,
+            topic: q.topic,
+            formula: q.formula || ''
+          }));
+          
+          // Merge Supabase and localStorage questions
+          const mergedQuestions = [...mappedSupabaseQuestions];
+          
+          // Add localStorage questions that aren't in Supabase
+          localQuestions.forEach(localQ => {
+            if (!mergedQuestions.find(q => q.id === localQ.id || q.text === localQ.text)) {
+              mergedQuestions.push(localQ);
+            }
+          });
+          
+          setQuestions(mergedQuestions);
+          
+          // Update localStorage with merged data
+          console.log('📦 Syncing merged questions to localStorage...');
+          const allQuestions = QuestionLocalStorageService.getQuestions();
+          const updatedQuestions = allQuestions.filter(q => q.subject !== subjectToLoad);
+          updatedQuestions.push(...mergedQuestions);
+          QuestionLocalStorageService.saveQuestions(updatedQuestions);
+          
+        } catch (error) {
+          console.error('Error loading from Supabase, using localStorage questions:', error);
+          setQuestions(localQuestions);
+        }
+      } else {
+        console.log('🎯 Not authenticated - using localStorage questions');
+        setQuestions(localQuestions);
+      }
       
     } catch (error) {
       console.error('Error loading questions:', error);
@@ -1015,6 +1090,11 @@ export default function QuestionManager() {
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Auth Status Indicator (for testing) */}
+          <div className="flex justify-end">
+            <AuthStatusIndicator />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
