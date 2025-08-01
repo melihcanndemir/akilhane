@@ -130,8 +130,12 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
     };
 
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-      console.warn('Speech recognition error:', event.error);
-      
+      // Log errors only in development
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.warn('Speech recognition error:', event.error);
+      }
+
       // Handle different error types appropriately
       switch (event.error) {
         case 'no-speech':
@@ -143,19 +147,28 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
           // Microphone access issues - should notify user
           setRecognitionState('idle');
           onListeningChange?.(false);
-          console.error('Microphone access denied or unavailable');
+          if (process.env.NODE_ENV === 'development') {
+            // eslint-disable-next-line no-console
+            console.error('Microphone access denied or unavailable');
+          }
           break;
         case 'not-allowed':
           // Permission denied - should notify user
           setRecognitionState('idle');
           onListeningChange?.(false);
-          console.error('Speech recognition permission denied');
+          if (process.env.NODE_ENV === 'development') {
+            // eslint-disable-next-line no-console
+            console.error('Speech recognition permission denied');
+          }
           break;
         case 'network':
           // Network issues - might retry or notify user
           setRecognitionState('idle');
           onListeningChange?.(false);
-          console.error('Network error during speech recognition');
+          if (process.env.NODE_ENV === 'development') {
+            // eslint-disable-next-line no-console
+            console.error('Network error during speech recognition');
+          }
           break;
         case 'aborted':
           // Recognition was aborted - normal during stop operation
@@ -166,9 +179,12 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
           // Other errors - generic handling
           setRecognitionState('idle');
           onListeningChange?.(false);
-          console.error('Unknown speech recognition error:', event.error);
+          if (process.env.NODE_ENV === 'development') {
+            // eslint-disable-next-line no-console
+            console.error('Unknown speech recognition error:', event.error);
+          }
       }
-      
+
       setTranscript('');
     };
 

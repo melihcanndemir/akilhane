@@ -718,7 +718,7 @@ export default function AiChatClient() {
         isListening={isListening}
         onListeningChange={setIsListening}
         show={showVoiceAssistant}
-        aiTutorOutput={messages.length > 0 ? 
+        aiTutorOutput={messages.length > 0 ?
           messages.slice().reverse().find(msg => msg.role === 'assistant')?.content || '' : ''}
       />
     </div>
