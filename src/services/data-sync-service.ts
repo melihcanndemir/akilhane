@@ -189,7 +189,7 @@ export class DataSyncService {
 
       // Update localStorage with new questions
       const allLocalQuestions = this.getLocalQuestions();
-      const filteredQuestions = allLocalQuestions.filter((q: { subject: string }) => q.subject !== subjectName);
+      const filteredQuestions = allLocalQuestions.filter((q: any) => q.subject !== subjectName);
       const updatedQuestions = [...filteredQuestions, ...questions];
       localStorage.setItem('exam_training_questions', JSON.stringify(updatedQuestions));
 
