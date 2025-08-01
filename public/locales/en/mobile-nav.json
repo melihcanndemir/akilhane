@@ -1,0 +1,21 @@
+{
+  "menu": "Menu",
+  "close": "Close",
+  "navigation": "Navigation",
+  "profile": "Profile",
+  "logout": "Logout",
+  "settings": "Settings",
+  "home": "Home",
+  "demo": "Demo",
+  "dashboard": "Dashboard",
+  "quiz": "Quiz",
+  "flashcard": "Flashcard",
+  "ai_assistant": "AI Assistant",
+  "question_manager": "Question Manager",
+  "subject_manager": "Subject Manager",
+  "login": "Login",
+  "login_button": "Login",
+  "my_profile": "My Profile",
+  "navigation_menu": "Main navigation menu",
+  "user": "User"
+} 
