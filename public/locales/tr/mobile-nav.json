@@ -1,0 +1,21 @@
+{
+  "menu": "Menü",
+  "close": "Kapat",
+  "navigation": "Navigasyon",
+  "profile": "Profil",
+  "logout": "Çıkış Yap",
+  "settings": "Ayarlar",
+  "home": "Ana Sayfa",
+  "demo": "Demo",
+  "dashboard": "Kontrol Paneli",
+  "quiz": "Quiz",
+  "flashcard": "Flashcard",
+  "ai_assistant": "AI Asistan",
+  "question_manager": "Soru Yöneticisi",
+  "subject_manager": "Ders Yöneticisi",
+  "login": "Giriş",
+  "login_button": "Giriş Yap",
+  "my_profile": "Profilim",
+  "navigation_menu": "Ana navigasyon menüsü",
+  "user": "Kullanıcı"
+} 

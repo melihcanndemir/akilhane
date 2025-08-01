@@ -77,7 +77,7 @@ export default function SettingsPage() {
     const initializeSettings = async () => {
       setLoading(true);
 
-      // Default değerlerle başla
+      // Default values
       let loadedStudyPrefs = {
         defaultSubject: '',
         questionsPerQuiz: 10,
@@ -97,7 +97,7 @@ export default function SettingsPage() {
       };
       let loadedTheme = 'system';
 
-      // 1. localStorage'dan ayarları yükle
+      // 1. Load settings from localStorage
       const saved = localStorage.getItem('userSettings');
       if (saved) {
         try {
@@ -113,7 +113,7 @@ export default function SettingsPage() {
         }
       }
 
-      // 2. API'den subjects'leri yükle
+      // 2. Load subjects from API
       try {
         const response = await fetch('/api/subjects');
         if (response.ok) {
@@ -145,13 +145,13 @@ export default function SettingsPage() {
         loadedStudyPrefs.timeLimit = -1;
       }
 
-      // 5. State'leri ayarla
+      // 5. Set states
       setNotifications(loadedNotifications);
       setAppearance(loadedAppearance);
       setStudyPreferences(loadedStudyPrefs);
       setTheme(loadedTheme);
 
-      // 6. Görsel stilleri uygula
+      // 6. Apply visual styles
       const root = document.documentElement;
       if (loadedAppearance.compactMode) {root.classList.add('compact-mode');}
       else {root.classList.remove('compact-mode');}
@@ -170,7 +170,7 @@ export default function SettingsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Sadece mount time'da çalış
 
-  // Compact mode ve font size değişikliklerini anında uygula
+  // Apply compact mode and font size changes instantly
   useEffect(() => {
     const root = document.documentElement;
 
@@ -213,7 +213,7 @@ export default function SettingsPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `aof-data-${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `settings-data-${new Date().toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };

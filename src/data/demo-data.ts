@@ -150,20 +150,20 @@ export const demoPerformanceData: DemoPerformanceData[] = [
     totalTests: 19,
     weakTopics: ['Grammar Tenses', 'Reading Comprehension', 'Vocabulary'],
     strongTopics: ['Yabancı Dil', 'Gramatik', 'Okuma'],
-    lastUpdated: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6 saat önce
+    lastUpdated: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6 hours ago
   },
 ];
 
-// Son test sonuçları - Çeşitli performans seviyeleri
+// Final test results - Various performance levels
 export const demoRecentResults: DemoQuizResult[] = [
   {
     id: 'demo_res_1',
     subject: 'Matematik',
     score: 19,
     totalQuestions: 20,
-    timeSpent: 1800, // 30 dakika
+    timeSpent: 1800, // 30 minutes
     weakTopics: ['Türev Uygulamaları'],
-    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 saat önce
+    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
   },
   {
     id: 'demo_res_2',
