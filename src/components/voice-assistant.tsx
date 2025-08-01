@@ -266,6 +266,11 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
   const toggleListening = () => {
     if (!recognitionRef.current) {return;}
 
+    // Prevent rapid toggling that can cause race conditions
+    if (recognitionState === 'starting' || recognitionState === 'stopping') {
+      return;
+    }
+
     try {
       if (recognitionState === 'active' || isListening) {
         setRecognitionState('stopping');
@@ -285,6 +290,10 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
           setRecognitionState('idle');
           onListeningChange?.(false);
         }
+      } else if (error instanceof Error && error.message.includes('not started')) {
+        // If not started but we thought it was active, reset to idle
+        setRecognitionState('idle');
+        onListeningChange?.(false);
       } else {
         // Reset to idle state on any other error
         setRecognitionState('idle');

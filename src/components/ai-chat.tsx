@@ -117,12 +117,12 @@ const AiChatComponent: React.FC<AiChatProps> = ({ subject, context }) => {
 
   const handleVoiceTranscript = (transcript: string) => {
     setInputMessage(transcript);
-    // Auto-send after voice input for seamless UX
+    // Auto-send after voice input for seamless UX with reasonable delay
     setTimeout(() => {
       if (transcript.trim()) {
         sendMessage();
       }
-    }, 100);
+    }, 800);
   };
 
   // Handle voice commands
@@ -348,7 +348,8 @@ const AiChatComponent: React.FC<AiChatProps> = ({ subject, context }) => {
         isListening={isListening}
         onListeningChange={setIsListening}
         show={showVoiceAssistant}
-        aiTutorOutput={aiResponse?.response || ''}
+        aiTutorOutput={messages.length > 0 ? 
+          messages.slice().reverse().find(msg => msg.role === 'assistant')?.content || '' : ''}
       />
     </div>
   );

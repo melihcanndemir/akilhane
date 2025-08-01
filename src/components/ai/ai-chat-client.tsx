@@ -449,13 +449,13 @@ export default function AiChatClient() {
   // Voice Assistant handlers
   const handleVoiceTranscript = (transcript: string) => {
     setInput(transcript);
-    // Auto-send after voice input for seamless UX
+    // Auto-send after voice input for seamless UX with reasonable delay
     setTimeout(() => {
       if (transcript.trim()) {
         handleSendMessage(transcript);
         setInput('');
       }
-    }, 100);
+    }, 800);
   };
 
   const handleVoiceCommand = (command: string) => {
@@ -718,7 +718,8 @@ export default function AiChatClient() {
         isListening={isListening}
         onListeningChange={setIsListening}
         show={showVoiceAssistant}
-        aiTutorOutput={messages.length > 0 ? messages[messages.length - 1]?.content || '' : ''}
+        aiTutorOutput={messages.length > 0 ? 
+          messages.slice().reverse().find(msg => msg.role === 'assistant')?.content || '' : ''}
       />
     </div>
   );
