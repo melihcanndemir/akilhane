@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -11,7 +11,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2, Eye, EyeOff, BookOpen, GraduationCap } from 'lucide-react';
 import { shouldUseDemoData, demoSubjects } from '@/data/demo-data';
 import { SubjectService } from '@/services/supabase-service';
-import { supabase } from '@/lib/supabase';
+// import { supabase } from '@/lib/supabase'; // Unused after refactor
+import { useLocalAuth } from '@/hooks/useLocalAuth';
 
 interface Subject {
   id: string;
@@ -125,9 +126,11 @@ const SubjectManager = () => {
     difficulty: 'Orta',
   });
   const [useSupabase, setUseSupabase] = useState(false);
+  const [dataRefreshTrigger, setDataRefreshTrigger] = useState(0);
   const { toast } = useToast();
+  const { isAuthenticated, isGuest } = useLocalAuth();
 
-  const loadSubjects = async () => {
+  const loadSubjects = useCallback(async () => {
     try {
       setIsLoading(true);
 
@@ -138,28 +141,29 @@ const SubjectManager = () => {
         return;
       }
 
-      // Fetch data from API
-      const response = await fetch('/api/subjects');
-      const apiSubjects = await response.json();
+      // Determine storage method based on authentication
+      const useCloudStorage = isAuthenticated && !isGuest;
+      setUseSupabase(useCloudStorage);
 
-      // If API returns demo data and demo mode is off, show empty state
-      if (apiSubjects.length > 0 && apiSubjects[0].createdBy === 'demo_user_btk_2025' && !shouldUseDemoData()) {
-        setSubjects([]);
-        setUseSupabase(false);
+      if (useCloudStorage) {
+        // Authenticated user - use Supabase
+        const supabaseSubjects = await SubjectService.getSubjects();
+        const mappedSupabaseSubjects: Subject[] = supabaseSubjects.map(s => ({
+          id: s.id,
+          name: s.name,
+          description: s.description,
+          category: s.category,
+          difficulty: s.difficulty,
+          questionCount: s.question_count,
+          isActive: s.is_active,
+        }));
+
+        setSubjects(mappedSupabaseSubjects);
         return;
       }
 
-      // If API returns real data, use it
-      if (apiSubjects.length > 0 && apiSubjects[0].createdBy !== 'demo_user_btk_2025') {
-        setSubjects(apiSubjects);
-        setUseSupabase(true);
-        return;
-      }
-
-      // If API returns empty, check localStorage
-      const { data: { session } } = await supabase.auth.getSession();
-
-      if (!session) {
+      // Guest user - use localStorage
+      if (!useCloudStorage) {
         setUseSupabase(false);
         const localSubjects = SubjectLocalStorageService.getSubjects();
 
@@ -186,69 +190,14 @@ const SubjectManager = () => {
         });
 
         setSubjects(updatedSubjects);
-        return;
       }
-
-      setUseSupabase(true);
-
-      // Fetch data from Supabase
-      const supabaseSubjects = await SubjectService.getSubjects();
-      const mappedSupabaseSubjects: Subject[] = supabaseSubjects.map(s => ({
-        id: s.id,
-        name: s.name,
-        description: s.description,
-        category: s.category,
-        difficulty: s.difficulty,
-        questionCount: s.question_count,
-        isActive: s.is_active,
-      }));
-
-      // Merge localStorage and Supabase data
-      const localSubjects = SubjectLocalStorageService.getSubjects();
-      const mergedSubjects = [...localSubjects];
-
-      // Check each subject in Supabase
-      mappedSupabaseSubjects.forEach(supabaseSubject => {
-        const existingIndex = mergedSubjects.findIndex(local => local.id === supabaseSubject.id);
-        if (existingIndex !== -1) {
-          // If same ID exists, update with Supabase data
-          mergedSubjects[existingIndex] = supabaseSubject;
-        } else {
-          // If new subject, add it
-          mergedSubjects.push(supabaseSubject);
-        }
-      });
-
-      // Calculate real question count
-      const getQuestionsFromStorage = () => {
-        if (typeof window === 'undefined') {return [];}
-        try {
-          const stored = localStorage.getItem('exam_training_questions');
-          return stored ? JSON.parse(stored) : [];
-        } catch {
-          return [];
-        }
-      };
-
-      const questions = getQuestionsFromStorage();
-
-      // Calculate real question count for each subject
-      const updatedMergedSubjects = mergedSubjects.map(subject => {
-        const questionCount = questions.filter((q: { subject: string }) => q.subject === subject.name).length;
-        return {
-          ...subject,
-          questionCount,
-        };
-      });
-
-      setSubjects(updatedMergedSubjects);
     } catch {
       //do nothing
       setSubjects([]);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isAuthenticated, isGuest]);
 
   const handleAddSubject = async () => {
     try {
@@ -462,9 +411,24 @@ const SubjectManager = () => {
     setIsDialogOpen(true);
   };
 
+  // Listen for data refresh events
+  useEffect(() => {
+    const handleDataRefresh = () => {
+      // eslint-disable-next-line no-console
+      console.log('🔄 SubjectManager: Data refresh event received');
+      setDataRefreshTrigger(prev => prev + 1);
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('dataStateRefresh', handleDataRefresh);
+      return () => window.removeEventListener('dataStateRefresh', handleDataRefresh);
+    }
+    return undefined;
+  }, []);
+
   useEffect(() => {
     loadSubjects();
-  }, []);
+  }, [dataRefreshTrigger, isAuthenticated, isGuest, loadSubjects]);
 
   if (isLoading) {
     return (
@@ -491,7 +455,7 @@ const SubjectManager = () => {
             </h1>
             <div className="flex flex-wrap justify-center gap-2">
               <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-                💾 LocalStorage
+                {isAuthenticated && !isGuest ? '☁️ Cloud Storage' : '💾 LocalStorage'}
               </Badge>
             </div>
           </div>

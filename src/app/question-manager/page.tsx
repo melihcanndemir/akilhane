@@ -15,6 +15,7 @@ import Link from 'next/link';
 import MobileNav from '@/components/mobile-nav';
 import { useToast } from '@/hooks/use-toast';
 import LoadingSpinner from '@/components/loading-spinner';
+import { useLocalAuth } from '@/hooks/useLocalAuth';
 import { shouldUseDemoData } from '@/data/demo-data';
 import { QuestionService, SubjectService } from '@/services/supabase-service';
 import { supabase } from '@/lib/supabase';
@@ -179,9 +180,10 @@ export default function QuestionManager() {
   const [filterDifficulty, setFilterDifficulty] = useState<string>('all');
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  // const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null); // Unused, replaced by useLocalAuth
   const [isHydrated, setIsHydrated] = useState(false);
   const { toast } = useToast();
+  const { isAuthenticated: localAuthIsAuthenticated, isGuest } = useLocalAuth();
 
   // AI Generation states
   const [isAIDialogOpen, setIsAIDialogOpen] = useState(false);
@@ -191,6 +193,7 @@ export default function QuestionManager() {
   const [selectedAIQuestions, setSelectedAIQuestions] = useState<Set<number>>(new Set());
   const [activeAITab, setActiveAITab] = useState<string>('generate');
   const [showAnswers, setShowAnswers] = useState(false);
+  const [dataRefreshTrigger, setDataRefreshTrigger] = useState(0);
   const [aiFormData, setAIFormData] = useState({
     subject: '',
     topic: '',
@@ -217,36 +220,32 @@ export default function QuestionManager() {
     formula: '',
   });
 
-  // Check authentication status
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        setIsAuthenticated(Boolean(session));
-      } catch {
-        setIsAuthenticated(false);
-      }
-    };
-
-    checkAuth();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((session) => {
-      setIsAuthenticated(Boolean(session));
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+  // Authentication is now handled by useLocalAuth hook
 
   // Handle hydration
   useEffect(() => {
     setIsHydrated(true);
   }, []);
 
+  // Listen for data refresh events
+  useEffect(() => {
+    const handleDataRefresh = () => {
+      // eslint-disable-next-line no-console
+      console.log('🔄 QuestionManager: Data refresh event received');
+      setDataRefreshTrigger(prev => prev + 1);
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('dataStateRefresh', handleDataRefresh);
+      return () => window.removeEventListener('dataStateRefresh', handleDataRefresh);
+    }
+    return undefined;
+  }, []);
+
   // Load subjects and questions
   useEffect(() => {
     loadSubjects();
-  }, []);
+  }, [dataRefreshTrigger]);
 
   const loadSubjects = async () => {
     try {
@@ -398,41 +397,39 @@ export default function QuestionManager() {
         setQuestions(combinedQuestions);
 
       } else {
-        // Demo mode is disabled - check authentication for Supabase
+        // Demo mode is disabled - check authentication for storage method
+        const useCloudStorage = localAuthIsAuthenticated && !isGuest;
 
-        // Check authentication
-        const { data: { session } } = await supabase.auth.getSession();
+        if (useCloudStorage) {
+          // Authenticated user - use Supabase
+          try {
+            const supabaseQuestions = await QuestionService.getQuestionsBySubject(subjectToLoad);
+            const mappedQuestions: Question[] = supabaseQuestions.map(q => ({
+              id: q.id,
+              subject: q.subject,
+              type: q.type as 'multiple-choice' | 'true-false' | 'calculation' | 'case-study',
+              difficulty: q.difficulty as 'Easy' | 'Medium' | 'Hard',
+              text: q.text,
+              options: JSON.parse(q.options),
+              explanation: q.explanation,
+              topic: q.topic,
+              formula: q.formula || '',
+            }));
 
-        if (!session) {
-          // No session - use localStorage only
-          const localQuestions = QuestionLocalStorageService.getQuestionsBySubject(subjectToLoad);
-          setQuestions(localQuestions);
-          return;
-        }
+            setQuestions(mappedQuestions);
 
-        // Has session - try Supabase
-        try {
-          const supabaseQuestions = await QuestionService.getQuestionsBySubject(subjectToLoad);
-          const mappedQuestions: Question[] = supabaseQuestions.map(q => ({
-            id: q.id,
-            subject: q.subject,
-            type: q.type as 'multiple-choice' | 'true-false' | 'calculation' | 'case-study',
-            difficulty: q.difficulty as 'Easy' | 'Medium' | 'Hard',
-            text: q.text,
-            options: JSON.parse(q.options),
-            explanation: q.explanation,
-            topic: q.topic,
-            formula: q.formula || '',
-          }));
-
-          setQuestions(mappedQuestions);
-
-          // Sync Supabase questions to localStorage
-          const allQuestions = QuestionLocalStorageService.getQuestions();
-          const updatedQuestions = allQuestions.filter(q => q.subject !== subjectToLoad);
-          updatedQuestions.push(...mappedQuestions);
-          QuestionLocalStorageService.saveQuestions(updatedQuestions);
-        } catch {
+            // Sync Supabase questions to localStorage for offline access
+            const allQuestions = QuestionLocalStorageService.getQuestions();
+            const updatedQuestions = allQuestions.filter(q => q.subject !== subjectToLoad);
+            updatedQuestions.push(...mappedQuestions);
+            QuestionLocalStorageService.saveQuestions(updatedQuestions);
+          } catch {
+            // Fallback to localStorage if Supabase fails
+            const localQuestions = QuestionLocalStorageService.getQuestionsBySubject(subjectToLoad);
+            setQuestions(localQuestions);
+          }
+        } else {
+          // Guest user - use localStorage only
           const localQuestions = QuestionLocalStorageService.getQuestionsBySubject(subjectToLoad);
           setQuestions(localQuestions);
         }
@@ -446,7 +443,7 @@ export default function QuestionManager() {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedSubject]);
+  }, [selectedSubject, localAuthIsAuthenticated, isGuest]);
 
   useEffect(() => {
     if (selectedSubject) {
@@ -962,9 +959,9 @@ export default function QuestionManager() {
                 <div className="px-3 py-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full text-xs font-medium w-full sm:w-auto text-center">
                   BTK Demo
                 </div>
-              ) : isAuthenticated ? (
+              ) : localAuthIsAuthenticated && !isGuest ? (
                 <div className="px-3 py-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full text-xs font-medium w-full sm:w-auto text-center">
-                  💾 LocalStorage
+                  ☁️ Cloud Storage
                 </div>
               ) : (
                 <div className="px-3 py-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full text-xs font-medium w-full sm:w-auto text-center">
