@@ -67,11 +67,10 @@ export default function AiChatClient() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
-  
+
   // Voice Assistant states
   const [showVoiceAssistant, setShowVoiceAssistant] = useState(false);
   const [isListening, setIsListening] = useState(false);
-
 
   // Handle scroll events to show/hide scroll button
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -565,7 +564,7 @@ export default function AiChatClient() {
                 <Mic className={`w-3 h-3 sm:w-4 sm:h-4 ${isListening ? 'animate-pulse' : ''}`} />
                 <span className="hidden sm:inline">{showVoiceAssistant ? 'Sesli Kapat' : 'Sesli Asistan'}</span>
               </Button>
-              
+
               {isAuthenticated && (
                 <>
                   <AiChatHistory
@@ -711,7 +710,7 @@ export default function AiChatClient() {
           </form>
         </div>
       </Card>
-      
+
       {/* Voice Assistant */}
       <VoiceAssistant
         onCommand={handleVoiceCommand}

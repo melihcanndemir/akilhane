@@ -164,7 +164,7 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
   const handleCommand = (command: string) => {
     // For AI Chat - send transcript directly for voice input
     if (onTranscript) {
-      // AI Chat commands  
+      // AI Chat commands
       if (command.includes('temizle') || command.includes('clear')) {
         onCommand?.('clear');
         return;
@@ -554,7 +554,7 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
         </motion.div>
       )}
       </div>
-      
+
       {/* Transcript display - independent fixed position on right */}
       {transcript && (
         <motion.div
