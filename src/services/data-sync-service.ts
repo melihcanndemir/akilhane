@@ -77,8 +77,8 @@ export class DataSyncService {
         console.log(`✅ Synced ${mappedSubjects.length} subjects to localStorage`);
       } else {
         console.log('ℹ️ No subjects found in cloud to sync');
-        // Clear local subjects if no cloud data exists
-        localStorage.setItem('exam_training_subjects', JSON.stringify([]));
+        // Don't clear localStorage if no cloud data exists - keep existing data
+        // localStorage.setItem('exam_training_subjects', JSON.stringify([]));
       }
     } catch (error) {
       console.error('❌ Error syncing subjects:', error);
@@ -112,8 +112,8 @@ export class DataSyncService {
         console.log(`✅ Synced ${allQuestions.length} questions to localStorage`);
       } else {
         console.log('ℹ️ No questions found in cloud to sync');
-        // Clear local questions if no cloud data exists
-        localStorage.setItem('exam_training_questions', JSON.stringify([]));
+        // Don't clear localStorage if no cloud data exists - keep existing data
+        // localStorage.setItem('exam_training_questions', JSON.stringify([]));
       }
     } catch (error) {
       console.error('❌ Error syncing questions:', error);
