@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { AiChatInput } from '@/ai/flows/ai-chat';
 import { getAiChatResponse } from '@/ai/flows/ai-chat';
-import { User, Sparkles, BrainCircuit, Lightbulb, Loader2, Plus, ChevronDown, BookOpen, Mic } from 'lucide-react';
+import { User, Sparkles, BrainCircuit, Lightbulb, Loader2, Plus, ChevronDown, BookOpen, Mic, Volume2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
@@ -71,6 +71,7 @@ export default function AiChatClient() {
   // Voice Assistant states
   const [showVoiceAssistant, setShowVoiceAssistant] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
 
   // Handle scroll events to show/hide scroll button
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -469,6 +470,87 @@ export default function AiChatClient() {
     }
   };
 
+  // Convert markdown to plain text for speech
+  const markdownToPlainText = (markdown: string): string => markdown
+    .replace(/#{1,6}\s+/g, '') // Remove headers
+    .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold
+    .replace(/\*(.*?)\*/g, '$1') // Remove italic
+    .replace(/`(.*?)`/g, '$1') // Remove inline code
+    .replace(/```[\s\S]*?```/g, '') // Remove code blocks
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Convert links to text
+    .replace(/^\s*[-*+]\s+/gm, '') // Remove list markers
+    .replace(/^\s*\d+\.\s+/gm, '') // Remove numbered list markers
+    .replace(/\n\s*\n/g, '. ') // Replace double newlines with periods
+    .replace(/\n/g, ' ') // Replace single newlines with spaces
+    .replace(/\s+/g, ' ') // Normalize whitespace
+    .trim();
+
+  // Speak AI response
+  const speakAIResponse = (messageId: string, content: string) => {
+    if (!('speechSynthesis' in window)) {
+      return;
+    }
+
+    // Stop any current speech
+    window.speechSynthesis.cancel();
+
+    // If already speaking this message, stop it
+    if (speakingMessageId === messageId) {
+      setSpeakingMessageId(null);
+      return;
+    }
+
+    const plainText = markdownToPlainText(content);
+    const utterance = new SpeechSynthesisUtterance(plainText);
+    utterance.lang = 'tr-TR';
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+    utterance.volume = 0.8;
+
+    // Try to find a male Turkish voice
+    const voices = window.speechSynthesis.getVoices();
+    const turkishVoices = voices.filter(voice =>
+      voice.lang.includes('tr') || voice.lang.includes('TR'),
+    );
+
+    // Look for male voice keywords in Turkish voices
+    const maleVoice = turkishVoices.find(voice =>
+      voice.name.toLowerCase().includes('erkek') ||
+      voice.name.toLowerCase().includes('male') ||
+      voice.name.toLowerCase().includes('man') ||
+      voice.name.toLowerCase().includes('ahmet') ||
+      voice.name.toLowerCase().includes('mehmet') ||
+      !voice.name.toLowerCase().includes('kadın') &&
+      !voice.name.toLowerCase().includes('female') &&
+      !voice.name.toLowerCase().includes('woman') &&
+      !voice.name.toLowerCase().includes('ayşe') &&
+      !voice.name.toLowerCase().includes('fatma'),
+    );
+
+    if (maleVoice) {
+      utterance.voice = maleVoice;
+      // Adjust pitch for more masculine sound
+      utterance.pitch = 0.8;
+    } else if (turkishVoices.length > 0 && turkishVoices[0]) {
+      // Use any Turkish voice available
+      utterance.voice = turkishVoices[0];
+    }
+
+    utterance.onstart = () => {
+      setSpeakingMessageId(messageId);
+    };
+
+    utterance.onend = () => {
+      setSpeakingMessageId(null);
+    };
+
+    utterance.onerror = () => {
+      setSpeakingMessageId(null);
+    };
+
+    window.speechSynthesis.speak(utterance);
+  };
+
   return (
     <div className="flex justify-center items-start min-h-screen bg-gray-50 dark:bg-gray-900 p-2 sm:p-4 pt-0">
       <Card className="w-full max-w-5xl h-[calc(100vh-4rem)] flex flex-col shadow-2xl mt-2 border-gradient-question p-0">
@@ -602,7 +684,7 @@ export default function AiChatClient() {
                   <AvatarFallback className="bg-blue-100 dark:bg-blue-800"><Sparkles className="text-blue-500" /></AvatarFallback>
                 </Avatar>
               )}
-              <div className={`max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl rounded-2xl px-4 py-3 shadow-sm ${ message.role === 'user' ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-br-none' : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-bl-none'}`}>
+              <div className={`max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl rounded-2xl px-4 py-3 shadow-sm relative ${ message.role === 'user' ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-br-none' : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-bl-none'}`}>
                 {message.role === 'assistant' ? (
                   <div className="max-w-none text-white">
                     <ReactMarkdown
@@ -645,6 +727,15 @@ export default function AiChatClient() {
                     >
                       {message.content}
                     </ReactMarkdown>
+
+                    {/* Voice Play Button for AI responses */}
+                    <button
+                      onClick={() => speakAIResponse(message.id, message.content)}
+                      className="absolute bottom-2 right-2 w-6 h-6 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors"
+                                              title={speakingMessageId === message.id ? 'Sesi durdur' : 'AI yanıtını dinle'}
+                    >
+                      <Volume2 className={`w-3 h-3 ${speakingMessageId === message.id ? 'animate-pulse' : ''}`} />
+                    </button>
                   </div>
                 ) : (
                   <p className="whitespace-pre-wrap text-sm md:text-base">{message.content}</p>

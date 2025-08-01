@@ -6,6 +6,7 @@ import { getAiChatResponse, type AiChatOutput } from '../ai/flows/ai-chat';
 import {
   Mic,
   Send,
+  Volume2,
 } from 'lucide-react';
 import VoiceAssistant from './voice-assistant';
 import MobileNav from './mobile-nav';
@@ -29,6 +30,7 @@ const AiChatComponent: React.FC<AiChatProps> = ({ subject, context }) => {
   const [aiResponse, setAiResponse] = useState<AiChatOutput | null>(null);
   const [showVoiceAssistant, setShowVoiceAssistant] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -137,6 +139,87 @@ const AiChatComponent: React.FC<AiChatProps> = ({ subject, context }) => {
     }
   };
 
+  // Convert markdown to plain text for speech
+  const markdownToPlainText = (markdown: string): string => markdown
+    .replace(/#{1,6}\s+/g, '') // Remove headers
+    .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold
+    .replace(/\*(.*?)\*/g, '$1') // Remove italic
+    .replace(/`(.*?)`/g, '$1') // Remove inline code
+    .replace(/```[\s\S]*?```/g, '') // Remove code blocks
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Convert links to text
+    .replace(/^\s*[-*+]\s+/gm, '') // Remove list markers
+    .replace(/^\s*\d+\.\s+/gm, '') // Remove numbered list markers
+    .replace(/\n\s*\n/g, '. ') // Replace double newlines with periods
+    .replace(/\n/g, ' ') // Replace single newlines with spaces
+    .replace(/\s+/g, ' ') // Normalize whitespace
+    .trim();
+
+  // Speak AI response
+  const speakAIResponse = (messageId: string, content: string) => {
+    if (!('speechSynthesis' in window)) {
+      return;
+    }
+
+    // Stop any current speech
+    window.speechSynthesis.cancel();
+
+    // If already speaking this message, stop it
+    if (speakingMessageId === messageId) {
+      setSpeakingMessageId(null);
+      return;
+    }
+
+    const plainText = markdownToPlainText(content);
+    const utterance = new SpeechSynthesisUtterance(plainText);
+    utterance.lang = 'tr-TR';
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+    utterance.volume = 0.8;
+
+    // Try to find a male Turkish voice
+    const voices = window.speechSynthesis.getVoices();
+    const turkishVoices = voices.filter(voice =>
+      voice.lang.includes('tr') || voice.lang.includes('TR'),
+    );
+
+    // Look for male voice keywords in Turkish voices
+    const maleVoice = turkishVoices.find(voice =>
+      voice.name.toLowerCase().includes('erkek') ||
+      voice.name.toLowerCase().includes('male') ||
+      voice.name.toLowerCase().includes('man') ||
+      voice.name.toLowerCase().includes('ahmet') ||
+      voice.name.toLowerCase().includes('mehmet') ||
+      !voice.name.toLowerCase().includes('kadın') &&
+      !voice.name.toLowerCase().includes('female') &&
+      !voice.name.toLowerCase().includes('woman') &&
+      !voice.name.toLowerCase().includes('ayşe') &&
+      !voice.name.toLowerCase().includes('fatma'),
+    );
+
+    if (maleVoice) {
+      utterance.voice = maleVoice;
+      // Adjust pitch for more masculine sound
+      utterance.pitch = 0.8;
+    } else if (turkishVoices.length > 0 && turkishVoices[0]) {
+      // Use any Turkish voice available
+      utterance.voice = turkishVoices[0];
+    }
+
+    utterance.onstart = () => {
+      setSpeakingMessageId(messageId);
+    };
+
+    utterance.onend = () => {
+      setSpeakingMessageId(null);
+    };
+
+    utterance.onerror = () => {
+      setSpeakingMessageId(null);
+    };
+
+    window.speechSynthesis.speak(utterance);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800">
       {/* Responsive Navigation Bar */}
@@ -194,7 +277,7 @@ const AiChatComponent: React.FC<AiChatProps> = ({ subject, context }) => {
                   className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-[80%] rounded-lg p-3 ${
+                    className={`max-w-[80%] rounded-lg p-3 relative ${
                       message.role === 'user'
                         ? 'bg-blue-600 text-white'
                         : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
@@ -209,6 +292,17 @@ const AiChatComponent: React.FC<AiChatProps> = ({ subject, context }) => {
                         minute: '2-digit',
                       })}
                     </div>
+
+                    {/* Voice Play Button for AI responses */}
+                    {message.role === 'assistant' && (
+                      <button
+                        onClick={() => speakAIResponse(message.id, message.content)}
+                        className="absolute bottom-2 right-2 w-6 h-6 bg-blue-500/20 hover:bg-blue-500/30 dark:bg-blue-400/20 dark:hover:bg-blue-400/30 rounded-full flex items-center justify-center transition-colors"
+                        title={speakingMessageId === message.id ? 'Sesi durdur' : 'AI yanıtını dinle'}
+                      >
+                        <Volume2 className={`w-3 h-3 text-blue-600 dark:text-blue-300 ${speakingMessageId === message.id ? 'animate-pulse' : ''}`} />
+                      </button>
+                    )}
                   </div>
                 </motion.div>
               ))}
