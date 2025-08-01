@@ -3,8 +3,6 @@
   "app_description": "AI-Powered Education Platform",
   "welcome": "Welcome",
   "loading": "Loading...",
-  "error": "Error",
-  "success": "Success",
   "save": "Save",
   "cancel": "Cancel",
   "delete": "Delete",
