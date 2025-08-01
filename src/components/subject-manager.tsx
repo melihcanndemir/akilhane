@@ -125,6 +125,7 @@ const SubjectManager = () => {
     difficulty: 'Orta',
   });
   const [useSupabase, setUseSupabase] = useState(false);
+  const [dataRefreshTrigger, setDataRefreshTrigger] = useState(0);
   const { toast } = useToast();
 
   const loadSubjects = async () => {
@@ -462,9 +463,22 @@ const SubjectManager = () => {
     setIsDialogOpen(true);
   };
 
+  // Listen for data refresh events
+  useEffect(() => {
+    const handleDataRefresh = () => {
+      console.log('🔄 SubjectManager: Data refresh event received');
+      setDataRefreshTrigger(prev => prev + 1);
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('dataStateRefresh', handleDataRefresh);
+      return () => window.removeEventListener('dataStateRefresh', handleDataRefresh);
+    }
+  }, []);
+
   useEffect(() => {
     loadSubjects();
-  }, []);
+  }, [dataRefreshTrigger]);
 
   if (isLoading) {
     return (

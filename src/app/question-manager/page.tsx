@@ -191,6 +191,7 @@ export default function QuestionManager() {
   const [selectedAIQuestions, setSelectedAIQuestions] = useState<Set<number>>(new Set());
   const [activeAITab, setActiveAITab] = useState<string>('generate');
   const [showAnswers, setShowAnswers] = useState(false);
+  const [dataRefreshTrigger, setDataRefreshTrigger] = useState(0);
   const [aiFormData, setAIFormData] = useState({
     subject: '',
     topic: '',
@@ -243,10 +244,23 @@ export default function QuestionManager() {
     setIsHydrated(true);
   }, []);
 
+  // Listen for data refresh events
+  useEffect(() => {
+    const handleDataRefresh = () => {
+      console.log('🔄 QuestionManager: Data refresh event received');
+      setDataRefreshTrigger(prev => prev + 1);
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('dataStateRefresh', handleDataRefresh);
+      return () => window.removeEventListener('dataStateRefresh', handleDataRefresh);
+    }
+  }, []);
+
   // Load subjects and questions
   useEffect(() => {
     loadSubjects();
-  }, []);
+  }, [dataRefreshTrigger]);
 
   const loadSubjects = async () => {
     try {

@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { useAuth } from './useAuth';
+import { dataMigrationService } from '@/services/data-migration-service';
 
 interface GuestUser {
   id: string;
@@ -29,15 +30,30 @@ interface SupabaseAuthUser extends User {
 type AuthUser = LocalAuthUser | SupabaseAuthUser | null;
 
 export function useLocalAuth() {
-  const { user: supabaseUser, loading: supabaseLoading } = useAuth();
+  const { user: supabaseUser, loading: supabaseLoading, isMigrating } = useAuth();
   const [guestUser, setGuestUser] = useState<GuestUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [dataRefreshTrigger, setDataRefreshTrigger] = useState(0);
+
+  // Listen for data refresh events
+  useEffect(() => {
+    const handleDataRefresh = () => {
+      console.log('🔄 Data refresh event received');
+      setDataRefreshTrigger(prev => prev + 1);
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('dataStateRefresh', handleDataRefresh);
+      return () => window.removeEventListener('dataStateRefresh', handleDataRefresh);
+    }
+  }, []);
 
   // Initialize guest user if no Supabase user
   useEffect(() => {
-    if (!supabaseLoading) {
+    if (!supabaseLoading && !isMigrating) {
       if (supabaseUser) {
         // User is logged in with Supabase
+        console.log('👤 Authenticated user detected, clearing guest user');
         setGuestUser(null);
         setLoading(false);
       } else {
@@ -45,7 +61,7 @@ export function useLocalAuth() {
         initializeGuestUser();
       }
     }
-  }, [supabaseUser, supabaseLoading]);
+  }, [supabaseUser, supabaseLoading, isMigrating, dataRefreshTrigger]);
 
   const initializeGuestUser = () => {
     try {
@@ -107,11 +123,8 @@ export function useLocalAuth() {
   };
 
   const clearGuestData = () => {
-    localStorage.removeItem('guestUser');
-    localStorage.removeItem('guestQuizResults');
-    localStorage.removeItem('guestFlashcardProgress');
-    localStorage.removeItem('guestPerformanceData');
-    localStorage.removeItem('userSettings');
+    console.log('🧹 Clearing guest data via useLocalAuth');
+    dataMigrationService.clearGuestData();
     setGuestUser(null);
   };
 
@@ -191,7 +204,8 @@ export function useLocalAuth() {
 
   return {
     user: currentUser,
-    loading: loading || supabaseLoading,
+    loading: loading || supabaseLoading || isMigrating,
+    isMigrating,
     isAuthenticated,
     isGuest,
     guestUser,
