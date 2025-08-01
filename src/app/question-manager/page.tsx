@@ -247,6 +247,7 @@ export default function QuestionManager() {
   // Listen for data refresh events
   useEffect(() => {
     const handleDataRefresh = () => {
+      // eslint-disable-next-line no-console
       console.log('🔄 QuestionManager: Data refresh event received');
       setDataRefreshTrigger(prev => prev + 1);
     };
@@ -255,6 +256,7 @@ export default function QuestionManager() {
       window.addEventListener('dataStateRefresh', handleDataRefresh);
       return () => window.removeEventListener('dataStateRefresh', handleDataRefresh);
     }
+    return undefined;
   }, []);
 
   // Load subjects and questions

@@ -38,6 +38,7 @@ export function useLocalAuth() {
   // Listen for data refresh events
   useEffect(() => {
     const handleDataRefresh = () => {
+      // eslint-disable-next-line no-console
       console.log('🔄 Data refresh event received');
       setDataRefreshTrigger(prev => prev + 1);
     };
@@ -46,6 +47,7 @@ export function useLocalAuth() {
       window.addEventListener('dataStateRefresh', handleDataRefresh);
       return () => window.removeEventListener('dataStateRefresh', handleDataRefresh);
     }
+    return undefined;
   }, []);
 
   // Initialize guest user if no Supabase user
@@ -53,6 +55,7 @@ export function useLocalAuth() {
     if (!supabaseLoading && !isMigrating) {
       if (supabaseUser) {
         // User is logged in with Supabase
+        // eslint-disable-next-line no-console
         console.log('👤 Authenticated user detected, clearing guest user');
         setGuestUser(null);
         setLoading(false);
@@ -123,6 +126,7 @@ export function useLocalAuth() {
   };
 
   const clearGuestData = () => {
+    // eslint-disable-next-line no-console
     console.log('🧹 Clearing guest data via useLocalAuth');
     dataMigrationService.clearGuestData();
     setGuestUser(null);

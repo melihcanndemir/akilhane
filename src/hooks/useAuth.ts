@@ -62,7 +62,7 @@ export function useAuth() {
       async (event, session) => {
         const newUser = session?.user ?? null;
         setUser(newUser);
-        
+
         // Handle sign out
         if (event === 'SIGNED_OUT') {
           setUser(null);
@@ -71,39 +71,45 @@ export function useAuth() {
 
         // Handle sign in - trigger data migration
         if (event === 'SIGNED_IN' && newUser) {
+          // eslint-disable-next-line no-console
           console.log('🔐 User signed in, checking for data migration');
-          
+
           try {
             setIsMigrating(true);
-            
+
             // Check if user has existing cloud data
             const hasCloudData = await dataMigrationService.hasExistingCloudData(newUser.id);
-            
+
             if (!hasCloudData) {
               // No existing cloud data, migrate guest data
+              // eslint-disable-next-line no-console
               console.log('📦 Migrating guest data to user account');
               const migrationResult = await dataMigrationService.migrateGuestDataToUser(newUser.id);
-              
+
               if (migrationResult.success) {
+                // eslint-disable-next-line no-console
                 console.log('✅ Data migration successful:', migrationResult);
-                
+
                 // Clear guest data only after successful migration
                 dataMigrationService.clearGuestData();
-                
+
                 // Trigger UI refresh
                 await dataMigrationService.refreshDataState();
               } else {
+                // eslint-disable-next-line no-console
                 console.error('❌ Data migration failed:', migrationResult.errors);
               }
             } else {
               // User has existing cloud data, sync it to localStorage
+              // eslint-disable-next-line no-console
               console.log('☁️ Syncing existing cloud data to localStorage');
               await dataMigrationService.syncCloudDataToLocalStorage(newUser.id);
-              
+
               // Trigger UI refresh
               await dataMigrationService.refreshDataState();
             }
           } catch (error) {
+            // eslint-disable-next-line no-console
             console.error('❌ Error during post-login processing:', error);
           } finally {
             setIsMigrating(false);

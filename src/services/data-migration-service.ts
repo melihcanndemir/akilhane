@@ -1,6 +1,5 @@
 'use client';
 
-import { supabase } from '@/lib/supabase';
 import { SubjectService, QuestionService } from '@/services/supabase-service';
 import { localStorageService } from '@/services/localStorage-service';
 import { dataSyncService } from '@/services/data-sync-service';
@@ -74,14 +73,16 @@ export class DataMigrationService {
       quizResults,
       flashcardProgress,
       performanceData,
-      userSettings,
+      userSettings: userSettings as unknown as Record<string, unknown>,
       aiRecommendations,
       aiChatSessions,
     };
   }
 
   private getSubjectsFromStorage(): GuestData['subjects'] {
-    if (typeof window === 'undefined') return [];
+    if (typeof window === 'undefined') {
+      return [];
+    }
     try {
       const stored = localStorage.getItem('exam_training_subjects');
       return stored ? JSON.parse(stored) : [];
@@ -91,7 +92,9 @@ export class DataMigrationService {
   }
 
   private getQuestionsFromStorage(): GuestData['questions'] {
-    if (typeof window === 'undefined') return [];
+    if (typeof window === 'undefined') {
+      return [];
+    }
     try {
       const stored = localStorage.getItem('exam_training_questions');
       return stored ? JSON.parse(stored) : [];
@@ -116,18 +119,20 @@ export class DataMigrationService {
     };
 
     try {
-      console.log('🔄 Starting data migration for user:', userId);
-      
-      // Collect all guest data
-      const guestData = this.collectGuestData();
-      
-      // Check if there's any data to migrate
-      if (this.hasDataToMigrate(guestData)) {
-        console.log('📦 Found guest data to migrate:', {
-          subjects: guestData.subjects.length,
-          questions: guestData.questions.length,
-          quizResults: guestData.quizResults.length,
-        });
+              // eslint-disable-next-line no-console
+        console.log('🔄 Starting data migration for user:', userId);
+
+        // Collect all guest data
+        const guestData = this.collectGuestData();
+
+        // Check if there's any data to migrate
+        if (this.hasDataToMigrate(guestData)) {
+          // eslint-disable-next-line no-console
+          console.log('📦 Found guest data to migrate:', {
+            subjects: guestData.subjects.length,
+            questions: guestData.questions.length,
+            quizResults: guestData.quizResults.length,
+          });
 
         // 1. Migrate subjects first (questions depend on subjects)
         await this.migrateSubjects(guestData.subjects, result);
@@ -147,17 +152,20 @@ export class DataMigrationService {
         // 6. Migrate AI data (recommendations and chat sessions)
         await this.migrateAIData(guestData.aiRecommendations, guestData.aiChatSessions, userId, result);
 
-        console.log('✅ Migration completed:', result);
-        result.success = result.errors.length === 0;
-      } else {
-        console.log('ℹ️ No guest data found to migrate');
-        result.success = true;
-      }
+                  // eslint-disable-next-line no-console
+          console.log('✅ Migration completed:', result);
+          result.success = result.errors.length === 0;
+        } else {
+          // eslint-disable-next-line no-console
+          console.log('ℹ️ No guest data found to migrate');
+          result.success = true;
+        }
 
-    } catch (error) {
-      console.error('❌ Migration failed:', error);
-      result.errors.push(`Migration failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
+          } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('❌ Migration failed:', error);
+        result.errors.push(`Migration failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
 
     return result;
   }
@@ -188,6 +196,7 @@ export class DataMigrationService {
 
         if (migratedSubject) {
           result.migratedSubjects++;
+          // eslint-disable-next-line no-console
           console.log(`✅ Migrated subject: ${subject.name}`);
         } else {
           result.errors.push(`Failed to migrate subject: ${subject.name}`);
@@ -202,11 +211,13 @@ export class DataMigrationService {
     try {
       for (const question of questions) {
         const migratedQuestion = await QuestionService.createQuestion({
+          subject_id: '', // Will be set by the service
           subject: question.subject,
           type: question.type,
           difficulty: question.difficulty,
           text: question.text,
-          options: question.options,
+          options: JSON.stringify(question.options),
+          correct_answer: question.options.find(opt => opt.isCorrect)?.text || '',
           explanation: question.explanation,
           topic: question.topic || '',
           formula: question.formula || '',
@@ -215,6 +226,7 @@ export class DataMigrationService {
 
         if (migratedQuestion) {
           result.migratedQuestions++;
+          // eslint-disable-next-line no-console
           console.log(`✅ Migrated question for subject: ${question.subject}`);
         } else {
           result.errors.push(`Failed to migrate question for subject: ${question.subject}`);
@@ -225,49 +237,53 @@ export class DataMigrationService {
     }
   }
 
-  private async migrateQuizResults(quizResults: Array<unknown>, userId: string, result: MigrationResult): Promise<void> {
+  private async migrateQuizResults(quizResults: Array<unknown>, _userId: string, result: MigrationResult): Promise<void> {
     try {
       // Quiz results migration would require the QuizResultService
       // For now, we'll preserve them in a user-specific way
-      if (quizResults.length > 0) {
-        // Store in user metadata or specific table
-        console.log(`📊 ${quizResults.length} quiz results preserved`);
-        result.migratedQuizResults = quizResults.length;
-      }
+              if (quizResults.length > 0) {
+          // Store in user metadata or specific table
+          // eslint-disable-next-line no-console
+          console.log(`📊 ${quizResults.length} quiz results preserved`);
+          result.migratedQuizResults = quizResults.length;
+        }
     } catch (error) {
       result.errors.push(`Quiz results migration error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
-  private async migrateFlashcardProgress(flashcardProgress: Array<unknown>, userId: string, result: MigrationResult): Promise<void> {
-    try {
-      if (flashcardProgress.length > 0) {
-        console.log(`🎴 ${flashcardProgress.length} flashcard progress entries preserved`);
-        result.migratedFlashcardProgress = flashcardProgress.length;
-      }
+  private async migrateFlashcardProgress(flashcardProgress: Array<unknown>, _userId: string, result: MigrationResult): Promise<void> {
+          try {
+        if (flashcardProgress.length > 0) {
+          // eslint-disable-next-line no-console
+          console.log(`🎴 ${flashcardProgress.length} flashcard progress entries preserved`);
+          result.migratedFlashcardProgress = flashcardProgress.length;
+        }
     } catch (error) {
       result.errors.push(`Flashcard progress migration error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
-  private async migratePerformanceData(performanceData: Array<unknown>, userId: string, result: MigrationResult): Promise<void> {
-    try {
-      if (performanceData.length > 0) {
-        console.log(`📈 ${performanceData.length} performance data entries preserved`);
-        result.migratedPerformanceData = performanceData.length;
-      }
+  private async migratePerformanceData(performanceData: Array<unknown>, _userId: string, result: MigrationResult): Promise<void> {
+          try {
+        if (performanceData.length > 0) {
+          // eslint-disable-next-line no-console
+          console.log(`📈 ${performanceData.length} performance data entries preserved`);
+          result.migratedPerformanceData = performanceData.length;
+        }
     } catch (error) {
       result.errors.push(`Performance data migration error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
-  private async migrateAIData(aiRecommendations: Array<unknown>, aiChatSessions: Array<unknown>, userId: string, result: MigrationResult): Promise<void> {
-    try {
-      const totalAIData = aiRecommendations.length + aiChatSessions.length;
-      if (totalAIData > 0) {
-        console.log(`🤖 ${totalAIData} AI data entries preserved`);
-        result.migratedAIData = totalAIData;
-      }
+  private async migrateAIData(aiRecommendations: Array<unknown>, aiChatSessions: Array<unknown>, _userId: string, result: MigrationResult): Promise<void> {
+          try {
+        const totalAIData = aiRecommendations.length + aiChatSessions.length;
+        if (totalAIData > 0) {
+          // eslint-disable-next-line no-console
+          console.log(`🤖 ${totalAIData} AI data entries preserved`);
+          result.migratedAIData = totalAIData;
+        }
     } catch (error) {
       result.errors.push(`AI data migration error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -278,8 +294,9 @@ export class DataMigrationService {
    */
   clearGuestData(): void {
     try {
+      // eslint-disable-next-line no-console
       console.log('🧹 Clearing guest data from localStorage');
-      
+
       const keysToRemove = [
         'exam_training_subjects',
         'exam_training_questions',
@@ -296,8 +313,10 @@ export class DataMigrationService {
         localStorage.removeItem(key);
       });
 
+      // eslint-disable-next-line no-console
       console.log('✅ Guest data cleared successfully');
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('❌ Error clearing guest data:', error);
     }
   }
@@ -312,7 +331,7 @@ export class DataMigrationService {
   /**
    * Checks if user has any existing cloud data
    */
-  async hasExistingCloudData(userId: string): Promise<boolean> {
+  async hasExistingCloudData(_userId: string): Promise<boolean> {
     try {
       const subjects = await SubjectService.getSubjects();
       return subjects.length > 0;
@@ -328,7 +347,7 @@ export class DataMigrationService {
     // Trigger a custom event that components can listen to
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('dataStateRefresh', {
-        detail: { timestamp: Date.now() }
+        detail: { timestamp: Date.now() },
       }));
     }
   }

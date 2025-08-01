@@ -1,8 +1,6 @@
 'use client';
 
-import { supabase } from '@/lib/supabase';
 import { SubjectService, QuestionService } from '@/services/supabase-service';
-import { localStorageService } from '@/services/localStorage-service';
 
 interface SyncStatus {
   lastSyncTimestamp: string;
@@ -25,14 +23,16 @@ export class DataSyncService {
   /**
    * Performs a full bidirectional sync between cloud and localStorage
    */
-  async performFullSync(userId: string): Promise<boolean> {
+  async performFullSync(_userId: string): Promise<boolean> {
     if (this.syncInProgress) {
+      // eslint-disable-next-line no-console
       console.log('⏳ Sync already in progress, skipping');
       return false;
     }
 
     try {
       this.syncInProgress = true;
+      // eslint-disable-next-line no-console
       console.log('🔄 Starting full data synchronization');
 
       // 1. Sync subjects from cloud to localStorage
@@ -44,9 +44,11 @@ export class DataSyncService {
       // 3. Update last sync timestamp
       this.updateLastSyncTimestamp();
 
+      // eslint-disable-next-line no-console
       console.log('✅ Full synchronization completed successfully');
       return true;
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('❌ Sync failed:', error);
       return false;
     } finally {
@@ -59,10 +61,11 @@ export class DataSyncService {
    */
   private async syncSubjectsFromCloud(): Promise<void> {
     try {
+      // eslint-disable-next-line no-console
       console.log('📚 Syncing subjects from cloud');
-      
+
       const cloudSubjects = await SubjectService.getSubjects();
-      
+
       if (cloudSubjects.length > 0) {
         const mappedSubjects = cloudSubjects.map(s => ({
           id: s.id,
@@ -75,9 +78,11 @@ export class DataSyncService {
         }));
 
         localStorage.setItem('exam_training_subjects', JSON.stringify(mappedSubjects));
+        // eslint-disable-next-line no-console
         console.log(`✅ Synced ${mappedSubjects.length} subjects to localStorage`);
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('❌ Error syncing subjects:', error);
     }
   }
@@ -87,8 +92,9 @@ export class DataSyncService {
    */
   private async syncQuestionsFromCloud(): Promise<void> {
     try {
+      // eslint-disable-next-line no-console
       console.log('❓ Syncing questions from cloud');
-      
+
       // Get all subjects first
       const cloudSubjects = await SubjectService.getSubjects();
       const allQuestions = [];
@@ -101,9 +107,11 @@ export class DataSyncService {
 
       if (allQuestions.length > 0) {
         localStorage.setItem('exam_training_questions', JSON.stringify(allQuestions));
+        // eslint-disable-next-line no-console
         console.log(`✅ Synced ${allQuestions.length} questions to localStorage`);
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('❌ Error syncing questions:', error);
     }
   }
@@ -113,7 +121,7 @@ export class DataSyncService {
    */
   getSyncStatus(): SyncStatus {
     const lastSync = localStorage.getItem('lastSyncTimestamp') || '';
-    
+
     // Count local data
     const localSubjects = this.getLocalSubjects();
     const localQuestions = this.getLocalQuestions();
@@ -132,7 +140,7 @@ export class DataSyncService {
    */
   isSyncNeeded(maxAgeMinutes = 30): boolean {
     const lastSync = localStorage.getItem('lastSyncTimestamp');
-    
+
     if (!lastSync) {
       return true;
     }
@@ -148,6 +156,7 @@ export class DataSyncService {
    * Forces a sync regardless of timestamp
    */
   async forceSync(userId: string): Promise<boolean> {
+    // eslint-disable-next-line no-console
     console.log('🔄 Force sync requested');
     return this.performFullSync(userId);
   }
@@ -157,10 +166,12 @@ export class DataSyncService {
    */
   async syncOnStartup(userId: string): Promise<boolean> {
     if (this.isSyncNeeded()) {
+      // eslint-disable-next-line no-console
       console.log('🚀 Startup sync needed');
       return this.performFullSync(userId);
     }
-    
+
+    // eslint-disable-next-line no-console
     console.log('ℹ️ Startup sync not needed');
     return true;
   }
@@ -170,21 +181,23 @@ export class DataSyncService {
    */
   async syncSubject(subjectName: string): Promise<boolean> {
     try {
+      // eslint-disable-next-line no-console
       console.log(`🔄 Syncing specific subject: ${subjectName}`);
-      
+
       // Get questions for this subject from cloud
       const questions = await QuestionService.getQuestionsBySubject(subjectName);
-      
+
       // Update localStorage with new questions
       const allLocalQuestions = this.getLocalQuestions();
-      const filteredQuestions = allLocalQuestions.filter(q => q.subject !== subjectName);
+      const filteredQuestions = allLocalQuestions.filter((q: { subject: string }) => q.subject !== subjectName);
       const updatedQuestions = [...filteredQuestions, ...questions];
-      
       localStorage.setItem('exam_training_questions', JSON.stringify(updatedQuestions));
-      
+
+      // eslint-disable-next-line no-console
       console.log(`✅ Synced ${questions.length} questions for subject: ${subjectName}`);
       return true;
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error(`❌ Error syncing subject ${subjectName}:`, error);
       return false;
     }
@@ -194,13 +207,14 @@ export class DataSyncService {
    * Clears sync data and forces fresh sync
    */
   async resetAndSync(userId: string): Promise<boolean> {
+    // eslint-disable-next-line no-console
     console.log('🔄 Reset and sync requested');
-    
+
     // Clear localStorage data
     localStorage.removeItem('exam_training_subjects');
     localStorage.removeItem('exam_training_questions');
     localStorage.removeItem('lastSyncTimestamp');
-    
+
     // Perform fresh sync
     return this.performFullSync(userId);
   }
@@ -230,19 +244,19 @@ export class DataSyncService {
   /**
    * Validates data integrity between cloud and local
    */
-  async validateDataIntegrity(userId: string): Promise<{
+  async validateDataIntegrity(_userId: string): Promise<{
     isValid: boolean;
     issues: string[];
     cloudCount: number;
     localCount: number;
   }> {
     const issues: string[] = [];
-    
+
     try {
       // Check subjects
       const cloudSubjects = await SubjectService.getSubjects();
       const localSubjects = this.getLocalSubjects();
-      
+
       if (cloudSubjects.length !== localSubjects.length) {
         issues.push(`Subject count mismatch: Cloud(${cloudSubjects.length}) vs Local(${localSubjects.length})`);
       }
@@ -253,9 +267,9 @@ export class DataSyncService {
         const questions = await QuestionService.getQuestionsBySubject(subject.name);
         allCloudQuestions.push(...questions);
       }
-      
+
       const localQuestions = this.getLocalQuestions();
-      
+
       if (allCloudQuestions.length !== localQuestions.length) {
         issues.push(`Question count mismatch: Cloud(${allCloudQuestions.length}) vs Local(${localQuestions.length})`);
       }
