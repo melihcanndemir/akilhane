@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Brain, Github, Linkedin } from 'lucide-react';
+import { Brain, Github, Linkedin, Youtube } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -71,10 +71,9 @@ export default function Footer() {
                     Bizi Takip Edin
                 </h3>
                 <div className="flex mt-4 space-x-6 justify-start md:justify-end">
-                    <a href="https://www.producthunt.com/@melihcandemir" className="text-gray-400 hover:text-gray-500 transition-colors duration-200" target="_blank" rel="noopener noreferrer">
-                        <span className="sr-only">Product Hunt</span>
-                        {/* Product Hunt icon styled to match other icons */}
-                        <span className="flex items-center justify-center h-6 w-6 rounded-full border border-gray-400 dark:border-gray-500 bg-white dark:bg-gray-900 text-gray-400 dark:text-gray-500 font-bold text-base hover:text-gray-500 dark:hover:text-gray-400 transition-colors duration-200" style={{fontFamily: 'Inter, sans-serif'}}>P</span>
+                    <a href="https://www.youtube.com/@Akilhane-Tech" className="text-gray-400 hover:text-gray-500 transition-colors duration-200" target="_blank" rel="noopener noreferrer">
+                        <span className="sr-only">YouTube</span>
+                        <Youtube className="h-6 w-6" />
                     </a>
                     <a href="https://github.com/melihcanndemir/akilhane" className="text-gray-400 hover:text-gray-500 transition-colors duration-200" target="_blank" rel="noopener noreferrer">
                         <span className="sr-only">GitHub</span>
