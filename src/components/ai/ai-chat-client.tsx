@@ -448,22 +448,37 @@ export default function AiChatClient() {
   };
 
   // Voice Assistant handlers
+  const lastTranscriptRef = useRef<string>('');
+  const transcriptTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const handleVoiceTranscript = (transcript: string) => {
     // Capture the transcript immediately to avoid race condition
     const voiceTranscript = transcript.trim();
 
-    if (!voiceTranscript) {
-      return;
+    if (!voiceTranscript || voiceTranscript === lastTranscriptRef.current) {
+      return; // Skip empty or duplicate transcripts
     }
+
+    // Update last transcript to prevent duplicates
+    lastTranscriptRef.current = voiceTranscript;
 
     // Set input field to show what will be sent
     setInput(voiceTranscript);
 
-    // Auto-send using captured transcript, not current input state
-    setTimeout(() => {
-      handleSendMessage(voiceTranscript);
-      setInput('');
-    }, 800);
+    // Clear previous timeout to prevent multiple sends
+    if (transcriptTimeoutRef.current) {
+      clearTimeout(transcriptTimeoutRef.current);
+    }
+
+    // Debounced auto-send using captured transcript
+    transcriptTimeoutRef.current = setTimeout(() => {
+      // Double-check that we haven't received a newer transcript
+      if (voiceTranscript === lastTranscriptRef.current) {
+        handleSendMessage(voiceTranscript);
+        setInput('');
+        lastTranscriptRef.current = ''; // Reset for next input
+      }
+    }, 1200); // Increased delay for better stability
   };
 
   const handleVoiceCommand = (command: string) => {
@@ -477,6 +492,12 @@ export default function AiChatClient() {
     }
   };
 
+  useEffect(() => () => {
+    if (transcriptTimeoutRef.current) {
+      clearTimeout(transcriptTimeoutRef.current);
+      transcriptTimeoutRef.current = null;
+    }
+  }, []);
   // Convert markdown to plain text for speech
   const markdownToPlainText = (markdown: string): string => markdown
     .replace(/#{1,6}\s+/g, '') // Remove headers
