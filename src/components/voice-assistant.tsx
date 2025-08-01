@@ -59,6 +59,8 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
 
   const recognitionRef = useRef<CustomSpeechRecognition | null>(null);
   const synthesisRef = useRef<SpeechSynthesis | null>(null);
+  const lastProcessedTranscript = useRef<string>('');
+  const transcriptProcessingTimeout = useRef<NodeJS.Timeout | null>(null);
 
   // Convert markdown to plain text for speech
   const markdownToPlainText = (markdown: string): string => markdown
@@ -96,8 +98,8 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
     const recognition = recognitionRef.current;
     if (!recognition) {return;}
 
-    recognition.continuous = true;
-    recognition.interimResults = true;
+    recognition.continuous = false;
+    recognition.interimResults = false;
     recognition.lang = 'tr-TR';
 
     recognition.onstart = () => {
@@ -107,25 +109,35 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
       let finalTranscript = '';
-      let interimTranscript = '';
 
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const result = event.results[i];
         const firstAlternative = result?.[0];
-        if (result && firstAlternative) {
-          const {transcript} = firstAlternative;
-          if (result.isFinal) {
-            finalTranscript += transcript;
-          } else {
-            interimTranscript += transcript;
-          }
+        if (result && firstAlternative && result.isFinal) {
+          finalTranscript += firstAlternative.transcript;
         }
       }
 
-      setTranscript(finalTranscript || interimTranscript);
-
       if (finalTranscript) {
-        handleCommand(finalTranscript.toLowerCase());
+        const cleanTranscript = finalTranscript.trim().toLowerCase();
+
+        if (cleanTranscript === lastProcessedTranscript.current) {
+          return;
+        }
+
+        if (transcriptProcessingTimeout.current) {
+          clearTimeout(transcriptProcessingTimeout.current);
+        }
+
+        setTranscript(cleanTranscript);
+
+        transcriptProcessingTimeout.current = setTimeout(() => {
+          // Double-check to prevent duplicates
+          if (cleanTranscript !== lastProcessedTranscript.current) {
+            lastProcessedTranscript.current = cleanTranscript;
+            handleCommand(cleanTranscript);
+          }
+        }, 500);
       }
     };
 
@@ -184,17 +196,36 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
             console.error('Unknown speech recognition error:', event.error);
           }
       }
-
       setTranscript('');
     };
 
     recognition.onend = () => {
-      setRecognitionState('idle');
-      onListeningChange?.(false);
-      setTranscript('');
+      // ✅ In non-continuous mode, restart if still supposed to be listening
+      if (recognitionState === 'active' || isListening) {
+        try {
+          // Small delay to prevent rapid restart issues
+          setTimeout(() => {
+            if (recognitionRef.current && (isListening || recognitionState === 'active')) {
+              recognitionRef.current.start();
+            }
+          }, 100);
+        } catch {
+          // If restart fails, go to idle state
+          setRecognitionState('idle');
+          onListeningChange?.(false);
+        }
+      } else {
+        setRecognitionState('idle');
+        onListeningChange?.(false);
+        setTranscript('');
+      }
     };
 
     return () => {
+      if (transcriptProcessingTimeout.current) {
+        clearTimeout(transcriptProcessingTimeout.current);
+        transcriptProcessingTimeout.current = null;
+      }
       if (recognition) {
         try {
           recognition.stop();
