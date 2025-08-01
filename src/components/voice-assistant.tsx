@@ -129,9 +129,46 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
       }
     };
 
-    recognition.onerror = () => {
-      setRecognitionState('idle');
-      onListeningChange?.(false);
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+      console.warn('Speech recognition error:', event.error);
+      
+      // Handle different error types appropriately
+      switch (event.error) {
+        case 'no-speech':
+          // User didn't speak - this is normal, just reset quietly
+          setRecognitionState('idle');
+          onListeningChange?.(false);
+          break;
+        case 'audio-capture':
+          // Microphone access issues - should notify user
+          setRecognitionState('idle');
+          onListeningChange?.(false);
+          console.error('Microphone access denied or unavailable');
+          break;
+        case 'not-allowed':
+          // Permission denied - should notify user
+          setRecognitionState('idle');
+          onListeningChange?.(false);
+          console.error('Speech recognition permission denied');
+          break;
+        case 'network':
+          // Network issues - might retry or notify user
+          setRecognitionState('idle');
+          onListeningChange?.(false);
+          console.error('Network error during speech recognition');
+          break;
+        case 'aborted':
+          // Recognition was aborted - normal during stop operation
+          setRecognitionState('idle');
+          onListeningChange?.(false);
+          break;
+        default:
+          // Other errors - generic handling
+          setRecognitionState('idle');
+          onListeningChange?.(false);
+          console.error('Unknown speech recognition error:', event.error);
+      }
+      
       setTranscript('');
     };
 
