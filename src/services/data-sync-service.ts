@@ -23,17 +23,15 @@ export class DataSyncService {
   /**
    * Performs a full bidirectional sync between cloud and localStorage
    */
-  async performFullSync(_userId: string): Promise<boolean> {
+  async performFullSync(userId: string): Promise<boolean> {
     if (this.syncInProgress) {
-      // eslint-disable-next-line no-console
       console.log('⏳ Sync already in progress, skipping');
       return false;
     }
 
     try {
       this.syncInProgress = true;
-      // eslint-disable-next-line no-console
-      console.log('🔄 Starting full data synchronization');
+      console.log('🔄 Starting full data synchronization for user:', userId);
 
       // 1. Sync subjects from cloud to localStorage
       await this.syncSubjectsFromCloud();
@@ -44,11 +42,9 @@ export class DataSyncService {
       // 3. Update last sync timestamp
       this.updateLastSyncTimestamp();
 
-      // eslint-disable-next-line no-console
       console.log('✅ Full synchronization completed successfully');
       return true;
     } catch (error) {
-      // eslint-disable-next-line no-console
       console.error('❌ Sync failed:', error);
       return false;
     } finally {
@@ -61,10 +57,10 @@ export class DataSyncService {
    */
   private async syncSubjectsFromCloud(): Promise<void> {
     try {
-      // eslint-disable-next-line no-console
       console.log('📚 Syncing subjects from cloud');
 
       const cloudSubjects = await SubjectService.getSubjects();
+      console.log(`🔍 Found ${cloudSubjects.length} subjects in cloud`);
 
       if (cloudSubjects.length > 0) {
         const mappedSubjects = cloudSubjects.map(s => ({
@@ -78,12 +74,15 @@ export class DataSyncService {
         }));
 
         localStorage.setItem('exam_training_subjects', JSON.stringify(mappedSubjects));
-        // eslint-disable-next-line no-console
         console.log(`✅ Synced ${mappedSubjects.length} subjects to localStorage`);
+      } else {
+        console.log('ℹ️ No subjects found in cloud to sync');
+        // Clear local subjects if no cloud data exists
+        localStorage.setItem('exam_training_subjects', JSON.stringify([]));
       }
     } catch (error) {
-      // eslint-disable-next-line no-console
       console.error('❌ Error syncing subjects:', error);
+      throw error; // Re-throw to be caught by the calling function
     }
   }
 
@@ -92,7 +91,6 @@ export class DataSyncService {
    */
   private async syncQuestionsFromCloud(): Promise<void> {
     try {
-      // eslint-disable-next-line no-console
       console.log('❓ Syncing questions from cloud');
 
       // Get all subjects first
@@ -101,18 +99,25 @@ export class DataSyncService {
 
       // Fetch questions for each subject
       for (const subject of cloudSubjects) {
+        console.log(`🔍 Fetching questions for subject: ${subject.name}`);
         const questions = await QuestionService.getQuestionsBySubject(subject.name);
+        console.log(`📋 Found ${questions.length} questions for ${subject.name}`);
         allQuestions.push(...questions);
       }
 
+      console.log(`📊 Total questions found: ${allQuestions.length}`);
+
       if (allQuestions.length > 0) {
         localStorage.setItem('exam_training_questions', JSON.stringify(allQuestions));
-        // eslint-disable-next-line no-console
         console.log(`✅ Synced ${allQuestions.length} questions to localStorage`);
+      } else {
+        console.log('ℹ️ No questions found in cloud to sync');
+        // Clear local questions if no cloud data exists
+        localStorage.setItem('exam_training_questions', JSON.stringify([]));
       }
     } catch (error) {
-      // eslint-disable-next-line no-console
       console.error('❌ Error syncing questions:', error);
+      throw error; // Re-throw to be caught by the calling function
     }
   }
 

@@ -83,7 +83,7 @@ export default function EnhancedDashboard() {
     totalTimeSpent: 0,
     totalSubjects: 0,
   });
-  const [storageInfo, setStorageInfo] = useState({ used: 0, available: 0, percentage: 0 });
+  const [storageInfo, setStorageInfo] = useState({ used: 0, available: 0, percentage: 0, lastRefresh: 0 });
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [useDemoData, setUseDemoData] = useState(true);
@@ -137,7 +137,7 @@ export default function EnhancedDashboard() {
           setPerformanceData(demoPerformanceData);
           setRecentResults(demoRecentResults);
           setTotalStats(demoTotalStats);
-          setStorageInfo({ used: 2048, available: 5242880, percentage: 0.04 });
+          setStorageInfo({ used: 2048, available: 5242880, percentage: 0.04, lastRefresh: Date.now() });
 
           setIsLoading(false);
           return;
@@ -173,7 +173,7 @@ export default function EnhancedDashboard() {
                   totalTimeSpent: 0,
                   totalSubjects: subjectsData.length,
                 },
-                storageInfo: { used: 0, available: 5242880, percentage: 0 },
+                storageInfo: { used: 0, available: 5242880, percentage: 0, lastRefresh: Date.now() },
               };
             }
 
@@ -282,6 +282,7 @@ export default function EnhancedDashboard() {
               used,
               available: 5242880, // 5MB
               percentage: Math.min((used / 5242880) * 100, 100),
+              lastRefresh: Date.now(),
             };
 
             return {
@@ -313,7 +314,7 @@ export default function EnhancedDashboard() {
             totalTimeSpent: 0,
             totalSubjects: 0,
           });
-          setStorageInfo({ used: 0, available: 5242880, percentage: 0 });
+          setStorageInfo({ used: 0, available: 5242880, percentage: 0, lastRefresh: Date.now() });
         }
       } catch {
         //do nothing
@@ -326,6 +327,29 @@ export default function EnhancedDashboard() {
       loadUserData();
     }
   }, [user, loading, useDemoData]);
+
+  // Listen for data refresh events after login/migration
+  useEffect(() => {
+    const handleDataRefresh = () => {
+      console.log('📡 Received data refresh event, reloading dashboard data');
+      if (user && !loading) {
+        // Force reload by toggling loading state
+        setIsLoading(true);
+        setTimeout(() => {
+          // Trigger a re-render by updating a timestamp
+          setStorageInfo(prev => ({ ...prev, lastRefresh: Date.now() }));
+          setIsLoading(false);
+        }, 100);
+      }
+    };
+
+    // Listen for custom refresh events
+    window.addEventListener('dataStateRefresh', handleDataRefresh);
+
+    return () => {
+      window.removeEventListener('dataStateRefresh', handleDataRefresh);
+    };
+  }, [user, loading]);
 
   const handleExportData = () => {
     if (!isGuest) {
