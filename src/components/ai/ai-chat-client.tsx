@@ -449,13 +449,20 @@ export default function AiChatClient() {
 
   // Voice Assistant handlers
   const handleVoiceTranscript = (transcript: string) => {
-    setInput(transcript);
-    // Auto-send after voice input for seamless UX with reasonable delay
+    // Capture the transcript immediately to avoid race condition
+    const voiceTranscript = transcript.trim();
+
+    if (!voiceTranscript) {
+      return;
+    }
+
+    // Set input field to show what will be sent
+    setInput(voiceTranscript);
+
+    // Auto-send using captured transcript, not current input state
     setTimeout(() => {
-      if (transcript.trim()) {
-        handleSendMessage(transcript);
-        setInput('');
-      }
+      handleSendMessage(voiceTranscript);
+      setInput('');
     }, 800);
   };
 

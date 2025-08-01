@@ -118,12 +118,67 @@ const AiChatComponent: React.FC<AiChatProps> = ({ subject, context }) => {
   };
 
   const handleVoiceTranscript = (transcript: string) => {
-    setInputMessage(transcript);
-    // Auto-send after voice input for seamless UX with reasonable delay
+    // Capture the transcript immediately to avoid race condition
+    const voiceTranscript = transcript.trim();
+
+    if (!voiceTranscript) {
+      return;
+    }
+
+    // Set input field to show what will be sent
+    setInputMessage(voiceTranscript);
+
+    // Auto-send using captured transcript, not current input state
     setTimeout(() => {
-      if (transcript.trim()) {
-        sendMessage();
-      }
+      // Create message directly with captured transcript
+      const userMessage: ChatMessage = {
+        id: Date.now().toString(),
+        role: 'user',
+        content: voiceTranscript,
+        timestamp: new Date().toISOString(),
+      };
+
+      setMessages(prev => [...prev, userMessage]);
+      setInputMessage('');
+      setIsLoading(true);
+
+      // Continue with AI response...
+      const sendAIResponse = async () => {
+        try {
+          const response = await getAiChatResponse({
+            message: voiceTranscript,
+            subject,
+            conversationHistory: messages.map(msg => ({
+              role: msg.role,
+              content: msg.content,
+              timestamp: msg.timestamp,
+            })),
+            context,
+          });
+
+          const assistantMessage: ChatMessage = {
+            id: (Date.now() + 1).toString(),
+            role: 'assistant',
+            content: response.response,
+            timestamp: new Date().toISOString(),
+          };
+
+          setMessages(prev => [...prev, assistantMessage]);
+          setAiResponse(response);
+        } catch {
+          const errorMessage: ChatMessage = {
+            id: (Date.now() + 1).toString(),
+            role: 'assistant',
+            content: 'Üzgünüm, şu anda cevap veremiyorum. Lütfen biraz sonra tekrar dene. 😔',
+            timestamp: new Date().toISOString(),
+          };
+          setMessages(prev => [...prev, errorMessage]);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      sendAIResponse();
     }, 800);
   };
 
