@@ -29,6 +29,7 @@ export function useAuth() {
             });
 
             if (error) {
+              console.error('🚨 Error setting session from hash:', error);
             } else {
               setUser(data.user);
               // Clean up the URL
@@ -43,6 +44,7 @@ export function useAuth() {
         const { data: { session }, error } = await supabase.auth.getSession();
 
         if (error) {
+          console.error('🚨 Error getting session:', error);
         } else if (session) {
           setUser(session.user);
         } else {
@@ -50,7 +52,8 @@ export function useAuth() {
         }
 
         setLoading(false);
-      } catch {
+      } catch (err) {
+        console.error('🚨 Error in handleAuthState:', err);
         setLoading(false);
       }
     };
@@ -67,27 +70,26 @@ export function useAuth() {
         if (event === 'SIGNED_OUT') {
           setUser(null);
           setLoading(false);
+          console.log('👋 User signed out');
         }
 
         // Handle sign in - trigger data migration
         if (event === 'SIGNED_IN' && newUser) {
-          // eslint-disable-next-line no-console
-          console.log('🔐 User signed in, checking for data migration');
+          console.log('🔐 User signed in, starting data sync process for user:', newUser.id);
 
           try {
             setIsMigrating(true);
 
             // Check if user has existing cloud data
             const hasCloudData = await dataMigrationService.hasExistingCloudData(newUser.id);
+            console.log('☁️ User has existing cloud data:', hasCloudData);
 
             if (!hasCloudData) {
               // No existing cloud data, migrate guest data
-              // eslint-disable-next-line no-console
               console.log('📦 Migrating guest data to user account');
               const migrationResult = await dataMigrationService.migrateGuestDataToUser(newUser.id);
 
               if (migrationResult.success) {
-                // eslint-disable-next-line no-console
                 console.log('✅ Data migration successful:', migrationResult);
 
                 // Clear guest data only after successful migration
@@ -96,21 +98,34 @@ export function useAuth() {
                 // Trigger UI refresh
                 await dataMigrationService.refreshDataState();
               } else {
-                // eslint-disable-next-line no-console
                 console.error('❌ Data migration failed:', migrationResult.errors);
+                // Don't clear guest data if migration failed
               }
             } else {
               // User has existing cloud data, sync it to localStorage
-              // eslint-disable-next-line no-console
               console.log('☁️ Syncing existing cloud data to localStorage');
-              await dataMigrationService.syncCloudDataToLocalStorage(newUser.id);
+              const syncSuccess = await dataMigrationService.syncCloudDataToLocalStorage(newUser.id);
 
-              // Trigger UI refresh
-              await dataMigrationService.refreshDataState();
+              if (syncSuccess) {
+                console.log('✅ Cloud data sync successful');
+                // Trigger UI refresh
+                await dataMigrationService.refreshDataState();
+              } else {
+                console.error('❌ Cloud data sync failed');
+                // Attempt a force refresh anyway to show whatever data is available
+                await dataMigrationService.refreshDataState();
+              }
             }
+
+            console.log('🔄 Data sync process completed');
           } catch (error) {
-            // eslint-disable-next-line no-console
-            console.error('❌ Error during post-login processing:', error);
+            console.error('❌ Error during post-login data processing:', error);
+            // Even if there's an error, try to refresh the UI
+            try {
+              await dataMigrationService.refreshDataState();
+            } catch (refreshError) {
+              console.error('❌ Error refreshing data state:', refreshError);
+            }
           } finally {
             setIsMigrating(false);
             setLoading(false);
@@ -125,9 +140,11 @@ export function useAuth() {
   }, []);
 
   const logout = async () => {
+    console.log('👋 Logging out user');
     await signOut();
     setUser(null);
   };
+
   return {
     user,
     loading: loading || isMigrating,

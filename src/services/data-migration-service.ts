@@ -119,26 +119,24 @@ export class DataMigrationService {
     };
 
     try {
-              // eslint-disable-next-line no-console
-        console.log('🔄 Starting data migration for user:', userId);
+      console.log('🔄 Starting data migration for user:', userId);
 
-        // Collect all guest data
-        const guestData = this.collectGuestData();
+      // Collect all guest data
+      const guestData = this.collectGuestData();
 
-        // Check if there's any data to migrate
-        if (this.hasDataToMigrate(guestData)) {
-          // eslint-disable-next-line no-console
-          console.log('📦 Found guest data to migrate:', {
-            subjects: guestData.subjects.length,
-            questions: guestData.questions.length,
-            quizResults: guestData.quizResults.length,
-          });
+      // Check if there's any data to migrate
+      if (this.hasDataToMigrate(guestData)) {
+        console.log('📦 Found guest data to migrate:', {
+          subjects: guestData.subjects.length,
+          questions: guestData.questions.length,
+          quizResults: guestData.quizResults.length,
+        });
 
         // 1. Migrate subjects first (questions depend on subjects)
-        await this.migrateSubjects(guestData.subjects, result);
+        await this.migrateSubjects(guestData.subjects, userId, result);
 
         // 2. Migrate questions
-        await this.migrateQuestions(guestData.questions, result);
+        await this.migrateQuestions(guestData.questions, userId, result);
 
         // 3. Migrate quiz results
         await this.migrateQuizResults(guestData.quizResults, userId, result);
@@ -152,20 +150,17 @@ export class DataMigrationService {
         // 6. Migrate AI data (recommendations and chat sessions)
         await this.migrateAIData(guestData.aiRecommendations, guestData.aiChatSessions, userId, result);
 
-                  // eslint-disable-next-line no-console
-          console.log('✅ Migration completed:', result);
-          result.success = result.errors.length === 0;
-        } else {
-          // eslint-disable-next-line no-console
-          console.log('ℹ️ No guest data found to migrate');
-          result.success = true;
-        }
-
-          } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error('❌ Migration failed:', error);
-        result.errors.push(`Migration failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        console.log('✅ Migration completed:', result);
+        result.success = result.errors.length === 0;
+      } else {
+        console.log('ℹ️ No guest data found to migrate');
+        result.success = true;
       }
+
+    } catch (error) {
+      console.error('❌ Migration failed:', error);
+      result.errors.push(`Migration failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
 
     return result;
   }
@@ -182,7 +177,7 @@ export class DataMigrationService {
     );
   }
 
-  private async migrateSubjects(subjects: GuestData['subjects'], result: MigrationResult): Promise<void> {
+  private async migrateSubjects(subjects: GuestData['subjects'], userId: string, result: MigrationResult): Promise<void> {
     try {
       for (const subject of subjects) {
         const migratedSubject = await SubjectService.createSubject({
@@ -192,11 +187,11 @@ export class DataMigrationService {
           difficulty: subject.difficulty,
           question_count: 0, // Will be updated when questions are migrated
           is_active: subject.isActive,
+          created_by: userId, // Ensure the subject is owned by the current user
         });
 
         if (migratedSubject) {
           result.migratedSubjects++;
-          // eslint-disable-next-line no-console
           console.log(`✅ Migrated subject: ${subject.name}`);
         } else {
           result.errors.push(`Failed to migrate subject: ${subject.name}`);
@@ -207,7 +202,7 @@ export class DataMigrationService {
     }
   }
 
-  private async migrateQuestions(questions: GuestData['questions'], result: MigrationResult): Promise<void> {
+  private async migrateQuestions(questions: GuestData['questions'], userId: string, result: MigrationResult): Promise<void> {
     try {
       for (const question of questions) {
         const migratedQuestion = await QuestionService.createQuestion({
@@ -222,11 +217,11 @@ export class DataMigrationService {
           topic: question.topic || '',
           formula: question.formula || '',
           is_active: true,
+          created_by: userId, // Ensure the question is owned by the current user
         });
 
         if (migratedQuestion) {
           result.migratedQuestions++;
-          // eslint-disable-next-line no-console
           console.log(`✅ Migrated question for subject: ${question.subject}`);
         } else {
           result.errors.push(`Failed to migrate question for subject: ${question.subject}`);
@@ -344,11 +339,32 @@ export class DataMigrationService {
    * Forces a refresh of all data after migration
    */
   async refreshDataState(): Promise<void> {
-    // Trigger a custom event that components can listen to
+    console.log('🔄 Refreshing data state...');
+
+    // Trigger multiple events to ensure components refresh
     if (typeof window !== 'undefined') {
+      // Dispatch main refresh event
       window.dispatchEvent(new CustomEvent('dataStateRefresh', {
         detail: { timestamp: Date.now() },
       }));
+
+      // Also dispatch storage event to simulate localStorage change
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'exam_training_subjects',
+        newValue: localStorage.getItem('exam_training_subjects'),
+        storageArea: localStorage,
+      }));
+
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'exam_training_questions',
+        newValue: localStorage.getItem('exam_training_questions'),
+        storageArea: localStorage,
+      }));
+
+      // Force a small delay to ensure events are processed
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      console.log('✅ Data state refresh events dispatched');
     }
   }
 }
