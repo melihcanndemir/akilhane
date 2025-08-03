@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     }
 
     // URL uzunluğunu azaltmak için prompt'u kısalt
-    const shortPrompt = prompt.length > 200 ? `${prompt.substring(0, 200)  }...` : prompt;
+    const shortPrompt = prompt.length > 200 ? `${prompt.substring(0, 200)}...` : prompt;
 
     // Daha kısa ve öz bir prompt oluştur
     const cleanPrompt = `Educational: ${shortPrompt}. Subject: ${subject || "education"}. Topic: ${topic || "science"}. Professional, detailed`;
@@ -25,8 +25,7 @@ export async function POST(request: NextRequest) {
       success: true,
       confidence: 0.9,
     });
-  } catch (error) {
-    console.error("Image generation error:", error);
+  } catch {
     return NextResponse.json({ error: "Hata oluştu" }, { status: 500 });
   }
 }
