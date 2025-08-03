@@ -81,8 +81,8 @@ export default function LandingPage() {
 
             {/* Subtitle */}
             <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
-              Google Gemini AI ile dinamik konu üretimi, Pollinations.ai ile görsel içerik oluşturma, 
-              kişiselleştirilmiş AI tutor ve akıllı test sistemi ile öğrenme deneyiminizi 
+              Google Gemini AI ile dinamik konu üretimi, Pollinations.ai ile görsel içerik oluşturma,
+              kişiselleştirilmiş AI tutor ve akıllı test sistemi ile öğrenme deneyiminizi
               <span className="font-semibold text-blue-600 dark:text-blue-400"> geleceğe taşıyın</span>.
             </p>
 
