@@ -40,8 +40,12 @@ import {
   Code,
   Sparkles,
   Smartphone,
+  GraduationCap,
 } from 'lucide-react';
 import MobileNav from '@/components/mobile-nav';
+import AIFeaturesShowcase from '@/components/ai-features-showcase';
+import PerformanceMetrics from '@/components/performance-metrics';
+import MobileDemo from '@/components/mobile-demo';
 
 export default function LandingPage() {
   return (
@@ -420,6 +424,15 @@ export default function LandingPage() {
             </div>
           </section>
 
+          {/* AI Features Showcase */}
+          <AIFeaturesShowcase />
+
+          {/* Performance Metrics */}
+          <PerformanceMetrics />
+
+          {/* Mobile Responsiveness Demo */}
+          <MobileDemo />
+
           {/* Demo CTA Section */}
           <section id="demo" className="py-16">
             <div className="glass-card p-8 rounded-xl text-center">
@@ -480,7 +493,7 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8 mb-8">
               <div className="border-gradient-question p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
                 <Card className="h-full w-full rounded-[11px] border-0 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 dark:from-blue-500/20 dark:to-indigo-500/20 cursor-pointer">
                 <div
@@ -530,6 +543,30 @@ export default function LandingPage() {
                       <Database className="h-8 w-8 mx-auto mb-3 text-indigo-600 dark:text-indigo-400" />
                       <h3 className="font-semibold mb-2 text-foreground">Konu Yönetimi</h3>
                     <p className="text-sm text-muted-foreground">Konuları düzenleyin</p>
+                  </CardContent>
+                </Link>
+              </Card>
+              </div>
+
+              <div className="border-gradient-yellow p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
+                <Card className="h-full w-full rounded-[11px] border-0 bg-gradient-to-br from-yellow-500/10 to-amber-500/10 dark:from-yellow-500/20 dark:to-amber-500/20 cursor-pointer">
+                <Link href="/topic-explainer">
+                  <CardContent className="p-6 text-center">
+                      <BookOpen className="h-8 w-8 mx-auto mb-3 text-yellow-600 dark:text-yellow-400" />
+                      <h3 className="font-semibold mb-2 text-foreground">Konu Anlatımı</h3>
+                    <p className="text-sm text-muted-foreground">AI destekli konu açıklamaları</p>
+                  </CardContent>
+                </Link>
+              </Card>
+              </div>
+
+              <div className="border-gradient-teal p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
+                <Card className="h-full w-full rounded-[11px] border-0 bg-gradient-to-br from-teal-500/10 to-cyan-500/10 dark:from-teal-500/20 dark:to-cyan-500/20 cursor-pointer">
+                <Link href="/subject-manager">
+                  <CardContent className="p-6 text-center">
+                      <GraduationCap className="h-8 w-8 mx-auto mb-3 text-teal-600 dark:text-teal-400" />
+                      <h3 className="font-semibold mb-2 text-foreground">Ders Yönetimi</h3>
+                    <p className="text-sm text-muted-foreground">Dersleri organize edin</p>
                   </CardContent>
                 </Link>
               </Card>

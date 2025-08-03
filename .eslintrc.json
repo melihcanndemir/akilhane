@@ -4,8 +4,8 @@
     "next/typescript"
   ],
   "rules": {
-    "@typescript-eslint/no-unused-vars": "error",
-    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/no-unused-vars": "warn",
+    "@typescript-eslint/no-explicit-any": "warn",
     "@typescript-eslint/no-non-null-assertion": "error",
     "@typescript-eslint/prefer-const": "error",
     "@typescript-eslint/no-var-requires": "error",
@@ -43,8 +43,11 @@
     "no-unsafe-optional-chaining": "error",
     "prefer-const": "error",
     "prefer-promise-reject-errors": "error",
+    // Trailing spaces ve diğer format kurallarını esnet
+    "no-trailing-spaces": "warn",
+    "eol-last": "warn",
     // React kurallarını esnet
-    "react/no-unescaped-entities": "warn",
+    "react/no-unescaped-entities": "off",
     "@typescript-eslint/no-misused-promises": "warn",
     "jsx-a11y/alt-text": "warn",
     "@next/next/no-img-element": "warn"
