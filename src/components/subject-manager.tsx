@@ -1,17 +1,37 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useToast } from '@/hooks/use-toast';
-import { Plus, Edit, Trash2, Eye, EyeOff, BookOpen, GraduationCap } from 'lucide-react';
-import { shouldUseDemoData, demoSubjects } from '@/data/demo-data';
-import { SubjectService } from '@/services/supabase-service';
-import { supabase } from '@/lib/supabase';
+import React, { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  EyeOff,
+  BookOpen,
+  GraduationCap,
+} from "lucide-react";
+import { shouldUseDemoData, demoSubjects } from "@/data/demo-data";
+import { SubjectService } from "@/services/supabase-service";
+import { supabase } from "@/lib/supabase";
 
 interface Subject {
   id: string;
@@ -25,10 +45,12 @@ interface Subject {
 
 // LocalStorage service for subjects
 class SubjectLocalStorageService {
-  private static readonly STORAGE_KEY = 'exam_training_subjects';
+  private static readonly STORAGE_KEY = "exam_training_subjects";
 
   static getSubjects(): Subject[] {
-    if (typeof window === 'undefined') {return [];}
+    if (typeof window === "undefined") {
+      return [];
+    }
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       return stored ? JSON.parse(stored) : [];
@@ -38,7 +60,9 @@ class SubjectLocalStorageService {
   }
 
   static saveSubjects(subjects: Subject[]): void {
-    if (typeof window === 'undefined') {return;}
+    if (typeof window === "undefined") {
+      return;
+    }
     try {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(subjects));
     } catch {
@@ -46,7 +70,7 @@ class SubjectLocalStorageService {
     }
   }
 
-  static addSubject(subject: Omit<Subject, 'id'>): Subject {
+  static addSubject(subject: Omit<Subject, "id">): Subject {
     const newSubject: Subject = {
       ...subject,
       id: `subj_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -60,8 +84,10 @@ class SubjectLocalStorageService {
 
   static updateSubject(id: string, updates: Partial<Subject>): Subject | null {
     const subjects = this.getSubjects();
-    const index = subjects.findIndex(s => s.id === id);
-    if (index === -1) {return null;}
+    const index = subjects.findIndex((s) => s.id === id);
+    if (index === -1) {
+      return null;
+    }
 
     const existingSubject = subjects[index];
     if (existingSubject) {
@@ -83,8 +109,10 @@ class SubjectLocalStorageService {
 
   static deleteSubject(id: string): boolean {
     const subjects = this.getSubjects();
-    const filtered = subjects.filter(s => s.id !== id);
-    if (filtered.length === subjects.length) {return false;}
+    const filtered = subjects.filter((s) => s.id !== id);
+    if (filtered.length === subjects.length) {
+      return false;
+    }
 
     this.saveSubjects(filtered);
     return true;
@@ -92,8 +120,10 @@ class SubjectLocalStorageService {
 
   static toggleActive(id: string): Subject | null {
     const subjects = this.getSubjects();
-    const index = subjects.findIndex(s => s.id === id);
-    if (index === -1) {return null;}
+    const index = subjects.findIndex((s) => s.id === id);
+    if (index === -1) {
+      return null;
+    }
 
     const existingSubject = subjects[index];
     if (existingSubject) {
@@ -119,10 +149,10 @@ const SubjectManager = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    category: '',
-    difficulty: 'Orta',
+    name: "",
+    description: "",
+    category: "",
+    difficulty: "Orta",
   });
   const [useSupabase, setUseSupabase] = useState(false);
   const { toast } = useToast();
@@ -139,25 +169,34 @@ const SubjectManager = () => {
       }
 
       // Fetch data from API
-      const response = await fetch('/api/subjects');
+      const response = await fetch("/api/subjects");
       const apiSubjects = await response.json();
 
       // If API returns demo data and demo mode is off, show empty state
-      if (apiSubjects.length > 0 && apiSubjects[0].createdBy === 'demo_user_btk_2025' && !shouldUseDemoData()) {
+      if (
+        apiSubjects.length > 0 &&
+        apiSubjects[0].createdBy === "demo_user_btk_2025" &&
+        !shouldUseDemoData()
+      ) {
         setSubjects([]);
         setUseSupabase(false);
         return;
       }
 
       // If API returns real data, use it
-      if (apiSubjects.length > 0 && apiSubjects[0].createdBy !== 'demo_user_btk_2025') {
+      if (
+        apiSubjects.length > 0 &&
+        apiSubjects[0].createdBy !== "demo_user_btk_2025"
+      ) {
         setSubjects(apiSubjects);
         setUseSupabase(true);
         return;
       }
 
       // If API returns empty, check localStorage
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
       if (!session) {
         setUseSupabase(false);
@@ -165,9 +204,11 @@ const SubjectManager = () => {
 
         // Calculate real question count
         const getQuestionsFromStorage = () => {
-          if (typeof window === 'undefined') {return [];}
+          if (typeof window === "undefined") {
+            return [];
+          }
           try {
-            const stored = localStorage.getItem('exam_training_questions');
+            const stored = localStorage.getItem("exam_training_questions");
             return stored ? JSON.parse(stored) : [];
           } catch {
             return [];
@@ -177,8 +218,10 @@ const SubjectManager = () => {
         const questions = getQuestionsFromStorage();
 
         // Calculate real question count for each subject
-        const updatedSubjects = localSubjects.map(subject => {
-          const questionCount = questions.filter((q: { subject: string }) => q.subject === subject.name).length;
+        const updatedSubjects = localSubjects.map((subject) => {
+          const questionCount = questions.filter(
+            (q: { subject: string }) => q.subject === subject.name,
+          ).length;
           return {
             ...subject,
             questionCount,
@@ -193,7 +236,7 @@ const SubjectManager = () => {
 
       // Fetch data from Supabase
       const supabaseSubjects = await SubjectService.getSubjects();
-      const mappedSupabaseSubjects: Subject[] = supabaseSubjects.map(s => ({
+      const mappedSupabaseSubjects: Subject[] = supabaseSubjects.map((s) => ({
         id: s.id,
         name: s.name,
         description: s.description,
@@ -208,8 +251,10 @@ const SubjectManager = () => {
       const mergedSubjects = [...localSubjects];
 
       // Check each subject in Supabase
-      mappedSupabaseSubjects.forEach(supabaseSubject => {
-        const existingIndex = mergedSubjects.findIndex(local => local.id === supabaseSubject.id);
+      mappedSupabaseSubjects.forEach((supabaseSubject) => {
+        const existingIndex = mergedSubjects.findIndex(
+          (local) => local.id === supabaseSubject.id,
+        );
         if (existingIndex !== -1) {
           // If same ID exists, update with Supabase data
           mergedSubjects[existingIndex] = supabaseSubject;
@@ -221,9 +266,11 @@ const SubjectManager = () => {
 
       // Calculate real question count
       const getQuestionsFromStorage = () => {
-        if (typeof window === 'undefined') {return [];}
+        if (typeof window === "undefined") {
+          return [];
+        }
         try {
-          const stored = localStorage.getItem('exam_training_questions');
+          const stored = localStorage.getItem("exam_training_questions");
           return stored ? JSON.parse(stored) : [];
         } catch {
           return [];
@@ -233,8 +280,10 @@ const SubjectManager = () => {
       const questions = getQuestionsFromStorage();
 
       // Calculate real question count for each subject
-      const updatedMergedSubjects = mergedSubjects.map(subject => {
-        const questionCount = questions.filter((q: { subject: string }) => q.subject === subject.name).length;
+      const updatedMergedSubjects = mergedSubjects.map((subject) => {
+        const questionCount = questions.filter(
+          (q: { subject: string }) => q.subject === subject.name,
+        ).length;
         return {
           ...subject,
           questionCount,
@@ -252,12 +301,11 @@ const SubjectManager = () => {
 
   const handleAddSubject = async () => {
     try {
-
       if (!formData.name || !formData.description || !formData.category) {
         toast({
-          title: 'Hata',
-          description: 'Lütfen tüm alanları doldurun.',
-          variant: 'destructive',
+          title: "Hata",
+          description: "Lütfen tüm alanları doldurun.",
+          variant: "destructive",
         });
         return;
       }
@@ -291,26 +339,31 @@ const SubjectManager = () => {
             questionCount: result.question_count,
             isActive: result.is_active,
           };
-          setSubjects(prev => [mappedSubject, ...prev]);
+          setSubjects((prev) => [mappedSubject, ...prev]);
         }
       } else {
         const result = SubjectLocalStorageService.addSubject(newSubject);
-        setSubjects(prev => [result, ...prev]);
+        setSubjects((prev) => [result, ...prev]);
       }
 
       toast({
-        title: 'Başarılı',
-        description: 'Ders başarıyla eklendi.',
+        title: "Başarılı",
+        description: "Ders başarıyla eklendi.",
       });
 
-      setFormData({ name: '', description: '', category: '', difficulty: 'Orta' });
+      setFormData({
+        name: "",
+        description: "",
+        category: "",
+        difficulty: "Orta",
+      });
       setIsDialogOpen(false);
     } catch {
       //do nothing
       toast({
-        title: 'Hata',
-        description: 'Ders eklenirken bir hata oluştu.',
-        variant: 'destructive',
+        title: "Hata",
+        description: "Ders eklenirken bir hata oluştu.",
+        variant: "destructive",
       });
     }
   };
@@ -319,9 +372,9 @@ const SubjectManager = () => {
     try {
       if (!formData.name || !formData.description || !formData.category) {
         toast({
-          title: 'Hata',
-          description: 'Lütfen tüm alanları doldurun.',
-          variant: 'destructive',
+          title: "Hata",
+          description: "Lütfen tüm alanları doldurun.",
+          variant: "destructive",
         });
         return;
       }
@@ -344,35 +397,44 @@ const SubjectManager = () => {
             questionCount: result.question_count,
             isActive: result.is_active,
           };
-          setSubjects(prev => prev.map(s => s.id === subject.id ? mappedSubject : s));
+          setSubjects((prev) =>
+            prev.map((s) => (s.id === subject.id ? mappedSubject : s)),
+          );
         }
       } else {
         const result = SubjectLocalStorageService.updateSubject(subject.id, {
-        name: formData.name,
-        description: formData.description,
-        category: formData.category,
-        difficulty: formData.difficulty,
-      });
+          name: formData.name,
+          description: formData.description,
+          category: formData.category,
+          difficulty: formData.difficulty,
+        });
 
-      if (result) {
-        setSubjects(prev => prev.map(s => s.id === subject.id ? result : s));
-      }
+        if (result) {
+          setSubjects((prev) =>
+            prev.map((s) => (s.id === subject.id ? result : s)),
+          );
+        }
       }
 
       toast({
-        title: 'Başarılı',
-        description: 'Ders başarıyla güncellendi.',
+        title: "Başarılı",
+        description: "Ders başarıyla güncellendi.",
       });
 
-      setFormData({ name: '', description: '', category: '', difficulty: 'Orta' });
+      setFormData({
+        name: "",
+        description: "",
+        category: "",
+        difficulty: "Orta",
+      });
       setEditingSubject(null);
       setIsDialogOpen(false);
     } catch {
       //do nothing
       toast({
-        title: 'Hata',
-        description: 'Ders güncellenirken bir hata oluştu.',
-        variant: 'destructive',
+        title: "Hata",
+        description: "Ders güncellenirken bir hata oluştu.",
+        variant: "destructive",
       });
     }
   };
@@ -382,25 +444,25 @@ const SubjectManager = () => {
       if (useSupabase) {
         const success = await SubjectService.deleteSubject(id);
         if (success) {
-      setSubjects(prev => prev.filter(s => s.id !== id));
+          setSubjects((prev) => prev.filter((s) => s.id !== id));
         }
       } else {
         const success = SubjectLocalStorageService.deleteSubject(id);
-      if (success) {
-          setSubjects(prev => prev.filter(s => s.id !== id));
+        if (success) {
+          setSubjects((prev) => prev.filter((s) => s.id !== id));
         }
       }
 
       toast({
-        title: 'Başarılı',
-        description: 'Ders başarıyla silindi.',
+        title: "Başarılı",
+        description: "Ders başarıyla silindi.",
       });
     } catch {
       //do nothing
       toast({
-        title: 'Hata',
-        description: 'Ders silinirken bir hata oluştu.',
-        variant: 'destructive',
+        title: "Hata",
+        description: "Ders silinirken bir hata oluştu.",
+        variant: "destructive",
       });
     }
   };
@@ -408,9 +470,12 @@ const SubjectManager = () => {
   const handleToggleActive = async (id: string) => {
     try {
       if (useSupabase) {
-        const subject = subjects.find(s => s.id === id);
+        const subject = subjects.find((s) => s.id === id);
         if (subject) {
-          const result = await SubjectService.toggleActive(id, !subject.isActive);
+          const result = await SubjectService.toggleActive(
+            id,
+            !subject.isActive,
+          );
           if (result) {
             const mappedSubject: Subject = {
               id: result.id,
@@ -421,26 +486,28 @@ const SubjectManager = () => {
               questionCount: result.question_count,
               isActive: result.is_active,
             };
-            setSubjects(prev => prev.map(s => s.id === id ? mappedSubject : s));
+            setSubjects((prev) =>
+              prev.map((s) => (s.id === id ? mappedSubject : s)),
+            );
           }
         }
       } else {
         const result = SubjectLocalStorageService.toggleActive(id);
-      if (result) {
-        setSubjects(prev => prev.map(s => s.id === id ? result : s));
+        if (result) {
+          setSubjects((prev) => prev.map((s) => (s.id === id ? result : s)));
         }
       }
 
       toast({
-        title: 'Başarılı',
-        description: 'Ders durumu güncellendi.',
+        title: "Başarılı",
+        description: "Ders durumu güncellendi.",
       });
     } catch {
       //do nothing
       toast({
-        title: 'Hata',
-        description: 'Ders durumu güncellenirken bir hata oluştu.',
-        variant: 'destructive',
+        title: "Hata",
+        description: "Ders durumu güncellenirken bir hata oluştu.",
+        variant: "destructive",
       });
     }
   };
@@ -458,7 +525,12 @@ const SubjectManager = () => {
 
   const openAddDialog = () => {
     setEditingSubject(null);
-    setFormData({ name: '', description: '', category: '', difficulty: 'Orta' });
+    setFormData({
+      name: "",
+      description: "",
+      category: "",
+      difficulty: "Orta",
+    });
     setIsDialogOpen(true);
   };
 
@@ -472,7 +544,9 @@ const SubjectManager = () => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600 dark:text-gray-300">Dersler yükleniyor...</p>
+            <p className="text-gray-600 dark:text-gray-300">
+              Dersler yükleniyor...
+            </p>
           </div>
         </div>
       </div>
@@ -504,7 +578,10 @@ const SubjectManager = () => {
         <div className="mb-6 flex justify-center mx-6 sm:mx-0">
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button onClick={openAddDialog} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 w-full sm:w-auto">
+              <Button
+                onClick={openAddDialog}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 w-full sm:w-auto"
+              >
                 <Plus className="w-5 h-5 mr-2" />
                 Yeni Ders Ekle
               </Button>
@@ -512,7 +589,7 @@ const SubjectManager = () => {
             <DialogContent className="mx-auto max-w-[90%] sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>
-                  {editingSubject ? 'Dersi Düzenle' : 'Yeni Ders Ekle'}
+                  {editingSubject ? "Dersi Düzenle" : "Yeni Ders Ekle"}
                 </DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
@@ -521,7 +598,9 @@ const SubjectManager = () => {
                   <Input
                     id="name"
                     value={formData.name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, name: e.target.value }))
+                    }
                     placeholder="Örn: Matematik"
                     className="w-full"
                   />
@@ -531,7 +610,12 @@ const SubjectManager = () => {
                   <Input
                     id="description"
                     value={formData.description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        description: e.target.value,
+                      }))
+                    }
                     placeholder="Ders açıklaması"
                     className="w-full"
                   />
@@ -541,14 +625,24 @@ const SubjectManager = () => {
                   <Input
                     id="category"
                     value={formData.category}
-                    onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        category: e.target.value,
+                      }))
+                    }
                     placeholder="Örn: Fen Bilimleri"
                     className="w-full"
                   />
                 </div>
                 <div>
                   <Label htmlFor="difficulty">Zorluk Seviyesi</Label>
-                  <Select value={formData.difficulty} onValueChange={(value) => setFormData(prev => ({ ...prev, difficulty: value }))}>
+                  <Select
+                    value={formData.difficulty}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({ ...prev, difficulty: value }))
+                    }
+                  >
                     <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
@@ -560,10 +654,25 @@ const SubjectManager = () => {
                   </Select>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2 pt-4">
-                  <Button onClick={editingSubject ? () => { void handleEditSubject(editingSubject); } : () => { void handleAddSubject(); }} className="flex-1">
-                    {editingSubject ? 'Güncelle' : 'Ekle'}
+                  <Button
+                    onClick={
+                      editingSubject
+                        ? () => {
+                            void handleEditSubject(editingSubject);
+                          }
+                        : () => {
+                            void handleAddSubject();
+                          }
+                    }
+                    className="flex-1"
+                  >
+                    {editingSubject ? "Güncelle" : "Ekle"}
                   </Button>
-                  <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="flex-1">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsDialogOpen(false)}
+                    className="flex-1"
+                  >
                     İptal
                   </Button>
                 </div>
@@ -578,7 +687,9 @@ const SubjectManager = () => {
             <div
               key={subject.id}
               className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 ${
-                subject.isActive ? 'border-gradient-active' : 'border-2 border-gray-200 dark:border-gray-700'
+                subject.isActive
+                  ? "border-gradient-active"
+                  : "border-2 border-gray-200 dark:border-gray-700"
               }`}
             >
               <div className="p-4 sm:p-6">
@@ -595,10 +706,16 @@ const SubjectManager = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => { void handleToggleActive(subject.id); }}
+                      onClick={() => {
+                        void handleToggleActive(subject.id);
+                      }}
                       className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                     >
-                      {subject.isActive ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                      {subject.isActive ? (
+                        <Eye className="w-4 h-4" />
+                      ) : (
+                        <EyeOff className="w-4 h-4" />
+                      )}
                     </Button>
                     <Button
                       variant="ghost"
@@ -611,7 +728,9 @@ const SubjectManager = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => { void handleDeleteSubject(subject.id); }}
+                      onClick={() => {
+                        void handleDeleteSubject(subject.id);
+                      }}
                       className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-200"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -621,35 +740,49 @@ const SubjectManager = () => {
 
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Kategori:</span>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      Kategori:
+                    </span>
                     <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
                       {subject.category}
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Zorluk:</span>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      Zorluk:
+                    </span>
                     <Badge
                       className={
-                        subject.difficulty === 'Kolay' ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white border-0' :
-                        subject.difficulty === 'Orta' ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0' :
-                        'bg-gradient-to-r from-red-400 to-pink-500 text-white border-0'
+                        subject.difficulty === "Kolay"
+                          ? "bg-gradient-to-r from-green-400 to-emerald-500 text-white border-0"
+                          : subject.difficulty === "Orta"
+                            ? "bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0"
+                            : "bg-gradient-to-r from-red-400 to-pink-500 text-white border-0"
                       }
                     >
                       {subject.difficulty}
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Soru Sayısı:</span>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      Soru Sayısı:
+                    </span>
                     <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       {subject.questionCount}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Durum:</span>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      Durum:
+                    </span>
                     <Badge
-                      className={subject.isActive ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white border-0' : 'bg-gradient-to-r from-gray-400 to-gray-500 text-white border-0'}
+                      className={
+                        subject.isActive
+                          ? "bg-gradient-to-r from-green-400 to-emerald-500 text-white border-0"
+                          : "bg-gradient-to-r from-gray-400 to-gray-500 text-white border-0"
+                      }
                     >
-                      {subject.isActive ? 'Aktif' : 'Pasif'}
+                      {subject.isActive ? "Aktif" : "Pasif"}
                     </Badge>
                   </div>
                 </div>
@@ -669,7 +802,10 @@ const SubjectManager = () => {
             <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm sm:text-base">
               İlk dersinizi ekleyerek başlayın!
             </p>
-            <Button onClick={openAddDialog} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white w-full sm:w-auto">
+            <Button
+              onClick={openAddDialog}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white w-full sm:w-auto"
+            >
               <Plus className="w-5 h-5 mr-2" />
               İlk Dersi Ekle
             </Button>

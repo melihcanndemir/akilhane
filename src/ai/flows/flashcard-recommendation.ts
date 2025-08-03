@@ -1,5 +1,5 @@
 // src/ai/flows/flashcard-recommendation.ts
-'use server';
+"use server";
 
 /**
  * @fileOverview This file defines a Genkit flow to provide intelligent flashcard recommendations based on user performance and learning patterns.
@@ -10,65 +10,95 @@
  * - `FlashcardRecommendationOutput`: The output type for the recommendation function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
-import { getPerformanceHistoryForSubject } from '@/services/performance-service';
+import { ai } from "@/ai/genkit";
+import { z } from "genkit";
+import { getPerformanceHistoryForSubject } from "@/services/performance-service";
 
 const getPerformanceHistoryTool = ai.defineTool(
   {
-    name: 'getPerformanceHistoryForSubject',
-    description: 'Kullanıcının belirli bir ders için geçmiş quiz performansını alır. Her biri skor ve toplam soru içeren quiz sonuçları dizisi döndürür.',
+    name: "getPerformanceHistoryForSubject",
+    description:
+      "Kullanıcının belirli bir ders için geçmiş quiz performansını alır. Her biri skor ve toplam soru içeren quiz sonuçları dizisi döndürür.",
     inputSchema: z.object({
-      subject: z.string().describe('Performans geçmişi alınacak ders.'),
-      userId: z.string().describe('Kullanıcının ID\'si.'),
+      subject: z.string().describe("Performans geçmişi alınacak ders."),
+      userId: z.string().describe("Kullanıcının ID'si."),
     }),
-    outputSchema: z.array(z.object({
+    outputSchema: z.array(
+      z.object({
         score: z.number(),
         totalQuestions: z.number(),
         timeSpent: z.number(),
         date: z.string(),
         weakTopics: z.record(z.string(), z.number()),
-    })),
+      }),
+    ),
   },
   async (input) => getPerformanceHistoryForSubject(input.subject, input.userId),
 );
 
 const FlashcardRecommendationInputSchema = z.object({
-  userId: z.string().describe('Kullanıcının ID\'si.'),
-  subject: z.string().describe('Flashcard önerileri için ders konusu.'),
-  performanceData: z.string().describe("localStorage'dan alınan kullanıcının performans verilerinin JSON string'i."),
-  currentFlashcardData: z.string().describe("Kullanıcının mevcut flashcard ilerlemesinin JSON string'i."),
-  studyMode: z.enum(['review', 'new', 'difficult']).describe('Kullanıcının şu anda bulunduğu çalışma modu.'),
-  targetStudyTime: z.number().optional().describe('Hedef çalışma süresi (dakika, opsiyonel).'),
+  userId: z.string().describe("Kullanıcının ID'si."),
+  subject: z.string().describe("Flashcard önerileri için ders konusu."),
+  performanceData: z
+    .string()
+    .describe(
+      "localStorage'dan alınan kullanıcının performans verilerinin JSON string'i.",
+    ),
+  currentFlashcardData: z
+    .string()
+    .describe("Kullanıcının mevcut flashcard ilerlemesinin JSON string'i."),
+  studyMode: z
+    .enum(["review", "new", "difficult"])
+    .describe("Kullanıcının şu anda bulunduğu çalışma modu."),
+  targetStudyTime: z
+    .number()
+    .optional()
+    .describe("Hedef çalışma süresi (dakika, opsiyonel)."),
 });
 
-export type FlashcardRecommendationInput = z.infer<typeof FlashcardRecommendationInputSchema>;
+export type FlashcardRecommendationInput = z.infer<
+  typeof FlashcardRecommendationInputSchema
+>;
 
 const FlashcardRecommendationOutputSchema = z.object({
-  recommendedStudyMode: z.enum(['review', 'new', 'difficult']).describe('Öğrenci için önerilen çalışma modu.'),
-  recommendedTopics: z.array(z.string()).describe('Öğrencinin odaklanması gereken spesifik konular.'),
-  studyStrategy: z.string().describe('Kişiselleştirilmiş çalışma stratejisi önerisi (Türkçe).'),
-  estimatedTime: z.number().describe('Tahmini çalışma süresi (dakika).'),
-  confidence: z.number().describe('AI öneri güven seviyesi (0-1).'),
-  reasoning: z.string().describe('Bu önerinin neden yapıldığının açıklaması (Türkçe).'),
+  recommendedStudyMode: z
+    .enum(["review", "new", "difficult"])
+    .describe("Öğrenci için önerilen çalışma modu."),
+  recommendedTopics: z
+    .array(z.string())
+    .describe("Öğrencinin odaklanması gereken spesifik konular."),
+  studyStrategy: z
+    .string()
+    .describe("Kişiselleştirilmiş çalışma stratejisi önerisi (Türkçe)."),
+  estimatedTime: z.number().describe("Tahmini çalışma süresi (dakika)."),
+  confidence: z.number().describe("AI öneri güven seviyesi (0-1)."),
+  reasoning: z
+    .string()
+    .describe("Bu önerinin neden yapıldığının açıklaması (Türkçe)."),
 });
 
-export type FlashcardRecommendationOutput = z.infer<typeof FlashcardRecommendationOutputSchema>;
+export type FlashcardRecommendationOutput = z.infer<
+  typeof FlashcardRecommendationOutputSchema
+>;
 
 export async function getFlashcardRecommendation(
   input: FlashcardRecommendationInput,
 ): Promise<FlashcardRecommendationOutput> {
   // Store the performance data in our mock "service" so the tool can access it.
   const performanceHistory = JSON.parse(input.performanceData);
-  (getPerformanceHistoryForSubject as unknown as { __setData: (data: unknown) => void }).__setData(performanceHistory);
+  (
+    getPerformanceHistoryForSubject as unknown as {
+      __setData: (data: unknown) => void;
+    }
+  ).__setData(performanceHistory);
 
   return flashcardRecommendationFlow(input);
 }
 
 const prompt = ai.definePrompt({
-  name: 'flashcardRecommendationPrompt',
-  input: {schema: FlashcardRecommendationInputSchema},
-  output: {schema: FlashcardRecommendationOutputSchema},
+  name: "flashcardRecommendationPrompt",
+  input: { schema: FlashcardRecommendationInputSchema },
+  output: { schema: FlashcardRecommendationOutputSchema },
   tools: [getPerformanceHistoryTool],
   prompt: `Sen bir Türkçe konuşan akıllı eğitim asistanısın. Flashcard çalışması için kişiselleştirilmiş öneriler veriyorsun.
 
@@ -122,12 +152,12 @@ Performans verilerini analiz et ve kapsamlı bir öneri ver. Öğrenciye sanki g
 
 const flashcardRecommendationFlow = ai.defineFlow(
   {
-    name: 'flashcardRecommendationFlow',
+    name: "flashcardRecommendationFlow",
     inputSchema: FlashcardRecommendationInputSchema,
     outputSchema: FlashcardRecommendationOutputSchema,
   },
-  async input => {
-    const {output} = await prompt(input);
+  async (input) => {
+    const { output } = await prompt(input);
     return output!;
   },
 );

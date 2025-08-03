@@ -1,13 +1,19 @@
-'use client';
+"use client";
 
-import React, { useState, Suspense } from 'react';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState, Suspense } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
 import {
   Mail,
   Lock,
@@ -19,17 +25,23 @@ import {
   Brain,
   Users,
   Target,
-} from 'lucide-react';
-import Link from 'next/link';
-import { signInWithEmail, signInWithGoogle, signUpWithEmail } from '@/lib/supabase';
-import { useRouter, useSearchParams } from 'next/navigation';
+} from "lucide-react";
+import Link from "next/link";
+import {
+  signInWithEmail,
+  signInWithGoogle,
+  signUpWithEmail,
+} from "@/lib/supabase";
+import { useRouter, useSearchParams } from "next/navigation";
 
 function LoginPageContent() {
   const searchParams = useSearchParams();
-  const [isLogin, setIsLogin] = useState(searchParams.get('mode') !== 'register');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isLogin, setIsLogin] = useState(
+    searchParams.get("mode") !== "register",
+  );
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -44,19 +56,21 @@ function LoginPageContent() {
     try {
       if (isLogin) {
         const { error } = await signInWithEmail(email, password);
-        if (error) {throw error;}
+        if (error) {
+          throw error;
+        }
         toast({
-          title: 'Giriş başarılı!',
+          title: "Giriş başarılı!",
           description: "AkılHane'ye hoş geldiniz!",
         });
-        router.push('/');
+        router.push("/");
       } else {
         // Validate password confirmation
         if (password !== confirmPassword) {
           toast({
-            title: 'Hata!',
-            description: 'Şifreler eşleşmiyor. Lütfen tekrar deneyin.',
-            variant: 'destructive',
+            title: "Hata!",
+            description: "Şifreler eşleşmiyor. Lütfen tekrar deneyin.",
+            variant: "destructive",
           });
           setIsLoading(false);
           return;
@@ -65,32 +79,37 @@ function LoginPageContent() {
         // Validate password length
         if (password.length < 6) {
           toast({
-            title: 'Hata!',
-            description: 'Şifre en az 6 karakter olmalıdır.',
-            variant: 'destructive',
+            title: "Hata!",
+            description: "Şifre en az 6 karakter olmalıdır.",
+            variant: "destructive",
           });
           setIsLoading(false);
           return;
         }
 
         const { error } = await signUpWithEmail(email, password);
-        if (error) {throw error;}
+        if (error) {
+          throw error;
+        }
         toast({
-          title: 'Kayıt başarılı!',
-          description: 'E-posta adresinizi doğrulayın ve giriş yapın.',
+          title: "Kayıt başarılı!",
+          description: "E-posta adresinizi doğrulayın ve giriş yapın.",
         });
         setIsLogin(true);
         // Clear form fields
-        setEmail('');
-        setPassword('');
-        setConfirmPassword('');
+        setEmail("");
+        setPassword("");
+        setConfirmPassword("");
       }
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Bir hata oluştu. Lütfen tekrar deneyin.';
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Bir hata oluştu. Lütfen tekrar deneyin.";
       toast({
-        title: 'Hata!',
+        title: "Hata!",
         description: errorMessage,
-        variant: 'destructive',
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -101,13 +120,16 @@ function LoginPageContent() {
     setIsGoogleLoading(true);
     try {
       const { error } = await signInWithGoogle();
-      if (error) {throw error;}
+      if (error) {
+        throw error;
+      }
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Google ile giriş yapılamadı.';
+      const errorMessage =
+        error instanceof Error ? error.message : "Google ile giriş yapılamadı.";
       toast({
-        title: 'Google girişi başarısız!',
+        title: "Google girişi başarısız!",
         description: errorMessage,
-        variant: 'destructive',
+        variant: "destructive",
       });
     } finally {
       setIsGoogleLoading(false);
@@ -116,26 +138,26 @@ function LoginPageContent() {
 
   const handleGuestMode = () => {
     toast({
-      title: 'Misafir modu',
+      title: "Misafir modu",
       description: "Giriş yapmadan AkılHane'yi keşfedin!",
     });
-    router.push('/');
+    router.push("/");
   };
 
   const handleLiveDemo = () => {
     toast({
-      title: 'Canlı Demo',
+      title: "Canlı Demo",
       description: "AkılHane'nin tüm özelliklerini keşfedin!",
     });
-    router.push('/demo');
+    router.push("/demo");
   };
 
   // Clear form when switching between login and register
   const handleToggleMode = (newMode: boolean) => {
     setIsLogin(newMode);
-    setEmail('');
-    setPassword('');
-    setConfirmPassword('');
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
   };
 
   return (
@@ -169,18 +191,22 @@ function LoginPageContent() {
           <Card className="shadow-xl border-0 glass-card">
             <CardHeader className="text-center">
               <CardTitle className="text-2xl font-bold">
-                {isLogin ? 'Hoş Geldiniz' : 'Hesap Oluşturun'}
+                {isLogin ? "Hoş Geldiniz" : "Hesap Oluşturun"}
               </CardTitle>
               <CardDescription>
                 {isLogin
-                  ? 'Hesabınıza giriş yapın ve öğrenmeye devam edin'
-                  : 'Ücretsiz hesap oluşturun ve AI destekli eğitime başlayın'
-                }
+                  ? "Hesabınıza giriş yapın ve öğrenmeye devam edin"
+                  : "Ücretsiz hesap oluşturun ve AI destekli eğitime başlayın"}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Form */}
-              <form onSubmit={(e) => { void handleSubmit(e); }} className="space-y-4">
+              <form
+                onSubmit={(e) => {
+                  void handleSubmit(e);
+                }}
+                className="space-y-4"
+              >
                 <div className="space-y-2">
                   <Label htmlFor="email">E-posta</Label>
                   <div className="relative">
@@ -203,7 +229,7 @@ function LoginPageContent() {
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
                       id="password"
-                      type={showPassword ? 'text' : 'password'}
+                      type={showPassword ? "text" : "password"}
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -215,7 +241,11 @@ function LoginPageContent() {
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
                     >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
                     </button>
                   </div>
                 </div>
@@ -228,7 +258,7 @@ function LoginPageContent() {
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
                         id="confirmPassword"
-                        type={showConfirmPassword ? 'text' : 'password'}
+                        type={showConfirmPassword ? "text" : "password"}
                         placeholder="••••••••"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
@@ -237,10 +267,16 @@ function LoginPageContent() {
                       />
                       <button
                         type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
                         className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
                       >
-                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </button>
                     </div>
                     {/* Password confirmation check */}
@@ -260,16 +296,22 @@ function LoginPageContent() {
                 <Button
                   type="submit"
                   className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                  disabled={isLoading || (!isLogin && (!confirmPassword || password !== confirmPassword))}
+                  disabled={
+                    isLoading ||
+                    (!isLogin &&
+                      (!confirmPassword || password !== confirmPassword))
+                  }
                 >
                   {isLoading ? (
                     <div className="flex items-center space-x-2">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      <span>{isLogin ? 'Giriş yapılıyor...' : 'Kayıt olunuyor...'}</span>
+                      <span>
+                        {isLogin ? "Giriş yapılıyor..." : "Kayıt olunuyor..."}
+                      </span>
                     </div>
                   ) : (
                     <div className="flex items-center space-x-2">
-                      <span>{isLogin ? 'Giriş Yap' : 'Kayıt Ol'}</span>
+                      <span>{isLogin ? "Giriş Yap" : "Kayıt Ol"}</span>
                       <ArrowRight className="h-4 w-4" />
                     </div>
                   )}
@@ -294,7 +336,9 @@ function LoginPageContent() {
               <Button
                 variant="outline"
                 className="w-full hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0 transition-all"
-                onClick={() => { void handleGoogleSignIn(); }}
+                onClick={() => {
+                  void handleGoogleSignIn();
+                }}
                 disabled={isGoogleLoading}
               >
                 {isGoogleLoading ? (
@@ -326,7 +370,7 @@ function LoginPageContent() {
                         d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.574l6.19,5.238C42.022,35.28,44,30.038,44,24C44,22.659,43.862,21.35,43.611,20.083z"
                       />
                     </svg>
-                    <span>Google ile {isLogin ? 'Giriş Yap' : 'Kayıt Ol'}</span>
+                    <span>Google ile {isLogin ? "Giriş Yap" : "Kayıt Ol"}</span>
                   </div>
                 )}
               </Button>
@@ -358,7 +402,7 @@ function LoginPageContent() {
               <div className="text-center text-sm">
                 {isLogin ? (
                   <p>
-                    Hesabınız yok mu?{' '}
+                    Hesabınız yok mu?{" "}
                     <button
                       onClick={() => handleToggleMode(false)}
                       className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
@@ -368,7 +412,7 @@ function LoginPageContent() {
                   </p>
                 ) : (
                   <p>
-                    Zaten hesabınız var mı?{' '}
+                    Zaten hesabınız var mı?{" "}
                     <button
                       onClick={() => handleToggleMode(true)}
                       className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
@@ -392,18 +436,22 @@ function LoginPageContent() {
           <motion.div
             className="text-center p-4 rounded-lg border-gradient-question bg-white dark:bg-gray-800"
             whileHover={{ scale: 1.05, y: -5 }}
-            transition={{ type: 'spring', stiffness: 300 }}
+            transition={{ type: "spring", stiffness: 300 }}
           >
             <GraduationCap className="h-6 w-6 mx-auto mb-2 text-blue-600" />
-            <p className="text-sm font-medium text-gray-800 dark:text-white">AI Destekli Öğrenme</p>
+            <p className="text-sm font-medium text-gray-800 dark:text-white">
+              AI Destekli Öğrenme
+            </p>
           </motion.div>
           <motion.div
             className="text-center p-4 rounded-lg border-gradient-question bg-white dark:bg-gray-800"
             whileHover={{ scale: 1.05, y: -5 }}
-            transition={{ type: 'spring', stiffness: 300 }}
+            transition={{ type: "spring", stiffness: 300 }}
           >
             <Target className="h-6 w-6 mx-auto mb-2 text-indigo-600" />
-            <p className="text-sm font-medium text-gray-800 dark:text-white">Kişiselleştirilmiş</p>
+            <p className="text-sm font-medium text-gray-800 dark:text-white">
+              Kişiselleştirilmiş
+            </p>
           </motion.div>
         </motion.div>
       </div>

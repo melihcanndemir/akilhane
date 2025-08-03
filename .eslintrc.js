@@ -79,7 +79,7 @@ module.exports = {
     'eol-last': ['error', 'always'],
     'comma-dangle': ['error', 'always-multiline'],
     'semi': ['error', 'always'],
-    'quotes': ['error', 'single', { avoidEscape: true }],
+    'quotes': 'off',
 
     // Best Practices
     'curly': ['error', 'all'],

@@ -1,27 +1,33 @@
-'use server';
+"use server";
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { ai } from "@/ai/genkit";
+import { z } from "genkit";
 
 const AiChatInputSchema = z.object({
-  message: z.string().describe('Kullanıcının gönderdiği mesaj'),
-  subject: z.string().describe('Hangi ders konusunda konuşuyoruz'),
-  conversationHistory: z.array(z.object({
-    role: z.enum(['user', 'assistant']),
-    content: z.string(),
-    timestamp: z.string(),
-  })).describe('Önceki konuşma geçmişi'),
-  context: z.string().optional().describe('Ek bağlam bilgisi (soru, konu vs.)'),
+  message: z.string().describe("Kullanıcının gönderdiği mesaj"),
+  subject: z.string().describe("Hangi ders konusunda konuşuyoruz"),
+  conversationHistory: z
+    .array(
+      z.object({
+        role: z.enum(["user", "assistant"]),
+        content: z.string(),
+        timestamp: z.string(),
+      }),
+    )
+    .describe("Önceki konuşma geçmişi"),
+  context: z.string().optional().describe("Ek bağlam bilgisi (soru, konu vs.)"),
 });
 
 export type AiChatInput = z.infer<typeof AiChatInputSchema>;
 
 const AiChatOutputSchema = z.object({
-  response: z.string().describe('AI\'nın cevabı'),
-  confidence: z.number().describe('AI güven seviyesi (0-1)'),
-  suggestedTopics: z.array(z.string()).describe('Önerilen konular'),
-  followUpQuestions: z.array(z.string()).describe('Öğrencinin AI\'ya sorabileceği takip soruları'),
-  learningTips: z.array(z.string()).describe('Öğrenme ipuçları'),
+  response: z.string().describe("AI'nın cevabı"),
+  confidence: z.number().describe("AI güven seviyesi (0-1)"),
+  suggestedTopics: z.array(z.string()).describe("Önerilen konular"),
+  followUpQuestions: z
+    .array(z.string())
+    .describe("Öğrencinin AI'ya sorabileceği takip soruları"),
+  learningTips: z.array(z.string()).describe("Öğrenme ipuçları"),
 });
 
 export type AiChatOutput = z.infer<typeof AiChatOutputSchema>;
@@ -34,24 +40,27 @@ export async function getAiChatResponse(
     return response;
   } catch {
     return {
-        response: 'Üzgünüm, bir hata oluştu ve isteğinizi işleyemedim. Lütfen daha sonra tekrar deneyin.',
-        confidence: 0.1,
-        suggestedTopics: [],
-        followUpQuestions: [],
-        learningTips: [],
+      response:
+        "Üzgünüm, bir hata oluştu ve isteğinizi işleyemedim. Lütfen daha sonra tekrar deneyin.",
+      confidence: 0.1,
+      suggestedTopics: [],
+      followUpQuestions: [],
+      learningTips: [],
     };
   }
 }
 
 const PromptInputSchema = z.object({
-    ...AiChatInputSchema.shape,
-    conversationHistory: z.string().describe('Formata dönüştürülmüş konuşma geçmişi metni'),
+  ...AiChatInputSchema.shape,
+  conversationHistory: z
+    .string()
+    .describe("Formata dönüştürülmüş konuşma geçmişi metni"),
 });
 
 const prompt = ai.definePrompt({
-  name: 'aiChatPrompt',
-  input: {schema: PromptInputSchema},
-  output: {schema: AiChatOutputSchema},
+  name: "aiChatPrompt",
+  input: { schema: PromptInputSchema },
+  output: { schema: AiChatOutputSchema },
   prompt: `
     ## ROLÜN
     Sen, öğrencilere karmaşık konuları basit ve anlaşılır bir dille açıklayan uzman bir öğretmensin (AI Tutor). Seninle konuşan kişi bir öğrenci.
@@ -92,17 +101,17 @@ const prompt = ai.definePrompt({
 
 const aiChatFlow = ai.defineFlow(
   {
-    name: 'aiChatFlow',
+    name: "aiChatFlow",
     inputSchema: AiChatInputSchema,
     outputSchema: AiChatOutputSchema,
   },
   async (input) => {
     const formattedHistory = input.conversationHistory
-      .map(msg => {
-        const prefix = msg.role === 'user' ? 'Öğrenci' : 'Öğretmen';
+      .map((msg) => {
+        const prefix = msg.role === "user" ? "Öğrenci" : "Öğretmen";
         return `${prefix}: ${msg.content}`;
       })
-      .join('\n');
+      .join("\n");
 
     const { output } = await prompt({
       ...input,
@@ -110,7 +119,7 @@ const aiChatFlow = ai.defineFlow(
     });
 
     if (!output) {
-      throw new Error('AI output was null or undefined.');
+      throw new Error("AI output was null or undefined.");
     }
     return output;
   },

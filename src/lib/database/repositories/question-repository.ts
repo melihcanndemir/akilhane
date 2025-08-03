@@ -1,7 +1,7 @@
-import { eq, and, desc, sql, like } from 'drizzle-orm';
-import { getDb } from '../connection';
-import { questions, subjects } from '../schema';
-import type { Question, QuestionType } from '@/lib/types';
+import { eq, and, desc, sql, like } from "drizzle-orm";
+import { getDb } from "../connection";
+import { questions, subjects } from "../schema";
+import type { Question, QuestionType } from "@/lib/types";
 
 // Type for database result - what actually comes from the database
 type QuestionResult = {
@@ -43,7 +43,11 @@ export class QuestionRepository {
 
       // Get subject ID from subject name
       const db = getDb();
-      const subjectResult = await db.select({ id: subjects.id }).from(subjects).where(eq(subjects.name, subject)).limit(1);
+      const subjectResult = await db
+        .select({ id: subjects.id })
+        .from(subjects)
+        .where(eq(subjects.name, subject))
+        .limit(1);
 
       if (subjectResult.length === 0) {
         throw new Error(`Subject not found: ${subject}`);
@@ -74,14 +78,20 @@ export class QuestionRepository {
 
       return id;
     } catch (error) {
-      throw new Error(`Failed to create question: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to create question: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   }
 
   /**
    * Get questions by subject
    */
-  static async getQuestionsBySubject(subject: string, limit?: number, userId?: string): Promise<Question[]> {
+  static async getQuestionsBySubject(
+    subject: string,
+    limit?: number,
+    userId?: string,
+  ): Promise<Question[]> {
     try {
       const db = getDb();
       const conditions = [
@@ -110,22 +120,32 @@ export class QuestionRepository {
         id: result.id,
         subject: result.subject,
         type: result.type as QuestionType,
-        difficulty: result.difficulty as 'Easy' | 'Medium' | 'Hard',
+        difficulty: result.difficulty as "Easy" | "Medium" | "Hard",
         text: result.text,
         topic: result.topic,
-        options: JSON.parse(result.options) as Array<{ text: string; isCorrect: boolean }>,
+        options: JSON.parse(result.options) as Array<{
+          text: string;
+          isCorrect: boolean;
+        }>,
         explanation: result.explanation,
         formula: result.formula,
       }));
     } catch (error) {
-      throw new Error(`Failed to get questions by subject: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to get questions by subject: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   }
 
   /**
    * Get questions by topic
    */
-  static async getQuestionsByTopic(subject: string, topic: string, limit?: number, userId?: string): Promise<Question[]> {
+  static async getQuestionsByTopic(
+    subject: string,
+    topic: string,
+    limit?: number,
+    userId?: string,
+  ): Promise<Question[]> {
     try {
       const db = getDb();
       const conditions = [
@@ -155,15 +175,20 @@ export class QuestionRepository {
         id: result.id,
         subject: result.subject,
         type: result.type as QuestionType,
-        difficulty: result.difficulty as 'Easy' | 'Medium' | 'Hard',
+        difficulty: result.difficulty as "Easy" | "Medium" | "Hard",
         text: result.text,
         topic: result.topic,
-        options: JSON.parse(result.options) as Array<{ text: string; isCorrect: boolean }>,
+        options: JSON.parse(result.options) as Array<{
+          text: string;
+          isCorrect: boolean;
+        }>,
         explanation: result.explanation,
         formula: result.formula,
       }));
     } catch (error) {
-      throw new Error(`Failed to get questions by topic: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to get questions by topic: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   }
 
@@ -172,7 +197,7 @@ export class QuestionRepository {
    */
   static async getQuestionsByDifficulty(
     subject: string,
-    difficulty: 'Easy' | 'Medium' | 'Hard',
+    difficulty: "Easy" | "Medium" | "Hard",
     limit?: number,
     userId?: string,
   ): Promise<Question[]> {
@@ -205,15 +230,20 @@ export class QuestionRepository {
         id: result.id,
         subject: result.subject,
         type: result.type as QuestionType,
-        difficulty: result.difficulty as 'Easy' | 'Medium' | 'Hard',
+        difficulty: result.difficulty as "Easy" | "Medium" | "Hard",
         text: result.text,
         topic: result.topic,
-        options: JSON.parse(result.options) as Array<{ text: string; isCorrect: boolean }>,
+        options: JSON.parse(result.options) as Array<{
+          text: string;
+          isCorrect: boolean;
+        }>,
         explanation: result.explanation,
         formula: result.formula,
       }));
     } catch (error) {
-      throw new Error(`Failed to get questions by difficulty: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to get questions by difficulty: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   }
 
@@ -223,7 +253,7 @@ export class QuestionRepository {
   static async getRandomQuestions(
     subject: string,
     count: number,
-    difficulty?: 'Easy' | 'Medium' | 'Hard',
+    difficulty?: "Easy" | "Medium" | "Hard",
     userId?: string,
   ): Promise<Question[]> {
     try {
@@ -256,15 +286,20 @@ export class QuestionRepository {
         id: result.id,
         subject: result.subject,
         type: result.type as QuestionType,
-        difficulty: result.difficulty as 'Easy' | 'Medium' | 'Hard',
+        difficulty: result.difficulty as "Easy" | "Medium" | "Hard",
         text: result.text,
         topic: result.topic,
-        options: JSON.parse(result.options) as Array<{ text: string; isCorrect: boolean }>,
+        options: JSON.parse(result.options) as Array<{
+          text: string;
+          isCorrect: boolean;
+        }>,
         explanation: result.explanation,
         formula: result.formula,
       }));
     } catch (error) {
-      throw new Error(`Failed to get random questions: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to get random questions: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   }
 
@@ -306,15 +341,20 @@ export class QuestionRepository {
         id: result.id,
         subject: result.subject,
         type: result.type as QuestionType,
-        difficulty: result.difficulty as 'Easy' | 'Medium' | 'Hard',
+        difficulty: result.difficulty as "Easy" | "Medium" | "Hard",
         text: result.text,
         topic: result.topic,
-        options: JSON.parse(result.options) as Array<{ text: string; isCorrect: boolean }>,
+        options: JSON.parse(result.options) as Array<{
+          text: string;
+          isCorrect: boolean;
+        }>,
         explanation: result.explanation,
         formula: result.formula,
       }));
     } catch (error) {
-      throw new Error(`Failed to search questions: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to search questions: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   }
 
@@ -341,23 +381,39 @@ export class QuestionRepository {
         updatedAt: new Date(),
       };
 
-      if (updates.subject) {updateData.subject = updates.subject;}
-      if (updates.topic) {updateData.topic = updates.topic;}
-      if (updates.type) {updateData.type = updates.type;}
-      if (updates.difficulty) {updateData.difficulty = updates.difficulty;}
-      if (updates.text) {updateData.text = updates.text;}
-      if (updates.options) {updateData.options = JSON.stringify(updates.options);}
-      if (updates.correctAnswer) {updateData.correctAnswer = updates.correctAnswer;}
-      if (updates.explanation) {updateData.explanation = updates.explanation;}
-      if (updates.formula !== undefined) {updateData.formula = updates.formula;}
+      if (updates.subject) {
+        updateData.subject = updates.subject;
+      }
+      if (updates.topic) {
+        updateData.topic = updates.topic;
+      }
+      if (updates.type) {
+        updateData.type = updates.type;
+      }
+      if (updates.difficulty) {
+        updateData.difficulty = updates.difficulty;
+      }
+      if (updates.text) {
+        updateData.text = updates.text;
+      }
+      if (updates.options) {
+        updateData.options = JSON.stringify(updates.options);
+      }
+      if (updates.correctAnswer) {
+        updateData.correctAnswer = updates.correctAnswer;
+      }
+      if (updates.explanation) {
+        updateData.explanation = updates.explanation;
+      }
+      if (updates.formula !== undefined) {
+        updateData.formula = updates.formula;
+      }
 
-      await db
-        .update(questions)
-        .set(updateData)
-        .where(eq(questions.id, id));
-
+      await db.update(questions).set(updateData).where(eq(questions.id, id));
     } catch (error) {
-      throw new Error(`Failed to update question: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to update question: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   }
 
@@ -374,9 +430,10 @@ export class QuestionRepository {
           updatedAt: new Date(),
         })
         .where(eq(questions.id, id));
-
     } catch (error) {
-      throw new Error(`Failed to delete question: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to delete question: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   }
 
@@ -408,14 +465,19 @@ export class QuestionRepository {
 
       return stats[0];
     } catch (error) {
-      throw new Error(`Failed to get question stats: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to get question stats: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   }
 
   /**
    * Get all topics for a subject
    */
-  static async getTopicsBySubject(subject: string, userId?: string): Promise<string[]> {
+  static async getTopicsBySubject(
+    subject: string,
+    userId?: string,
+  ): Promise<string[]> {
     try {
       const db = getDb();
       const conditions = [
@@ -435,7 +497,9 @@ export class QuestionRepository {
 
       return results.map((result: { topic: string }) => result.topic);
     } catch (error) {
-      throw new Error(`Failed to get topics by subject: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to get topics by subject: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   }
 }

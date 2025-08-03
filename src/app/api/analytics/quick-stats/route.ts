@@ -1,14 +1,14 @@
-import type { NextRequest} from 'next/server';
-import { NextResponse } from 'next/server';
-import { getDb } from '@/lib/database/connection';
-import { quizResults } from '@/lib/database/schema';
-import { sql, avg, sum, count } from 'drizzle-orm';
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { getDb } from "@/lib/database/connection";
+import { quizResults } from "@/lib/database/schema";
+import { sql, avg, sum, count } from "drizzle-orm";
 
 export async function GET(request: NextRequest) {
   try {
     // In a real app, you'd get the user ID from a secure session (e.g., NextAuth, Supabase Auth).
     // For this project, we'll rely on a guest ID passed from the client via headers.
-    const userId = request.headers.get('x-user-id');
+    const userId = request.headers.get("x-user-id");
 
     if (!userId) {
       // Return zeroed stats if no user is identified.
@@ -34,11 +34,15 @@ export async function GET(request: NextRequest) {
     // Handle the case where there are no results, avg and sum will be null
     return NextResponse.json({
       totalTests: stats?.totalTests || 0,
-      averageScore: stats?.averageScore ? Math.round(Number(stats.averageScore)) : 0,
+      averageScore: stats?.averageScore
+        ? Math.round(Number(stats.averageScore))
+        : 0,
       totalTimeSpent: Number(stats?.totalTimeSpent) || 0,
     });
-
   } catch {
-    return NextResponse.json({ error: 'Failed to fetch quick stats' }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch quick stats" },
+      { status: 500 },
+    );
   }
 }

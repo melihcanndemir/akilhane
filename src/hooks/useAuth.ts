@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import type { User } from '@supabase/supabase-js';
-import { supabase, signOut } from '@/lib/supabase';
+import { useState, useEffect } from "react";
+import type { User } from "@supabase/supabase-js";
+import { supabase, signOut } from "@/lib/supabase";
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
@@ -12,12 +12,13 @@ export function useAuth() {
     // Handle auth state change and URL hash
     const handleAuthState = async () => {
       try {
-
         // Check if there's a hash in the URL (from OAuth callback)
-        if (typeof window !== 'undefined' && window.location.hash) {
-          const hashParams = new URLSearchParams(window.location.hash.substring(1));
-          const accessToken = hashParams.get('access_token');
-          const refreshToken = hashParams.get('refresh_token');
+        if (typeof window !== "undefined" && window.location.hash) {
+          const hashParams = new URLSearchParams(
+            window.location.hash.substring(1),
+          );
+          const accessToken = hashParams.get("access_token");
+          const refreshToken = hashParams.get("refresh_token");
 
           if (accessToken && refreshToken) {
             // Set the session using the tokens from the URL
@@ -30,7 +31,11 @@ export function useAuth() {
             } else {
               setUser(data.user);
               // Clean up the URL
-              window.history.replaceState({}, document.title, window.location.pathname);
+              window.history.replaceState(
+                {},
+                document.title,
+                window.location.pathname,
+              );
             }
             setLoading(false);
             return;
@@ -38,7 +43,10 @@ export function useAuth() {
         }
 
         // Get initial session if no hash params
-        const { data: { session }, error } = await supabase.auth.getSession();
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
 
         if (error) {
         } else if (session) {
@@ -56,21 +64,21 @@ export function useAuth() {
     handleAuthState();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+
+      // Handle sign out
+      if (event === "SIGNED_OUT") {
+        setUser(null);
+      }
+
+      if (event === "SIGNED_IN") {
         setUser(session?.user ?? null);
-        setLoading(false);
-
-        // Handle sign out
-        if (event === 'SIGNED_OUT') {
-          setUser(null);
-        }
-
-        if (event === 'SIGNED_IN') {
-          setUser(session?.user ?? null);
-        }
-      },
-    );
+      }
+    });
 
     return () => subscription.unsubscribe();
   }, []);

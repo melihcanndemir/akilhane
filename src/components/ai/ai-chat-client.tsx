@@ -1,29 +1,42 @@
 // components/ai/ai-chat-client.tsx
-'use client';
+"use client";
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import type { AiChatInput } from '@/ai/flows/ai-chat';
-import { getAiChatResponse } from '@/ai/flows/ai-chat';
-import { User, Sparkles, BrainCircuit, Lightbulb, Loader2, Plus, ChevronDown, BookOpen, Mic, Volume2 } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import rehypeHighlight from 'rehype-highlight';
-import { supabase } from '@/lib/supabase';
-import AiChatHistory from './ai-chat-history';
-import localStorageService from '@/services/localStorage-service';
-import VoiceAssistant from '../voice-assistant';
+import React, { useState, useRef, useEffect } from "react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import type { AiChatInput } from "@/ai/flows/ai-chat";
+import { getAiChatResponse } from "@/ai/flows/ai-chat";
+import {
+  User,
+  Sparkles,
+  BrainCircuit,
+  Lightbulb,
+  Loader2,
+  Plus,
+  ChevronDown,
+  BookOpen,
+  Mic,
+  Volume2,
+} from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
+import { supabase } from "@/lib/supabase";
+import AiChatHistory from "./ai-chat-history";
+import localStorageService from "@/services/localStorage-service";
+import VoiceAssistant from "../voice-assistant";
 
 // LocalStorage service for subjects
 class SubjectLocalStorageService {
-  private static readonly STORAGE_KEY = 'exam_training_subjects';
+  private static readonly STORAGE_KEY = "exam_training_subjects";
 
   static getSubjects(): unknown[] {
-    if (typeof window === 'undefined') {return [];}
+    if (typeof window === "undefined") {
+      return [];
+    }
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       return stored ? JSON.parse(stored) : [];
@@ -35,7 +48,7 @@ class SubjectLocalStorageService {
 
 interface Message {
   id: string;
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
 }
 
@@ -56,9 +69,9 @@ interface Subject {
 
 export default function AiChatClient() {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [currentSubject, setCurrentSubject] = useState('Genel');
+  const [currentSubject, setCurrentSubject] = useState("Genel");
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [showSubjectSelector, setShowSubjectSelector] = useState(false);
   const [suggestions, setSuggestions] = useState<Suggestions | null>(null);
@@ -71,12 +84,16 @@ export default function AiChatClient() {
   // Voice Assistant states
   const [showVoiceAssistant, setShowVoiceAssistant] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
+  const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(
+    null,
+  );
 
   // Handle scroll events to show/hide scroll button
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     e.stopPropagation(); // Prevent scroll from bubbling to parent
-    if (!messagesContainerRef.current) {return;}
+    if (!messagesContainerRef.current) {
+      return;
+    }
     const isNear = isNearBottom();
     setShowScrollButton(!isNear);
   };
@@ -93,7 +110,8 @@ export default function AiChatClient() {
   const fetchSubjects = async () => {
     try {
       // Get user's custom subjects from localStorage
-      const customSubjects = SubjectLocalStorageService.getSubjects() as Subject[];
+      const customSubjects =
+        SubjectLocalStorageService.getSubjects() as Subject[];
 
       // Only show custom subjects, no demo subjects
       setSubjects(customSubjects);
@@ -105,13 +123,17 @@ export default function AiChatClient() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       setIsAuthenticated(Boolean(session));
     };
     checkAuth();
 
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((session) => {
       setIsAuthenticated(Boolean(session));
     });
 
@@ -127,25 +149,25 @@ export default function AiChatClient() {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
-      if (!target.closest('.subject-selector')) {
+      if (!target.closest(".subject-selector")) {
         setShowSubjectSelector(false);
       }
     };
 
     if (showSubjectSelector) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showSubjectSelector]);
 
   useEffect(() => {
     setMessages([
       {
-        id: 'init',
-        role: 'assistant',
+        id: "init",
+        role: "assistant",
         content: `Merhaba! Ben AkılHane AI Tutor'ınız. ${currentSubject} dersiyle ilgili aklınıza takılan her şeyi sorabilirsiniz. Hadi başlayalım!`,
       },
     ]);
@@ -153,13 +175,15 @@ export default function AiChatClient() {
 
   const createNewSession = async (): Promise<string | null> => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) {
         // Create local session if not authenticated
         const sessionId = `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         localStorageService.saveAIChatSession({
           sessionId,
-          userId: 'guest',
+          userId: "guest",
           subject: currentSubject,
           title: `AI Tutor - ${currentSubject}`,
           messages: [],
@@ -170,10 +194,10 @@ export default function AiChatClient() {
 
       // Try to create session in Supabase
       try {
-        const response = await fetch('/api/ai-chat', {
-          method: 'POST',
+        const response = await fetch("/api/ai-chat", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             subject: currentSubject,
@@ -185,8 +209,7 @@ export default function AiChatClient() {
           const data = await response.json();
           return data.sessionId;
         }
-      } catch {
-      }
+      } catch {}
 
       // Fallback to localStorage if Supabase fails
       const sessionId = `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -205,7 +228,11 @@ export default function AiChatClient() {
     }
   };
 
-  const saveMessageToHistory = async (role: 'user' | 'assistant', content: string, sessionId?: string) => {
+  const saveMessageToHistory = async (
+    role: "user" | "assistant",
+    content: string,
+    sessionId?: string,
+  ) => {
     try {
       const targetSessionId = sessionId || currentSessionId;
       if (!targetSessionId) {
@@ -216,14 +243,18 @@ export default function AiChatClient() {
       let userId: string | null = null;
 
       // Method 1: Try getSession first
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (session?.user?.id) {
         userId = session.user.id;
       }
 
       // Method 2: If session failed, try getUser
       if (!userId) {
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (user?.id) {
           userId = user.id;
         }
@@ -231,7 +262,9 @@ export default function AiChatClient() {
 
       // Method 3: If both failed, try from session again
       if (!userId) {
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         if (session?.user?.id) {
           userId = session.user.id;
         }
@@ -239,30 +272,32 @@ export default function AiChatClient() {
 
       // If no userId, use 'guest' for localStorage
       if (!userId) {
-        userId = 'guest';
+        userId = "guest";
       }
 
       // Try to save to Supabase first (only if user is authenticated)
-      if (userId !== 'guest') {
+      if (userId !== "guest") {
         try {
-          const response = await fetch(`/api/ai-chat/${targetSessionId}/messages`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
+          const response = await fetch(
+            `/api/ai-chat/${targetSessionId}/messages`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                role,
+                content,
+                subject: currentSubject,
+                userId,
+              }),
             },
-            body: JSON.stringify({
-              role,
-              content,
-              subject: currentSubject,
-              userId,
-            }),
-          });
+          );
 
           if (response.ok) {
             return; // Successfully saved to Supabase
           }
-        } catch {
-        }
+        } catch {}
       }
 
       // Fallback to localStorage if Supabase fails or user is guest
@@ -285,14 +320,18 @@ export default function AiChatClient() {
       let userId: string | null = null;
 
       // Method 1: Try getSession first
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (session?.user?.id) {
         userId = session.user.id;
       }
 
       // Method 2: If session failed, try getUser
       if (!userId) {
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (user?.id) {
           userId = user.id;
         }
@@ -300,33 +339,38 @@ export default function AiChatClient() {
 
       if (userId) {
         try {
-          const response = await fetch(`/api/ai-chat/${sessionId}?userId=${userId}`);
+          const response = await fetch(
+            `/api/ai-chat/${sessionId}?userId=${userId}`,
+          );
 
           if (response.ok) {
             const data = await response.json();
-            const formattedMessages: Message[] = data.messages.map((msg: { id: string; role: string; content: string }) => ({
-              id: msg.id,
-              role: msg.role,
-              content: msg.content,
-            }));
+            const formattedMessages: Message[] = data.messages.map(
+              (msg: { id: string; role: string; content: string }) => ({
+                id: msg.id,
+                role: msg.role,
+                content: msg.content,
+              }),
+            );
             setMessages(formattedMessages);
             setCurrentSessionId(sessionId);
             return;
           } else {
           }
-        } catch {
-        }
+        } catch {}
       }
 
       // Fallback to localStorage
       try {
         const localSession = localStorageService.getAIChatSession(sessionId);
         if (localSession) {
-          const formattedMessages: Message[] = localSession.messages.map(msg => ({
-            id: msg.id,
-            role: msg.role,
-            content: msg.content,
-          }));
+          const formattedMessages: Message[] = localSession.messages.map(
+            (msg) => ({
+              id: msg.id,
+              role: msg.role,
+              content: msg.content,
+            }),
+          );
           setMessages(formattedMessages);
           setCurrentSessionId(sessionId);
         } else {
@@ -339,8 +383,7 @@ export default function AiChatClient() {
         setMessages([]);
         setCurrentSessionId(sessionId);
       }
-    } catch {
-    }
+    } catch {}
   };
 
   const handleSessionSelect = (sessionId: string) => {
@@ -366,7 +409,7 @@ export default function AiChatClient() {
 
     const newUserMessage: Message = {
       id: Date.now().toString(),
-      role: 'user',
+      role: "user",
       content: messageContent,
     };
 
@@ -378,14 +421,14 @@ export default function AiChatClient() {
 
     // Save user message to history if session exists
     if (sessionIdToUse) {
-      await saveMessageToHistory('user', messageContent, sessionIdToUse);
+      await saveMessageToHistory("user", messageContent, sessionIdToUse);
     } else {
     }
 
     const chatInput: AiChatInput = {
       message: messageContent,
       subject: currentSubject,
-      conversationHistory: updatedMessages.map(m => ({
+      conversationHistory: updatedMessages.map((m) => ({
         role: m.role,
         content: m.content,
         timestamp: new Date().toISOString(),
@@ -397,15 +440,19 @@ export default function AiChatClient() {
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
-        role: 'assistant',
+        role: "assistant",
         content: result.response,
       };
 
-      setMessages(prev => [...prev, assistantMessage]);
+      setMessages((prev) => [...prev, assistantMessage]);
 
       // Save assistant message to history if session exists
       if (sessionIdToUse) {
-        await saveMessageToHistory('assistant', result.response, sessionIdToUse);
+        await saveMessageToHistory(
+          "assistant",
+          result.response,
+          sessionIdToUse,
+        );
       } else {
       }
 
@@ -417,10 +464,10 @@ export default function AiChatClient() {
     } catch {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: 'Üzgünüm, bir hata oluştu. Lütfen tekrar deneyin.',
+        role: "assistant",
+        content: "Üzgünüm, bir hata oluştu. Lütfen tekrar deneyin.",
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
@@ -429,7 +476,7 @@ export default function AiChatClient() {
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     handleSendMessage(input);
-    setInput('');
+    setInput("");
   };
 
   const handleSuggestionClick = (suggestion: string) => {
@@ -437,18 +484,21 @@ export default function AiChatClient() {
   };
 
   const isNearBottom = () => {
-    if (!messagesContainerRef.current) {return true;}
-    const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
+    if (!messagesContainerRef.current) {
+      return true;
+    }
+    const { scrollTop, scrollHeight, clientHeight } =
+      messagesContainerRef.current;
     const threshold = 150; // pixels from bottom - increased threshold
     return scrollHeight - scrollTop - clientHeight < threshold;
   };
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   // Voice Assistant handlers
-  const lastTranscriptRef = useRef<string>('');
+  const lastTranscriptRef = useRef<string>("");
   const transcriptTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleVoiceTranscript = (transcript: string) => {
@@ -475,47 +525,51 @@ export default function AiChatClient() {
       // Double-check that we haven't received a newer transcript
       if (voiceTranscript === lastTranscriptRef.current) {
         handleSendMessage(voiceTranscript);
-        setInput('');
-        lastTranscriptRef.current = ''; // Reset for next input
+        setInput("");
+        lastTranscriptRef.current = ""; // Reset for next input
       }
     }, 1200); // Increased delay for better stability
   };
 
   const handleVoiceCommand = (command: string) => {
     switch (command) {
-      case 'clear':
+      case "clear":
         setMessages([]);
         setSuggestions(null);
         break;
       default:
-        // Unknown command
+      // Unknown command
     }
   };
 
-  useEffect(() => () => {
-    if (transcriptTimeoutRef.current) {
-      clearTimeout(transcriptTimeoutRef.current);
-      transcriptTimeoutRef.current = null;
-    }
-  }, []);
+  useEffect(
+    () => () => {
+      if (transcriptTimeoutRef.current) {
+        clearTimeout(transcriptTimeoutRef.current);
+        transcriptTimeoutRef.current = null;
+      }
+    },
+    [],
+  );
   // Convert markdown to plain text for speech
-  const markdownToPlainText = (markdown: string): string => markdown
-    .replace(/#{1,6}\s+/g, '') // Remove headers
-    .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold
-    .replace(/\*(.*?)\*/g, '$1') // Remove italic
-    .replace(/`(.*?)`/g, '$1') // Remove inline code
-    .replace(/```[\s\S]*?```/g, '') // Remove code blocks
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Convert links to text
-    .replace(/^\s*[-*+]\s+/gm, '') // Remove list markers
-    .replace(/^\s*\d+\.\s+/gm, '') // Remove numbered list markers
-    .replace(/\n\s*\n/g, '. ') // Replace double newlines with periods
-    .replace(/\n/g, ' ') // Replace single newlines with spaces
-    .replace(/\s+/g, ' ') // Normalize whitespace
-    .trim();
+  const markdownToPlainText = (markdown: string): string =>
+    markdown
+      .replace(/#{1,6}\s+/g, "") // Remove headers
+      .replace(/\*\*(.*?)\*\*/g, "$1") // Remove bold
+      .replace(/\*(.*?)\*/g, "$1") // Remove italic
+      .replace(/`(.*?)`/g, "$1") // Remove inline code
+      .replace(/```[\s\S]*?```/g, "") // Remove code blocks
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1") // Convert links to text
+      .replace(/^\s*[-*+]\s+/gm, "") // Remove list markers
+      .replace(/^\s*\d+\.\s+/gm, "") // Remove numbered list markers
+      .replace(/\n\s*\n/g, ". ") // Replace double newlines with periods
+      .replace(/\n/g, " ") // Replace single newlines with spaces
+      .replace(/\s+/g, " ") // Normalize whitespace
+      .trim();
 
   // Speak AI response
   const speakAIResponse = (messageId: string, content: string) => {
-    if (!('speechSynthesis' in window)) {
+    if (!("speechSynthesis" in window)) {
       return;
     }
 
@@ -530,29 +584,30 @@ export default function AiChatClient() {
 
     const plainText = markdownToPlainText(content);
     const utterance = new SpeechSynthesisUtterance(plainText);
-    utterance.lang = 'tr-TR';
+    utterance.lang = "tr-TR";
     utterance.rate = 0.9;
     utterance.pitch = 1;
     utterance.volume = 0.8;
 
     // Try to find a male Turkish voice
     const voices = window.speechSynthesis.getVoices();
-    const turkishVoices = voices.filter(voice =>
-      voice.lang.includes('tr') || voice.lang.includes('TR'),
+    const turkishVoices = voices.filter(
+      (voice) => voice.lang.includes("tr") || voice.lang.includes("TR"),
     );
 
     // Look for male voice keywords in Turkish voices
-    const maleVoice = turkishVoices.find(voice =>
-      voice.name.toLowerCase().includes('erkek') ||
-      voice.name.toLowerCase().includes('male') ||
-      voice.name.toLowerCase().includes('man') ||
-      voice.name.toLowerCase().includes('ahmet') ||
-      voice.name.toLowerCase().includes('mehmet') ||
-      !voice.name.toLowerCase().includes('kadın') &&
-      !voice.name.toLowerCase().includes('female') &&
-      !voice.name.toLowerCase().includes('woman') &&
-      !voice.name.toLowerCase().includes('ayşe') &&
-      !voice.name.toLowerCase().includes('fatma'),
+    const maleVoice = turkishVoices.find(
+      (voice) =>
+        voice.name.toLowerCase().includes("erkek") ||
+        voice.name.toLowerCase().includes("male") ||
+        voice.name.toLowerCase().includes("man") ||
+        voice.name.toLowerCase().includes("ahmet") ||
+        voice.name.toLowerCase().includes("mehmet") ||
+        (!voice.name.toLowerCase().includes("kadın") &&
+          !voice.name.toLowerCase().includes("female") &&
+          !voice.name.toLowerCase().includes("woman") &&
+          !voice.name.toLowerCase().includes("ayşe") &&
+          !voice.name.toLowerCase().includes("fatma")),
     );
 
     if (maleVoice) {
@@ -587,7 +642,9 @@ export default function AiChatClient() {
             <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
               <Sparkles className="text-blue-500 w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
               <div className="flex items-center gap-1 sm:gap-2 min-w-0 flex-1">
-                <span className="text-sm sm:text-base flex-shrink-0">AI Tutor</span>
+                <span className="text-sm sm:text-base flex-shrink-0">
+                  AI Tutor
+                </span>
                 <div className="relative subject-selector">
                   <Button
                     variant="outline"
@@ -596,8 +653,14 @@ export default function AiChatClient() {
                     className="gap-1 sm:gap-2 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0 text-xs sm:text-sm h-8 sm:h-9 min-w-[80px] sm:min-w-[100px] max-w-[120px] sm:max-w-[150px] justify-center"
                   >
                     <BookOpen className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                    <span className="hidden sm:inline truncate">{currentSubject}</span>
-                    <span className="sm:hidden truncate">{currentSubject.length > 6 ? `${currentSubject.substring(0, 6)  }...` : currentSubject}</span>
+                    <span className="hidden sm:inline truncate">
+                      {currentSubject}
+                    </span>
+                    <span className="sm:hidden truncate">
+                      {currentSubject.length > 6
+                        ? `${currentSubject.substring(0, 6)}...`
+                        : currentSubject}
+                    </span>
                     <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                   </Button>
 
@@ -612,13 +675,14 @@ export default function AiChatClient() {
                           variant="ghost"
                           size="sm"
                           onClick={() => {
-                            setCurrentSubject('Genel');
+                            setCurrentSubject("Genel");
                             setShowSubjectSelector(false);
                             setMessages([
                               {
-                                id: 'init',
-                                role: 'assistant',
-                                content: 'Merhaba! Ben AkılHane AI Tutor\'ınız. Genel konularda aklınıza takılan her şeyi sorabilirsiniz. Hadi başlayalım!',
+                                id: "init",
+                                role: "assistant",
+                                content:
+                                  "Merhaba! Ben AkılHane AI Tutor'ınız. Genel konularda aklınıza takılan her şeyi sorabilirsiniz. Hadi başlayalım!",
                               },
                             ]);
                           }}
@@ -637,8 +701,8 @@ export default function AiChatClient() {
                               setShowSubjectSelector(false);
                               setMessages([
                                 {
-                                  id: 'init',
-                                  role: 'assistant',
+                                  id: "init",
+                                  role: "assistant",
                                   content: `Merhaba! Ben AkılHane AI Tutor'ınız. ${subject.name} dersiyle ilgili aklınıza takılan her şeyi sorabilirsiniz. Hadi başlayalım!`,
                                 },
                               ]);
@@ -667,12 +731,16 @@ export default function AiChatClient() {
                 onClick={() => setShowVoiceAssistant(!showVoiceAssistant)}
                 className={`gap-1 sm:gap-2 text-xs sm:text-sm h-8 sm:h-9 ${
                   showVoiceAssistant
-                    ? 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 border-red-300'
-                    : 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800 border-blue-300'
+                    ? "bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 border-red-300"
+                    : "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800 border-blue-300"
                 }`}
               >
-                <Mic className={`w-3 h-3 sm:w-4 sm:h-4 ${isListening ? 'animate-pulse' : ''}`} />
-                <span className="hidden sm:inline">{showVoiceAssistant ? 'Sesli Kapat' : 'Sesli Asistan'}</span>
+                <Mic
+                  className={`w-3 h-3 sm:w-4 sm:h-4 ${isListening ? "animate-pulse" : ""}`}
+                />
+                <span className="hidden sm:inline">
+                  {showVoiceAssistant ? "Sesli Kapat" : "Sesli Asistan"}
+                </span>
               </Button>
 
               {isAuthenticated && (
@@ -688,8 +756,8 @@ export default function AiChatClient() {
                       setCurrentSessionId(null);
                       setMessages([
                         {
-                          id: 'init',
-                          role: 'assistant',
+                          id: "init",
+                          role: "assistant",
                           content: `Merhaba! Ben AkılHane AI Tutor'ınız. ${currentSubject} dersiyle ilgili aklınıza takılan her şeyi sorabilirsiniz. Hadi başlayalım!`,
                         },
                       ]);
@@ -704,24 +772,39 @@ export default function AiChatClient() {
             </div>
           </CardTitle>
         </CardHeader>
-        <CardContent className="flex-1 overflow-y-auto p-3 md:p-6 space-y-6" onScroll={handleScroll} ref={messagesContainerRef}>
-          {messages.map(message => (
-            <div key={message.id} className={`flex items-start gap-3 md:gap-4 ${message.role === 'user' ? 'justify-end' : ''}`}>
-              {message.role === 'assistant' && (
+        <CardContent
+          className="flex-1 overflow-y-auto p-3 md:p-6 space-y-6"
+          onScroll={handleScroll}
+          ref={messagesContainerRef}
+        >
+          {messages.map((message) => (
+            <div
+              key={message.id}
+              className={`flex items-start gap-3 md:gap-4 ${message.role === "user" ? "justify-end" : ""}`}
+            >
+              {message.role === "assistant" && (
                 <Avatar className="w-8 h-8 md:w-10 md:h-10 border-2 border-blue-200">
-                  <AvatarFallback className="bg-blue-100 dark:bg-blue-800"><Sparkles className="text-blue-500" /></AvatarFallback>
+                  <AvatarFallback className="bg-blue-100 dark:bg-blue-800">
+                    <Sparkles className="text-blue-500" />
+                  </AvatarFallback>
                 </Avatar>
               )}
-              <div className={`max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl rounded-2xl px-4 py-3 shadow-sm relative ${ message.role === 'user' ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-br-none' : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-bl-none'}`}>
-                {message.role === 'assistant' ? (
+              <div
+                className={`max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl rounded-2xl px-4 py-3 shadow-sm relative ${message.role === "user" ? "bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-br-none" : "bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-bl-none"}`}
+              >
+                {message.role === "assistant" ? (
                   <div className="max-w-none text-white">
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
                       rehypePlugins={[rehypeHighlight]}
                       components={{
-                        code({ className, children, ...props }: React.ComponentProps<'code'>) {
-                          const match = /language-(\w+)/.exec(className || '');
-                          const isInline = !className?.includes('language-');
+                        code({
+                          className,
+                          children,
+                          ...props
+                        }: React.ComponentProps<"code">) {
+                          const match = /language-(\w+)/.exec(className || "");
+                          const isInline = !className?.includes("language-");
                           return !isInline && match ? (
                             <pre className="bg-gray-900 text-gray-100 p-3 rounded-lg overflow-x-auto">
                               <code className={className} {...props}>
@@ -729,25 +812,53 @@ export default function AiChatClient() {
                               </code>
                             </pre>
                           ) : (
-                            <code className="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-sm" {...props}>
+                            <code
+                              className="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-sm"
+                              {...props}
+                            >
                               {children}
                             </code>
                           );
                         },
-                        p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                        ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
-                        ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
-                        li: ({ children }) => <li className="text-sm">{children}</li>,
-                        h1: ({ children }) => <h1 className="text-xl font-bold mb-2">{children}</h1>,
-                        h2: ({ children }) => <h2 className="text-lg font-bold mb-2">{children}</h2>,
-                        h3: ({ children }) => <h3 className="text-base font-bold mb-2">{children}</h3>,
+                        p: ({ children }) => (
+                          <p className="mb-2 last:mb-0">{children}</p>
+                        ),
+                        ul: ({ children }) => (
+                          <ul className="list-disc list-inside mb-2 space-y-1">
+                            {children}
+                          </ul>
+                        ),
+                        ol: ({ children }) => (
+                          <ol className="list-decimal list-inside mb-2 space-y-1">
+                            {children}
+                          </ol>
+                        ),
+                        li: ({ children }) => (
+                          <li className="text-sm">{children}</li>
+                        ),
+                        h1: ({ children }) => (
+                          <h1 className="text-xl font-bold mb-2">{children}</h1>
+                        ),
+                        h2: ({ children }) => (
+                          <h2 className="text-lg font-bold mb-2">{children}</h2>
+                        ),
+                        h3: ({ children }) => (
+                          <h3 className="text-base font-bold mb-2">
+                            {children}
+                          </h3>
+                        ),
                         blockquote: ({ children }) => (
                           <blockquote className="border-l-4 border-blue-500 pl-4 italic bg-blue-50 dark:bg-blue-900/20 py-2 rounded-r">
                             {children}
                           </blockquote>
                         ),
                         a: ({ href, children }) => (
-                          <a href={href} className="text-blue-600 dark:text-blue-400 hover:underline" target="_blank" rel="noopener noreferrer">
+                          <a
+                            href={href}
+                            className="text-blue-600 dark:text-blue-400 hover:underline"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
                             {children}
                           </a>
                         ),
@@ -758,48 +869,94 @@ export default function AiChatClient() {
 
                     {/* Voice Play Button for AI responses */}
                     <button
-                      onClick={() => speakAIResponse(message.id, message.content)}
+                      onClick={() =>
+                        speakAIResponse(message.id, message.content)
+                      }
                       className="absolute bottom-2 right-2 w-6 h-6 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors"
-                                              title={speakingMessageId === message.id ? 'Sesi durdur' : 'AI yanıtını dinle'}
+                      title={
+                        speakingMessageId === message.id
+                          ? "Sesi durdur"
+                          : "AI yanıtını dinle"
+                      }
                     >
-                      <Volume2 className={`w-3 h-3 ${speakingMessageId === message.id ? 'animate-pulse' : ''}`} />
+                      <Volume2
+                        className={`w-3 h-3 ${speakingMessageId === message.id ? "animate-pulse" : ""}`}
+                      />
                     </button>
                   </div>
                 ) : (
-                  <p className="whitespace-pre-wrap text-sm md:text-base">{message.content}</p>
+                  <p className="whitespace-pre-wrap text-sm md:text-base">
+                    {message.content}
+                  </p>
                 )}
               </div>
-              {message.role === 'user' && (
+              {message.role === "user" && (
                 <Avatar className="w-8 h-8 md:w-10 md:h-10 border-2 border-gray-300">
-                  <AvatarFallback><User /></AvatarFallback>
+                  <AvatarFallback>
+                    <User />
+                  </AvatarFallback>
                 </Avatar>
               )}
             </div>
           ))}
           {isLoading && (
-             <div className="flex items-start gap-4">
-                <Avatar className="w-10 h-10 border-2 border-blue-200"><AvatarFallback className="bg-blue-100 dark:bg-blue-800"><Sparkles className="text-blue-500" /></AvatarFallback></Avatar>
-                <div className="rounded-2xl px-4 py-3 "><Loader2 className="h-6 w-6 animate-spin text-blue-500" /></div>
+            <div className="flex items-start gap-4">
+              <Avatar className="w-10 h-10 border-2 border-blue-200">
+                <AvatarFallback className="bg-blue-100 dark:bg-blue-800">
+                  <Sparkles className="text-blue-500" />
+                </AvatarFallback>
+              </Avatar>
+              <div className="rounded-2xl px-4 py-3 ">
+                <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+              </div>
             </div>
           )}
           {suggestions && !isLoading && (
-            <div className='space-y-4 pt-4'>
-                {suggestions.followUpQuestions?.length > 0 && (
-                     <div>
-                        <h4 className="text-sm font-semibold mb-2 flex items-center gap-2"><Lightbulb className="w-4 h-4 text-yellow-500"/>Şunları Sorabilirsin:</h4>
-                        <div className="flex flex-wrap gap-2">
-                            {suggestions.followUpQuestions.map((q, i) => ( <Badge key={i} variant="outline" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSuggestionClick(q)}>{q}</Badge> ))}
-                        </div>
-                     </div>
-                )}
-                 {suggestions.suggestedTopics?.length > 0 && (
-                     <div>
-                        <h4 className="text-sm font-semibold mb-2 flex items-center gap-2"><BrainCircuit className="w-4 h-4 text-purple-500"/>İlgili Konular:</h4>
-                        <div className="flex flex-wrap gap-2">
-                            {suggestions.suggestedTopics.map((t, i) => ( <Badge key={i} variant="secondary" className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600" onClick={() => handleSuggestionClick(`Bana "${t}" konusunu anlatır mısın?`)}>{t}</Badge>))}
-                        </div>
-                     </div>
-                )}
+            <div className="space-y-4 pt-4">
+              {suggestions.followUpQuestions?.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                    <Lightbulb className="w-4 h-4 text-yellow-500" />
+                    Şunları Sorabilirsin:
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {suggestions.followUpQuestions.map((q, i) => (
+                      <Badge
+                        key={i}
+                        variant="outline"
+                        className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                        onClick={() => handleSuggestionClick(q)}
+                      >
+                        {q}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {suggestions.suggestedTopics?.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                    <BrainCircuit className="w-4 h-4 text-purple-500" />
+                    İlgili Konular:
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {suggestions.suggestedTopics.map((t, i) => (
+                      <Badge
+                        key={i}
+                        variant="secondary"
+                        className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600"
+                        onClick={() =>
+                          handleSuggestionClick(
+                            `Bana "${t}" konusunu anlatır mısın?`,
+                          )
+                        }
+                      >
+                        {t}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
           <div ref={messagesEndRef} />
@@ -817,14 +974,27 @@ export default function AiChatClient() {
           )}
         </CardContent>
         <div className="border-t p-4 bg-white dark:bg-gray-950">
-          <form onSubmit={handleFormSubmit} className="flex items-center gap-2 md:gap-4">
-            <Input value={input} onChange={e => setInput(e.target.value)} placeholder="AI Tutor'a bir soru sor..." className="flex-1" disabled={isLoading} />
+          <form
+            onSubmit={handleFormSubmit}
+            className="flex items-center gap-2 md:gap-4"
+          >
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="AI Tutor'a bir soru sor..."
+              className="flex-1"
+              disabled={isLoading}
+            />
             <Button
               type="submit"
               disabled={isLoading || !input.trim()}
               className="bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0"
             >
-              {isLoading ? (<Loader2 className="h-4 w-4 animate-spin" />) : ('Gönder')}
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Gönder"
+              )}
             </Button>
           </form>
         </div>
@@ -837,8 +1007,14 @@ export default function AiChatClient() {
         isListening={isListening}
         onListeningChange={setIsListening}
         show={showVoiceAssistant}
-        aiTutorOutput={messages.length > 0 ?
-          messages.slice().reverse().find(msg => msg.role === 'assistant')?.content || '' : ''}
+        aiTutorOutput={
+          messages.length > 0
+            ? messages
+                .slice()
+                .reverse()
+                .find((msg) => msg.role === "assistant")?.content || ""
+            : ""
+        }
       />
     </div>
   );

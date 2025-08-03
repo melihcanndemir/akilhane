@@ -1,13 +1,19 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, Suspense, useRef } from 'react';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
+import React, { useState, useEffect, Suspense, useRef } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   User,
   Mail,
@@ -22,12 +28,12 @@ import {
   X,
   Lock,
   Database,
-} from 'lucide-react';
-import Link from 'next/link';
-import MobileNav from '@/components/mobile-nav';
-import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+} from "lucide-react";
+import Link from "next/link";
+import MobileNav from "@/components/mobile-nav";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
 
 interface UserProfile {
   id: string;
@@ -55,11 +61,13 @@ function ProfileContent() {
   // Load user profile data
   useEffect(() => {
     const loadUserProfile = async () => {
-      if (authLoading) {return;}
+      if (authLoading) {
+        return;
+      }
 
       if (!authUser) {
         // Redirect to login if not authenticated
-        window.location.href = '/login';
+        window.location.href = "/login";
         return;
       }
 
@@ -69,29 +77,31 @@ function ProfileContent() {
         // Use Supabase Auth data directly
         setUser({
           id: authUser.id,
-          name: authUser.user_metadata?.full_name || authUser.user_metadata?.name || 'Kullanıcı',
-          email: authUser.email || '',
+          name:
+            authUser.user_metadata?.full_name ||
+            authUser.user_metadata?.name ||
+            "Kullanıcı",
+          email: authUser.email || "",
           avatar: authUser.user_metadata?.avatar_url,
           avatarPublicId: authUser.user_metadata?.avatar_public_id,
-          joinDate: new Date(authUser.created_at).toLocaleDateString('tr-TR'),
+          joinDate: new Date(authUser.created_at).toLocaleDateString("tr-TR"),
           totalTests: 0, // Will be calculated from quiz_results table
           averageScore: 0, // Will be calculated from performance_analytics
-          totalTime: '0 saat', // Will be calculated from quiz_results
+          totalTime: "0 saat", // Will be calculated from quiz_results
           subjects: [], // Will be fetched from subjects table
         });
-
       } catch {
         // Fallback to auth user data
         setUser({
           id: authUser.id,
-          name: authUser.user_metadata?.full_name || 'Kullanıcı',
-          email: authUser.email || '',
+          name: authUser.user_metadata?.full_name || "Kullanıcı",
+          email: authUser.email || "",
           avatar: authUser.user_metadata?.avatar_url,
           avatarPublicId: authUser.user_metadata?.avatar_public_id,
-          joinDate: new Date(authUser.created_at).toLocaleDateString('tr-TR'),
+          joinDate: new Date(authUser.created_at).toLocaleDateString("tr-TR"),
           totalTests: 0,
           averageScore: 0,
-          totalTime: '0 saat',
+          totalTime: "0 saat",
           subjects: [],
         });
       } finally {
@@ -103,7 +113,9 @@ function ProfileContent() {
   }, [authUser, authLoading]);
 
   const handleSave = async () => {
-    if (!user || !authUser) {return;}
+    if (!user || !authUser) {
+      return;
+    }
 
     try {
       setIsSaving(true);
@@ -126,22 +138,24 @@ function ProfileContent() {
   };
 
   const handleAvatarUpload = async (file: File) => {
-    if (!authUser) {return;}
+    if (!authUser) {
+      return;
+    }
 
     try {
       setIsUploading(true);
 
       // Upload to our API route
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append("file", file);
 
-      const response = await fetch('/api/upload-avatar', {
-        method: 'POST',
+      const response = await fetch("/api/upload-avatar", {
+        method: "POST",
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error('Upload failed');
+        throw new Error("Upload failed");
       }
 
       const data = await response.json();
@@ -161,14 +175,16 @@ function ProfileContent() {
       }
 
       // Update local state
-      setUser(prev => prev ? { ...prev, avatar: avatarUrl, avatarPublicId } : null);
-
+      setUser((prev) =>
+        prev ? { ...prev, avatar: avatarUrl, avatarPublicId } : null,
+      );
     } catch {
       // Show error toast
       toast({
-        title: 'Hata',
-        description: 'Fotoğraf yüklenirken bir hata oluştu. Lütfen tekrar deneyin.',
-        variant: 'destructive',
+        title: "Hata",
+        description:
+          "Fotoğraf yüklenirken bir hata oluştu. Lütfen tekrar deneyin.",
+        variant: "destructive",
       });
     } finally {
       setIsUploading(false);
@@ -183,7 +199,6 @@ function ProfileContent() {
   };
 
   const handleDeleteAvatar = async () => {
-
     if (!authUser || !user?.avatar) {
       return;
     }
@@ -193,22 +208,24 @@ function ProfileContent() {
 
       // Extract public ID from Cloudinary URL if not stored
       let publicId = user.avatarPublicId;
-      if (!publicId && user.avatar.includes('cloudinary.com')) {
+      if (!publicId && user.avatar.includes("cloudinary.com")) {
         // Extract from URL: https://res.cloudinary.com/akilhane/image/upload/v1753750979/akilhane-avatars/ww6azgioynelqecyt8qk.webp
-        const urlParts = user.avatar.split('/');
-        const uploadIndex = urlParts.findIndex(part => part === 'upload');
+        const urlParts = user.avatar.split("/");
+        const uploadIndex = urlParts.findIndex((part) => part === "upload");
         if (uploadIndex !== -1 && urlParts.length > uploadIndex + 2) {
-          publicId = urlParts.slice(uploadIndex + 2).join('/').replace(/\.[^/.]+$/, ''); // Remove extension
+          publicId = urlParts
+            .slice(uploadIndex + 2)
+            .join("/")
+            .replace(/\.[^/.]+$/, ""); // Remove extension
         }
       }
 
       // If we have public ID, delete from Cloudinary
       if (publicId) {
-
-        const response = await fetch('/api/delete-avatar', {
-          method: 'POST',
+        const response = await fetch("/api/delete-avatar", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({ publicId }),
         });
@@ -234,13 +251,15 @@ function ProfileContent() {
       }
 
       // Update local state
-      setUser(prev => prev ? { ...prev, avatar: undefined, avatarPublicId: undefined } : null);
-
+      setUser((prev) =>
+        prev ? { ...prev, avatar: undefined, avatarPublicId: undefined } : null,
+      );
     } catch {
       toast({
-        title: 'Hata',
-        description: 'Fotoğraf silinirken bir hata oluştu. Lütfen tekrar deneyin.',
-        variant: 'destructive',
+        title: "Hata",
+        description:
+          "Fotoğraf silinirken bir hata oluştu. Lütfen tekrar deneyin.",
+        variant: "destructive",
       });
     } finally {
       setIsUploading(false);
@@ -287,7 +306,10 @@ function ProfileContent() {
           <nav className="mb-6">
             <ol className="flex items-center space-x-2 text-sm text-muted-foreground">
               <li>
-                <Link href="/" className="hover:text-foreground transition-colors">
+                <Link
+                  href="/"
+                  className="hover:text-foreground transition-colors"
+                >
                   Ana Sayfa
                 </Link>
               </li>
@@ -312,7 +334,8 @@ function ProfileContent() {
               Profil Ayarları
             </h1>
             <p className="text-muted-foreground mt-2">
-              Hesap bilgilerinizi yönetin ve öğrenme deneyiminizi kişiselleştirin
+              Hesap bilgilerinizi yönetin ve öğrenme deneyiminizi
+              kişiselleştirin
             </p>
           </div>
 
@@ -332,7 +355,10 @@ function ProfileContent() {
                         <Avatar className="w-24 h-24 mx-auto mb-4">
                           <AvatarImage src={user.avatar} alt={user.name} />
                           <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-2xl">
-                            {user.name.split(' ').map(n => n[0]).join('')}
+                            {user.name
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
                           </AvatarFallback>
                         </Avatar>
 
@@ -354,7 +380,9 @@ function ProfileContent() {
                         {user?.avatar && (
                           <Button
                             size="sm"
-                            onClick={() => { void handleDeleteAvatar(); }}
+                            onClick={() => {
+                              void handleDeleteAvatar();
+                            }}
                             disabled={isUploading}
                             className="absolute -top-2 -right-2 rounded-full w-6 h-6 p-0 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white border-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                           >
@@ -386,23 +414,35 @@ function ProfileContent() {
                       <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                         <div className="flex items-center">
                           <Trophy className="w-5 h-5 text-yellow-500 mr-2" />
-                          <span className="text-sm text-gray-600 dark:text-gray-400">Toplam Test</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                            Toplam Test
+                          </span>
                         </div>
-                        <span className="font-semibold text-gray-800 dark:text-white">{user.totalTests}</span>
+                        <span className="font-semibold text-gray-800 dark:text-white">
+                          {user.totalTests}
+                        </span>
                       </div>
                       <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                         <div className="flex items-center">
                           <Target className="w-5 h-5 text-blue-500 mr-2" />
-                          <span className="text-sm text-gray-600 dark:text-gray-400">Ortalama Başarı</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                            Ortalama Başarı
+                          </span>
                         </div>
-                        <span className="font-semibold text-gray-800 dark:text-white">%{user.averageScore}</span>
+                        <span className="font-semibold text-gray-800 dark:text-white">
+                          %{user.averageScore}
+                        </span>
                       </div>
                       <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                         <div className="flex items-center">
                           <Clock className="w-5 h-5 text-purple-500 mr-2" />
-                          <span className="text-sm text-gray-600 dark:text-gray-400">Toplam Süre</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                            Toplam Süre
+                          </span>
                         </div>
-                        <span className="font-semibold text-gray-800 dark:text-white">{user.totalTime}</span>
+                        <span className="font-semibold text-gray-800 dark:text-white">
+                          {user.totalTime}
+                        </span>
                       </div>
                     </div>
                   </CardContent>
@@ -438,7 +478,9 @@ function ProfileContent() {
                             <Input
                               id="name"
                               value={user.name}
-                              onChange={(e) => setUser({...user, name: e.target.value})}
+                              onChange={(e) =>
+                                setUser({ ...user, name: e.target.value })
+                              }
                               className="pl-10"
                               disabled={!isEditing}
                             />
@@ -518,7 +560,9 @@ function ProfileContent() {
                         ) : (
                           <>
                             <Button
-                              onClick={() => { void handleSave(); }}
+                              onClick={() => {
+                                void handleSave();
+                              }}
                               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0"
                               disabled={isSaving}
                             >
@@ -554,14 +598,16 @@ function ProfileContent() {
 
 export default function ProfilePage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="flex items-center gap-2">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span>Yükleniyor...</span>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="flex items-center gap-2">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span>Yükleniyor...</span>
+          </div>
         </div>
-      </div>
-    }>
+      }
+    >
       <ProfileContent />
     </Suspense>
   );

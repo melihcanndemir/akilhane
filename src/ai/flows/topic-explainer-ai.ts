@@ -1,25 +1,37 @@
-'use server';
+"use server";
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { ai } from "@/ai/genkit";
+import { z } from "genkit";
 
 const TopicExplainerInputSchema = z.object({
-  topic: z.string().describe('The specific topic to explain.'),
-  subject: z.string().describe('The subject area (e.g., mathematics, physics, chemistry).'),
-  step: z.enum(['intro', 'core', 'advanced', 'practice', 'mastery']).describe('The learning step to generate content for.'),
-  difficulty: z.enum(['easy', 'medium', 'hard']).describe('The difficulty level of the content.'),
-  estimatedTime: z.number().describe('Estimated time in minutes for this step.'),
+  topic: z.string().describe("The specific topic to explain."),
+  subject: z
+    .string()
+    .describe("The subject area (e.g., mathematics, physics, chemistry)."),
+  step: z
+    .enum(["intro", "core", "advanced", "practice", "mastery"])
+    .describe("The learning step to generate content for."),
+  difficulty: z
+    .enum(["easy", "medium", "hard"])
+    .describe("The difficulty level of the content."),
+  estimatedTime: z
+    .number()
+    .describe("Estimated time in minutes for this step."),
 });
 
 export type TopicExplainerInput = z.infer<typeof TopicExplainerInputSchema>;
 
 const TopicExplainerOutputSchema = z.object({
-  title: z.string().describe('The title for this learning step.'),
-  content: z.string().describe('The main educational content for this step.'),
-  examples: z.array(z.string()).describe('Relevant examples for this step.'),
-  tips: z.array(z.string()).describe('Learning tips for this step.'),
-  visualDescription: z.string().describe('Description for AI-generated visual aid.'),
-  confidence: z.number().describe('AI confidence in the generated content (0-1).'),
+  title: z.string().describe("The title for this learning step."),
+  content: z.string().describe("The main educational content for this step."),
+  examples: z.array(z.string()).describe("Relevant examples for this step."),
+  tips: z.array(z.string()).describe("Learning tips for this step."),
+  visualDescription: z
+    .string()
+    .describe("Description for AI-generated visual aid."),
+  confidence: z
+    .number()
+    .describe("AI confidence in the generated content (0-1)."),
 });
 
 export type TopicExplainerOutput = z.infer<typeof TopicExplainerOutputSchema>;
@@ -30,13 +42,20 @@ export async function generateTopicStepContent(
   try {
     return await topicExplainerFlow(input);
   } catch (error) {
-    console.error('AI Topic Explainer Error:', error);
+    console.error("AI Topic Explainer Error:", error);
     // Return fallback content
     return {
-      title: `${input.topic} ${input.step === 'intro' ? 'Giriş' :
-              input.step === 'core' ? 'Ana Kavramlar' :
-              input.step === 'advanced' ? 'İleri Seviye' :
-              input.step === 'practice' ? 'Pratik Uygulamalar' : 'Uzmanlık Seviyesi'}`,
+      title: `${input.topic} ${
+        input.step === "intro"
+          ? "Giriş"
+          : input.step === "core"
+            ? "Ana Kavramlar"
+            : input.step === "advanced"
+              ? "İleri Seviye"
+              : input.step === "practice"
+                ? "Pratik Uygulamalar"
+                : "Uzmanlık Seviyesi"
+      }`,
       content: `${input.topic} konusunun ${input.step} aşamasında öğrenilmesi gereken temel kavramlar ve uygulamalar.`,
       examples: [
         `${input.topic} konusunun günlük hayattaki uygulamaları`,
@@ -45,8 +64,8 @@ export async function generateTopicStepContent(
       ],
       tips: [
         `${input.topic} konusunu adım adım öğrenin`,
-        'Her kavramı tam anlamadan geçmeyin',
-        'Bol bol pratik yapın',
+        "Her kavramı tam anlamadan geçmeyin",
+        "Bol bol pratik yapın",
       ],
       visualDescription: `${input.topic} konusu için görsel yardımcı`,
       confidence: 0.3,
@@ -55,9 +74,9 @@ export async function generateTopicStepContent(
 }
 
 const prompt = ai.definePrompt({
-  name: 'topicExplainerPrompt',
-  input: {schema: TopicExplainerInputSchema},
-  output: {schema: TopicExplainerOutputSchema},
+  name: "topicExplainerPrompt",
+  input: { schema: TopicExplainerInputSchema },
+  output: { schema: TopicExplainerOutputSchema },
   prompt: `Sen bir uzman eğitimcisin. Öğrencilere konuları adım adım öğretmek için AI destekli içerik üretiyorsun.
 
 KONU: {{{topic}}}
@@ -138,12 +157,12 @@ TAHMINİ SÜRE: {{{estimatedTime}}} dakika
 
 const topicExplainerFlow = ai.defineFlow(
   {
-    name: 'topicExplainerFlow',
+    name: "topicExplainerFlow",
     inputSchema: TopicExplainerInputSchema,
     outputSchema: TopicExplainerOutputSchema,
   },
-  async input => {
-    const {output} = await prompt(input);
+  async (input) => {
+    const { output } = await prompt(input);
     return output!;
   },
 );

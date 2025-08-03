@@ -1,53 +1,51 @@
-import type { Metadata, Viewport } from 'next';
-import { Inter, Space_Grotesk, Source_Code_Pro } from 'next/font/google';
-import './globals.css';
-import { Toaster } from '@/components/ui/toaster';
-import { ThemeProvider } from '@/components/theme-provider';
-import PWAServiceWorker from '@/components/pwa-service-worker';
-import PWAInstallPrompt from '@/components/pwa-install-prompt';
-import Footer from '@/components/footer'; // Import the new component
+import type { Metadata, Viewport } from "next";
+import { Inter, Space_Grotesk, Source_Code_Pro } from "next/font/google";
+import "./globals.css";
+import { Toaster } from "@/components/ui/toaster";
+import { ThemeProvider } from "@/components/theme-provider";
+import PWAServiceWorker from "@/components/pwa-service-worker";
+import PWAInstallPrompt from "@/components/pwa-install-prompt";
+import Footer from "@/components/footer"; // Import the new component
 
 const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
 });
 
 const spaceGrotesk = Space_Grotesk({
-  subsets: ['latin'],
-  variable: '--font-space-grotesk',
-  display: 'swap',
+  subsets: ["latin"],
+  variable: "--font-space-grotesk",
+  display: "swap",
 });
 
 const sourceCodePro = Source_Code_Pro({
-  subsets: ['latin'],
-  variable: '--font-source-code-pro',
-  display: 'swap',
+  subsets: ["latin"],
+  variable: "--font-source-code-pro",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: 'AkılHane - AI Destekli Eğitim Platformu',
-  description: 'Yerli ve milli AI destekli eğitim teknolojisi platformu.',
-  manifest: '/manifest.json',
+  title: "AkılHane - AI Destekli Eğitim Platformu",
+  description: "Yerli ve milli AI destekli eğitim teknolojisi platformu.",
+  manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'default',
-    title: 'AkılHane',
+    statusBarStyle: "default",
+    title: "AkılHane",
   },
   icons: {
     icon: [
-      { url: '/favicon.ico' },
-      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: "/favicon.ico" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
     ],
-    apple: [
-      { url: '/favicon.svg', sizes: '180x180', type: 'image/svg+xml' },
-    ],
+    apple: [{ url: "/favicon.svg", sizes: "180x180", type: "image/svg+xml" }],
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: '#3b82f6',
-  width: 'device-width',
+  themeColor: "#3b82f6",
+  width: "device-width",
   initialScale: 1,
   maximumScale: 1,
 };
@@ -58,7 +56,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="tr" suppressHydrationWarning className={`${inter.variable} ${spaceGrotesk.variable} ${sourceCodePro.variable}`}>
+    <html
+      lang="tr"
+      suppressHydrationWarning
+      className={`${inter.variable} ${spaceGrotesk.variable} ${sourceCodePro.variable}`}
+    >
       <head>
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
@@ -76,9 +78,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <div className="flex-grow">
-            {children}
-          </div>
+          <div className="flex-grow">{children}</div>
           <Toaster />
           <PWAServiceWorker />
           <PWAInstallPrompt />

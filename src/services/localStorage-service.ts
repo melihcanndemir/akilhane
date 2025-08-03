@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 interface QuizResult {
   id: string;
@@ -39,14 +39,14 @@ interface AIRecommendation {
   id: string;
   userId: string;
   subject: string;
-  recommendedDifficulty: 'Easy' | 'Medium' | 'Hard';
+  recommendedDifficulty: "Easy" | "Medium" | "Hard";
   reasoning: string;
   createdAt: string;
 }
 
 interface AIChatMessage {
   id: string;
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
   timestamp: string;
 }
@@ -79,9 +79,9 @@ interface UserSettings {
     achievements: boolean;
   };
   appearance: {
-    fontSize: 'small' | 'medium' | 'large';
+    fontSize: "small" | "medium" | "large";
     compactMode: boolean;
-    theme: 'light' | 'dark' | 'system';
+    theme: "light" | "dark" | "system";
   };
 }
 
@@ -110,11 +110,13 @@ class LocalStorageService {
   }
 
   private isClient(): boolean {
-    return typeof window !== 'undefined';
+    return typeof window !== "undefined";
   }
 
   private getItem<T>(key: string, defaultValue: T): T {
-    if (!this.isClient()) {return defaultValue;}
+    if (!this.isClient()) {
+      return defaultValue;
+    }
 
     try {
       const item = localStorage.getItem(key);
@@ -125,7 +127,9 @@ class LocalStorageService {
   }
 
   private setItem<T>(key: string, value: T): void {
-    if (!this.isClient()) {return;}
+    if (!this.isClient()) {
+      return;
+    }
 
     try {
       localStorage.setItem(key, JSON.stringify(value));
@@ -136,10 +140,10 @@ class LocalStorageService {
 
   // Quiz Results
   getQuizResults(): QuizResult[] {
-    return this.getItem('guestQuizResults', []);
+    return this.getItem("guestQuizResults", []);
   }
 
-  saveQuizResult(result: Omit<QuizResult, 'id' | 'createdAt'>): QuizResult {
+  saveQuizResult(result: Omit<QuizResult, "id" | "createdAt">): QuizResult {
     const results = this.getQuizResults();
     const newResult: QuizResult = {
       ...result,
@@ -148,75 +152,109 @@ class LocalStorageService {
     };
 
     results.push(newResult);
-    this.setItem('guestQuizResults', results);
+    this.setItem("guestQuizResults", results);
 
     // Update performance data
-    this.updatePerformanceData(result.userId, result.subject, result.score, result.totalQuestions, result.timeSpent, result.weakTopics);
+    this.updatePerformanceData(
+      result.userId,
+      result.subject,
+      result.score,
+      result.totalQuestions,
+      result.timeSpent,
+      result.weakTopics,
+    );
 
     return newResult;
   }
 
   getQuizResultsBySubject(subject: string): QuizResult[] {
-    return this.getQuizResults().filter(result => result.subject === subject);
+    return this.getQuizResults().filter((result) => result.subject === subject);
   }
 
   getQuizResultsByUser(userId: string): QuizResult[] {
-    return this.getQuizResults().filter(result => result.userId === userId);
+    return this.getQuizResults().filter((result) => result.userId === userId);
   }
 
   // Flashcard Progress
   getFlashcardProgress(): FlashcardProgress[] {
-    const progressMap: Record<string, FlashcardProgress> = this.getItem('guestFlashcardProgress', {});
+    const progressMap: Record<string, FlashcardProgress> = this.getItem(
+      "guestFlashcardProgress",
+      {},
+    );
     return Object.values(progressMap);
   }
 
   getFlashcardProgressByUser(userId: string): FlashcardProgress[] {
-    return this.getFlashcardProgress().filter(progress => progress.userId === userId);
-  }
-
-  getFlashcardProgressBySubject(userId: string, subject: string): FlashcardProgress[] {
     return this.getFlashcardProgress().filter(
-      progress => progress.userId === userId && progress.subject === subject,
+      (progress) => progress.userId === userId,
     );
   }
 
-  saveFlashcardProgress(progress: Omit<FlashcardProgress, 'id' | 'createdAt' | 'updatedAt'>): FlashcardProgress {
-    const progressMap: Record<string, FlashcardProgress> = this.getItem('guestFlashcardProgress', {});
+  getFlashcardProgressBySubject(
+    userId: string,
+    subject: string,
+  ): FlashcardProgress[] {
+    return this.getFlashcardProgress().filter(
+      (progress) => progress.userId === userId && progress.subject === subject,
+    );
+  }
+
+  saveFlashcardProgress(
+    progress: Omit<FlashcardProgress, "id" | "createdAt" | "updatedAt">,
+  ): FlashcardProgress {
+    const progressMap: Record<string, FlashcardProgress> = this.getItem(
+      "guestFlashcardProgress",
+      {},
+    );
     const key = `${progress.userId}_${progress.subject}_${progress.cardId}`;
 
     const existingProgress = progressMap[key];
     const newProgress: FlashcardProgress = {
       ...progress,
-      id: existingProgress?.id || `flashcard_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id:
+        existingProgress?.id ||
+        `flashcard_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       createdAt: existingProgress?.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
 
     progressMap[key] = newProgress;
-    this.setItem('guestFlashcardProgress', progressMap);
+    this.setItem("guestFlashcardProgress", progressMap);
 
     return newProgress;
   }
 
   // Performance Data
   getPerformanceData(): PerformanceData[] {
-    return this.getItem('guestPerformanceData', []);
+    return this.getItem("guestPerformanceData", []);
   }
 
   getPerformanceDataByUser(userId: string): PerformanceData[] {
-    return this.getPerformanceData().filter(data => data.userId === userId);
+    return this.getPerformanceData().filter((data) => data.userId === userId);
   }
 
-  getPerformanceDataBySubject(userId: string, subject: string): PerformanceData | null {
-    return this.getPerformanceData().find(
-      data => data.userId === userId && data.subject === subject,
-    ) || null;
+  getPerformanceDataBySubject(
+    userId: string,
+    subject: string,
+  ): PerformanceData | null {
+    return (
+      this.getPerformanceData().find(
+        (data) => data.userId === userId && data.subject === subject,
+      ) || null
+    );
   }
 
-  private updatePerformanceData(userId: string, subject: string, score: number, totalQuestions: number, timeSpent: number, weakTopics: string[]): void {
+  private updatePerformanceData(
+    userId: string,
+    subject: string,
+    score: number,
+    totalQuestions: number,
+    timeSpent: number,
+    weakTopics: string[],
+  ): void {
     const performanceData = this.getPerformanceData();
     const existingIndex = performanceData.findIndex(
-      data => data.userId === userId && data.subject === subject,
+      (data) => data.userId === userId && data.subject === subject,
     );
 
     const scorePercentage = (score / totalQuestions) * 100;
@@ -227,11 +265,17 @@ class LocalStorageService {
       const existing = performanceData[existingIndex];
       if (existing) {
         const totalTests = existing.totalTests + 1;
-        const newAverageScore = ((existing.averageScore * existing.totalTests) + scorePercentage) / totalTests;
-        const newAverageTimeSpent = ((existing.averageTimeSpent * existing.totalTests) + timeSpentMinutes) / totalTests;
+        const newAverageScore =
+          (existing.averageScore * existing.totalTests + scorePercentage) /
+          totalTests;
+        const newAverageTimeSpent =
+          (existing.averageTimeSpent * existing.totalTests + timeSpentMinutes) /
+          totalTests;
 
         // Merge weak topics (simple approach - you might want more sophisticated logic)
-        const combinedWeakTopics = [...new Set([...existing.weakTopics, ...weakTopics])];
+        const combinedWeakTopics = [
+          ...new Set([...existing.weakTopics, ...weakTopics]),
+        ];
 
         performanceData[existingIndex] = {
           id: existing.id,
@@ -260,19 +304,21 @@ class LocalStorageService {
       performanceData.push(newPerformanceData);
     }
 
-    this.setItem('guestPerformanceData', performanceData);
+    this.setItem("guestPerformanceData", performanceData);
   }
 
   // AI Recommendations
   getAIRecommendations(): AIRecommendation[] {
-    return this.getItem('guestAIRecommendations', []);
+    return this.getItem("guestAIRecommendations", []);
   }
 
   getAIRecommendationsByUser(userId: string): AIRecommendation[] {
-    return this.getAIRecommendations().filter(rec => rec.userId === userId);
+    return this.getAIRecommendations().filter((rec) => rec.userId === userId);
   }
 
-  saveAIRecommendation(recommendation: Omit<AIRecommendation, 'id' | 'createdAt'>): AIRecommendation {
+  saveAIRecommendation(
+    recommendation: Omit<AIRecommendation, "id" | "createdAt">,
+  ): AIRecommendation {
     const recommendations = this.getAIRecommendations();
     const newRecommendation: AIRecommendation = {
       ...recommendation,
@@ -287,7 +333,7 @@ class LocalStorageService {
       recommendations.splice(0, recommendations.length - 50);
     }
 
-    this.setItem('guestAIRecommendations', recommendations);
+    this.setItem("guestAIRecommendations", recommendations);
     return newRecommendation;
   }
 
@@ -309,10 +355,19 @@ class LocalStorageService {
       };
     }
 
-    const totalTests = performanceData.reduce((sum, data) => sum + data.totalTests, 0);
-    const weightedScoreSum = performanceData.reduce((sum, data) => sum + (data.averageScore * data.totalTests), 0);
+    const totalTests = performanceData.reduce(
+      (sum, data) => sum + data.totalTests,
+      0,
+    );
+    const weightedScoreSum = performanceData.reduce(
+      (sum, data) => sum + data.averageScore * data.totalTests,
+      0,
+    );
     const averageScore = totalTests > 0 ? weightedScoreSum / totalTests : 0;
-    const totalTimeSpent = performanceData.reduce((sum, data) => sum + (data.averageTimeSpent * data.totalTests), 0);
+    const totalTimeSpent = performanceData.reduce(
+      (sum, data) => sum + data.averageTimeSpent * data.totalTests,
+      0,
+    );
 
     return {
       totalTests,
@@ -324,26 +379,33 @@ class LocalStorageService {
 
   getRecentResults(userId: string, limit = 10): QuizResult[] {
     return this.getQuizResultsByUser(userId)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      )
       .slice(0, limit);
   }
 
   // Data management
   clearAllData(): void {
-    if (!this.isClient()) {return;}
+    if (!this.isClient()) {
+      return;
+    }
 
     const keys = [
-      'guestQuizResults',
-      'guestFlashcardProgress',
-      'guestPerformanceData',
-      'guestAIRecommendations',
+      "guestQuizResults",
+      "guestFlashcardProgress",
+      "guestPerformanceData",
+      "guestAIRecommendations",
     ];
 
-    keys.forEach(key => localStorage.removeItem(key));
+    keys.forEach((key) => localStorage.removeItem(key));
   }
 
   exportAllData(): ExportedData | null {
-    if (!this.isClient()) {return null;}
+    if (!this.isClient()) {
+      return null;
+    }
 
     return {
       quizResults: this.getQuizResults(),
@@ -357,16 +419,16 @@ class LocalStorageService {
   importAllData(data: ExportedData): boolean {
     try {
       if (data.quizResults) {
-        this.setItem('guestQuizResults', data.quizResults);
+        this.setItem("guestQuizResults", data.quizResults);
       }
       if (data.flashcardProgress) {
-        this.setItem('guestFlashcardProgress', data.flashcardProgress);
+        this.setItem("guestFlashcardProgress", data.flashcardProgress);
       }
       if (data.performanceData) {
-        this.setItem('guestPerformanceData', data.performanceData);
+        this.setItem("guestPerformanceData", data.performanceData);
       }
       if (data.aiRecommendations) {
-        this.setItem('guestAIRecommendations', data.aiRecommendations);
+        this.setItem("guestAIRecommendations", data.aiRecommendations);
       }
       return true;
     } catch {
@@ -376,7 +438,9 @@ class LocalStorageService {
 
   // Data size monitoring
   getStorageSize(): StorageSize {
-    if (!this.isClient()) {return { used: 0, available: 0, percentage: 0 };}
+    if (!this.isClient()) {
+      return { used: 0, available: 0, percentage: 0 };
+    }
 
     let used = 0;
     for (const key in localStorage) {
@@ -398,9 +462,9 @@ class LocalStorageService {
 
   // User Settings
   getUserSettings(): UserSettings {
-    return this.getItem('userSettings', {
+    return this.getItem("userSettings", {
       studyPreferences: {
-        defaultSubject: '',
+        defaultSubject: "",
         questionsPerQuiz: 10,
         timeLimit: 30,
         showTimer: true,
@@ -413,41 +477,51 @@ class LocalStorageService {
         achievements: true,
       },
       appearance: {
-        fontSize: 'medium' as const,
+        fontSize: "medium" as const,
         compactMode: false,
-        theme: 'system' as const,
+        theme: "system" as const,
       },
     });
   }
 
   saveUserSettings(settings: UserSettings): void {
-    this.setItem('userSettings', settings);
+    this.setItem("userSettings", settings);
   }
 
   // AI Chat Sessions
   getAIChatSessions(): AIChatSession[] {
-    return this.getItem('aiChatSessions', []);
+    return this.getItem("aiChatSessions", []);
   }
 
   getAIChatSessionsByUser(userId: string): AIChatSession[] {
     const sessions = this.getAIChatSessions();
-    return sessions.filter(session => session.userId === userId);
+    return sessions.filter((session) => session.userId === userId);
   }
 
   getAIChatSession(sessionId: string): AIChatSession | null {
     const sessions = this.getAIChatSessions();
-    return sessions.find(session => session.sessionId === sessionId) || null;
+    return sessions.find((session) => session.sessionId === sessionId) || null;
   }
 
-  saveAIChatSession(session: Omit<AIChatSession, 'id' | 'createdAt' | 'updatedAt' | 'messageCount'>): AIChatSession {
+  saveAIChatSession(
+    session: Omit<
+      AIChatSession,
+      "id" | "createdAt" | "updatedAt" | "messageCount"
+    >,
+  ): AIChatSession {
     const sessions = this.getAIChatSessions();
-    const existingIndex = sessions.findIndex(s => s.sessionId === session.sessionId);
+    const existingIndex = sessions.findIndex(
+      (s) => s.sessionId === session.sessionId,
+    );
 
     const newSession: AIChatSession = {
       ...session,
       id: `ai_chat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       messageCount: session.messages?.length || 0,
-      createdAt: existingIndex >= 0 && sessions[existingIndex] ? sessions[existingIndex].createdAt : new Date().toISOString(),
+      createdAt:
+        existingIndex >= 0 && sessions[existingIndex]
+          ? sessions[existingIndex].createdAt
+          : new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
 
@@ -457,18 +531,25 @@ class LocalStorageService {
       sessions.push(newSession);
     }
 
-    this.setItem('aiChatSessions', sessions);
+    this.setItem("aiChatSessions", sessions);
     return newSession;
   }
 
-  updateAIChatSession(sessionId: string, updates: Partial<AIChatSession>): boolean {
+  updateAIChatSession(
+    sessionId: string,
+    updates: Partial<AIChatSession>,
+  ): boolean {
     const sessions = this.getAIChatSessions();
-    const sessionIndex = sessions.findIndex(s => s.sessionId === sessionId);
+    const sessionIndex = sessions.findIndex((s) => s.sessionId === sessionId);
 
-    if (sessionIndex === -1) {return false;}
+    if (sessionIndex === -1) {
+      return false;
+    }
 
     const existingSession = sessions[sessionIndex];
-    if (!existingSession) {return false;}
+    if (!existingSession) {
+      return false;
+    }
 
     sessions[sessionIndex] = {
       ...existingSession,
@@ -476,23 +557,28 @@ class LocalStorageService {
       updatedAt: new Date().toISOString(),
     };
 
-    this.setItem('aiChatSessions', sessions);
+    this.setItem("aiChatSessions", sessions);
     return true;
   }
 
   deleteAIChatSession(sessionId: string): boolean {
     const sessions = this.getAIChatSessions();
-    const filteredSessions = sessions.filter(s => s.sessionId !== sessionId);
+    const filteredSessions = sessions.filter((s) => s.sessionId !== sessionId);
 
-    if (filteredSessions.length === sessions.length) {return false;}
+    if (filteredSessions.length === sessions.length) {
+      return false;
+    }
 
-    this.setItem('aiChatSessions', filteredSessions);
+    this.setItem("aiChatSessions", filteredSessions);
     return true;
   }
 
-  addMessageToSession(sessionId: string, message: Omit<AIChatMessage, 'id' | 'timestamp'>): AIChatMessage {
+  addMessageToSession(
+    sessionId: string,
+    message: Omit<AIChatMessage, "id" | "timestamp">,
+  ): AIChatMessage {
     const sessions = this.getAIChatSessions();
-    const sessionIndex = sessions.findIndex(s => s.sessionId === sessionId);
+    const sessionIndex = sessions.findIndex((s) => s.sessionId === sessionId);
 
     if (sessionIndex === -1) {
       throw new Error(`Session ${sessionId} not found`);
@@ -514,7 +600,7 @@ class LocalStorageService {
     existingSession.lastMessageAt = newMessage.timestamp;
     existingSession.updatedAt = new Date().toISOString();
 
-    this.setItem('aiChatSessions', sessions);
+    this.setItem("aiChatSessions", sessions);
     return newMessage;
   }
 
@@ -522,10 +608,13 @@ class LocalStorageService {
     const sessions = this.getAIChatSessionsByUser(userId);
     const term = searchTerm.toLowerCase();
 
-    return sessions.filter(session =>
-      session.title?.toLowerCase().includes(term) ||
-      session.subject.toLowerCase().includes(term) ||
-      session.messages.some(msg => msg.content.toLowerCase().includes(term)),
+    return sessions.filter(
+      (session) =>
+        session.title?.toLowerCase().includes(term) ||
+        session.subject.toLowerCase().includes(term) ||
+        session.messages.some((msg) =>
+          msg.content.toLowerCase().includes(term),
+        ),
     );
   }
 }

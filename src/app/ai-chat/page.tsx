@@ -1,5 +1,5 @@
-import AiChatClient from '@/components/ai/ai-chat-client';
-import MobileNav from '@/components/mobile-nav';
+import AiChatClient from "@/components/ai/ai-chat-client";
+import MobileNav from "@/components/mobile-nav";
 
 export default function AiChatPage() {
   return (

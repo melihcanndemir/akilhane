@@ -3,13 +3,17 @@ export type Answer = {
   isCorrect: boolean;
 };
 
-export type QuestionType = 'multiple-choice' | 'true-false' | 'calculation' | 'case-study';
+export type QuestionType =
+  | "multiple-choice"
+  | "true-false"
+  | "calculation"
+  | "case-study";
 
 export type Question = {
   id: string;
   subject: string;
   type: QuestionType;
-  difficulty: 'Easy' | 'Medium' | 'Hard';
+  difficulty: "Easy" | "Medium" | "Hard";
   text: string;
   options: Answer[];
   explanation: string;
@@ -37,9 +41,9 @@ export type QuestionResult = {
 };
 
 export type Subject =
-  | 'Finansal Tablo Analizi'
-  | 'Karar Destek Sistemleri'
-  | 'Müşteri İlişkileri Yönetimi';
+  | "Finansal Tablo Analizi"
+  | "Karar Destek Sistemleri"
+  | "Müşteri İlişkileri Yönetimi";
 
 // Match database schema exactly
 export type QuizResult = {
@@ -97,7 +101,7 @@ export type SubjectDisplay = {
   name: string;
   description: string;
   category: string;
-  difficulty: 'Orta' | 'Başlangıç' | 'İleri';
+  difficulty: "Orta" | "Başlangıç" | "İleri";
   questionCount: number;
   isActive: boolean;
   createdBy: string | null;

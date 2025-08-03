@@ -1,24 +1,25 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
-  Mail,
-  ArrowLeft,
-  CheckCircle,
-  Brain,
-} from 'lucide-react';
-import Link from 'next/link';
-import { resetPassword } from '@/lib/supabase';
-import { useRouter } from 'next/navigation';
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { Mail, ArrowLeft, CheckCircle, Brain } from "lucide-react";
+import Link from "next/link";
+import { resetPassword } from "@/lib/supabase";
+import { useRouter } from "next/navigation";
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const { toast } = useToast();
@@ -30,18 +31,24 @@ export default function ForgotPasswordPage() {
 
     try {
       const { error } = await resetPassword(email);
-      if (error) {throw error;}
+      if (error) {
+        throw error;
+      }
 
       setIsSuccess(true);
       toast({
-        title: 'E-posta gönderildi!',
-        description: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.',
+        title: "E-posta gönderildi!",
+        description:
+          "Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.",
       });
     } catch (error) {
       toast({
-        title: 'Hata!',
-        description: error instanceof Error ? error.message : 'Şifre sıfırlama e-postası gönderilemedi.',
-        variant: 'destructive',
+        title: "Hata!",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Şifre sıfırlama e-postası gönderilemedi.",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -69,14 +76,16 @@ export default function ForgotPasswordPage() {
                   E-posta Gönderildi!
                 </CardTitle>
                 <CardDescription>
-                  Şifre sıfırlama bağlantısı <strong>{email}</strong> adresine gönderildi.
+                  Şifre sıfırlama bağlantısı <strong>{email}</strong> adresine
+                  gönderildi.
                   <br />
-                  E-postanızı kontrol edin ve bağlantıya tıklayarak şifrenizi sıfırlayın.
+                  E-postanızı kontrol edin ve bağlantıya tıklayarak şifrenizi
+                  sıfırlayın.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <Button
-                  onClick={() => router.push('/login')}
+                  onClick={() => router.push("/login")}
                   className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
@@ -124,11 +133,17 @@ export default function ForgotPasswordPage() {
                 Şifrenizi mi unuttunuz?
               </CardTitle>
               <CardDescription>
-                E-posta adresinizi girin, size şifre sıfırlama bağlantısı gönderelim.
+                E-posta adresinizi girin, size şifre sıfırlama bağlantısı
+                gönderelim.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <form onSubmit={(e) => { void handleSubmit(e); }} className="space-y-4">
+              <form
+                onSubmit={(e) => {
+                  void handleSubmit(e);
+                }}
+                className="space-y-4"
+              >
                 <div className="space-y-2">
                   <Label htmlFor="email">E-posta</Label>
                   <div className="relative">

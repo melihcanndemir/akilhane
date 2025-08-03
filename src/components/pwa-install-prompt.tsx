@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Download, X, Smartphone, CheckCircle } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Download, X, Smartphone, CheckCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 // Extend Navigator interface for iOS Safari standalone property
 declare global {
@@ -15,14 +15,15 @@ declare global {
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
   readonly userChoice: Promise<{
-    outcome: 'accepted' | 'dismissed';
+    outcome: "accepted" | "dismissed";
     platform: string;
   }>;
   prompt(): Promise<void>;
 }
 
 export default function PWAInstallPrompt() {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [deferredPrompt, setDeferredPrompt] =
+    useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
@@ -30,12 +31,13 @@ export default function PWAInstallPrompt() {
 
   useEffect(() => {
     // Check if PWA features are supported
-    const checkSupport = () => 'serviceWorker' in navigator && 'BeforeInstallPromptEvent' in window;
+    const checkSupport = () =>
+      "serviceWorker" in navigator && "BeforeInstallPromptEvent" in window;
 
     // Check if app is already installed
     const checkIfInstalled = () => {
       // Check display mode
-      if (window.matchMedia('(display-mode: standalone)').matches) {
+      if (window.matchMedia("(display-mode: standalone)").matches) {
         return true;
       }
 
@@ -45,7 +47,7 @@ export default function PWAInstallPrompt() {
       }
 
       // Check document referrer for app context
-      if (document.referrer.includes('android-app://')) {
+      if (document.referrer.includes("android-app://")) {
         return true;
       }
 
@@ -55,10 +57,10 @@ export default function PWAInstallPrompt() {
     // Check dismissal status
     const checkDismissalStatus = () => {
       try {
-        const dismissed = localStorage.getItem('pwa-install-dismissed');
+        const dismissed = localStorage.getItem("pwa-install-dismissed");
         if (dismissed) {
           const dismissedTime = parseInt(dismissed);
-          const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+          const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
 
           // If dismissed less than 7 days ago, don't show
           return dismissedTime > sevenDaysAgo;
@@ -94,7 +96,7 @@ export default function PWAInstallPrompt() {
     };
 
     // Listen for install prompt
-    window.addEventListener('beforeinstallprompt', handler as EventListener);
+    window.addEventListener("beforeinstallprompt", handler as EventListener);
 
     // Listen for app install
     const installHandler = () => {
@@ -102,13 +104,13 @@ export default function PWAInstallPrompt() {
       setShowInstallPrompt(false);
       // Clear dismissal status
       try {
-        localStorage.removeItem('pwa-install-dismissed');
+        localStorage.removeItem("pwa-install-dismissed");
       } catch {
         //do nothing
       }
     };
 
-    window.addEventListener('appinstalled', installHandler);
+    window.addEventListener("appinstalled", installHandler);
 
     // For iOS, we need to check periodically if the app was added to home screen
     const checkIOSInstall = () => {
@@ -121,8 +123,11 @@ export default function PWAInstallPrompt() {
 
     // Cleanup
     return () => {
-      window.removeEventListener('beforeinstallprompt', handler as EventListener);
-      window.removeEventListener('appinstalled', installHandler);
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handler as EventListener,
+      );
+      window.removeEventListener("appinstalled", installHandler);
       clearInterval(iosCheckInterval);
     };
   }, []);
@@ -137,7 +142,7 @@ export default function PWAInstallPrompt() {
       await deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
 
-      if (outcome === 'accepted') {
+      if (outcome === "accepted") {
         setShowInstallPrompt(false);
       } else {
         handleDismiss();
@@ -156,7 +161,7 @@ export default function PWAInstallPrompt() {
 
     // Remember dismissal for 7 days
     try {
-      localStorage.setItem('pwa-install-dismissed', Date.now().toString());
+      localStorage.setItem("pwa-install-dismissed", Date.now().toString());
     } catch {
       //do nothing
     }
@@ -168,7 +173,7 @@ export default function PWAInstallPrompt() {
 
     // Remember dismissal for 7 days
     try {
-      localStorage.setItem('pwa-install-dismissed', Date.now().toString());
+      localStorage.setItem("pwa-install-dismissed", Date.now().toString());
     } catch {
       //do nothing
     }
@@ -185,7 +190,7 @@ export default function PWAInstallPrompt() {
         initial={{ opacity: 0, y: 20, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 20, scale: 0.95 }}
-        transition={{ duration: 0.3, ease: 'easeOut' }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
         className="fixed bottom-4 z-50 sm:bottom-4 sm:right-4 sm:left-auto sm:flex-none sm:px-0 left-0 right-0 flex justify-center px-4"
       >
         <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 sm:p-6 shadow-2xl backdrop-blur-sm">
@@ -215,7 +220,8 @@ export default function PWAInstallPrompt() {
           {/* Content */}
           <div className="mb-6">
             <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
-              AkılHane&apos;i ana ekranınıza ekleyerek daha hızlı erişim sağlayın ve çevrimdışı çalışın.
+              AkılHane&apos;i ana ekranınıza ekleyerek daha hızlı erişim
+              sağlayın ve çevrimdışı çalışın.
             </p>
 
             {/* Benefits */}
@@ -238,7 +244,9 @@ export default function PWAInstallPrompt() {
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-2">
             <Button
-                                onClick={() => { void handleInstall(); }}
+              onClick={() => {
+                void handleInstall();
+              }}
               className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white min-h-[44px] text-sm font-medium border-0"
               size="sm"
             >

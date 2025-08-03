@@ -1,19 +1,19 @@
-import type { NextRequest} from 'next/server';
-import { NextResponse } from 'next/server';
-import { AiChatRepository } from '@/lib/database/repositories/ai-chat-repository';
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { AiChatRepository } from "@/lib/database/repositories/ai-chat-repository";
 
 // GET /api/ai-chat - Get all chat sessions for the user
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+    const userId = searchParams.get("userId");
 
     if (!userId) {
-      return NextResponse.json({ error: 'UserId required' }, { status: 400 });
+      return NextResponse.json({ error: "UserId required" }, { status: 400 });
     }
 
-    const searchTerm = searchParams.get('search');
-    const limit = parseInt(searchParams.get('limit') || '10');
+    const searchTerm = searchParams.get("search");
+    const limit = parseInt(searchParams.get("limit") || "10");
 
     let sessions;
     if (searchTerm) {
@@ -24,7 +24,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(sessions);
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }
 
@@ -36,21 +39,38 @@ export async function POST(request: NextRequest) {
     const { subject, title, userId } = body;
 
     if (!subject) {
-      return NextResponse.json({ error: 'Subject is required' }, { status: 400 });
+      return NextResponse.json(
+        { error: "Subject is required" },
+        { status: 400 },
+      );
     }
 
     if (!userId) {
-      return NextResponse.json({ error: 'UserId is required' }, { status: 400 });
+      return NextResponse.json(
+        { error: "UserId is required" },
+        { status: 400 },
+      );
     }
 
     try {
-      const session = await AiChatRepository.createSession(userId, subject, title);
+      const session = await AiChatRepository.createSession(
+        userId,
+        subject,
+        title,
+      );
       return NextResponse.json(session);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      return NextResponse.json({ error: 'Failed to create session', details: errorMessage }, { status: 500 });
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      return NextResponse.json(
+        { error: "Failed to create session", details: errorMessage },
+        { status: 500 },
+      );
     }
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }
