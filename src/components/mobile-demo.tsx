@@ -120,7 +120,7 @@ export default function MobileDemo() {
                   key={device.id}
                   variant={selectedDevice === device.id ? "default" : "ghost"}
                   size="sm"
-                  onClick={() => setSelectedDevice(device.id as any)}
+                  onClick={() => setSelectedDevice(device.id as "desktop" | "tablet" | "mobile")}
                   className="flex items-center gap-2"
                 >
                   <device.icon className="h-4 w-4" />

@@ -87,8 +87,7 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
           title: "AI İçerik Hazır",
           description: `${topic} konusu için AI destekli içerik başarıyla oluşturuldu.`,
         });
-      } catch (error) {
-        console.error("Topic data loading error:", error);
+      } catch {
         toast({
           title: "AI Hatası",
           description:
@@ -148,8 +147,7 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
           visualDescription: aiOutput.visualDescription,
           confidence: aiOutput.confidence,
         });
-      } catch (error) {
-        console.error(`Error generating step ${config.id}:`, error);
+      } catch {
         // Fallback content for this step
         steps.push({
           id: config.id,
@@ -591,12 +589,8 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
                           }
                           topic={topic}
                           subject={subject}
-                          onImageGenerated={(imageUrl: string) => {
-                            // eslint-disable-next-line no-console
-                            console.log(
-                              "Hugging Face AI görsel üretildi:",
-                              imageUrl,
-                            );
+                          onImageGenerated={() => {
+                            // do nothing
                           }}
                         />
                       </motion.div>

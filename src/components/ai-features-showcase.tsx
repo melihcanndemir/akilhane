@@ -81,6 +81,7 @@ export default function AIFeaturesShowcase() {
               <Card className="h-full w-full border-0 bg-gradient-to-br from-purple-500/10 to-violet-500/10 dark:from-purple-500/20 dark:to-violet-500/20 rounded-[11px]">
                 <CardHeader>
                   <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-violet-600 rounded-lg flex items-center justify-center mb-4">
+                    {/* eslint-disable-next-line jsx-a11y/alt-text */}
                     <Image className="h-6 w-6 text-white" />
                   </div>
                   <CardTitle className="text-xl font-semibold text-foreground">

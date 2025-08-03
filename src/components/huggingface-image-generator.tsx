@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import NextImage from "next/image";
 import {
   Image,
   Loader2,
@@ -39,8 +40,6 @@ const HuggingFaceImageGenerator: React.FC<HuggingFaceImageGeneratorProps> = ({
       setIsGenerating(true);
       setIsLoading(true);
 
-      console.log("🚀 Pollinations.ai görsel üretimi başlatılıyor...");
-
       // Backend API ile görsel üretimi
       const response = await fetch("/api/generate-image-hf", {
         method: "POST",
@@ -59,7 +58,6 @@ const HuggingFaceImageGenerator: React.FC<HuggingFaceImageGeneratorProps> = ({
       }
 
       const data = await response.json();
-      console.log("✅ Pollinations.ai API yanıtı:", data);
 
       if (data.imageUrl) {
         setGeneratedImage(data.imageUrl);
@@ -73,7 +71,6 @@ const HuggingFaceImageGenerator: React.FC<HuggingFaceImageGeneratorProps> = ({
         throw new Error("Görsel URL alınamadı");
       }
     } catch (error) {
-      console.error("💥 Pollinations.ai Image generation error:", error);
 
       let errorMessage = "AI görsel üretilirken bir hata oluştu.";
 
@@ -123,6 +120,9 @@ const HuggingFaceImageGenerator: React.FC<HuggingFaceImageGeneratorProps> = ({
     generateImage();
   };
 
+  // Alt text for the generated image
+  const imageAltText = `${topic} konusu için Pollinations.ai ile üretilen AI görsel - ${description}`;
+
   return (
     <Card className="shadow-lg border-purple-200 dark:border-purple-700">
       <CardHeader>
@@ -152,7 +152,7 @@ const HuggingFaceImageGenerator: React.FC<HuggingFaceImageGeneratorProps> = ({
         {/* Görsel Üretim Butonu */}
         {!generatedImage && (
           <Button
-            onClick={generateImage}
+            onClick={() => void generateImage()}
             disabled={isGenerating}
             className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
           >
@@ -175,7 +175,7 @@ const HuggingFaceImageGenerator: React.FC<HuggingFaceImageGeneratorProps> = ({
           <div className="space-y-4">
             <div className="relative">
               {showImage ? (
-                <div className="w-full h-64 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-800 dark:to-pink-800 rounded-lg flex items-center justify-center overflow-hidden">
+                <div className="w-full h-[400px] md:h-[600px] lg:h-[768px] max-h-[768px] bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-800 dark:to-pink-800 rounded-lg flex items-center justify-center overflow-hidden">
                   {isLoading ? (
                     <div className="text-center">
                       <Loader2 className="w-8 h-8 text-purple-600 animate-spin mx-auto mb-2" />
@@ -184,10 +184,11 @@ const HuggingFaceImageGenerator: React.FC<HuggingFaceImageGeneratorProps> = ({
                       </p>
                     </div>
                   ) : (
-                    <img
+                    <NextImage
                       src={generatedImage}
-                      alt={`${topic} konusu için Pollinations.ai üretilen görsel`}
-                      className="w-full h-full object-cover rounded-lg"
+                      alt={imageAltText}
+                      fill
+                      className="object-contain rounded-lg"
                       onLoad={() => setIsLoading(false)}
                       onError={() => {
                         setIsLoading(false);
@@ -197,7 +198,7 @@ const HuggingFaceImageGenerator: React.FC<HuggingFaceImageGeneratorProps> = ({
                   )}
                 </div>
               ) : (
-                <div className="w-full h-64 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 rounded-lg flex items-center justify-center">
+                <div className="w-full h-[400px] md:h-[600px] lg:h-[768px] max-h-[768px] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 rounded-lg flex items-center justify-center">
                   <div className="text-center">
                     <EyeOff className="w-12 h-12 text-gray-400 mx-auto mb-2" />
                     <p className="text-sm text-gray-500 dark:text-gray-400">

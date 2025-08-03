@@ -15,6 +15,7 @@ module.exports = {
     'no-console': 'warn',
     'no-debugger': 'error',
     'no-alert': 'warn',
+    "jsx-a11y/alt-text": "off",
 
     // TypeScript Rules - Relaxed for development
     // '@typescript-eslint/no-unused-vars': ['error', { 
