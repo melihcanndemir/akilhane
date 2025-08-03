@@ -544,28 +544,30 @@ export default function EnhancedDashboard() {
 
           {/* Guest User Alert */}
           {isGuest && !useDemoData && (
-            <Alert className="mb-6 border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20">
-              <Users className="h-4 w-4" />
-              <AlertDescription>
-                <strong>Misafir modunda kullanıyorsunuz.</strong> Verileriniz sadece bu cihazda saklanıyor.
-                Kalıcı kayıt için{' '}
-                <Link href="/login?mode=register" className="text-blue-600 hover:underline font-medium">
-                  ücretsiz hesap oluşturun
-                </Link>
-                {' '}veya verilerinizi yedekleyin.
-                {/* OPTIONAL UPDATE */}
-                <div className="flex flex-wrap gap-2 mt-2">
-                  <Button onClick={handleExportData} size="sm" variant="outline">
-                    <Download className="h-3 w-3 mr-1" />
-                    Yedekle
-                  </Button>
-                  <Button onClick={handleImportData} size="sm" variant="outline">
-                    <Upload className="h-3 w-3 mr-1" />
-                    Geri Yükle
-                  </Button>
-                </div>
-              </AlertDescription>
-            </Alert>
+            <div className="mb-6 border-gradient-question p-[1px] rounded-xl">
+              <Alert className="border-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20 rounded-[11px] backdrop-blur-sm">
+                <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <AlertDescription className="text-gray-700 dark:text-gray-300">
+                  <strong className="text-gray-800 dark:text-white">Misafir modunda kullanıyorsunuz.</strong> Verileriniz sadece bu cihazda saklanıyor.
+                  Kalıcı kayıt için{' '}
+                  <Link href="/login?mode=register" className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 underline font-medium">
+                    ücretsiz hesap oluşturun
+                  </Link>
+                  {' '}veya verilerinizi yedekleyin.
+                  {/* OPTIONAL UPDATE */}
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    <Button onClick={handleExportData} size="sm" variant="outline" className="border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                      <Download className="h-3 w-3 mr-1" />
+                      Yedekle
+                    </Button>
+                                         <Button onClick={handleImportData} size="sm" variant="outline" className="border-purple-300 dark:border-purple-600 text-purple-600 dark:text-purple-200 hover:bg-purple-50 dark:hover:bg-purple-900/20">
+                       <Upload className="h-3 w-3 mr-1" />
+                       Geri Yükle
+                     </Button>
+                  </div>
+                </AlertDescription>
+              </Alert>
+            </div>
           )}
 
           {/* Storage Usage for Guest Users */}

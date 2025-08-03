@@ -131,10 +131,10 @@ export const QuizResult: React.FC<QuizResultProps> = ({
               <RefreshCw className="h-5 w-5" />
               Testi Tekrar Çöz
             </Button>
-            <Link href="/">
+            <Link href="/dashboard">
               <Button variant="outline" size="lg" className="w-full sm:w-auto flex items-center gap-2">
                 <Home className="h-5 w-5" />
-                Ana Sayfaya Dön
+                Dashboard&apos;a Dön
               </Button>
             </Link>
           </div>

@@ -153,7 +153,7 @@ const FlashcardPageContent = () => {
               className="flex items-center gap-2 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
             >
               <ArrowLeft className="w-4 h-4" />
-              Ana Sayfaya Dön
+              Dashboard&apos;a Dön
             </Button>
           </div>
 

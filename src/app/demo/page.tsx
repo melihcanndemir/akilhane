@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -74,49 +74,68 @@ export default function DemoPage() {
   const { toast } = useToast();
   const router = useRouter();
 
-  // Activate demo mode when page loads
-  useEffect(() => {
-    localStorage.setItem('btk_demo_mode', 'true');
+  // Load demo playing state after component mounts (client-side only)
+  React.useEffect(() => {
+    const savedPlayingState = localStorage.getItem('btk_demo_playing') === 'true';
+    setIsPlaying(savedPlayingState);
   }, []);
 
-  const handleStepAction = (step: DemoStep) => {
-    setCompletedSteps(prev => [...prev, step.id]);
-    toast({
-      title: `${step.title} başlatılıyor!`,
-      description: step.description,
-    });
+  // Demo mode is not automatically activated
+  // Users can manually enable demo mode from dashboard
 
-    // Ensure demo mode is active
-    localStorage.setItem('btk_demo_mode', 'true');
+     const handleStepAction = (step: DemoStep) => {
+     setCompletedSteps(prev => [...prev, step.id]);
 
-    // Navigate to the actual feature
-    switch (step.id) {
-      case 1:
-        router.push('/quiz?subject=Matematik&demo=true');
-        break;
-      case 2:
-        router.push('/ai-chat?demo=true');
-        break;
-      case 3:
-        router.push('/flashcard?subject=Matematik&demo=true');
-        break;
-      case 4:
-        router.push('/?demo=true');
-        break;
-    }
-  };
+     // Activate demo mode when user clicks on demo feature buttons
+     localStorage.setItem('btk_demo_mode', 'true');
 
-  const handlePlayPause = () => {
-    setIsPlaying(!isPlaying);
-    if (!isPlaying) {
-      // Ensure demo mode is active
-      localStorage.setItem('btk_demo_mode', 'true');
-      toast({
-        title: 'Demo başlatıldı!',
-        description: "AkılHane'nin özelliklerini keşfedin.",
-      });
-    }
-  };
+     toast({
+       title: `${step.title} başlatılıyor!`,
+       description: step.description,
+     });
+
+     // Navigate to the actual feature
+     switch (step.id) {
+       case 1:
+         router.push('/quiz?subject=Matematik&demo=true');
+         break;
+       case 2:
+         router.push('/ai-chat?demo=true');
+         break;
+       case 3:
+         router.push('/flashcard?subject=Matematik&demo=true');
+         break;
+       case 4:
+         router.push('/dashboard?demo=true');
+         break;
+     }
+   };
+
+                       const handlePlayPause = () => {
+       const newPlayingState = !isPlaying;
+       setIsPlaying(newPlayingState);
+
+       // Save playing state to localStorage
+       if (typeof window !== 'undefined') {
+         localStorage.setItem('btk_demo_playing', newPlayingState.toString());
+       }
+
+       if (newPlayingState) {
+         // Activate demo mode when user clicks Start
+         localStorage.setItem('btk_demo_mode', 'true');
+         toast({
+           title: 'Demo başlatıldı!',
+           description: "AkılHane'nin özelliklerini keşfedin.",
+         });
+       } else {
+         // Deactivate demo mode when user clicks Pause
+         localStorage.removeItem('btk_demo_mode');
+         toast({
+           title: 'Demo duraklatıldı!',
+           description: 'Demo modu kapatıldı. Gerçek veriler kullanılacak.',
+         });
+       }
+     };
 
   const handleNext = () => {
     if (currentStep < demoSteps.length - 1) {

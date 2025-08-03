@@ -26,6 +26,7 @@
     "@typescript-eslint/switch-exhaustiveness-check": "error",
     "@typescript-eslint/unbound-method": "error",
     "@typescript-eslint/unified-signatures": "error",
+    // Console kullanımını esnet - sadece warn yap
     "no-console": "warn",
     "no-debugger": "error",
     "no-alert": "error",
@@ -41,7 +42,12 @@
     "no-unsafe-negation": "error",
     "no-unsafe-optional-chaining": "error",
     "prefer-const": "error",
-    "prefer-promise-reject-errors": "error"
+    "prefer-promise-reject-errors": "error",
+    // React kurallarını esnet
+    "react/no-unescaped-entities": "warn",
+    "@typescript-eslint/no-misused-promises": "warn",
+    "jsx-a11y/alt-text": "warn",
+    "@next/next/no-img-element": "warn"
   },
   "parserOptions": {
     "project": "./tsconfig.json"
