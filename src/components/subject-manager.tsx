@@ -348,15 +348,15 @@ const SubjectManager = () => {
         }
       } else {
         const result = SubjectLocalStorageService.updateSubject(subject.id, {
-          name: formData.name,
-          description: formData.description,
-          category: formData.category,
-          difficulty: formData.difficulty,
-        });
+        name: formData.name,
+        description: formData.description,
+        category: formData.category,
+        difficulty: formData.difficulty,
+      });
 
-        if (result) {
-          setSubjects(prev => prev.map(s => s.id === subject.id ? result : s));
-        }
+      if (result) {
+        setSubjects(prev => prev.map(s => s.id === subject.id ? result : s));
+      }
       }
 
       toast({
@@ -382,11 +382,11 @@ const SubjectManager = () => {
       if (useSupabase) {
         const success = await SubjectService.deleteSubject(id);
         if (success) {
-          setSubjects(prev => prev.filter(s => s.id !== id));
+      setSubjects(prev => prev.filter(s => s.id !== id));
         }
       } else {
         const success = SubjectLocalStorageService.deleteSubject(id);
-        if (success) {
+      if (success) {
           setSubjects(prev => prev.filter(s => s.id !== id));
         }
       }
@@ -426,8 +426,8 @@ const SubjectManager = () => {
         }
       } else {
         const result = SubjectLocalStorageService.toggleActive(id);
-        if (result) {
-          setSubjects(prev => prev.map(s => s.id === id ? result : s));
+      if (result) {
+        setSubjects(prev => prev.map(s => s.id === id ? result : s));
         }
       }
 

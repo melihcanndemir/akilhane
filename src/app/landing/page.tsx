@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -144,11 +143,7 @@ export default function LandingPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {/* AI-Powered Learning */}
-              <motion.div
-                className="rounded-xl border-gradient-question bg-white dark:bg-gray-800 p-[1px]"
-                whileHover={{ scale: 1.02, y: -5 }}
-                transition={{ type: 'spring', stiffness: 300 }}
-              >
+              <div className="border-gradient-question p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
                 <Card className="h-full w-full rounded-[11px] border-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20">
                 <CardHeader>
                     <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center mb-4">
@@ -166,7 +161,7 @@ export default function LandingPage() {
                   </div>
                 </CardContent>
               </Card>
-              </motion.div>
+              </div>
 
               {/* Smart Analytics */}
               <div className="border-gradient-green p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
@@ -231,22 +226,22 @@ export default function LandingPage() {
               </Card>
               </div>
 
-              {/* Quick Tests */}
+              {/* AI Question Generation */}
               <div className="border-gradient-yellow p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
                 <Card className="h-full w-full border-0 bg-gradient-to-br from-yellow-500/10 to-amber-500/10 dark:from-yellow-500/20 dark:to-amber-500/20 rounded-[11px]">
                 <CardHeader>
                     <div className="w-12 h-12 bg-gradient-to-br from-yellow-600 to-amber-600 rounded-lg flex items-center justify-center mb-4">
                     <Zap className="h-6 w-6 text-white" />
                   </div>
-                    <CardTitle className="text-xl font-semibold text-foreground">Hızlı Test Sistemi</CardTitle>
+                    <CardTitle className="text-xl font-semibold text-foreground">AI Destekli Soru Üretimi</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground mb-4">
-                    Kişiselleştirilebilir soru sayısı ve zorluk seviyesi ile hızlı değerlendirmeler
+                    Google Gemini AI ile otomatik olarak yüksek kaliteli sorular oluşturan akıllı sistem
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    <Badge variant="secondary">Custom Length</Badge>
-                    <Badge variant="secondary">Adaptive Difficulty</Badge>
+                    <Badge variant="secondary">Google Gemini</Badge>
+                    <Badge variant="secondary">Auto Generation</Badge>
                   </div>
                 </CardContent>
               </Card>

@@ -18,6 +18,7 @@ import {
   Settings,
   Home,
   UserCircle,
+  Lightbulb,
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { useAuth } from '@/hooks/useAuth';
@@ -38,10 +39,24 @@ export default function MobileNav() {
     { href: '/dashboard', label: 'Gösterge Paneli', icon: Brain },
     { href: '/quiz', label: 'Test Çöz', icon: BookOpen },
     { href: '/flashcard', label: 'Flashcard', icon: Brain },
+    { href: '/topic-explainer', label: 'Konu Anlatımı', icon: Lightbulb },
     { href: '/ai-chat', label: 'AI Asistan', icon: Users },
     { href: '/question-manager', label: 'Soru Yöneticisi', icon: Database },
     { href: '/subject-manager', label: 'Ders Yöneticisi', icon: GraduationCap },
     { href: '/settings', label: 'Ayarlar', icon: Settings },
+  ];
+
+  // Desktop için sadece en önemli linkler
+  const desktopNavLinks = [
+    { href: '/landing', label: 'Tanıtım', icon: Home },
+    { href: '/demo', label: 'Demo', icon: Play },
+    { href: '/dashboard', label: 'Dashboard', icon: Brain },
+    { href: '/quiz', label: 'Test', icon: BookOpen },
+    { href: '/flashcard', label: 'Flashcard', icon: Brain },
+    { href: '/topic-explainer', label: 'Konular', icon: Lightbulb },
+    { href: '/ai-chat', label: 'AI Tutor', icon: Users },
+    { href: '/question-manager', label: 'Sorular', icon: Database },
+    { href: '/subject-manager', label: 'Dersler', icon: GraduationCap },
   ];
 
   return (
@@ -55,9 +70,9 @@ export default function MobileNav() {
             <span className="font-headline font-bold text-xl text-blue-600">AkılHane</span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-1">
-            {navLinks.map(({ href, label, icon: Icon }) => (
+          {/* Desktop Navigation - Centered */}
+          <div className="hidden md:flex items-center gap-1 absolute left-1/2 transform -translate-x-1/2">
+            {desktopNavLinks.map(({ href, label, icon: Icon }) => (
               <Link key={href} href={href}>
                 <Button
                   variant="ghost"
@@ -69,10 +84,11 @@ export default function MobileNav() {
                 </Button>
               </Link>
             ))}
+          </div>
 
+          {/* Authentication Status - Right Side */}
+          <div className="hidden md:flex items-center gap-2">
             <ThemeToggle />
-
-            {/* Authentication Status */}
             {loading ? (
               <div className="w-8 h-8 animate-pulse bg-gray-200 dark:bg-gray-700 rounded-full" />
             ) : isAuthenticated && user ? (

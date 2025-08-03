@@ -356,7 +356,7 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({ subject, isDemoMode = fa
                   className="flex items-center gap-2 min-h-[44px] px-4 text-base hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
                 >
                   <ArrowLeft className="w-4 h-4" />
-                  Ana Sayfaya Dön
+                  Dashboard&apos;a Dön
                 </Button>
               </Link>
               <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">

@@ -24,19 +24,31 @@ Bu proje, **BTK Akademi & Google Cloud & Girişimcilik Vakfı Hackathon'25** iç
 
 ## 🚀 Ana Özellikler
 
--   🤖 **AI Destekli Soru Üretimi:** Google Gemini AI ile otomatik olarak yüksek kaliteli sorular oluşturan, konu ve zorluk seviyesine göre özelleştirilebilen akıllı sistem.
--   🧠 **Kişiselleştirilmiş Öğrenme Asistanı:** Performansınıza göre size özel testler ve konular öneren akıllı sistem.
--   🎓 **AI Tutor ile Anında Yardım:** Anlamadığınız sorularda size ipuçları veren, adım adım çözüm sunan ve konuyu özetleyen yapay zeka öğretmeni.
--   💬 **Etkileşimli AI Sohbet:** Ders konuları hakkında yapay zeka ile sohbet etme ve derinlemesine bilgi alma imkanı.
--   🃏 **Akıllı Flashcard'lar:** Spaced Repetition (Aralıklı Tekrar) algoritması ile çalışan, öğrenmenizi optimize eden dijital kartlar.
--   📊 **Detaylı Performans Analizi:** Gelişiminizi takip edebileceğiniz görsel grafikler ve istatistikler.
--   🎤 **Sesli Asistan Desteği:** "Soru oku", "cevabı göster" gibi komutlarla uygulamayı sesle kontrol etme.
--   📱 **PWA (Progressive Web App):** Çevrimdışı çalışma ve mobil cihazınıza uygulama gibi kurma desteği.
--   ⚙️ **Kapsamlı Yönetim Panelleri:** Hem dersleri hem de soruları kolayca yönetebileceğiniz arayüzler.
--   👤 **Gelişmiş Profil Yönetimi:** Avatar yükleme/silme, şifre değiştirme ve veri yönetimi özellikleri.
--   ☁️ **Cloudinary Avatar Sistemi:** Güvenli avatar yükleme ve yönetimi.
--   🔐 **Güvenli Şifre Değiştirme:** Ayrı sayfa üzerinden güvenli şifre güncelleme.
--   📦 **Veri Yönetimi:** Cloud backup, restore, clear ve hesap silme işlemleri.
+### **🤖 AI Destekli Öğrenme Sistemi:**
+-   **AI Destekli Soru Üretimi:** Google Gemini AI ile otomatik olarak yüksek kaliteli sorular oluşturan, konu ve zorluk seviyesine göre özelleştirilebilen akıllı sistem.
+-   **AI Topic Explainer:** Markdown formatında konu anlatımları üreten, adım adım öğrenme süreci sağlayan AI sistemi.
+-   **AI Görsel Üretimi:** Pollinations.ai ile konuya özel, alakalı görseller üreten AI sistemi.
+-   **AI Tutor ile Anında Yardım:** Anlamadığınız sorularda size ipuçları veren, adım adım çözüm sunan ve konuyu özetleyen yapay zeka öğretmeni.
+-   **Etkileşimli AI Sohbet:** Ders konuları hakkında yapay zeka ile sohbet etme ve derinlemesine bilgi alma imkanı.
+
+### **📚 Gelişmiş Öğrenme Araçları:**
+-   **Kişiselleştirilmiş Öğrenme Asistanı:** Performansınıza göre size özel testler ve konular öneren akıllı sistem.
+-   **Akıllı Flashcard'lar:** Spaced Repetition (Aralıklı Tekrar) algoritması ile çalışan, öğrenmenizi optimize eden dijital kartlar.
+-   **Detaylı Performans Analizi:** Gelişiminizi takip edebileceğiniz görsel grafikler ve istatistikler.
+-   **Markdown Destekli İçerik:** Zengin formatlanmış, kod blokları ve görsel elementler içeren eğitim materyalleri.
+
+### **🎨 Modern Kullanıcı Deneyimi:**
+-   **PWA (Progressive Web App):** Çevrimdışı çalışma ve mobil cihazınıza uygulama gibi kurma desteği.
+-   **Sesli Asistan Desteği:** "Soru oku", "cevabı göster" gibi komutlarla uygulamayı sesle kontrol etme.
+-   **Responsive Design:** Tüm cihazlarda mükemmel görünüm ve kullanım deneyimi.
+-   **Dark/Light Mode:** Kullanıcı tercihine göre tema değiştirme.
+
+### **⚙️ Yönetim ve Güvenlik:**
+-   **Kapsamlı Yönetim Panelleri:** Hem dersleri hem de soruları kolayca yönetebileceğiniz arayüzler.
+-   **Gelişmiş Profil Yönetimi:** Avatar yükleme/silme, şifre değiştirme ve veri yönetimi özellikleri.
+-   **Cloudinary Avatar Sistemi:** Güvenli avatar yükleme ve yönetimi.
+-   **Güvenli Şifre Değiştirme:** Ayrı sayfa üzerinden güvenli şifre güncelleme.
+-   **Veri Yönetimi:** Cloud backup, restore, clear ve hesap silme işlemleri.
 
 ## 🎨 UI/UX Özellikleri
 
@@ -56,13 +68,13 @@ Bu proje, **BTK Akademi & Google Cloud & Girişimcilik Vakfı Hackathon'25** iç
   <a href="https://tailwindcss.com/" target="_blank"><img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="TailwindCSS"></a>
   <a href="https://cloud.google.com/vertex-ai/docs/generative-ai/gemini/gemini-api" target="_blank"><img src="https://img.shields.io/badge/Google_Gemini-8A2BE2?style=for-the-badge&logo=google-gemini&logoColor=white" alt="Google Gemini"></a>
   <a href="https://firebase.google.com/docs/genkit" target="_blank"><img src="https://img.shields.io/badge/Genkit-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" alt="Genkit"></a>
+  <a href="https://pollinations.ai/" target="_blank"><img src="https://img.shields.io/badge/Pollinations.ai-8A2BE2?style=for-the-badge&logo=ai&logoColor=white" alt="Pollinations.ai"></a>
   <a href="https://orm.drizzle.team/" target="_blank"><img src="https://img.shields.io/badge/Drizzle_ORM-C5F74F?style=for-the-badge" alt="Drizzle ORM"></a>
   <a href="https://supabase.com/" target="_blank"><img src="https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase"></a>
   <a href="https://www.postgresql.org/" target="_blank"><img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"></a>
   <a href="https://www.radix-ui.com/" target="_blank"><img src="https://img.shields.io/badge/Radix_UI-111827?style=for-the-badge&logo=radix-ui&logoColor=white" alt="Radix UI"></a>
   <a href="https://www.framer.com/motion/" target="_blank"><img src="https://img.shields.io/badge/Framer_Motion-EF008F?style=for-the-badge&logo=framer&logoColor=white" alt="Framer Motion"></a>
   <a href="https://web.dev/progressive-web-apps/" target="_blank"><img src="https://img.shields.io/badge/PWA-4285F4?style=for-the-badge&logo=pwa&logoColor=white" alt="PWA"></a>
-
   <a href="https://cloudinary.com/" target="_blank"><img src="https://img.shields.io/badge/Cloudinary-3448C6?style=for-the-badge&logo=cloudinary&logoColor=white" alt="Cloudinary"></a>
 </div>
 
@@ -118,6 +130,8 @@ Bu proje, **enterprise-level** bir mimari üzerine kurulmuş olup modern web dev
 
 ### **🚀 AI-Powered Features:**
 -   **Intelligent Question Generation:** Google Gemini ile otomatik soru üretimi
+-   **AI Topic Explainer:** Markdown formatında konu anlatımları üreten AI sistemi
+-   **AI Görsel Üretimi:** Pollinations.ai ile konuya özel görseller üreten AI sistemi
 -   **Quality Validation System:** AI ile kalite skorlama ve doğrulama
 -   **Personalized Learning:** Performans bazlı zorluk seviyesi ayarlama
 -   **Interactive AI Tutor:** Gerçek zamanlı öğrenme desteği
@@ -314,6 +328,7 @@ npm run db:studio
 
 ### **🤖 AI Destekli Özellikler**
 - **`/question-manager`** - AI destekli soru üretimi ve yönetimi
+- **`/topic-explainer`** - AI destekli konu anlatımı ve görsel üretimi
 - **`/ai-chat`** - AI Tutor ile etkileşimli sohbet
 - **`/flashcard`** - AI destekli akıllı flashcard sistemi
 
@@ -331,6 +346,8 @@ npm run db:studio
 - **Glassmorphism Effects** - Modern cam efekti kartlarda
 - **Enhanced Navigation** - Avatar display ve gelişmiş menü
 - **Responsive Design** - Tüm cihazlarda mükemmel görünüm
+- **Markdown Destekli İçerik** - Zengin formatlanmış eğitim materyalleri
+- **AI Görsel Entegrasyonu** - Konuya özel görsel üretimi
 
 </details>
 
