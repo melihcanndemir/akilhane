@@ -41,8 +41,7 @@ export async function generateTopicStepContent(
 ): Promise<TopicExplainerOutput> {
   try {
     return await topicExplainerFlow(input);
-  } catch (error) {
-    console.error("AI Topic Explainer Error:", error);
+  } catch {
     // Return fallback content
     return {
       title: `${input.topic} ${

@@ -7,6 +7,13 @@
   <p>
     <a href="https://akilhane.vercel.app/"><strong>Canlı Demoyu Ziyaret Et »</strong></a>
   </p>
+  
+  <!-- Project Status Badges -->
+  <p>
+    <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License">
+    <img src="https://img.shields.io/badge/version-1.0.0-blue.svg" alt="Version">
+    <img src="https://img.shields.io/badge/status-production-green.svg" alt="Status">
+  </p>
   <br>
 </div>
 
@@ -76,6 +83,16 @@ Bu proje, **BTK Akademi & Google Cloud & Girişimcilik Vakfı Hackathon'25** iç
   <a href="https://www.framer.com/motion/" target="_blank"><img src="https://img.shields.io/badge/Framer_Motion-EF008F?style=for-the-badge&logo=framer&logoColor=white" alt="Framer Motion"></a>
   <a href="https://web.dev/progressive-web-apps/" target="_blank"><img src="https://img.shields.io/badge/PWA-4285F4?style=for-the-badge&logo=pwa&logoColor=white" alt="PWA"></a>
   <a href="https://cloudinary.com/" target="_blank"><img src="https://img.shields.io/badge/Cloudinary-3448C6?style=for-the-badge&logo=cloudinary&logoColor=white" alt="Cloudinary"></a>
+  <a href="https://formspree.io/" target="_blank"><img src="https://img.shields.io/badge/Formspree-FF6C6C?style=for-the-badge&logo=formspree&logoColor=white" alt="Formspree"></a>
+  <a href="https://nodejs.org/" target="_blank"><img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js"></a>
+  <a href="https://www.npmjs.com/" target="_blank"><img src="https://img.shields.io/badge/npm-CB3837?style=for-the-badge&logo=npm&logoColor=white" alt="npm"></a>
+  <a href="https://eslint.org/" target="_blank"><img src="https://img.shields.io/badge/ESLint-4B32C3?style=for-the-badge&logo=eslint&logoColor=white" alt="ESLint"></a>
+  <a href="https://prettier.io/" target="_blank"><img src="https://img.shields.io/badge/Prettier-F7B93E?style=for-the-badge&logo=prettier&logoColor=black" alt="Prettier"></a>
+  <a href="https://vercel.com/" target="_blank"><img src="https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel"></a>
+  <a href="https://huggingface.co/" target="_blank"><img src="https://img.shields.io/badge/Hugging%20Face-FF6C6C?style=for-the-badge&logo=huggingface&logoColor=white" alt="Hugging Face"></a>
+  <a href="https://jestjs.io/" target="_blank"><img src="https://img.shields.io/badge/Jest-C21325?style=for-the-badge&logo=jest&logoColor=white" alt="Jest"></a>
+  <a href="https://developers.google.com/web/tools/lighthouse" target="_blank"><img src="https://img.shields.io/badge/Lighthouse-F44B21?style=for-the-badge&logo=lighthouse&logoColor=white" alt="Lighthouse"></a>
+  <a href="https://web.dev/vitals/" target="_blank"><img src="https://img.shields.io/badge/Web%20Vitals-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Web Vitals"></a>
 </div>
 
 ## 🔒 Security & Performance Features

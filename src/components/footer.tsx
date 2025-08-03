@@ -22,7 +22,7 @@ export default function Footer() {
           </div>
 
           {/* Links */}
-          <div className="grid grid-cols-2 gap-8">
+          <div className="grid grid-cols-3 gap-8">
             <div>
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white tracking-wider uppercase">
                 Sayfalar
@@ -50,6 +50,45 @@ export default function Footer() {
                     className="text-base text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
                   >
                     Flashcard
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/topic-explainer"
+                    className="text-base text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                  >
+                    Konu Anlatımı
+                  </Link>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white tracking-wider uppercase">
+                Destek
+              </h3>
+              <ul className="mt-4 space-y-2">
+                <li>
+                  <Link
+                    href="/contact"
+                    className="text-base text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                  >
+                    İletişim
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/help"
+                    className="text-base text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                  >
+                    Yardım
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/pricing"
+                    className="text-base text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                  >
+                    Fiyatlandırma
                   </Link>
                 </li>
               </ul>

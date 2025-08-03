@@ -9,14 +9,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Prompt gerekli" }, { status: 400 });
     }
 
-    console.log("🎨 Pollinations.ai ile görsel üretiliyor...");
+    // URL uzunluğunu azaltmak için prompt'u kısalt
+    const shortPrompt = prompt.length > 200 ? `${prompt.substring(0, 200)  }...` : prompt;
 
-    const cleanPrompt = `Educational illustration: ${prompt}. Clean, professional, educational diagram for Turkish students. Subject: ${subject || "education"}. Topic: ${topic || "science"}. High quality, detailed, informative`;
+    // Daha kısa ve öz bir prompt oluştur
+    const cleanPrompt = `Educational: ${shortPrompt}. Subject: ${subject || "education"}. Topic: ${topic || "science"}. Professional, detailed`;
 
     const seed = Math.floor(Math.random() * 1000000);
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=768&height=768&seed=${seed}&enhance=true&nologo=true`;
 
-    console.log("✅ Görsel URL oluşturuldu:", imageUrl);
+    // URL'yi daha kısa tut
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=768&height=768&seed=${seed}&enhance=true&nologo=true`;
 
     return NextResponse.json({
       imageUrl,
@@ -24,7 +26,7 @@ export async function POST(request: NextRequest) {
       confidence: 0.9,
     });
   } catch (error) {
-    console.error("💥 Pollinations API error:", error);
+    console.error("Image generation error:", error);
     return NextResponse.json({ error: "Hata oluştu" }, { status: 500 });
   }
 }
