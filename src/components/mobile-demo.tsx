@@ -10,6 +10,7 @@ import {
   Monitor,
   MousePointer,
   WifiOff,
+  Wifi,
   Download,
   Zap,
   CheckCircle,
@@ -24,6 +25,7 @@ import {
   Eye,
   Hand,
   SmartphoneIcon,
+  Zap as Plug,
 } from 'lucide-react';
 
 export default function MobileDemo() {
@@ -106,13 +108,36 @@ export default function MobileDemo() {
                     <div className="space-y-4">
                       <div className="flex items-center justify-center gap-4">
                         <div className="flex items-center gap-2">
-                          <Signal className="h-4 w-4 text-green-500" />
-                          <span className="text-sm">4G</span>
+                          {selectedDevice === 'mobile' ? (
+                            <>
+                              <Signal className="h-4 w-4 text-green-500" />
+                              <span className="text-sm">4G</span>
+                            </>
+                          ) : (
+                            <>
+                              <Wifi className="h-4 w-4 text-blue-500" />
+                              <span className="text-sm">WiFi</span>
+                            </>
+                          )}
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Battery className="h-4 w-4 text-green-500" />
-                          <span className="text-sm">85%</span>
-                        </div>
+                                                 <div className="flex items-center gap-2">
+                           {selectedDevice === 'desktop' ? (
+                             <>
+                               <Plug className="h-4 w-4 text-green-500" />
+                               <span className="text-sm">Plugged In</span>
+                             </>
+                           ) : selectedDevice === 'tablet' ? (
+                             <>
+                               <Battery className="h-4 w-4 text-green-500" />
+                               <span className="text-sm">100%</span>
+                             </>
+                           ) : (
+                             <>
+                               <Battery className="h-4 w-4 text-green-500" />
+                               <span className="text-sm">85%</span>
+                             </>
+                           )}
+                         </div>
                         <div className="flex items-center gap-2">
                           <Globe className="h-4 w-4 text-blue-500" />
                           <span className="text-sm">Online</span>
