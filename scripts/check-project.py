@@ -75,7 +75,7 @@ def main():
     print(f"{Colors.BOLD}📋 Proje Bilgileri:{Colors.ENDC}")
     print(f"   🏠 Dizin: {os.getcwd()}")
     print(f"   📦 Package.json: {'✅ Var' if os.path.exists('package.json') else '❌ Yok'}")
-    print(f"   🔧 Next.js Config: {'✅ Var' if os.path.exists('next.config.js') else '❌ Yok'}")
+    print(f"   🔧 Next.js Config: {'✅ Var' if os.path.exists('next.config.js') or os.path.exists('next.config.ts') else '❌ Yok'}")
     print(f"   📝 TypeScript Config: {'✅ Var' if os.path.exists('tsconfig.json') else '❌ Yok'}")
     print()
     
