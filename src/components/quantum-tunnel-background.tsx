@@ -69,31 +69,31 @@ export default function QuantumTunnelBackground() {
       <div className="absolute inset-0">
         {/* Star 1 - Large */}
         <div className="absolute top-1/4 left-1/2 w-4 h-4 bg-yellow-300/60 rounded-full animate-pulse" style={{ animationDelay: "0.2s" }}></div>
-        
+
         {/* Star 2 - Medium */}
         <div className="absolute top-1/3 left-2/3 w-3 h-3 bg-white/70 rounded-full animate-pulse" style={{ animationDelay: "0.7s" }}></div>
-        
+
         {/* Star 3 - Small */}
         <div className="absolute bottom-1/3 left-1/2 w-2 h-2 bg-blue-300/80 rounded-full animate-pulse" style={{ animationDelay: "1.1s" }}></div>
-        
+
         {/* Star 4 - Large */}
         <div className="absolute top-2/3 right-1/4 w-3.5 h-3.5 bg-purple-300/60 rounded-full animate-pulse" style={{ animationDelay: "0.4s" }}></div>
-        
+
         {/* Star 5 - Medium */}
         <div className="absolute bottom-1/3 left-2/3 w-2.5 h-2.5 bg-pink-300/70 rounded-full animate-pulse" style={{ animationDelay: "0.9s" }}></div>
-        
+
         {/* Star 6 - Small */}
         <div className="absolute top-1/2 right-1/3 w-2 h-2 bg-cyan-300/90 rounded-full animate-pulse" style={{ animationDelay: "1.3s" }}></div>
-        
+
         {/* Star 7 - Large */}
         <div className="absolute top-1/2 left-1/4 w-4 h-4 bg-green-300/60 rounded-full animate-pulse" style={{ animationDelay: "0.6s" }}></div>
-        
+
         {/* Star 8 - Medium */}
         <div className="absolute bottom-1/3 left-1/4 w-3 h-3 bg-orange-300/70 rounded-full animate-pulse" style={{ animationDelay: "1.0s" }}></div>
-        
+
         {/* Star 9 - Small */}
         <div className="absolute top-3/4 right-1/4 w-2 h-2 bg-red-300/80 rounded-full animate-pulse" style={{ animationDelay: "0.8s" }}></div>
-        
+
         {/* Star 10 - Large */}
         <div className="absolute bottom-1/4 left-2/3 w-3.5 h-3.5 bg-indigo-300/60 rounded-full animate-pulse" style={{ animationDelay: "1.4s" }}></div>
       </div>
