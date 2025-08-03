@@ -1,8 +1,8 @@
-import type { NextRequest} from 'next/server';
-import { NextResponse } from 'next/server';
-import { getDb } from '@/lib/database/connection';
-import { questions } from '@/lib/database/schema';
-import { eq } from 'drizzle-orm';
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { getDb } from "@/lib/database/connection";
+import { questions } from "@/lib/database/schema";
+import { eq } from "drizzle-orm";
 
 // GET a single question by ID (optional, but good practice)
 export async function GET(
@@ -12,13 +12,22 @@ export async function GET(
   try {
     const { id } = await params;
     const db = getDb();
-    const question = await db.select().from(questions).where(eq(questions.id, id));
+    const question = await db
+      .select()
+      .from(questions)
+      .where(eq(questions.id, id));
     if (question.length === 0) {
-      return NextResponse.json({ error: 'Question not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: "Question not found" },
+        { status: 404 },
+      );
     }
     return NextResponse.json(question[0], { status: 200 });
   } catch {
-    return NextResponse.json({ error: 'Failed to fetch question' }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch question" },
+      { status: 500 },
+    );
   }
 }
 
@@ -30,15 +39,30 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { subject, topic, type, difficulty, text, options, correctAnswer, explanation, formula } = body;
+    const {
+      subject,
+      topic,
+      type,
+      difficulty,
+      text,
+      options,
+      correctAnswer,
+      explanation,
+      formula,
+    } = body;
 
     // Basic validation
     if (!text || !topic || !explanation) {
-        return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 },
+      );
     }
 
     const db = getDb();
-    const updatedQuestion = await db.update(questions).set({
+    const updatedQuestion = await db
+      .update(questions)
+      .set({
         subject,
         topic,
         type,
@@ -49,15 +73,23 @@ export async function PUT(
         explanation,
         formula,
         updatedAt: new Date(),
-    }).where(eq(questions.id, id)).returning();
+      })
+      .where(eq(questions.id, id))
+      .returning();
 
     if (updatedQuestion.length === 0) {
-      return NextResponse.json({ error: 'Question not found or failed to update' }, { status: 404 });
+      return NextResponse.json(
+        { error: "Question not found or failed to update" },
+        { status: 404 },
+      );
     }
 
     return NextResponse.json(updatedQuestion[0], { status: 200 });
   } catch {
-    return NextResponse.json({ error: 'Failed to update question' }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to update question" },
+      { status: 500 },
+    );
   }
 }
 
@@ -69,14 +101,26 @@ export async function DELETE(
   try {
     const { id } = await params;
     const db = getDb();
-    const deletedQuestion = await db.delete(questions).where(eq(questions.id, id)).returning();
+    const deletedQuestion = await db
+      .delete(questions)
+      .where(eq(questions.id, id))
+      .returning();
 
     if (deletedQuestion.length === 0) {
-      return NextResponse.json({ error: 'Question not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: "Question not found" },
+        { status: 404 },
+      );
     }
 
-    return NextResponse.json({ message: 'Question deleted successfully' }, { status: 200 });
+    return NextResponse.json(
+      { message: "Question deleted successfully" },
+      { status: 200 },
+    );
   } catch {
-    return NextResponse.json({ error: 'Failed to delete question' }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to delete question" },
+      { status: 500 },
+    );
   }
 }

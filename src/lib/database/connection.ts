@@ -1,10 +1,13 @@
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import * as schema from './schema';
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import * as schema from "./schema";
 
 // Get database connection string from environment variables
-const connectionString = process.env.DATABASE_URL || process.env.SUPABASE_DB_URL || 'postgresql://localhost:5432/dummy';
+const connectionString =
+  process.env.DATABASE_URL ||
+  process.env.SUPABASE_DB_URL ||
+  "postgresql://localhost:5432/dummy";
 
 // Create PostgreSQL connection with better error handling
 let client: postgres.Sql | null;
@@ -30,14 +33,18 @@ export { db };
 // Database connection helper with null checking
 export function getDb(): PostgresJsDatabase<typeof schema> {
   if (!db) {
-    throw new Error('Database connection not initialized. Check DATABASE_URL environment variable.');
+    throw new Error(
+      "Database connection not initialized. Check DATABASE_URL environment variable.",
+    );
   }
   return db;
 }
 
 // Database health check
 export async function checkDatabaseHealth(): Promise<boolean> {
-  if (!client) {return false;}
+  if (!client) {
+    return false;
+  }
   try {
     await client`SELECT 1`;
     return true;
@@ -48,7 +55,9 @@ export async function checkDatabaseHealth(): Promise<boolean> {
 
 // Initialize database (create tables if needed)
 export async function initializeDatabase() {
-  if (!client) {return;}
+  if (!client) {
+    return;
+  }
   try {
     // Check if tables exist by querying one
     await client`SELECT 1 FROM users LIMIT 1`;
@@ -66,7 +75,9 @@ export async function closeDatabase() {
 
 // Test connection
 export async function testConnection() {
-  if (!client) {return false;}
+  if (!client) {
+    return false;
+  }
   try {
     await client`SELECT version()`;
     return true;

@@ -1,25 +1,27 @@
-import { supabase } from '@/lib/supabase';
-import type { Tables, InsertTables, UpdateTables } from '@/lib/supabase';
+import { supabase } from "@/lib/supabase";
+import type { Tables, InsertTables, UpdateTables } from "@/lib/supabase";
 
 // Types
-export type User = Tables<'users'>;
-export type Subject = Tables<'subjects'>;
-export type Question = Tables<'questions'>;
-export type QuizResult = Tables<'quiz_results'>;
-export type PerformanceAnalytics = Tables<'performance_analytics'>;
-export type AIRecommendation = Tables<'ai_recommendations'>;
-export type FlashcardProgress = Tables<'flashcard_progress'>;
+export type User = Tables<"users">;
+export type Subject = Tables<"subjects">;
+export type Question = Tables<"questions">;
+export type QuizResult = Tables<"quiz_results">;
+export type PerformanceAnalytics = Tables<"performance_analytics">;
+export type AIRecommendation = Tables<"ai_recommendations">;
+export type FlashcardProgress = Tables<"flashcard_progress">;
 
 // User Service
 export class UserService {
   static async getCurrentUser() {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     return user;
   }
 
   static async createUser(email: string, name: string): Promise<User | null> {
     const { data, error } = await supabase
-      .from('users')
+      .from("users")
       .insert({
         email,
         name,
@@ -37,12 +39,11 @@ export class UserService {
   }
 
   static async getUserById(id: string): Promise<User | null> {
-
     try {
       const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', id)
+        .from("users")
+        .select("*")
+        .eq("id", id)
         .single();
       if (error) {
         return null;
@@ -59,18 +60,20 @@ export class UserService {
 export class SubjectService {
   static async getSubjects(): Promise<Subject[]> {
     // Get current user for filtering
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     if (!user) {
       return [];
     }
 
     const { data, error } = await supabase
-      .from('subjects')
-      .select('*')
-      .eq('is_active', true)
-      .eq('created_by', user.id) // User isolation
-      .order('created_at', { ascending: false });
+      .from("subjects")
+      .select("*")
+      .eq("is_active", true)
+      .eq("created_by", user.id) // User isolation
+      .order("created_at", { ascending: false });
 
     if (error) {
       return [];
@@ -79,10 +82,11 @@ export class SubjectService {
     return data || [];
   }
 
-  static async createSubject(subject: InsertTables<'subjects'>): Promise<Subject | null> {
-
+  static async createSubject(
+    subject: InsertTables<"subjects">,
+  ): Promise<Subject | null> {
     const { data, error } = await supabase
-      .from('subjects')
+      .from("subjects")
       .insert({
         ...subject,
         created_at: new Date().toISOString(),
@@ -98,22 +102,27 @@ export class SubjectService {
     return data;
   }
 
-  static async updateSubject(id: string, updates: UpdateTables<'subjects'>): Promise<Subject | null> {
+  static async updateSubject(
+    id: string,
+    updates: UpdateTables<"subjects">,
+  ): Promise<Subject | null> {
     // Get current user for verification
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     if (!user) {
       return null;
     }
 
     const { data, error } = await supabase
-      .from('subjects')
+      .from("subjects")
       .update({
         ...updates,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', id)
-      .eq('created_by', user.id) // Only update own subjects
+      .eq("id", id)
+      .eq("created_by", user.id) // Only update own subjects
       .select()
       .single();
 
@@ -126,17 +135,19 @@ export class SubjectService {
 
   static async deleteSubject(id: string): Promise<boolean> {
     // Get current user for verification
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     if (!user) {
       return false;
     }
 
     const { error } = await supabase
-      .from('subjects')
+      .from("subjects")
       .delete()
-      .eq('id', id)
-      .eq('created_by', user.id); // Only delete own subjects
+      .eq("id", id)
+      .eq("created_by", user.id); // Only delete own subjects
 
     if (error) {
       return false;
@@ -145,7 +156,10 @@ export class SubjectService {
     return true;
   }
 
-  static async toggleActive(id: string, isActive: boolean): Promise<Subject | null> {
+  static async toggleActive(
+    id: string,
+    isActive: boolean,
+  ): Promise<Subject | null> {
     return this.updateSubject(id, { is_active: isActive });
   }
 }
@@ -154,19 +168,21 @@ export class SubjectService {
 export class QuestionService {
   static async getQuestionsBySubject(subject: string): Promise<Question[]> {
     // Get current user for filtering
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     if (!user) {
       return [];
     }
 
     const { data, error } = await supabase
-      .from('questions')
-      .select('*')
-      .eq('subject', subject)
-      .eq('is_active', true)
-      .eq('created_by', user.id) // User isolation
-      .order('created_at', { ascending: false });
+      .from("questions")
+      .select("*")
+      .eq("subject", subject)
+      .eq("is_active", true)
+      .eq("created_by", user.id) // User isolation
+      .order("created_at", { ascending: false });
 
     if (error) {
       return [];
@@ -175,16 +191,20 @@ export class QuestionService {
     return data || [];
   }
 
-  static async createQuestion(question: InsertTables<'questions'>): Promise<Question | null> {
+  static async createQuestion(
+    question: InsertTables<"questions">,
+  ): Promise<Question | null> {
     // Get current user for created_by field
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     if (!user) {
       return null;
     }
 
     const { data, error } = await supabase
-      .from('questions')
+      .from("questions")
       .insert({
         ...question,
         created_by: user.id, // Set current user as creator
@@ -201,22 +221,27 @@ export class QuestionService {
     return data;
   }
 
-  static async updateQuestion(id: string, updates: UpdateTables<'questions'>): Promise<Question | null> {
+  static async updateQuestion(
+    id: string,
+    updates: UpdateTables<"questions">,
+  ): Promise<Question | null> {
     // Get current user for verification
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     if (!user) {
       return null;
     }
 
     const { data, error } = await supabase
-      .from('questions')
+      .from("questions")
       .update({
         ...updates,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', id)
-      .eq('created_by', user.id) // Only update own questions
+      .eq("id", id)
+      .eq("created_by", user.id) // Only update own questions
       .select()
       .single();
 
@@ -229,17 +254,19 @@ export class QuestionService {
 
   static async deleteQuestion(id: string): Promise<boolean> {
     // Get current user for verification
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     if (!user) {
       return false;
     }
 
     const { error } = await supabase
-      .from('questions')
+      .from("questions")
       .delete()
-      .eq('id', id)
-      .eq('created_by', user.id); // Only delete own questions
+      .eq("id", id)
+      .eq("created_by", user.id); // Only delete own questions
 
     if (error) {
       return false;
@@ -251,9 +278,11 @@ export class QuestionService {
 
 // Quiz Result Service
 export class QuizResultService {
-  static async saveQuizResult(result: InsertTables<'quiz_results'>): Promise<QuizResult | null> {
+  static async saveQuizResult(
+    result: InsertTables<"quiz_results">,
+  ): Promise<QuizResult | null> {
     const { data, error } = await supabase
-      .from('quiz_results')
+      .from("quiz_results")
       .insert({
         ...result,
         created_at: new Date().toISOString(),
@@ -270,10 +299,10 @@ export class QuizResultService {
 
   static async getQuizResultsByUser(userId: string): Promise<QuizResult[]> {
     const { data, error } = await supabase
-      .from('quiz_results')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+      .from("quiz_results")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
 
     if (error) {
       return [];
@@ -284,10 +313,10 @@ export class QuizResultService {
 
   static async getQuizResultsBySubject(subject: string): Promise<QuizResult[]> {
     const { data, error } = await supabase
-      .from('quiz_results')
-      .select('*')
-      .eq('subject', subject)
-      .order('created_at', { ascending: false });
+      .from("quiz_results")
+      .select("*")
+      .eq("subject", subject)
+      .order("created_at", { ascending: false });
 
     if (error) {
       return [];
@@ -299,9 +328,11 @@ export class QuizResultService {
 
 // Performance Analytics Service
 export class PerformanceAnalyticsService {
-  static async saveAnalytics(analytics: InsertTables<'performance_analytics'>): Promise<PerformanceAnalytics | null> {
+  static async saveAnalytics(
+    analytics: InsertTables<"performance_analytics">,
+  ): Promise<PerformanceAnalytics | null> {
     const { data, error } = await supabase
-      .from('performance_analytics')
+      .from("performance_analytics")
       .upsert({
         ...analytics,
         last_updated: new Date().toISOString(),
@@ -316,12 +347,14 @@ export class PerformanceAnalyticsService {
     return data;
   }
 
-  static async getAnalyticsByUser(userId: string): Promise<PerformanceAnalytics[]> {
+  static async getAnalyticsByUser(
+    userId: string,
+  ): Promise<PerformanceAnalytics[]> {
     const { data, error } = await supabase
-      .from('performance_analytics')
-      .select('*')
-      .eq('user_id', userId)
-      .order('last_updated', { ascending: false });
+      .from("performance_analytics")
+      .select("*")
+      .eq("user_id", userId)
+      .order("last_updated", { ascending: false });
 
     if (error) {
       return [];
@@ -333,9 +366,11 @@ export class PerformanceAnalyticsService {
 
 // AI Recommendation Service
 export class AIRecommendationService {
-  static async saveRecommendation(recommendation: InsertTables<'ai_recommendations'>): Promise<AIRecommendation | null> {
+  static async saveRecommendation(
+    recommendation: InsertTables<"ai_recommendations">,
+  ): Promise<AIRecommendation | null> {
     const { data, error } = await supabase
-      .from('ai_recommendations')
+      .from("ai_recommendations")
       .insert({
         ...recommendation,
         created_at: new Date().toISOString(),
@@ -350,12 +385,14 @@ export class AIRecommendationService {
     return data;
   }
 
-  static async getRecommendationsByUser(userId: string): Promise<AIRecommendation[]> {
+  static async getRecommendationsByUser(
+    userId: string,
+  ): Promise<AIRecommendation[]> {
     const { data, error } = await supabase
-      .from('ai_recommendations')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+      .from("ai_recommendations")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
 
     if (error) {
       return [];
@@ -367,9 +404,11 @@ export class AIRecommendationService {
 
 // Flashcard Progress Service
 export class FlashcardProgressService {
-  static async saveProgress(progress: InsertTables<'flashcard_progress'>): Promise<FlashcardProgress | null> {
+  static async saveProgress(
+    progress: InsertTables<"flashcard_progress">,
+  ): Promise<FlashcardProgress | null> {
     const { data, error } = await supabase
-      .from('flashcard_progress')
+      .from("flashcard_progress")
       .upsert({
         ...progress,
         created_at: new Date().toISOString(),
@@ -387,10 +426,10 @@ export class FlashcardProgressService {
 
   static async getProgressByUser(userId: string): Promise<FlashcardProgress[]> {
     const { data, error } = await supabase
-      .from('flashcard_progress')
-      .select('*')
-      .eq('user_id', userId)
-      .order('updated_at', { ascending: false });
+      .from("flashcard_progress")
+      .select("*")
+      .eq("user_id", userId)
+      .order("updated_at", { ascending: false });
 
     if (error) {
       return [];
@@ -399,13 +438,16 @@ export class FlashcardProgressService {
     return data || [];
   }
 
-  static async getProgressBySubject(userId: string, subject: string): Promise<FlashcardProgress[]> {
+  static async getProgressBySubject(
+    userId: string,
+    subject: string,
+  ): Promise<FlashcardProgress[]> {
     const { data, error } = await supabase
-      .from('flashcard_progress')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('subject', subject)
-      .order('updated_at', { ascending: false });
+      .from("flashcard_progress")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("subject", subject)
+      .order("updated_at", { ascending: false });
 
     if (error) {
       return [];

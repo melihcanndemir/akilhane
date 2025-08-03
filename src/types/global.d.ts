@@ -7,8 +7,12 @@ interface SpeechRecognition extends EventTarget {
   stop(): void;
   abort(): void;
   onstart: ((this: SpeechRecognition, ev: Event) => void) | null;
-  onresult: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => void) | null;
-  onerror: ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => void) | null;
+  onresult:
+    | ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => void)
+    | null;
+  onerror:
+    | ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => void)
+    | null;
   onend: ((this: SpeechRecognition, ev: Event) => void) | null;
 }
 
@@ -47,7 +51,7 @@ interface ServiceWorkerRegistration {
   waiting: ServiceWorker | null;
   active: ServiceWorker | null;
   scope: string;
-  updateViaCache: 'all' | 'imports' | 'none';
+  updateViaCache: "all" | "imports" | "none";
   onupdatefound: ((this: ServiceWorkerRegistration, ev: Event) => void) | null;
   update(): Promise<void>;
   unregister(): Promise<boolean>;
@@ -55,7 +59,13 @@ interface ServiceWorkerRegistration {
 
 interface ServiceWorker {
   scriptURL: string;
-  state: 'parsed' | 'installing' | 'installed' | 'activating' | 'activated' | 'redundant';
+  state:
+    | "parsed"
+    | "installing"
+    | "installed"
+    | "activating"
+    | "activated"
+    | "redundant";
   onstatechange: ((this: ServiceWorker, ev: Event) => void) | null;
   postMessage(message: unknown, transfer?: Transferable[]): void;
 }
@@ -63,17 +73,24 @@ interface ServiceWorker {
 interface ServiceWorkerContainer {
   controller: ServiceWorker | null;
   ready: Promise<ServiceWorkerRegistration>;
-  oncontrollerchange: ((this: ServiceWorkerContainer, ev: Event) => void) | null;
+  oncontrollerchange:
+    | ((this: ServiceWorkerContainer, ev: Event) => void)
+    | null;
   onmessage: ((this: ServiceWorkerContainer, ev: MessageEvent) => void) | null;
-  register(scriptURL: string, options?: RegistrationOptions): Promise<ServiceWorkerRegistration>;
-  getRegistration(scope?: string): Promise<ServiceWorkerRegistration | undefined>;
+  register(
+    scriptURL: string,
+    options?: RegistrationOptions,
+  ): Promise<ServiceWorkerRegistration>;
+  getRegistration(
+    scope?: string,
+  ): Promise<ServiceWorkerRegistration | undefined>;
   getRegistrations(): Promise<ServiceWorkerRegistration[]>;
   startMessages(): void;
 }
 
 interface RegistrationOptions {
   scope?: string;
-  updateViaCache?: 'all' | 'imports' | 'none';
+  updateViaCache?: "all" | "imports" | "none";
 }
 
 interface SpeechSynthesis extends EventTarget {
@@ -93,7 +110,9 @@ interface SpeechSynthesisUtterance extends EventTarget {
   pitch: number;
   onstart: ((this: SpeechSynthesisUtterance, ev: Event) => void) | null;
   onend: ((this: SpeechSynthesisUtterance, ev: Event) => void) | null;
-  onerror: ((this: SpeechSynthesisUtterance, ev: SpeechSynthesisErrorEvent) => void) | null;
+  onerror:
+    | ((this: SpeechSynthesisUtterance, ev: SpeechSynthesisErrorEvent) => void)
+    | null;
 }
 
 interface SpeechSynthesisVoice {

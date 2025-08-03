@@ -1,11 +1,17 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, Suspense } from 'react';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect, Suspense } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Lock,
   Eye,
@@ -13,11 +19,11 @@ import {
   ArrowLeft,
   Loader2,
   CheckCircle,
-} from 'lucide-react';
-import Link from 'next/link';
-import MobileNav from '@/components/mobile-nav';
-import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/lib/supabase';
+} from "lucide-react";
+import Link from "next/link";
+import MobileNav from "@/components/mobile-nav";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/lib/supabase";
 
 interface PasswordChangeForm {
   currentPassword: string;
@@ -31,39 +37,43 @@ function ChangePasswordContent() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordForm, setPasswordForm] = useState<PasswordChangeForm>({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
   });
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const [passwordError, setPasswordError] = useState('');
-  const [passwordSuccess, setPasswordSuccess] = useState('');
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordSuccess, setPasswordSuccess] = useState("");
 
   // Redirect if not authenticated
   useEffect(() => {
     if (!authLoading && !authUser) {
-      window.location.href = '/login';
+      window.location.href = "/login";
     }
   }, [authLoading, authUser]);
 
   const handlePasswordChange = async () => {
     // Reset messages
-    setPasswordError('');
-    setPasswordSuccess('');
+    setPasswordError("");
+    setPasswordSuccess("");
 
     // Validation
-    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
-      setPasswordError('Tüm alanları doldurun.');
+    if (
+      !passwordForm.currentPassword ||
+      !passwordForm.newPassword ||
+      !passwordForm.confirmPassword
+    ) {
+      setPasswordError("Tüm alanları doldurun.");
       return;
     }
 
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setPasswordError('Yeni şifreler eşleşmiyor.');
+      setPasswordError("Yeni şifreler eşleşmiyor.");
       return;
     }
 
     if (passwordForm.newPassword.length < 6) {
-      setPasswordError('Yeni şifre en az 6 karakter olmalıdır.');
+      setPasswordError("Yeni şifre en az 6 karakter olmalıdır.");
       return;
     }
 
@@ -75,35 +85,45 @@ function ChangePasswordContent() {
       });
 
       if (error) {
-        setPasswordError('Şifre değiştirilirken bir hata oluştu. Lütfen tekrar deneyin.');
+        setPasswordError(
+          "Şifre değiştirilirken bir hata oluştu. Lütfen tekrar deneyin.",
+        );
         return;
       }
-      setPasswordSuccess('Şifreniz başarıyla değiştirildi!');
+      setPasswordSuccess("Şifreniz başarıyla değiştirildi!");
 
       // Reset form
       setPasswordForm({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: '',
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
       });
 
       // Hide password fields
       setShowCurrentPassword(false);
       setShowNewPassword(false);
       setShowConfirmPassword(false);
-
     } catch {
-      setPasswordError('Şifre değiştirilirken bir hata oluştu. Lütfen tekrar deneyin.');
+      setPasswordError(
+        "Şifre değiştirilirken bir hata oluştu. Lütfen tekrar deneyin.",
+      );
     } finally {
       setIsChangingPassword(false);
     }
   };
 
-  const handlePasswordFormChange = (field: keyof PasswordChangeForm, value: string) => {
-    setPasswordForm(prev => ({ ...prev, [field]: value }));
+  const handlePasswordFormChange = (
+    field: keyof PasswordChangeForm,
+    value: string,
+  ) => {
+    setPasswordForm((prev) => ({ ...prev, [field]: value }));
     // Clear messages when user starts typing
-    if (passwordError) {setPasswordError('');}
-    if (passwordSuccess) {setPasswordSuccess('');}
+    if (passwordError) {
+      setPasswordError("");
+    }
+    if (passwordSuccess) {
+      setPasswordSuccess("");
+    }
   };
 
   if (authLoading) {
@@ -146,13 +166,19 @@ function ChangePasswordContent() {
           <nav className="mb-6">
             <ol className="flex items-center space-x-2 text-sm text-muted-foreground">
               <li>
-                <Link href="/" className="hover:text-foreground transition-colors">
+                <Link
+                  href="/"
+                  className="hover:text-foreground transition-colors"
+                >
                   Ana Sayfa
                 </Link>
               </li>
               <li>/</li>
               <li>
-                <Link href="/profile" className="hover:text-foreground transition-colors">
+                <Link
+                  href="/profile"
+                  className="hover:text-foreground transition-colors"
+                >
                   Profil
                 </Link>
               </li>
@@ -204,9 +230,14 @@ function ChangePasswordContent() {
                   <div className="relative">
                     <Input
                       id="currentPassword"
-                      type={showCurrentPassword ? 'text' : 'password'}
+                      type={showCurrentPassword ? "text" : "password"}
                       value={passwordForm.currentPassword}
-                      onChange={(e) => handlePasswordFormChange('currentPassword', e.target.value)}
+                      onChange={(e) =>
+                        handlePasswordFormChange(
+                          "currentPassword",
+                          e.target.value,
+                        )
+                      }
                       placeholder="Mevcut şifrenizi girin"
                     />
                     <Button
@@ -214,7 +245,9 @@ function ChangePasswordContent() {
                       variant="ghost"
                       size="sm"
                       className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                      onClick={() =>
+                        setShowCurrentPassword(!showCurrentPassword)
+                      }
                     >
                       {showCurrentPassword ? (
                         <EyeOff className="h-4 w-4" />
@@ -231,9 +264,11 @@ function ChangePasswordContent() {
                   <div className="relative">
                     <Input
                       id="newPassword"
-                      type={showNewPassword ? 'text' : 'password'}
+                      type={showNewPassword ? "text" : "password"}
                       value={passwordForm.newPassword}
-                      onChange={(e) => handlePasswordFormChange('newPassword', e.target.value)}
+                      onChange={(e) =>
+                        handlePasswordFormChange("newPassword", e.target.value)
+                      }
                       placeholder="En az 6 karakter"
                     />
                     <Button
@@ -258,9 +293,14 @@ function ChangePasswordContent() {
                   <div className="relative">
                     <Input
                       id="confirmPassword"
-                      type={showConfirmPassword ? 'text' : 'password'}
+                      type={showConfirmPassword ? "text" : "password"}
                       value={passwordForm.confirmPassword}
-                      onChange={(e) => handlePasswordFormChange('confirmPassword', e.target.value)}
+                      onChange={(e) =>
+                        handlePasswordFormChange(
+                          "confirmPassword",
+                          e.target.value,
+                        )
+                      }
                       placeholder="Yeni şifrenizi tekrar girin"
                     />
                     <Button
@@ -268,7 +308,9 @@ function ChangePasswordContent() {
                       variant="ghost"
                       size="sm"
                       className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
                     >
                       {showConfirmPassword ? (
                         <EyeOff className="h-4 w-4" />
@@ -282,7 +324,9 @@ function ChangePasswordContent() {
                 {/* Error/Success Messages */}
                 {passwordError && (
                   <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
-                    <p className="text-sm text-red-600 dark:text-red-400">{passwordError}</p>
+                    <p className="text-sm text-red-600 dark:text-red-400">
+                      {passwordError}
+                    </p>
                   </div>
                 )}
 
@@ -290,15 +334,24 @@ function ChangePasswordContent() {
                   <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
                     <div className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-                      <p className="text-sm text-green-600 dark:text-green-400">{passwordSuccess}</p>
+                      <p className="text-sm text-green-600 dark:text-green-400">
+                        {passwordSuccess}
+                      </p>
                     </div>
                   </div>
                 )}
 
                 {/* Action Button */}
                 <Button
-                  onClick={() => { void handlePasswordChange(); }}
-                  disabled={isChangingPassword || !passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword}
+                  onClick={() => {
+                    void handlePasswordChange();
+                  }}
+                  disabled={
+                    isChangingPassword ||
+                    !passwordForm.currentPassword ||
+                    !passwordForm.newPassword ||
+                    !passwordForm.confirmPassword
+                  }
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 w-full"
                 >
                   {isChangingPassword ? (
@@ -306,7 +359,9 @@ function ChangePasswordContent() {
                   ) : (
                     <Lock className="w-4 h-4 mr-2" />
                   )}
-                  {isChangingPassword ? 'Şifre Değiştiriliyor...' : 'Şifreyi Değiştir'}
+                  {isChangingPassword
+                    ? "Şifre Değiştiriliyor..."
+                    : "Şifreyi Değiştir"}
                 </Button>
               </CardContent>
             </Card>
@@ -319,14 +374,16 @@ function ChangePasswordContent() {
 
 export default function ChangePasswordPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="flex items-center gap-2">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span>Yükleniyor...</span>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="flex items-center gap-2">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span>Yükleniyor...</span>
+          </div>
         </div>
-      </div>
-    }>
+      }
+    >
       <ChangePasswordContent />
     </Suspense>
   );

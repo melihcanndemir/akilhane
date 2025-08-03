@@ -1,9 +1,17 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { Mic, MicOff, Volume2, VolumeX, Play, Pause, Brain } from 'lucide-react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Mic,
+  MicOff,
+  Volume2,
+  VolumeX,
+  Play,
+  Pause,
+  Brain,
+} from "lucide-react";
+import { motion } from "framer-motion";
 
 interface SpeechRecognitionEvent {
   resultIndex: number;
@@ -19,8 +27,12 @@ interface CustomSpeechRecognition extends EventTarget {
   interimResults: boolean;
   lang: string;
   onstart: ((this: CustomSpeechRecognition, ev: Event) => void) | null;
-  onresult: ((this: CustomSpeechRecognition, ev: SpeechRecognitionEvent) => void) | null;
-  onerror: ((this: CustomSpeechRecognition, ev: SpeechRecognitionErrorEvent) => void) | null;
+  onresult:
+    | ((this: CustomSpeechRecognition, ev: SpeechRecognitionEvent) => void)
+    | null;
+  onerror:
+    | ((this: CustomSpeechRecognition, ev: SpeechRecognitionErrorEvent) => void)
+    | null;
   onend: ((this: CustomSpeechRecognition, ev: Event) => void) | null;
   start(): void;
   stop(): void;
@@ -51,37 +63,41 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
 }) => {
   const [isSupported, setIsSupported] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [transcript, setTranscript] = useState('');
+  const [transcript, setTranscript] = useState("");
   const [isReadingQuestion, setIsReadingQuestion] = useState(false);
   const [isReadingAnswer, setIsReadingAnswer] = useState(false);
   const [isReadingAiTutor, setIsReadingAiTutor] = useState(false);
-  const [recognitionState, setRecognitionState] = useState<'idle' | 'starting' | 'active' | 'stopping'>('idle');
+  const [recognitionState, setRecognitionState] = useState<
+    "idle" | "starting" | "active" | "stopping"
+  >("idle");
 
   const recognitionRef = useRef<CustomSpeechRecognition | null>(null);
   const synthesisRef = useRef<SpeechSynthesis | null>(null);
-  const lastProcessedTranscript = useRef<string>('');
+  const lastProcessedTranscript = useRef<string>("");
   const transcriptProcessingTimeout = useRef<NodeJS.Timeout | null>(null);
 
   // Convert markdown to plain text for speech
-  const markdownToPlainText = (markdown: string): string => markdown
-      .replace(/#{1,6}\s+/g, '') // Remove headers
-      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold
-      .replace(/\*(.*?)\*/g, '$1') // Remove italic
-      .replace(/`(.*?)`/g, '$1') // Remove inline code
-      .replace(/```[\s\S]*?```/g, '') // Remove code blocks
-      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Convert links to text
-      .replace(/^\s*[-*+]\s+/gm, '') // Remove list markers
-      .replace(/^\s*\d+\.\s+/gm, '') // Remove numbered list markers
-      .replace(/\n\s*\n/g, '. ') // Replace double newlines with periods
-      .replace(/\n/g, ' ') // Replace single newlines with spaces
-      .replace(/\s+/g, ' ') // Normalize whitespace
+  const markdownToPlainText = (markdown: string): string =>
+    markdown
+      .replace(/#{1,6}\s+/g, "") // Remove headers
+      .replace(/\*\*(.*?)\*\*/g, "$1") // Remove bold
+      .replace(/\*(.*?)\*/g, "$1") // Remove italic
+      .replace(/`(.*?)`/g, "$1") // Remove inline code
+      .replace(/```[\s\S]*?```/g, "") // Remove code blocks
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1") // Convert links to text
+      .replace(/^\s*[-*+]\s+/gm, "") // Remove list markers
+      .replace(/^\s*\d+\.\s+/gm, "") // Remove numbered list markers
+      .replace(/\n\s*\n/g, ". ") // Replace double newlines with periods
+      .replace(/\n/g, " ") // Replace single newlines with spaces
+      .replace(/\s+/g, " ") // Normalize whitespace
       .trim();
 
   // Check browser support
   useEffect(() => {
     const checkSupport = () => {
-      const hasRecognition = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
-      const hasSynthesis = 'speechSynthesis' in window;
+      const hasRecognition =
+        "webkitSpeechRecognition" in window || "SpeechRecognition" in window;
+      const hasSynthesis = "speechSynthesis" in window;
       setIsSupported(hasRecognition && hasSynthesis);
     };
 
@@ -90,25 +106,30 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
 
   // Initialize speech recognition
   useEffect(() => {
-    if (!isSupported) {return;}
+    if (!isSupported) {
+      return;
+    }
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
     recognitionRef.current = new SpeechRecognition() as CustomSpeechRecognition;
 
     const recognition = recognitionRef.current;
-    if (!recognition) {return;}
+    if (!recognition) {
+      return;
+    }
 
     recognition.continuous = false;
     recognition.interimResults = false;
-    recognition.lang = 'tr-TR';
+    recognition.lang = "tr-TR";
 
     recognition.onstart = () => {
-      setRecognitionState('active');
+      setRecognitionState("active");
       onListeningChange?.(true);
     };
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
-      let finalTranscript = '';
+      let finalTranscript = "";
 
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const result = event.results[i];
@@ -143,81 +164,84 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
 
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       // Log errors only in development
-      if (process.env.NODE_ENV === 'development') {
+      if (process.env.NODE_ENV === "development") {
         // eslint-disable-next-line no-console
-        console.warn('Speech recognition error:', event.error);
+        console.warn("Speech recognition error:", event.error);
       }
 
       // Handle different error types appropriately
       switch (event.error) {
-        case 'no-speech':
+        case "no-speech":
           // User didn't speak - this is normal, just reset quietly
-          setRecognitionState('idle');
+          setRecognitionState("idle");
           onListeningChange?.(false);
           break;
-        case 'audio-capture':
+        case "audio-capture":
           // Microphone access issues - should notify user
-          setRecognitionState('idle');
+          setRecognitionState("idle");
           onListeningChange?.(false);
-          if (process.env.NODE_ENV === 'development') {
+          if (process.env.NODE_ENV === "development") {
             // eslint-disable-next-line no-console
-            console.error('Microphone access denied or unavailable');
+            console.error("Microphone access denied or unavailable");
           }
           break;
-        case 'not-allowed':
+        case "not-allowed":
           // Permission denied - should notify user
-          setRecognitionState('idle');
+          setRecognitionState("idle");
           onListeningChange?.(false);
-          if (process.env.NODE_ENV === 'development') {
+          if (process.env.NODE_ENV === "development") {
             // eslint-disable-next-line no-console
-            console.error('Speech recognition permission denied');
+            console.error("Speech recognition permission denied");
           }
           break;
-        case 'network':
+        case "network":
           // Network issues - might retry or notify user
-          setRecognitionState('idle');
+          setRecognitionState("idle");
           onListeningChange?.(false);
-          if (process.env.NODE_ENV === 'development') {
+          if (process.env.NODE_ENV === "development") {
             // eslint-disable-next-line no-console
-            console.error('Network error during speech recognition');
+            console.error("Network error during speech recognition");
           }
           break;
-        case 'aborted':
+        case "aborted":
           // Recognition was aborted - normal during stop operation
-          setRecognitionState('idle');
+          setRecognitionState("idle");
           onListeningChange?.(false);
           break;
         default:
           // Other errors - generic handling
-          setRecognitionState('idle');
+          setRecognitionState("idle");
           onListeningChange?.(false);
-          if (process.env.NODE_ENV === 'development') {
+          if (process.env.NODE_ENV === "development") {
             // eslint-disable-next-line no-console
-            console.error('Unknown speech recognition error:', event.error);
+            console.error("Unknown speech recognition error:", event.error);
           }
       }
-      setTranscript('');
+      setTranscript("");
     };
 
     recognition.onend = () => {
       // ✅ In non-continuous mode, restart if still supposed to be listening
-      if (recognitionState === 'active' || isListening) {
+      if (recognitionState === "active" || isListening) {
         try {
           // Small delay to prevent rapid restart issues
           setTimeout(() => {
-            if (recognitionRef.current && (isListening || recognitionState === 'active')) {
+            if (
+              recognitionRef.current &&
+              (isListening || recognitionState === "active")
+            ) {
               recognitionRef.current.start();
             }
           }, 100);
         } catch {
           // If restart fails, go to idle state
-          setRecognitionState('idle');
+          setRecognitionState("idle");
           onListeningChange?.(false);
         }
       } else {
-        setRecognitionState('idle');
+        setRecognitionState("idle");
         onListeningChange?.(false);
-        setTranscript('');
+        setTranscript("");
       }
     };
 
@@ -229,10 +253,10 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
       if (recognition) {
         try {
           recognition.stop();
-          setRecognitionState('idle');
+          setRecognitionState("idle");
         } catch {
           // Silently handle cleanup errors
-          setRecognitionState('idle');
+          setRecognitionState("idle");
         }
       }
     };
@@ -241,7 +265,9 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
 
   // Initialize speech synthesis
   useEffect(() => {
-    if (!isSupported) {return;}
+    if (!isSupported) {
+      return;
+    }
     synthesisRef.current = window.speechSynthesis;
   }, [isSupported]);
 
@@ -249,8 +275,8 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
     // For AI Chat - send transcript directly for voice input
     if (onTranscript) {
       // AI Chat commands
-      if (command.includes('temizle') || command.includes('clear')) {
-        onCommand?.('clear');
+      if (command.includes("temizle") || command.includes("clear")) {
+        onCommand?.("clear");
         return;
       } else {
         // Everything else is a direct message
@@ -260,64 +286,88 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
     }
 
     // Quiz/Flashcard commands
-    if (command.includes('cevap') || command.includes('yanıt')) {
+    if (command.includes("cevap") || command.includes("yanıt")) {
       if (currentAnswer) {
-        speakText(currentAnswer, 'answer');
+        speakText(currentAnswer, "answer");
       }
-    } else if (command.includes('soru') || command.includes('oku')) {
+    } else if (command.includes("soru") || command.includes("oku")) {
       if (currentQuestion) {
-        speakText(currentQuestion, 'question');
+        speakText(currentQuestion, "question");
       }
-    } else if (command.includes('ai') && command.includes('oku') || command.includes('tutor') && command.includes('oku')) {
+    } else if (
+      (command.includes("ai") && command.includes("oku")) ||
+      (command.includes("tutor") && command.includes("oku"))
+    ) {
       if (aiTutorOutput) {
         const plainText = markdownToPlainText(aiTutorOutput);
-        speakText(plainText, 'ai-tutor');
+        speakText(plainText, "ai-tutor");
       } else {
-        speakText('AI Tutor çıktısı henüz mevcut değil. Önce AI yardımı isteyin.', 'help');
+        speakText(
+          "AI Tutor çıktısı henüz mevcut değil. Önce AI yardımı isteyin.",
+          "help",
+        );
       }
-    } else if (command.includes('açıkla') || command.includes('açıklama')) {
+    } else if (command.includes("açıkla") || command.includes("açıklama")) {
       if (currentAnswer) {
-        speakText(`Cevap: ${currentAnswer}`, 'answer');
+        speakText(`Cevap: ${currentAnswer}`, "answer");
       } else if (aiTutorOutput) {
         const plainText = markdownToPlainText(aiTutorOutput);
-        speakText(plainText, 'ai-tutor');
+        speakText(plainText, "ai-tutor");
       }
-    } else if (command.includes('sonraki') || command.includes('ileri')) {
-      onCommand?.('next');
-    } else if (command.includes('önceki') || command.includes('geri')) {
-      onCommand?.('previous');
-    } else if (command.includes('karıştır') || command.includes('shuffle')) {
-      onCommand?.('shuffle');
-    } else if (command.includes('çevir') || command.includes('flip') || command.includes('döndür')) {
-      onCommand?.('flip');
-    } else if (command.includes('göster') || command.includes('show')) {
-      onCommand?.('show');
-    } else if (command.includes('gizle') || command.includes('hide')) {
-      onCommand?.('hide');
-    } else if (command.includes('dur') || command.includes('stop')) {
+    } else if (command.includes("sonraki") || command.includes("ileri")) {
+      onCommand?.("next");
+    } else if (command.includes("önceki") || command.includes("geri")) {
+      onCommand?.("previous");
+    } else if (command.includes("karıştır") || command.includes("shuffle")) {
+      onCommand?.("shuffle");
+    } else if (
+      command.includes("çevir") ||
+      command.includes("flip") ||
+      command.includes("döndür")
+    ) {
+      onCommand?.("flip");
+    } else if (command.includes("göster") || command.includes("show")) {
+      onCommand?.("show");
+    } else if (command.includes("gizle") || command.includes("hide")) {
+      onCommand?.("hide");
+    } else if (command.includes("dur") || command.includes("stop")) {
       stopSpeaking();
-    } else if (command.includes('yardım') || command.includes('komutlar')) {
-      speakText('Mevcut komutlar: soru oku, cevap oku, AI oku, sonraki, önceki, karıştır, çevir, göster, gizle, dur, yardım', 'help');
+    } else if (command.includes("yardım") || command.includes("komutlar")) {
+      speakText(
+        "Mevcut komutlar: soru oku, cevap oku, AI oku, sonraki, önceki, karıştır, çevir, göster, gizle, dur, yardım",
+        "help",
+      );
     }
   };
 
-  const speakText = (text: string, type: 'question' | 'answer' | 'help' | 'ai-tutor' = 'question') => {
-    if (!synthesisRef.current) {return;}
+  const speakText = (
+    text: string,
+    type: "question" | "answer" | "help" | "ai-tutor" = "question",
+  ) => {
+    if (!synthesisRef.current) {
+      return;
+    }
 
     // Stop any current speech
     stopSpeaking();
 
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'tr-TR';
+    utterance.lang = "tr-TR";
     utterance.rate = 0.9;
     utterance.pitch = 1;
     utterance.volume = 0.8;
 
     utterance.onstart = () => {
       setIsSpeaking(true);
-      if (type === 'question') {setIsReadingQuestion(true);}
-      if (type === 'answer') {setIsReadingAnswer(true);}
-      if (type === 'ai-tutor') {setIsReadingAiTutor(true);}
+      if (type === "question") {
+        setIsReadingQuestion(true);
+      }
+      if (type === "answer") {
+        setIsReadingAnswer(true);
+      }
+      if (type === "ai-tutor") {
+        setIsReadingAiTutor(true);
+      }
     };
 
     utterance.onend = () => {
@@ -348,39 +398,44 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
   };
 
   const toggleListening = () => {
-    if (!recognitionRef.current) {return;}
+    if (!recognitionRef.current) {
+      return;
+    }
 
     // Prevent rapid toggling that can cause race conditions
-    if (recognitionState === 'starting' || recognitionState === 'stopping') {
+    if (recognitionState === "starting" || recognitionState === "stopping") {
       return;
     }
 
     try {
-      if (recognitionState === 'active' || isListening) {
-        setRecognitionState('stopping');
+      if (recognitionState === "active" || isListening) {
+        setRecognitionState("stopping");
         recognitionRef.current.stop();
-      } else if (recognitionState === 'idle') {
-        setRecognitionState('starting');
+      } else if (recognitionState === "idle") {
+        setRecognitionState("starting");
         recognitionRef.current.start();
       }
     } catch (error) {
       // Handle case where recognition state is inconsistent
-      if (error instanceof Error && error.message.includes('already started')) {
+      if (error instanceof Error && error.message.includes("already started")) {
         // If already started but we thought it was idle, just stop it
-        setRecognitionState('stopping');
+        setRecognitionState("stopping");
         try {
           recognitionRef.current.stop();
         } catch {
-          setRecognitionState('idle');
+          setRecognitionState("idle");
           onListeningChange?.(false);
         }
-      } else if (error instanceof Error && error.message.includes('not started')) {
+      } else if (
+        error instanceof Error &&
+        error.message.includes("not started")
+      ) {
         // If not started but we thought it was active, reset to idle
-        setRecognitionState('idle');
+        setRecognitionState("idle");
         onListeningChange?.(false);
       } else {
         // Reset to idle state on any other error
-        setRecognitionState('idle');
+        setRecognitionState("idle");
         onListeningChange?.(false);
       }
     }
@@ -391,16 +446,21 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
       <div className="fixed bottom-6 left-6 bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg p-4 max-w-sm">
         <div className="flex items-center gap-2 text-red-700 dark:text-red-300">
           <MicOff className="w-5 h-5" />
-          <span className="text-sm font-medium">Sesli Asistan Desteklenmiyor</span>
+          <span className="text-sm font-medium">
+            Sesli Asistan Desteklenmiyor
+          </span>
         </div>
         <p className="text-xs text-red-600 dark:text-red-400 mt-1">
-          Tarayıcınız sesli asistan özelliğini desteklemiyor. Chrome, Edge veya Safari kullanın.
+          Tarayıcınız sesli asistan özelliğini desteklemiyor. Chrome, Edge veya
+          Safari kullanın.
         </p>
       </div>
     ) : null;
   }
 
-  if (!show) {return null;}
+  if (!show) {
+    return null;
+  }
 
   return (
     <>
@@ -415,20 +475,26 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
         >
           <Button
             onClick={toggleListening}
-            disabled={recognitionState === 'starting' || recognitionState === 'stopping'}
+            disabled={
+              recognitionState === "starting" || recognitionState === "stopping"
+            }
             size="lg"
             className={`rounded-full w-16 h-16 shadow-lg transition-all duration-300 ${
-              isListening || recognitionState === 'active'
-                ? 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 animate-pulse'
-                : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
-            } ${recognitionState === 'starting' || recognitionState === 'stopping' ? 'opacity-50 cursor-not-allowed' : ''}`}
+              isListening || recognitionState === "active"
+                ? "bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 animate-pulse"
+                : "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            } ${recognitionState === "starting" || recognitionState === "stopping" ? "opacity-50 cursor-not-allowed" : ""}`}
             title="Sesli Asistan"
           >
-            {isListening || recognitionState === 'active' ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
+            {isListening || recognitionState === "active" ? (
+              <MicOff className="w-6 h-6" />
+            ) : (
+              <Mic className="w-6 h-6" />
+            )}
           </Button>
 
           {/* Status indicator */}
-          {(isListening || recognitionState === 'active') && (
+          {(isListening || recognitionState === "active") && (
             <motion.div
               key="status-indicator"
               initial={{ scale: 0 }}
@@ -451,15 +517,19 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
             {currentQuestion && (
               <Button
                 key="speak-question"
-                onClick={() => speakText(currentQuestion, 'question')}
+                onClick={() => speakText(currentQuestion, "question")}
                 size="sm"
                 variant="outline"
                 className={`rounded-full w-12 h-12 shadow-lg ${
-                  isReadingQuestion ? 'bg-green-100 border-green-300' : ''
+                  isReadingQuestion ? "bg-green-100 border-green-300" : ""
                 }`}
                 disabled={isSpeaking && !isReadingQuestion}
               >
-                {isReadingQuestion ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                {isReadingQuestion ? (
+                  <Pause className="w-4 h-4" />
+                ) : (
+                  <Play className="w-4 h-4" />
+                )}
               </Button>
             )}
 
@@ -467,15 +537,19 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
             {currentAnswer && (
               <Button
                 key="speak-answer"
-                onClick={() => speakText(currentAnswer, 'answer')}
+                onClick={() => speakText(currentAnswer, "answer")}
                 size="sm"
                 variant="outline"
                 className={`rounded-full w-12 h-12 shadow-lg ${
-                  isReadingAnswer ? 'bg-green-100 border-green-300' : ''
+                  isReadingAnswer ? "bg-green-100 border-green-300" : ""
                 }`}
                 disabled={isSpeaking && !isReadingAnswer}
               >
-                {isReadingAnswer ? <Pause className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                {isReadingAnswer ? (
+                  <Pause className="w-4 h-4" />
+                ) : (
+                  <Volume2 className="w-4 h-4" />
+                )}
               </Button>
             )}
 
@@ -485,17 +559,21 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
                 key="speak-ai-tutor"
                 onClick={() => {
                   const plainText = markdownToPlainText(aiTutorOutput);
-                  speakText(plainText, 'ai-tutor');
+                  speakText(plainText, "ai-tutor");
                 }}
                 size="sm"
                 variant="outline"
                 className={`rounded-full w-12 h-12 shadow-lg ${
-                  isReadingAiTutor ? 'bg-purple-100 border-purple-300' : ''
+                  isReadingAiTutor ? "bg-purple-100 border-purple-300" : ""
                 }`}
                 disabled={isSpeaking && !isReadingAiTutor}
                 title="AI Tutor Çıktısını Oku"
               >
-                {isReadingAiTutor ? <Pause className="w-4 h-4" /> : <Brain className="w-4 h-4" />}
+                {isReadingAiTutor ? (
+                  <Pause className="w-4 h-4" />
+                ) : (
+                  <Brain className="w-4 h-4" />
+                )}
               </Button>
             )}
 
@@ -515,137 +593,233 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
         )}
 
         {/* Help tooltip */}
-        {(isListening || recognitionState === 'active') && (
-        <motion.div
-          key="help-tooltip"
-          initial={{ y: 20, opacity: 0, scale: 0.95 }}
-          animate={{ y: 0, opacity: 1, scale: 1 }}
-          exit={{ y: 20, opacity: 0, scale: 0.95 }}
-          className="absolute bottom-20 left-0 max-w-xs sm:max-w-sm"
-        >
-          <div className="relative">
-            {/* Modern gradient background */}
-            <div className="bg-gradient-to-br from-white via-blue-50 to-indigo-100 dark:from-gray-800 dark:via-blue-900/30 dark:to-indigo-900/40 rounded-2xl p-3 sm:p-4 shadow-2xl border border-white/20 dark:border-gray-700/50 backdrop-blur-sm">
-              {/* Decorative elements */}
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full animate-pulse"></div>
-              <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full animate-pulse delay-300"></div>
+        {(isListening || recognitionState === "active") && (
+          <motion.div
+            key="help-tooltip"
+            initial={{ y: 20, opacity: 0, scale: 0.95 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: 20, opacity: 0, scale: 0.95 }}
+            className="absolute bottom-20 left-0 max-w-xs sm:max-w-sm"
+          >
+            <div className="relative">
+              {/* Modern gradient background */}
+              <div className="bg-gradient-to-br from-white via-blue-50 to-indigo-100 dark:from-gray-800 dark:via-blue-900/30 dark:to-indigo-900/40 rounded-2xl p-3 sm:p-4 shadow-2xl border border-white/20 dark:border-gray-700/50 backdrop-blur-sm">
+                {/* Decorative elements */}
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full animate-pulse"></div>
+                <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full animate-pulse delay-300"></div>
 
-              {/* Header with modern design */}
-              <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 pb-2 sm:pb-3 border-b border-blue-200/50 dark:border-blue-700/30">
-                <div className="relative">
-                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg">
-                    <Mic className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+                {/* Header with modern design */}
+                <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 pb-2 sm:pb-3 border-b border-blue-200/50 dark:border-blue-700/30">
+                  <div className="relative">
+                    <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg">
+                      <Mic className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+                    </div>
+                    <div className="absolute -top-1 -right-1 w-2 h-2 sm:w-3 sm:h-3 bg-red-500 rounded-full animate-ping"></div>
                   </div>
-                  <div className="absolute -top-1 -right-1 w-2 h-2 sm:w-3 sm:h-3 bg-red-500 rounded-full animate-ping"></div>
+                  <div>
+                    <h3 className="font-bold text-gray-800 dark:text-white text-xs sm:text-sm">
+                      Sesli Komutlar
+                    </h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 hidden sm:block">
+                      Sesli Giriş Modu
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-bold text-gray-800 dark:text-white text-xs sm:text-sm">
-                    Sesli Komutlar
-                  </h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 hidden sm:block">
-                    Sesli Giriş Modu
-                  </p>
-                </div>
-              </div>
 
-              {/* Commands with modern styling */}
-              <div className="space-y-2">
-                {onTranscript ? (
-                  <>
-                    <div key="voice-input-mode" className="flex items-center gap-2 sm:gap-3 p-1.5 sm:p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg sm:rounded-xl border border-blue-200/50 dark:border-blue-700/30">
-                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                      <span className="text-xs sm:text-sm font-medium text-blue-700 dark:text-blue-300">Sesli Giriş Aktif</span>
-                    </div>
-                    <div key="voice-info" className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed mb-2 sm:mb-3">
-                      Konuştuğunuz her şey otomatik yazılır ve gönderilir
-                    </div>
-                    <div key="clear" className="flex items-center gap-2 sm:gap-3 p-1.5 sm:p-2 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg sm:rounded-xl transition-colors group">
-                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-red-500 rounded-full group-hover:scale-125 transition-transform"></div>
-                      <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-200">
-                        <span className="font-semibold text-red-600 dark:text-red-400">&quot;Temizle&quot;</span>
-                        <span className="text-gray-500 dark:text-gray-400 hidden sm:inline"> - Sohbeti temizle</span>
-                      </span>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div key="read-question" className="flex items-center gap-3 p-2 hover:bg-blue-50 dark:hover:bg-blue-900/10 rounded-xl transition-colors group">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full group-hover:scale-125 transition-transform"></div>
-                      <span className="text-sm text-gray-700 dark:text-gray-200">
-                        <span className="font-semibold text-blue-600 dark:text-blue-400">&quot;Soru oku&quot;</span>
-                        <span className="text-gray-500 dark:text-gray-400"> - Mevcut soruyu sesli oku</span>
-                      </span>
-                    </div>
-                    <div key="read-answer" className="flex items-center gap-3 p-2 hover:bg-green-50 dark:hover:bg-green-900/10 rounded-xl transition-colors group">
-                      <div className="w-2 h-2 bg-green-500 rounded-full group-hover:scale-125 transition-transform"></div>
-                      <span className="text-sm text-gray-700 dark:text-gray-200">
-                        <span className="font-semibold text-green-600 dark:text-green-400">&quot;Cevap oku&quot;</span>
-                        <span className="text-gray-500 dark:text-gray-400"> - Cevabı sesli oku</span>
-                      </span>
-                    </div>
-                    <div key="read-ai-tutor" className="flex items-center gap-3 p-2 hover:bg-purple-50 dark:hover:bg-purple-900/10 rounded-xl transition-colors group">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full group-hover:scale-125 transition-transform"></div>
-                      <span className="text-sm text-gray-700 dark:text-gray-200">
-                        <span className="font-semibold text-purple-600 dark:text-purple-400">&quot;AI oku&quot;</span>
-                        <span className="text-gray-500 dark:text-gray-400"> - AI Tutor çıktısını sesli oku</span>
-                      </span>
-                    </div>
-                    <div key="next" className="flex items-center gap-3 p-2 hover:bg-purple-50 dark:hover:bg-purple-900/10 rounded-xl transition-colors group">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full group-hover:scale-125 transition-transform"></div>
-                      <span className="text-sm text-gray-700 dark:text-gray-200">
-                        <span className="font-semibold text-purple-600 dark:text-purple-400">&quot;Sonraki&quot;</span>
-                        <span className="text-gray-500 dark:text-gray-400"> - Sonraki soruya geç</span>
-                      </span>
-                    </div>
-                    <div key="previous" className="flex items-center gap-3 p-2 hover:bg-orange-50 dark:hover:bg-orange-900/10 rounded-xl transition-colors group">
-                      <div className="w-2 h-2 bg-orange-500 rounded-full group-hover:scale-125 transition-transform"></div>
-                      <span className="text-sm text-gray-700 dark:text-gray-200">
-                        <span className="font-semibold text-orange-600 dark:text-orange-400">&quot;Önceki&quot;</span>
-                        <span className="text-gray-500 dark:text-gray-400"> - Önceki soruya geç</span>
-                      </span>
-                    </div>
-                    <div key="shuffle" className="flex items-center gap-3 p-2 hover:bg-pink-50 dark:hover:bg-pink-900/10 rounded-xl transition-colors group">
-                      <div className="w-2 h-2 bg-pink-500 rounded-full group-hover:scale-125 transition-transform"></div>
-                      <span className="text-sm text-gray-700 dark:text-gray-200">
-                        <span className="font-semibold text-pink-600 dark:text-pink-400">&quot;Karıştır&quot;</span>
-                        <span className="text-gray-500 dark:text-gray-400"> - Soruları karıştır</span>
-                      </span>
-                    </div>
-                    <div key="flip" className="flex items-center gap-3 p-2 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 rounded-xl transition-colors group">
-                      <div className="w-2 h-2 bg-indigo-500 rounded-full group-hover:scale-125 transition-transform"></div>
-                      <span className="text-sm text-gray-700 dark:text-gray-200">
-                        <span className="font-semibold text-indigo-600 dark:text-indigo-400">&quot;Çevir&quot;</span>
-                        <span className="text-gray-500 dark:text-gray-400"> - Flashcard&apos;ı çevir</span>
-                      </span>
-                    </div>
-                    <div key="show" className="flex items-center gap-3 p-2 hover:bg-teal-50 dark:hover:bg-teal-900/10 rounded-xl transition-colors group">
-                      <div className="w-2 h-2 bg-teal-500 rounded-full group-hover:scale-125 transition-transform"></div>
-                      <span className="text-sm text-gray-700 dark:text-gray-200">
-                        <span className="font-semibold text-teal-600 dark:text-teal-400">&quot;Göster&quot;</span>
-                        <span className="text-gray-500 dark:text-gray-400"> - Cevabı göster</span>
-                      </span>
-                    </div>
-                    <div key="hide" className="flex items-center gap-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-xl transition-colors group">
-                      <div className="w-2 h-2 bg-gray-500 rounded-full group-hover:scale-125 transition-transform"></div>
-                      <span className="text-sm text-gray-700 dark:text-gray-200">
-                        <span className="font-semibold text-gray-600 dark:text-gray-400">&quot;Gizle&quot;</span>
-                        <span className="text-gray-500 dark:text-gray-400"> - Cevabı gizle</span>
-                      </span>
-                    </div>
-                    <div key="stop" className="flex items-center gap-3 p-2 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-colors group">
-                      <div className="w-2 h-2 bg-red-500 rounded-full group-hover:scale-125 transition-transform"></div>
-                      <span className="text-sm text-gray-700 dark:text-gray-200">
-                        <span className="font-semibold text-red-600 dark:text-red-400">&quot;Dur&quot;</span>
-                        <span className="text-gray-500 dark:text-gray-400"> - Sesli okumayı durdur</span>
-                      </span>
-                    </div>
-                  </>
-                )}
+                {/* Commands with modern styling */}
+                <div className="space-y-2">
+                  {onTranscript ? (
+                    <>
+                      <div
+                        key="voice-input-mode"
+                        className="flex items-center gap-2 sm:gap-3 p-1.5 sm:p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg sm:rounded-xl border border-blue-200/50 dark:border-blue-700/30"
+                      >
+                        <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                        <span className="text-xs sm:text-sm font-medium text-blue-700 dark:text-blue-300">
+                          Sesli Giriş Aktif
+                        </span>
+                      </div>
+                      <div
+                        key="voice-info"
+                        className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed mb-2 sm:mb-3"
+                      >
+                        Konuştuğunuz her şey otomatik yazılır ve gönderilir
+                      </div>
+                      <div
+                        key="clear"
+                        className="flex items-center gap-2 sm:gap-3 p-1.5 sm:p-2 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg sm:rounded-xl transition-colors group"
+                      >
+                        <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-red-500 rounded-full group-hover:scale-125 transition-transform"></div>
+                        <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-200">
+                          <span className="font-semibold text-red-600 dark:text-red-400">
+                            &quot;Temizle&quot;
+                          </span>
+                          <span className="text-gray-500 dark:text-gray-400 hidden sm:inline">
+                            {" "}
+                            - Sohbeti temizle
+                          </span>
+                        </span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div
+                        key="read-question"
+                        className="flex items-center gap-3 p-2 hover:bg-blue-50 dark:hover:bg-blue-900/10 rounded-xl transition-colors group"
+                      >
+                        <div className="w-2 h-2 bg-blue-500 rounded-full group-hover:scale-125 transition-transform"></div>
+                        <span className="text-sm text-gray-700 dark:text-gray-200">
+                          <span className="font-semibold text-blue-600 dark:text-blue-400">
+                            &quot;Soru oku&quot;
+                          </span>
+                          <span className="text-gray-500 dark:text-gray-400">
+                            {" "}
+                            - Mevcut soruyu sesli oku
+                          </span>
+                        </span>
+                      </div>
+                      <div
+                        key="read-answer"
+                        className="flex items-center gap-3 p-2 hover:bg-green-50 dark:hover:bg-green-900/10 rounded-xl transition-colors group"
+                      >
+                        <div className="w-2 h-2 bg-green-500 rounded-full group-hover:scale-125 transition-transform"></div>
+                        <span className="text-sm text-gray-700 dark:text-gray-200">
+                          <span className="font-semibold text-green-600 dark:text-green-400">
+                            &quot;Cevap oku&quot;
+                          </span>
+                          <span className="text-gray-500 dark:text-gray-400">
+                            {" "}
+                            - Cevabı sesli oku
+                          </span>
+                        </span>
+                      </div>
+                      <div
+                        key="read-ai-tutor"
+                        className="flex items-center gap-3 p-2 hover:bg-purple-50 dark:hover:bg-purple-900/10 rounded-xl transition-colors group"
+                      >
+                        <div className="w-2 h-2 bg-purple-500 rounded-full group-hover:scale-125 transition-transform"></div>
+                        <span className="text-sm text-gray-700 dark:text-gray-200">
+                          <span className="font-semibold text-purple-600 dark:text-purple-400">
+                            &quot;AI oku&quot;
+                          </span>
+                          <span className="text-gray-500 dark:text-gray-400">
+                            {" "}
+                            - AI Tutor çıktısını sesli oku
+                          </span>
+                        </span>
+                      </div>
+                      <div
+                        key="next"
+                        className="flex items-center gap-3 p-2 hover:bg-purple-50 dark:hover:bg-purple-900/10 rounded-xl transition-colors group"
+                      >
+                        <div className="w-2 h-2 bg-purple-500 rounded-full group-hover:scale-125 transition-transform"></div>
+                        <span className="text-sm text-gray-700 dark:text-gray-200">
+                          <span className="font-semibold text-purple-600 dark:text-purple-400">
+                            &quot;Sonraki&quot;
+                          </span>
+                          <span className="text-gray-500 dark:text-gray-400">
+                            {" "}
+                            - Sonraki soruya geç
+                          </span>
+                        </span>
+                      </div>
+                      <div
+                        key="previous"
+                        className="flex items-center gap-3 p-2 hover:bg-orange-50 dark:hover:bg-orange-900/10 rounded-xl transition-colors group"
+                      >
+                        <div className="w-2 h-2 bg-orange-500 rounded-full group-hover:scale-125 transition-transform"></div>
+                        <span className="text-sm text-gray-700 dark:text-gray-200">
+                          <span className="font-semibold text-orange-600 dark:text-orange-400">
+                            &quot;Önceki&quot;
+                          </span>
+                          <span className="text-gray-500 dark:text-gray-400">
+                            {" "}
+                            - Önceki soruya geç
+                          </span>
+                        </span>
+                      </div>
+                      <div
+                        key="shuffle"
+                        className="flex items-center gap-3 p-2 hover:bg-pink-50 dark:hover:bg-pink-900/10 rounded-xl transition-colors group"
+                      >
+                        <div className="w-2 h-2 bg-pink-500 rounded-full group-hover:scale-125 transition-transform"></div>
+                        <span className="text-sm text-gray-700 dark:text-gray-200">
+                          <span className="font-semibold text-pink-600 dark:text-pink-400">
+                            &quot;Karıştır&quot;
+                          </span>
+                          <span className="text-gray-500 dark:text-gray-400">
+                            {" "}
+                            - Soruları karıştır
+                          </span>
+                        </span>
+                      </div>
+                      <div
+                        key="flip"
+                        className="flex items-center gap-3 p-2 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 rounded-xl transition-colors group"
+                      >
+                        <div className="w-2 h-2 bg-indigo-500 rounded-full group-hover:scale-125 transition-transform"></div>
+                        <span className="text-sm text-gray-700 dark:text-gray-200">
+                          <span className="font-semibold text-indigo-600 dark:text-indigo-400">
+                            &quot;Çevir&quot;
+                          </span>
+                          <span className="text-gray-500 dark:text-gray-400">
+                            {" "}
+                            - Flashcard&apos;ı çevir
+                          </span>
+                        </span>
+                      </div>
+                      <div
+                        key="show"
+                        className="flex items-center gap-3 p-2 hover:bg-teal-50 dark:hover:bg-teal-900/10 rounded-xl transition-colors group"
+                      >
+                        <div className="w-2 h-2 bg-teal-500 rounded-full group-hover:scale-125 transition-transform"></div>
+                        <span className="text-sm text-gray-700 dark:text-gray-200">
+                          <span className="font-semibold text-teal-600 dark:text-teal-400">
+                            &quot;Göster&quot;
+                          </span>
+                          <span className="text-gray-500 dark:text-gray-400">
+                            {" "}
+                            - Cevabı göster
+                          </span>
+                        </span>
+                      </div>
+                      <div
+                        key="hide"
+                        className="flex items-center gap-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-xl transition-colors group"
+                      >
+                        <div className="w-2 h-2 bg-gray-500 rounded-full group-hover:scale-125 transition-transform"></div>
+                        <span className="text-sm text-gray-700 dark:text-gray-200">
+                          <span className="font-semibold text-gray-600 dark:text-gray-400">
+                            &quot;Gizle&quot;
+                          </span>
+                          <span className="text-gray-500 dark:text-gray-400">
+                            {" "}
+                            - Cevabı gizle
+                          </span>
+                        </span>
+                      </div>
+                      <div
+                        key="stop"
+                        className="flex items-center gap-3 p-2 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-colors group"
+                      >
+                        <div className="w-2 h-2 bg-red-500 rounded-full group-hover:scale-125 transition-transform"></div>
+                        <span className="text-sm text-gray-700 dark:text-gray-200">
+                          <span className="font-semibold text-red-600 dark:text-red-400">
+                            &quot;Dur&quot;
+                          </span>
+                          <span className="text-gray-500 dark:text-gray-400">
+                            {" "}
+                            - Sesli okumayı durdur
+                          </span>
+                        </span>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        </motion.div>
-      )}
+          </motion.div>
+        )}
       </div>
 
       {/* Transcript display - independent fixed position on right */}
@@ -663,7 +837,9 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
               Algılanan Komut
             </span>
           </div>
-          <p className="text-sm text-gray-600 dark:text-gray-400">{transcript}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            {transcript}
+          </p>
         </motion.div>
       )}
     </>

@@ -1,7 +1,7 @@
-import { eq, and, desc } from 'drizzle-orm';
-import { getDb } from '../connection';
-import { quizResults, performanceAnalytics, users } from '../schema';
-import type { QuizResultDisplay } from '@/lib/types';
+import { eq, and, desc } from "drizzle-orm";
+import { getDb } from "../connection";
+import { quizResults, performanceAnalytics, users } from "../schema";
+import type { QuizResultDisplay } from "@/lib/types";
 
 export class QuizRepository {
   /**
@@ -23,7 +23,7 @@ export class QuizRepository {
         .insert(users)
         .values({
           id: userId,
-          name: 'Misafir Kullanıcı',
+          name: "Misafir Kullanıcı",
           email: `${userId}@guest.com`,
         })
         .onConflictDoNothing();
@@ -40,7 +40,6 @@ export class QuizRepository {
 
       // Update performance analytics
       await this.updatePerformanceAnalytics(userId, subject);
-
     } catch (error) {
       //do nothing
       throw error;
@@ -50,7 +49,10 @@ export class QuizRepository {
   /**
    * Get quiz results for a user and subject
    */
-  static async getQuizResults(userId: string, subject: string): Promise<QuizResultDisplay[]> {
+  static async getQuizResults(
+    userId: string,
+    subject: string,
+  ): Promise<QuizResultDisplay[]> {
     try {
       const db = getDb();
       const results = await db
@@ -63,10 +65,7 @@ export class QuizRepository {
         })
         .from(quizResults)
         .where(
-          and(
-            eq(quizResults.userId, userId),
-            eq(quizResults.subject, subject),
-          ),
+          and(eq(quizResults.userId, userId), eq(quizResults.subject, subject)),
         )
         .orderBy(desc(quizResults.createdAt));
 
@@ -85,7 +84,9 @@ export class QuizRepository {
   /**
    * Get all quiz results for a user
    */
-  static async getAllQuizResults(userId: string): Promise<Record<string, QuizResultDisplay[]>> {
+  static async getAllQuizResults(
+    userId: string,
+  ): Promise<Record<string, QuizResultDisplay[]>> {
     try {
       const db = getDb();
       const results = await db
@@ -144,10 +145,7 @@ export class QuizRepository {
         })
         .from(quizResults)
         .where(
-          and(
-            eq(quizResults.userId, userId),
-            eq(quizResults.subject, subject),
-          ),
+          and(eq(quizResults.userId, userId), eq(quizResults.subject, subject)),
         )
         .orderBy(desc(quizResults.createdAt))
         .limit(limit);
@@ -167,25 +165,33 @@ export class QuizRepository {
   /**
    * Update performance analytics for a user and subject
    */
-  private static async updatePerformanceAnalytics(userId: string, subject: string): Promise<void> {
+  private static async updatePerformanceAnalytics(
+    userId: string,
+    subject: string,
+  ): Promise<void> {
     try {
       const db = getDb();
       const results = await this.getQuizResults(userId, subject);
 
-      if (results.length === 0) {return;}
+      if (results.length === 0) {
+        return;
+      }
 
       const totalTests = results.length;
-      const averageScore = results.reduce((acc, result) =>
-        acc + (result.score / result.totalQuestions) * 100, 0,
-      ) / totalTests;
+      const averageScore =
+        results.reduce(
+          (acc, result) => acc + (result.score / result.totalQuestions) * 100,
+          0,
+        ) / totalTests;
 
-      const averageTimeSpent = results.reduce((acc, result) =>
-        acc + result.timeSpent, 0,
-      ) / totalTests / 60; // Convert to minutes
+      const averageTimeSpent =
+        results.reduce((acc, result) => acc + result.timeSpent, 0) /
+        totalTests /
+        60; // Convert to minutes
 
       // Aggregate weak topics
       const allWeakTopics: Record<string, number> = {};
-      results.forEach(result => {
+      results.forEach((result) => {
         Object.entries(result.weakTopics).forEach(([topic, count]) => {
           allWeakTopics[topic] = (allWeakTopics[topic] || 0) + count;
         });
@@ -215,7 +221,6 @@ export class QuizRepository {
             lastUpdated: new Date(),
           },
         });
-
     } catch (error) {
       throw error;
     }
@@ -286,16 +291,16 @@ export class QuizRepository {
   /**
    * Delete quiz results for a user and subject
    */
-  static async deleteQuizResults(userId: string, subject: string): Promise<void> {
+  static async deleteQuizResults(
+    userId: string,
+    subject: string,
+  ): Promise<void> {
     try {
       const db = getDb();
       await db
         .delete(quizResults)
         .where(
-          and(
-            eq(quizResults.userId, userId),
-            eq(quizResults.subject, subject),
-          ),
+          and(eq(quizResults.userId, userId), eq(quizResults.subject, subject)),
         );
 
       // Also delete performance analytics
@@ -307,7 +312,6 @@ export class QuizRepository {
             eq(performanceAnalytics.subject, subject),
           ),
         );
-
     } catch (error) {
       throw error;
     }

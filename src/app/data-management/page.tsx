@@ -1,9 +1,15 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, Suspense } from 'react';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect, Suspense } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,7 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+} from "@/components/ui/alert-dialog";
 import {
   Cloud,
   Download,
@@ -28,12 +34,12 @@ import {
   Calendar,
   HardDrive,
   Shield,
-} from 'lucide-react';
-import Link from 'next/link';
-import MobileNav from '@/components/mobile-nav';
-import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
-import { DataBackupService } from '@/services/data-backup-service';
+} from "lucide-react";
+import Link from "next/link";
+import MobileNav from "@/components/mobile-nav";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { DataBackupService } from "@/services/data-backup-service";
 
 function DataManagementContent() {
   const { user: authUser, loading: authLoading } = useAuth();
@@ -43,21 +49,23 @@ function DataManagementContent() {
   const [isClearing, setIsClearing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [lastBackup, setLastBackup] = useState<string | null>(null);
-  const [backupSuccess, setBackupSuccess] = useState('');
-  const [restoreSuccess, setRestoreSuccess] = useState('');
-  const [clearSuccess, setClearSuccess] = useState('');
-  const [deleteError, setDeleteError] = useState('');
+  const [backupSuccess, setBackupSuccess] = useState("");
+  const [restoreSuccess, setRestoreSuccess] = useState("");
+  const [clearSuccess, setClearSuccess] = useState("");
+  const [deleteError, setDeleteError] = useState("");
 
   // Redirect if not authenticated and load last backup timestamp
   useEffect(() => {
     if (!authLoading && !authUser) {
-      window.location.href = '/login';
+      window.location.href = "/login";
     }
 
     // Load last backup timestamp
     const loadLastBackup = async () => {
       if (authUser) {
-        const timestamp = await DataBackupService.getLastBackupTimestamp(authUser.id);
+        const timestamp = await DataBackupService.getLastBackupTimestamp(
+          authUser.id,
+        );
         setLastBackup(timestamp);
       }
     };
@@ -70,7 +78,7 @@ function DataManagementContent() {
   const handleBackup = async () => {
     try {
       setIsBackingUp(true);
-      setBackupSuccess('');
+      setBackupSuccess("");
 
       // Create real backup
       const backupData = await DataBackupService.createBackup();
@@ -78,71 +86,69 @@ function DataManagementContent() {
       if (backupData) {
         // Update last backup time
         setLastBackup(backupData.timestamp);
-        setBackupSuccess('Verileriniz başarıyla yedeklendi!');
+        setBackupSuccess("Verileriniz başarıyla yedeklendi!");
       } else {
-        throw new Error('Yedekleme işlemi başarısız oldu');
+        throw new Error("Yedekleme işlemi başarısız oldu");
       }
-
     } catch {
-      setBackupSuccess(''); // Clear success message
-      setDeleteError('Yedekleme işlemi başarısız oldu. Lütfen tekrar deneyin.');
+      setBackupSuccess(""); // Clear success message
+      setDeleteError("Yedekleme işlemi başarısız oldu. Lütfen tekrar deneyin.");
     } finally {
       setIsBackingUp(false);
     }
   };
 
   const handleRestore = async () => {
-
     try {
       setIsRestoring(true);
-      setRestoreSuccess('');
+      setRestoreSuccess("");
 
       // Restore from real backup
       const success = await DataBackupService.restoreFromBackup();
 
       if (success) {
-        setRestoreSuccess('Verileriniz başarıyla geri yüklendi!');
+        setRestoreSuccess("Verileriniz başarıyla geri yüklendi!");
       } else {
-        throw new Error('Geri yükleme işlemi başarısız oldu');
+        throw new Error("Geri yükleme işlemi başarısız oldu");
       }
-
     } catch {
-      setRestoreSuccess(''); // Clear success message
-      setDeleteError('Geri yükleme işlemi başarısız oldu. Lütfen tekrar deneyin.');
+      setRestoreSuccess(""); // Clear success message
+      setDeleteError(
+        "Geri yükleme işlemi başarısız oldu. Lütfen tekrar deneyin.",
+      );
     } finally {
       setIsRestoring(false);
     }
   };
 
   const handleClearData = async () => {
-
     try {
       setIsClearing(true);
-      setClearSuccess('');
+      setClearSuccess("");
 
       // Clear real cloud data
       const success = await DataBackupService.clearAllCloudData();
 
       if (success) {
-        setClearSuccess('Bulut verileriniz başarıyla silindi!');
+        setClearSuccess("Bulut verileriniz başarıyla silindi!");
         setLastBackup(null); // Reset backup timestamp
       } else {
-        throw new Error('Veri silme işlemi başarısız oldu');
+        throw new Error("Veri silme işlemi başarısız oldu");
       }
-
     } catch {
-      setClearSuccess(''); // Clear success message
-      setDeleteError('Veri silme işlemi başarısız oldu. Lütfen tekrar deneyin.');
+      setClearSuccess(""); // Clear success message
+      setDeleteError(
+        "Veri silme işlemi başarısız oldu. Lütfen tekrar deneyin.",
+      );
     } finally {
       setIsClearing(false);
     }
   };
 
   const handleDeleteAccount = async () => {
-
     try {
       setIsDeleting(true);
-      setDeleteError('');
+      setDeleteError("");
 
       // Delete account with real service
       const success = await DataBackupService.deleteAccount();
@@ -150,16 +156,18 @@ function DataManagementContent() {
       if (success) {
         // Show success message briefly before redirect
         toast({
-          title: 'Hesap Silindi',
-          description: 'Hesabınız başarıyla silindi. Ana sayfaya yönlendiriliyorsunuz...',
+          title: "Hesap Silindi",
+          description:
+            "Hesabınız başarıyla silindi. Ana sayfaya yönlendiriliyorsunuz...",
         });
         // DataBackupService already handles logout and redirect
       } else {
-        throw new Error('Hesap silme işlemi başarısız oldu');
+        throw new Error("Hesap silme işlemi başarısız oldu");
       }
-
     } catch {
-      setDeleteError('Hesap silme işlemi başarısız oldu. Lütfen tekrar deneyin.');
+      setDeleteError(
+        "Hesap silme işlemi başarısız oldu. Lütfen tekrar deneyin.",
+      );
     } finally {
       setIsDeleting(false);
     }
@@ -205,13 +213,19 @@ function DataManagementContent() {
           <nav className="mb-6">
             <ol className="flex items-center space-x-2 text-sm text-muted-foreground">
               <li>
-                <Link href="/" className="hover:text-foreground transition-colors">
+                <Link
+                  href="/"
+                  className="hover:text-foreground transition-colors"
+                >
                   Ana Sayfa
                 </Link>
               </li>
               <li>/</li>
               <li>
-                <Link href="/profile" className="hover:text-foreground transition-colors">
+                <Link
+                  href="/profile"
+                  className="hover:text-foreground transition-colors"
+                >
                   Profil
                 </Link>
               </li>
@@ -236,13 +250,13 @@ function DataManagementContent() {
               Veri Yönetimi
             </h1>
             <p className="text-muted-foreground mt-2">
-              Verilerinizi güvenle yedekleyin, geri yükleyin veya hesabınızı yönetin
+              Verilerinizi güvenle yedekleyin, geri yükleyin veya hesabınızı
+              yönetin
             </p>
           </div>
 
           {/* Data Management Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
             {/* Cloud Backup */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -256,17 +270,22 @@ function DataManagementContent() {
                     Bulut Yedekleme
                   </CardTitle>
                   <CardDescription>
-                    Tüm ders verilerinizi ve test sonuçlarınızı güvenle buluta yedekleyin
+                    Tüm ders verilerinizi ve test sonuçlarınızı güvenle buluta
+                    yedekleyin
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                     <div className="flex items-center">
                       <Calendar className="w-4 h-4 text-gray-500 mr-2" />
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Son yedekleme:</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        Son yedekleme:
+                      </span>
                     </div>
                     <span className="text-sm font-medium text-gray-800 dark:text-white">
-                      {lastBackup ? new Date(lastBackup).toLocaleDateString('tr-TR') : 'Henüz yedekleme yapılmamış'}
+                      {lastBackup
+                        ? new Date(lastBackup).toLocaleDateString("tr-TR")
+                        : "Henüz yedekleme yapılmamış"}
                     </span>
                   </div>
 
@@ -274,13 +293,17 @@ function DataManagementContent() {
                     <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
                       <div className="flex items-center gap-2">
                         <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-                        <p className="text-sm text-green-600 dark:text-green-400">{backupSuccess}</p>
+                        <p className="text-sm text-green-600 dark:text-green-400">
+                          {backupSuccess}
+                        </p>
                       </div>
                     </div>
                   )}
 
                   <Button
-                    onClick={() => { void handleBackup(); }}
+                    onClick={() => {
+                      void handleBackup();
+                    }}
                     disabled={isBackingUp}
                     className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 w-full"
                   >
@@ -289,7 +312,7 @@ function DataManagementContent() {
                     ) : (
                       <Upload className="w-4 h-4 mr-2" />
                     )}
-                    {isBackingUp ? 'Yedekleniyor...' : 'Şimdi Yedekle'}
+                    {isBackingUp ? "Yedekleniyor..." : "Şimdi Yedekle"}
                   </Button>
                 </CardContent>
               </Card>
@@ -325,7 +348,9 @@ function DataManagementContent() {
                     <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
                       <div className="flex items-center gap-2">
                         <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-                        <p className="text-sm text-green-600 dark:text-green-400">{restoreSuccess}</p>
+                        <p className="text-sm text-green-600 dark:text-green-400">
+                          {restoreSuccess}
+                        </p>
                       </div>
                     </div>
                   )}
@@ -341,19 +366,27 @@ function DataManagementContent() {
                         ) : (
                           <Download className="w-4 h-4 mr-2" />
                         )}
-                        {isRestoring ? 'Geri Yükleniyor...' : 'Yedekten Geri Yükle'}
+                        {isRestoring
+                          ? "Geri Yükleniyor..."
+                          : "Yedekten Geri Yükle"}
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
                         <AlertDialogTitle>Yedekten Geri Yükle</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Mevcut verilerinizi yedekten geri yüklemek istediğinizden emin misiniz? Bu işlem mevcut verilerinizi değiştirebilir.
+                          Mevcut verilerinizi yedekten geri yüklemek
+                          istediğinizden emin misiniz? Bu işlem mevcut
+                          verilerinizi değiştirebilir.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>İptal</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => { void handleRestore(); }}>
+                        <AlertDialogAction
+                          onClick={() => {
+                            void handleRestore();
+                          }}
+                        >
                           Geri Yükle
                         </AlertDialogAction>
                       </AlertDialogFooter>
@@ -393,7 +426,9 @@ function DataManagementContent() {
                     <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
                       <div className="flex items-center gap-2">
                         <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-                        <p className="text-sm text-green-600 dark:text-green-400">{clearSuccess}</p>
+                        <p className="text-sm text-green-600 dark:text-green-400">
+                          {clearSuccess}
+                        </p>
                       </div>
                     </div>
                   )}
@@ -409,19 +444,28 @@ function DataManagementContent() {
                         ) : (
                           <Trash2 className="w-4 h-4 mr-2" />
                         )}
-                        {isClearing ? 'Temizleniyor...' : 'Tüm Bulut Verilerini Temizle'}
+                        {isClearing
+                          ? "Temizleniyor..."
+                          : "Tüm Bulut Verilerini Temizle"}
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Bulut Verilerini Temizle</AlertDialogTitle>
+                        <AlertDialogTitle>
+                          Bulut Verilerini Temizle
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                          Tüm bulut verilerinizi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+                          Tüm bulut verilerinizi silmek istediğinizden emin
+                          misiniz? Bu işlem geri alınamaz.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>İptal</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => { void handleClearData(); }}>
+                        <AlertDialogAction
+                          onClick={() => {
+                            void handleClearData();
+                          }}
+                        >
                           Temizle
                         </AlertDialogAction>
                       </AlertDialogFooter>
@@ -459,7 +503,9 @@ function DataManagementContent() {
 
                   {deleteError && (
                     <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
-                      <p className="text-sm text-red-600 dark:text-red-400">{deleteError}</p>
+                      <p className="text-sm text-red-600 dark:text-red-400">
+                        {deleteError}
+                      </p>
                     </div>
                   )}
 
@@ -474,20 +520,24 @@ function DataManagementContent() {
                         ) : (
                           <UserX className="w-4 h-4 mr-2" />
                         )}
-                        {isDeleting ? 'Hesap Siliniyor...' : 'Hesabımı Sil'}
+                        {isDeleting ? "Hesap Siliniyor..." : "Hesabımı Sil"}
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
                         <AlertDialogTitle>Hesabı Sil</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Hesabınızı kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz ve tüm verileriniz kaybolacak.
+                          Hesabınızı kalıcı olarak silmek istediğinizden emin
+                          misiniz? Bu işlem geri alınamaz ve tüm verileriniz
+                          kaybolacak.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>İptal</AlertDialogCancel>
                         <AlertDialogAction
-                          onClick={() => { void handleDeleteAccount(); }}
+                          onClick={() => {
+                            void handleDeleteAccount();
+                          }}
                           className="bg-red-600 hover:bg-red-700"
                         >
                           Hesabı Sil
@@ -546,14 +596,16 @@ function DataManagementContent() {
 
 export default function DataManagementPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="flex items-center gap-2">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span>Yükleniyor...</span>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="flex items-center gap-2">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span>Yükleniyor...</span>
+          </div>
         </div>
-      </div>
-    }>
+      }
+    >
       <DataManagementContent />
     </Suspense>
   );

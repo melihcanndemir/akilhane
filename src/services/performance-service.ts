@@ -3,8 +3,8 @@
  * This service provides methods to retrieve and manage performance data.
  */
 
-import type { PerformanceData, QuizResultDisplay, Subject } from '@/lib/types';
-import { QuizRepository } from '@/lib/database/repositories/quiz-repository';
+import type { PerformanceData, QuizResultDisplay, Subject } from "@/lib/types";
+import { QuizRepository } from "@/lib/database/repositories/quiz-repository";
 
 // Type for function with __setData property
 type PerformanceFunction = {
@@ -18,9 +18,11 @@ type PerformanceFunction = {
  * @param userId The user ID.
  * @returns An array of quiz results for the subject, or an empty array if none exist.
  */
-export async function getPerformanceHistoryForSubject(subject: string, userId: string): Promise<QuizResultDisplay[]> {
+export async function getPerformanceHistoryForSubject(
+  subject: string,
+  userId: string,
+): Promise<QuizResultDisplay[]> {
   try {
-
     const results = await QuizRepository.getQuizResults(userId, subject);
     return results;
   } catch {
@@ -33,9 +35,10 @@ export async function getPerformanceHistoryForSubject(subject: string, userId: s
  * @param userId The user ID.
  * @returns Performance data organized by subject.
  */
-export async function getAllPerformanceData(userId: string): Promise<PerformanceData> {
+export async function getAllPerformanceData(
+  userId: string,
+): Promise<PerformanceData> {
   try {
-
     const allResults = await QuizRepository.getAllQuizResults(userId);
     return allResults as PerformanceData;
   } catch {
@@ -61,10 +64,16 @@ export async function saveQuizResult(
   weakTopics: Record<string, number>,
 ): Promise<void> {
   try {
-
-    await QuizRepository.saveQuizResult(userId, subject, score, totalQuestions, timeSpent, weakTopics);
+    await QuizRepository.saveQuizResult(
+      userId,
+      subject,
+      score,
+      totalQuestions,
+      timeSpent,
+      weakTopics,
+    );
   } catch {
-    throw new Error('Error saving quiz result');
+    throw new Error("Error saving quiz result");
   }
 }
 
@@ -76,7 +85,6 @@ export async function saveQuizResult(
  */
 export async function getPerformanceAnalytics(userId: string, subject: string) {
   try {
-
     return await QuizRepository.getPerformanceAnalytics(userId, subject);
   } catch {
     return null;
@@ -90,7 +98,6 @@ export async function getPerformanceAnalytics(userId: string, subject: string) {
  */
 export async function getAllPerformanceAnalytics(userId: string) {
   try {
-
     return await QuizRepository.getAllPerformanceAnalytics(userId);
   } catch {
     return [];
@@ -110,7 +117,6 @@ export async function getRecentQuizResults(
   limit: number = 10,
 ): Promise<QuizResultDisplay[]> {
   try {
-
     return await QuizRepository.getRecentQuizResults(userId, subject, limit);
   } catch {
     return [];
@@ -122,9 +128,11 @@ export async function getRecentQuizResults(
  * @param userId The user ID.
  * @param subject The subject.
  */
-export async function deleteQuizResults(userId: string, subject: string): Promise<void> {
+export async function deleteQuizResults(
+  userId: string,
+  subject: string,
+): Promise<void> {
   try {
-
     await QuizRepository.deleteQuizResults(userId, subject);
   } catch (error) {
     throw error;
@@ -135,12 +143,15 @@ export async function deleteQuizResults(userId: string, subject: string): Promis
 // This is kept for backward compatibility with existing AI flows
 let mockPerformanceData: PerformanceData = {};
 
-(getPerformanceHistoryForSubject as PerformanceFunction).__setData = (data: PerformanceData) => {
+(getPerformanceHistoryForSubject as PerformanceFunction).__setData = (
+  data: PerformanceData,
+) => {
   mockPerformanceData = data;
 };
 // Fallback function for when database is not available
-export async function getPerformanceHistoryForSubjectFallback(subject: string): Promise<QuizResultDisplay[]> {
+export async function getPerformanceHistoryForSubjectFallback(
+  subject: string,
+): Promise<QuizResultDisplay[]> {
   const subjectKey = subject as Subject;
   return mockPerformanceData[subjectKey] || [];
 }
-

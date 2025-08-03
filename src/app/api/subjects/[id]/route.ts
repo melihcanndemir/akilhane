@@ -1,7 +1,7 @@
-import type { NextRequest} from 'next/server';
-import { NextResponse } from 'next/server';
-import { SubjectRepository } from '@/lib/database/repositories/subject-repository';
-import { initializeDatabase } from '@/lib/database/connection';
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { SubjectRepository } from "@/lib/database/repositories/subject-repository";
+import { initializeDatabase } from "@/lib/database/connection";
 
 export async function GET(
   _request: NextRequest,
@@ -15,16 +15,13 @@ export async function GET(
     const subject = await SubjectRepository.getSubjectById(id);
 
     if (!subject) {
-      return NextResponse.json(
-        { error: 'Subject not found' },
-        { status: 404 },
-      );
+      return NextResponse.json({ error: "Subject not found" }, { status: 404 });
     }
 
     return NextResponse.json(subject, { status: 200 });
   } catch {
     return NextResponse.json(
-      { error: 'Failed to get subject' },
+      { error: "Failed to get subject" },
       { status: 500 },
     );
   }
@@ -43,9 +40,9 @@ export async function PUT(
     const { name, description, category, difficulty, isActive } = body;
 
     // Validate difficulty if provided
-    if (difficulty && !['Başlangıç', 'Orta', 'İleri'].includes(difficulty)) {
+    if (difficulty && !["Başlangıç", "Orta", "İleri"].includes(difficulty)) {
       return NextResponse.json(
-        { error: 'Difficulty must be one of: Başlangıç, Orta, İleri' },
+        { error: "Difficulty must be one of: Başlangıç, Orta, İleri" },
         { status: 400 },
       );
     }
@@ -60,12 +57,12 @@ export async function PUT(
     });
 
     return NextResponse.json(
-      { message: 'Subject updated successfully' },
+      { message: "Subject updated successfully" },
       { status: 200 },
     );
   } catch {
     return NextResponse.json(
-      { error: 'Failed to update subject' },
+      { error: "Failed to update subject" },
       { status: 500 },
     );
   }
@@ -83,20 +80,23 @@ export async function DELETE(
     await SubjectRepository.deleteSubject(id);
 
     return NextResponse.json(
-      { message: 'Subject deleted successfully' },
+      { message: "Subject deleted successfully" },
       { status: 200 },
     );
   } catch (error) {
     // Check if it's a business logic error
-    if (error instanceof Error && error.message.includes('existing questions')) {
+    if (
+      error instanceof Error &&
+      error.message.includes("existing questions")
+    ) {
       return NextResponse.json(
-        { error: 'Cannot delete subject with existing questions' },
+        { error: "Cannot delete subject with existing questions" },
         { status: 400 },
       );
     }
 
     return NextResponse.json(
-      { error: 'Failed to delete subject' },
+      { error: "Failed to delete subject" },
       { status: 500 },
     );
   }
@@ -114,21 +114,18 @@ export async function PATCH(
     const body = await request.json();
     const { action } = body;
 
-    if (action === 'toggle-active') {
+    if (action === "toggle-active") {
       await SubjectRepository.toggleActive(id);
       return NextResponse.json(
-        { message: 'Subject active status toggled successfully' },
+        { message: "Subject active status toggled successfully" },
         { status: 200 },
       );
     }
 
-    return NextResponse.json(
-      { error: 'Invalid action' },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   } catch {
     return NextResponse.json(
-      { error: 'Failed to perform action on subject' },
+      { error: "Failed to perform action on subject" },
       { status: 500 },
     );
   }

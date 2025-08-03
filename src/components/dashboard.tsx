@@ -1,10 +1,16 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import {
   BookOpen,
   Brain,
@@ -19,13 +25,13 @@ import {
   FileText,
   Users,
   Database,
-} from 'lucide-react';
-import Link from 'next/link';
-import AnalyticsDashboard from './analytics-dashboard';
-import MobileNav from './mobile-nav';
-import LoadingSpinner from './loading-spinner';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+} from "lucide-react";
+import Link from "next/link";
+import AnalyticsDashboard from "./analytics-dashboard";
+import MobileNav from "./mobile-nav";
+import LoadingSpinner from "./loading-spinner";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 interface PerformanceData {
   subject: string;
@@ -53,41 +59,41 @@ interface TotalStats {
 
 const mockPerformanceData: PerformanceData[] = [
   {
-    subject: 'Matematik',
+    subject: "Matematik",
     averageScore: 75,
     totalTests: 12,
-    weakTopics: ['Türev', 'İntegral', 'Limit'],
+    weakTopics: ["Türev", "İntegral", "Limit"],
     lastUpdated: new Date().toISOString(),
   },
   {
-    subject: 'Fizik',
+    subject: "Fizik",
     averageScore: 62,
     totalTests: 8,
-    weakTopics: ['Optik', 'Dinamik'],
+    weakTopics: ["Optik", "Dinamik"],
     lastUpdated: new Date().toISOString(),
   },
   {
-    subject: 'Tarih',
+    subject: "Tarih",
     averageScore: 91,
     totalTests: 15,
-    weakTopics: ['Osmanlı Yükselme Dönemi'],
+    weakTopics: ["Osmanlı Yükselme Dönemi"],
     lastUpdated: new Date().toISOString(),
   },
 ];
 
 const mockRecentResults: QuizResult[] = [
   {
-    id: 'res1',
-    subject: 'Matematik',
+    id: "res1",
+    subject: "Matematik",
     score: 18, // 18 out of 20 questions correct = 90%
     totalQuestions: 20,
     timeSpent: 1200, // 20 mins
-    weakTopics: ['Türev'],
+    weakTopics: ["Türev"],
     createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
   },
   {
-    id: 'res2',
-    subject: 'Tarih',
+    id: "res2",
+    subject: "Tarih",
     score: 9, // 9 out of 10 questions correct = 90%
     totalQuestions: 10,
     timeSpent: 300, // 5 mins
@@ -95,12 +101,12 @@ const mockRecentResults: QuizResult[] = [
     createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
   },
   {
-    id: 'res3',
-    subject: 'Fizik',
+    id: "res3",
+    subject: "Fizik",
     score: 12, // 12 out of 15 questions correct = 80%
     totalQuestions: 15,
     timeSpent: 950, // ~16 mins
-    weakTopics: ['Optik', 'Dinamik'],
+    weakTopics: ["Optik", "Dinamik"],
     createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
   },
 ];
@@ -108,16 +114,20 @@ const mockRecentResults: QuizResult[] = [
 export default function Dashboard() {
   const [performanceData, setPerformanceData] = useState<PerformanceData[]>([]);
   const [recentResults, setRecentResults] = useState<QuizResult[]>([]);
-  const [totalStats, setTotalStats] = useState<TotalStats>({ totalTests: 0, averageScore: 0, totalTimeSpent: 0 });
+  const [totalStats, setTotalStats] = useState<TotalStats>({
+    totalTests: 0,
+    averageScore: 0,
+    totalTimeSpent: 0,
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [showAnalytics, setShowAnalytics] = useState(false);
 
   // return the useMockData parameter
   const [useMockData, setUseMockData] = useState(() => {
-    if (typeof window === 'undefined') {
+    if (typeof window === "undefined") {
       return true;
     }
-    const saved = localStorage.getItem('useMockData');
+    const saved = localStorage.getItem("useMockData");
     return saved !== null ? JSON.parse(saved) : true;
   });
 
@@ -140,7 +150,7 @@ export default function Dashboard() {
 
     try {
       // For real data, we need the user ID
-      const userId = localStorage.getItem('userId');
+      const userId = localStorage.getItem("userId");
       if (!userId) {
         // If no user, show empty state
         setPerformanceData([]);
@@ -150,22 +160,26 @@ export default function Dashboard() {
         return;
       }
 
-      const headers = new Headers({ 'x-user-id': userId });
+      const headers = new Headers({ "x-user-id": userId });
 
-      const [performanceResponse, resultsResponse, statsResponse] = await Promise.all([
-        fetch('/api/analytics/performance', { headers }),
-        fetch('/api/results?limit=5', { headers }),
-        fetch('/api/analytics/quick-stats', { headers }),
-      ]);
+      const [performanceResponse, resultsResponse, statsResponse] =
+        await Promise.all([
+          fetch("/api/analytics/performance", { headers }),
+          fetch("/api/results?limit=5", { headers }),
+          fetch("/api/analytics/quick-stats", { headers }),
+        ]);
 
-      const perfData = performanceResponse.ok ? await performanceResponse.json() : [];
+      const perfData = performanceResponse.ok
+        ? await performanceResponse.json()
+        : [];
       const resData = resultsResponse.ok ? await resultsResponse.json() : [];
-      const statsData = statsResponse.ok ? await statsResponse.json() : { totalTests: 0, averageScore: 0, totalTimeSpent: 0 };
+      const statsData = statsResponse.ok
+        ? await statsResponse.json()
+        : { totalTests: 0, averageScore: 0, totalTimeSpent: 0 };
 
       setPerformanceData(perfData);
       setRecentResults(resData);
       setTotalStats(statsData);
-
     } catch {
       // If any fetch fails, clear all data
       setPerformanceData([]);
@@ -178,34 +192,42 @@ export default function Dashboard() {
 
   useEffect(() => {
     // Save preference to localStorage whenever it changes
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('useMockData', JSON.stringify(useMockData));
+    if (typeof window !== "undefined") {
+      localStorage.setItem("useMockData", JSON.stringify(useMockData));
     }
     loadDashboardData();
   }, [useMockData, loadDashboardData]);
 
   const handleStatCardClick = (sectionId: string) => {
-    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth" });
   };
 
   const getScoreColor = (score: number) => {
     // Evaluate percentage values correctly
-    if (score >= 80) {return 'text-blue-600';}
-    if (score >= 60) {return 'text-yellow-600';}
-    return 'text-red-600';
+    if (score >= 80) {
+      return "text-blue-600";
+    }
+    if (score >= 60) {
+      return "text-yellow-600";
+    }
+    return "text-red-600";
   };
 
   const getScoreBadge = (score: number) => {
     // Evaluate percentage values correctly
-    if (score >= 80) {return <Badge className="bg-blue-100 text-blue-800">Mükemmel</Badge>;}
-    if (score >= 60) {return <Badge className="bg-yellow-100 text-yellow-800">İyi</Badge>;}
+    if (score >= 80) {
+      return <Badge className="bg-blue-100 text-blue-800">Mükemmel</Badge>;
+    }
+    if (score >= 60) {
+      return <Badge className="bg-yellow-100 text-yellow-800">İyi</Badge>;
+    }
     return <Badge className="bg-red-100 text-red-800">Geliştirilmeli</Badge>;
   };
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
   };
 
   if (isLoading) {
@@ -229,47 +251,60 @@ export default function Dashboard() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-headline font-bold text-blue-600">Dashboard</h1>
-              <p className="text-muted-foreground">Sınav hazırlık performansınızı takip edin</p>
+              <h1 className="text-3xl font-headline font-bold text-blue-600">
+                Dashboard
+              </h1>
+              <p className="text-muted-foreground">
+                Sınav hazırlık performansınızı takip edin
+              </p>
             </div>
             <div className="flex items-center space-x-2">
-                <Switch id="mock-data-switch" checked={useMockData} onCheckedChange={setUseMockData} />
-                <Label htmlFor="mock-data-switch">Örnek Veri</Label>
-              </div>
-              <div className="flex space-x-2">
-                <Link href="/question-manager">
-                  <Button size="sm" className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700">
-                    <Plus className="w-4 h-4" />
-                    <span className="hidden sm:inline">Ekle</span>
-                  </Button>
-                </Link>
-                <Link href="/settings">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="flex items-center gap-2 hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors"
-                  >
-                    <Settings className="w-4 h-4" />
-                    <span className="hidden sm:inline">Ayarlar</span>
-                  </Button>
-                </Link>
+              <Switch
+                id="mock-data-switch"
+                checked={useMockData}
+                onCheckedChange={setUseMockData}
+              />
+              <Label htmlFor="mock-data-switch">Örnek Veri</Label>
+            </div>
+            <div className="flex space-x-2">
+              <Link href="/question-manager">
+                <Button
+                  size="sm"
+                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Ekle</span>
+                </Button>
+              </Link>
+              <Link href="/settings">
                 <Button
                   size="sm"
                   variant="outline"
                   className="flex items-center gap-2 hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors"
-                  onClick={() => setShowAnalytics(!showAnalytics)}
                 >
-                  <BarChart3 className="w-4 h-4" />
-                  <span className="hidden sm:inline">{showAnalytics ? 'Kapat' : 'Analitik'}</span>
+                  <Settings className="w-4 h-4" />
+                  <span className="hidden sm:inline">Ayarlar</span>
                 </Button>
-              </div>
+              </Link>
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex items-center gap-2 hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors"
+                onClick={() => setShowAnalytics(!showAnalytics)}
+              >
+                <BarChart3 className="w-4 h-4" />
+                <span className="hidden sm:inline">
+                  {showAnalytics ? "Kapat" : "Analitik"}
+                </span>
+              </Button>
+            </div>
           </div>
 
           {/* Analytics Dashboard */}
           {showAnalytics && (
             <div className="mb-8">
               <AnalyticsDashboard
-                key={`analytics-${useMockData ? 'mock' : 'real'}`}
+                key={`analytics-${useMockData ? "mock" : "real"}`}
                 useMockData={useMockData}
               />
             </div>
@@ -279,61 +314,68 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card className="glass-card">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Toplam Test</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Toplam Test
+                </CardTitle>
                 <BookOpen className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
                   {totalStats.totalTests}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Tüm zamanlar
-                </p>
+                <p className="text-xs text-muted-foreground">Tüm zamanlar</p>
               </CardContent>
             </Card>
 
             <Card className="glass-card">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Ortalama Skor</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Ortalama Skor
+                </CardTitle>
                 <Target className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
                   {totalStats.averageScore}%
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Tüm zamanlar
-                </p>
+                <p className="text-xs text-muted-foreground">Tüm zamanlar</p>
               </CardContent>
             </Card>
 
             <Card className="glass-card">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Toplam Süre</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Toplam Süre
+                </CardTitle>
                 <Clock className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
                   {formatTime(totalStats.totalTimeSpent)}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Tüm zamanlar
-                </p>
+                <p className="text-xs text-muted-foreground">Tüm zamanlar</p>
               </CardContent>
             </Card>
 
             <Card
-              onClick={() => handleStatCardClick('performance-analytics-section')}
+              onClick={() =>
+                handleStatCardClick("performance-analytics-section")
+              }
               className="cursor-pointer hover:bg-muted/50 transition-colors glass-card"
             >
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Zayıf Konular</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Zayıf Konular
+                </CardTitle>
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
                   {performanceData.length > 0
-                    ? performanceData.reduce((acc, data) => acc + data.weakTopics.length, 0)
+                    ? performanceData.reduce(
+                        (acc, data) => acc + data.weakTopics.length,
+                        0,
+                      )
                     : 0}
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -359,15 +401,21 @@ export default function Dashboard() {
                 {performanceData.length === 0 ? (
                   <div className="text-center py-8">
                     <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">Henüz performans verisi yok</p>
-                    <p className="text-sm text-muted-foreground">İlk testinizi çözerek başlayın</p>
+                    <p className="text-muted-foreground">
+                      Henüz performans verisi yok
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      İlk testinizi çözerek başlayın
+                    </p>
                   </div>
                 ) : (
                   performanceData.map((data) => (
                     <div key={data.subject} className="space-y-3">
                       <div className="flex items-center justify-between">
                         <h3 className="font-medium">{data.subject}</h3>
-                        <span className={`font-bold ${getScoreColor(data.averageScore)}`}>
+                        <span
+                          className={`font-bold ${getScoreColor(data.averageScore)}`}
+                        >
                           {data.averageScore}%
                         </span>
                       </div>
@@ -379,7 +427,11 @@ export default function Dashboard() {
                       {data.weakTopics.length > 0 && (
                         <div className="flex flex-wrap gap-1">
                           {data.weakTopics.slice(0, 3).map((topic, index) => (
-                            <Badge key={index} variant="secondary" className="text-xs">
+                            <Badge
+                              key={index}
+                              variant="secondary"
+                              className="text-xs"
+                            >
                               {topic}
                             </Badge>
                           ))}
@@ -403,28 +455,38 @@ export default function Dashboard() {
                   <FileText className="w-5 h-5" />
                   Son Sonuçlar
                 </CardTitle>
-                <CardDescription>
-                  En son çözdüğünüz testler
-                </CardDescription>
+                <CardDescription>En son çözdüğünüz testler</CardDescription>
               </CardHeader>
               <CardContent>
                 {recentResults.length === 0 ? (
                   <div className="text-center py-8">
                     <CheckCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">Henüz test sonucu yok</p>
-                    <p className="text-sm text-muted-foreground">İlk testinizi çözerek başlayın</p>
+                    <p className="text-muted-foreground">
+                      Henüz test sonucu yok
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      İlk testinizi çözerek başlayın
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {recentResults.map((result) => {
-                      const percentage = result.totalQuestions > 0
-                        ? Math.round((result.score / result.totalQuestions) * 100)
-                        : 0;
+                      const percentage =
+                        result.totalQuestions > 0
+                          ? Math.round(
+                              (result.score / result.totalQuestions) * 100,
+                            )
+                          : 0;
 
                       return (
-                        <div key={result.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div
+                          key={result.id}
+                          className="flex items-center justify-between p-4 border rounded-lg"
+                        >
                           <div className="flex items-center gap-3">
-                            <div className={`p-2 rounded-full ${percentage >= 60 ? 'bg-blue-100' : 'bg-red-100'}`}>
+                            <div
+                              className={`p-2 rounded-full ${percentage >= 60 ? "bg-blue-100" : "bg-red-100"}`}
+                            >
                               {percentage >= 60 ? (
                                 <CheckCircle className="w-4 h-4 text-blue-600" />
                               ) : (
@@ -434,12 +496,15 @@ export default function Dashboard() {
                             <div>
                               <p className="font-medium">{result.subject}</p>
                               <p className="text-sm text-muted-foreground">
-                                {result.totalQuestions} soru • {formatTime(result.timeSpent)}
+                                {result.totalQuestions} soru •{" "}
+                                {formatTime(result.timeSpent)}
                               </p>
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className={`font-bold text-lg ${getScoreColor(percentage)}`}>
+                            <div
+                              className={`font-bold text-lg ${getScoreColor(percentage)}`}
+                            >
                               {percentage}%
                             </div>
                             {getScoreBadge(percentage)}
@@ -464,25 +529,37 @@ export default function Dashboard() {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <Link href="/quiz">
-                  <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center gap-2 hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors">
+                  <Button
+                    variant="outline"
+                    className="w-full h-20 flex flex-col items-center justify-center gap-2 hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors"
+                  >
                     <BookOpen className="w-6 h-6" />
                     <span>Test Çöz</span>
                   </Button>
                 </Link>
                 <Link href="/flashcard">
-                  <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center gap-2 hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors">
+                  <Button
+                    variant="outline"
+                    className="w-full h-20 flex flex-col items-center justify-center gap-2 hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors"
+                  >
                     <Brain className="w-6 h-6" />
                     <span>Flashcard</span>
                   </Button>
                 </Link>
                 <Link href="/ai-chat">
-                  <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center gap-2 hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors">
+                  <Button
+                    variant="outline"
+                    className="w-full h-20 flex flex-col items-center justify-center gap-2 hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors"
+                  >
                     <Users className="w-6 h-6" />
                     <span>AI Asistan</span>
                   </Button>
                 </Link>
                 <Link href="/question-manager">
-                  <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center gap-2 hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors">
+                  <Button
+                    variant="outline"
+                    className="w-full h-20 flex flex-col items-center justify-center gap-2 hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors"
+                  >
                     <Database className="w-6 h-6" />
                     <span>Soru Yöneticisi</span>
                   </Button>
@@ -495,4 +572,3 @@ export default function Dashboard() {
     </div>
   );
 }
-

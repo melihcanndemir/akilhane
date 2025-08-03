@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
 export async function GET() {
   // SVG placeholder image
@@ -20,8 +20,8 @@ export async function GET() {
 
   return new NextResponse(svg, {
     headers: {
-      'Content-Type': 'image/svg+xml',
-      'Cache-Control': 'public, max-age=3600',
+      "Content-Type": "image/svg+xml",
+      "Cache-Control": "public, max-age=3600",
     },
   });
 }

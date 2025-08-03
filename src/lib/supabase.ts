@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -255,14 +255,20 @@ export interface Database {
   };
 }
 
-export type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row'];
-export type InsertTables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert'];
-export type UpdateTables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Update'];
+export type Tables<T extends keyof Database["public"]["Tables"]> =
+  Database["public"]["Tables"][T]["Row"];
+export type InsertTables<T extends keyof Database["public"]["Tables"]> =
+  Database["public"]["Tables"][T]["Insert"];
+export type UpdateTables<T extends keyof Database["public"]["Tables"]> =
+  Database["public"]["Tables"][T]["Update"];
 
 // 🔍 BASIC AUTH CHECK FUNCTION
 export const checkAuth = async () => {
   try {
-    const { data: { session }, error } = await supabase.auth.getSession();
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
 
     if (error) {
       return { isLoggedIn: false, user: null, error };
@@ -287,7 +293,7 @@ export const requireAuth = async <T>(
   if (!isLoggedIn) {
     return {
       success: false,
-      message: 'Oturum açmanız gerekiyor!',
+      message: "Oturum açmanız gerekiyor!",
     };
   }
 
@@ -296,12 +302,12 @@ export const requireAuth = async <T>(
     return {
       success: true,
       data,
-      message: 'İşlem başarılı',
+      message: "İşlem başarılı",
     };
   } catch (error) {
     return {
       success: false,
-      message: `İşlem başarısız: ${  error}`,
+      message: `İşlem başarısız: ${error}`,
     };
   }
 };
@@ -325,7 +331,7 @@ export const signInWithEmail = async (email: string, password: string) => {
 
 export const signInWithGoogle = async () => {
   const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
+    provider: "google",
     options: {
       redirectTo: `${window.location.origin}/auth/callback`,
     },
@@ -353,6 +359,9 @@ export const updatePassword = async (password: string) => {
 };
 
 export const getCurrentUser = async () => {
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
   return { user, error };
 };

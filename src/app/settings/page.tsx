@@ -1,13 +1,25 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+} from "@/components/ui/alert-dialog";
 import {
   Settings,
   Bell,
@@ -30,11 +42,11 @@ import {
   BookOpen,
   GraduationCap,
   Loader2,
-} from 'lucide-react';
-import Link from 'next/link';
-import { useTheme } from 'next-themes';
-import { useToast } from '@/hooks/use-toast';
-import MobileNav from '@/components/mobile-nav';
+} from "lucide-react";
+import Link from "next/link";
+import { useTheme } from "next-themes";
+import { useToast } from "@/hooks/use-toast";
+import MobileNav from "@/components/mobile-nav";
 
 interface Subject {
   id: number;
@@ -57,12 +69,12 @@ export default function SettingsPage() {
   });
 
   const [appearance, setAppearance] = useState({
-    fontSize: 'medium',
+    fontSize: "medium",
     compactMode: false,
   });
 
   const [studyPreferences, setStudyPreferences] = useState({
-    defaultSubject: '',
+    defaultSubject: "",
     questionsPerQuiz: 10,
     timeLimit: 30,
     showTimer: true,
@@ -70,8 +82,8 @@ export default function SettingsPage() {
   });
 
   // Custom values state
-  const [customQuestionsValue, setCustomQuestionsValue] = useState('');
-  const [customTimeValue, setCustomTimeValue] = useState('');
+  const [customQuestionsValue, setCustomQuestionsValue] = useState("");
+  const [customTimeValue, setCustomTimeValue] = useState("");
 
   useEffect(() => {
     const initializeSettings = async () => {
@@ -79,7 +91,7 @@ export default function SettingsPage() {
 
       // Default values
       let loadedStudyPrefs = {
-        defaultSubject: '',
+        defaultSubject: "",
         questionsPerQuiz: 10,
         timeLimit: 30,
         showTimer: true,
@@ -92,18 +104,28 @@ export default function SettingsPage() {
         achievements: true,
       };
       let loadedAppearance = {
-        fontSize: 'medium',
+        fontSize: "medium",
         compactMode: false,
       };
-      let loadedTheme = 'system';
+      let loadedTheme = "system";
 
       // 1. Load settings from localStorage
-      const saved = localStorage.getItem('userSettings');
+      const saved = localStorage.getItem("userSettings");
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          if (parsed.studyPreferences) {loadedStudyPrefs = { ...loadedStudyPrefs, ...parsed.studyPreferences };}
-          if (parsed.notifications) {loadedNotifications = { ...loadedNotifications, ...parsed.notifications };}
+          if (parsed.studyPreferences) {
+            loadedStudyPrefs = {
+              ...loadedStudyPrefs,
+              ...parsed.studyPreferences,
+            };
+          }
+          if (parsed.notifications) {
+            loadedNotifications = {
+              ...loadedNotifications,
+              ...parsed.notifications,
+            };
+          }
           if (parsed.appearance) {
             loadedAppearance = { ...loadedAppearance, ...parsed.appearance };
             loadedTheme = parsed.appearance.theme || loadedTheme;
@@ -115,14 +137,16 @@ export default function SettingsPage() {
 
       // 2. Load subjects from API
       try {
-        const response = await fetch('/api/subjects');
+        const response = await fetch("/api/subjects");
         if (response.ok) {
           const subjectData = await response.json();
           setSubjects(subjectData);
 
           // 3. Default subject ayarla
           if (!loadedStudyPrefs.defaultSubject && subjectData.length > 0) {
-            const firstActiveSubject = subjectData.find((s: Subject) => s.is_active);
+            const firstActiveSubject = subjectData.find(
+              (s: Subject) => s.is_active,
+            );
             if (firstActiveSubject) {
               loadedStudyPrefs.defaultSubject = firstActiveSubject.name;
             }
@@ -134,13 +158,19 @@ export default function SettingsPage() {
 
       // 4. Custom değerleri ayarla
       const standardQuestionOptions = [5, 10, 15, 20];
-      if (loadedStudyPrefs.questionsPerQuiz && !standardQuestionOptions.includes(loadedStudyPrefs.questionsPerQuiz)) {
+      if (
+        loadedStudyPrefs.questionsPerQuiz &&
+        !standardQuestionOptions.includes(loadedStudyPrefs.questionsPerQuiz)
+      ) {
         setCustomQuestionsValue(loadedStudyPrefs.questionsPerQuiz.toString());
         loadedStudyPrefs.questionsPerQuiz = -1;
       }
 
       const standardTimeOptions = [15, 30, 45, 60];
-      if (loadedStudyPrefs.timeLimit && !standardTimeOptions.includes(loadedStudyPrefs.timeLimit)) {
+      if (
+        loadedStudyPrefs.timeLimit &&
+        !standardTimeOptions.includes(loadedStudyPrefs.timeLimit)
+      ) {
         setCustomTimeValue(loadedStudyPrefs.timeLimit.toString());
         loadedStudyPrefs.timeLimit = -1;
       }
@@ -153,14 +183,25 @@ export default function SettingsPage() {
 
       // 6. Apply visual styles
       const root = document.documentElement;
-      if (loadedAppearance.compactMode) {root.classList.add('compact-mode');}
-      else {root.classList.remove('compact-mode');}
+      if (loadedAppearance.compactMode) {
+        root.classList.add("compact-mode");
+      } else {
+        root.classList.remove("compact-mode");
+      }
 
       switch (loadedAppearance.fontSize) {
-        case 'small': root.style.fontSize = '14px'; break;
-        case 'medium': root.style.fontSize = '16px'; break;
-        case 'large': root.style.fontSize = '18px'; break;
-        default: root.style.fontSize = '16px'; break;
+        case "small":
+          root.style.fontSize = "14px";
+          break;
+        case "medium":
+          root.style.fontSize = "16px";
+          break;
+        case "large":
+          root.style.fontSize = "18px";
+          break;
+        default:
+          root.style.fontSize = "16px";
+          break;
       }
 
       setLoading(false);
@@ -176,24 +217,24 @@ export default function SettingsPage() {
 
     // Kompakt mod ayarla
     if (appearance.compactMode) {
-      root.classList.add('compact-mode');
+      root.classList.add("compact-mode");
     } else {
-      root.classList.remove('compact-mode');
+      root.classList.remove("compact-mode");
     }
 
     // Font size ayarla
     switch (appearance.fontSize) {
-      case 'small':
-        root.style.fontSize = '14px';
+      case "small":
+        root.style.fontSize = "14px";
         break;
-      case 'medium':
-        root.style.fontSize = '16px';
+      case "medium":
+        root.style.fontSize = "16px";
         break;
-      case 'large':
-        root.style.fontSize = '18px';
+      case "large":
+        root.style.fontSize = "18px";
         break;
       default:
-        root.style.fontSize = '16px';
+        root.style.fontSize = "16px";
         break;
     }
   }, [appearance.compactMode, appearance.fontSize]);
@@ -201,7 +242,7 @@ export default function SettingsPage() {
   const handleExportData = () => {
     // Export user data
     const userData = {
-      performance: localStorage.getItem('performanceData'),
+      performance: localStorage.getItem("performanceData"),
       settings: {
         notifications,
         appearance,
@@ -209,19 +250,21 @@ export default function SettingsPage() {
       },
     };
 
-    const blob = new Blob([JSON.stringify(userData, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(userData, null, 2)], {
+      type: "application/json",
+    });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = `akilhane-settings-${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `akilhane-settings-${new Date().toISOString().split("T")[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
   const handleImportData = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".json";
     input.onchange = (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
@@ -230,22 +273,24 @@ export default function SettingsPage() {
           try {
             const data = JSON.parse(e.target?.result as string);
             if (data.performance) {
-              localStorage.setItem('performanceData', data.performance);
+              localStorage.setItem("performanceData", data.performance);
             }
             if (data.settings) {
               setNotifications(data.settings.notifications || notifications);
               setAppearance(data.settings.appearance || appearance);
-              setStudyPreferences(data.settings.studyPreferences || studyPreferences);
+              setStudyPreferences(
+                data.settings.studyPreferences || studyPreferences,
+              );
             }
             toast({
-              title: 'Başarılı',
-              description: 'Veriler başarıyla içe aktarıldı!',
+              title: "Başarılı",
+              description: "Veriler başarıyla içe aktarıldı!",
             });
           } catch {
             toast({
-              title: 'Hata',
-              description: 'Dosya formatı geçersiz!',
-              variant: 'destructive',
+              title: "Hata",
+              description: "Dosya formatı geçersiz!",
+              variant: "destructive",
             });
           }
         };
@@ -258,8 +303,8 @@ export default function SettingsPage() {
   const handleClearData = () => {
     localStorage.clear();
     toast({
-      title: 'Başarılı',
-      description: 'Tüm veriler silindi!',
+      title: "Başarılı",
+      description: "Tüm veriler silindi!",
     });
   };
 
@@ -283,10 +328,10 @@ export default function SettingsPage() {
       },
       studyPreferences: settingsToSave,
     };
-    localStorage.setItem('userSettings', JSON.stringify(settings));
+    localStorage.setItem("userSettings", JSON.stringify(settings));
     toast({
-      title: 'Ayarlar kaydedildi',
-      description: 'Tüm ayarlarınız başarıyla kaydedildi.',
+      title: "Ayarlar kaydedildi",
+      description: "Tüm ayarlarınız başarıyla kaydedildi.",
     });
   };
 
@@ -301,8 +346,12 @@ export default function SettingsPage() {
           <div className="flex items-center gap-3">
             <Settings className="w-8 h-8 text-primary" />
             <div>
-              <h1 className="text-3xl font-headline font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Ayarlar</h1>
-              <p className="text-muted-foreground">Uygulama tercihlerinizi yönetin</p>
+              <h1 className="text-3xl font-headline font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Ayarlar
+              </h1>
+              <p className="text-muted-foreground">
+                Uygulama tercihlerinizi yönetin
+              </p>
             </div>
           </div>
 
@@ -321,26 +370,38 @@ export default function SettingsPage() {
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label htmlFor="email-notifications">E-posta Bildirimleri</Label>
-                    <p className="text-sm text-muted-foreground">Önemli güncellemeler için e-posta alın</p>
+                    <Label htmlFor="email-notifications">
+                      E-posta Bildirimleri
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Önemli güncellemeler için e-posta alın
+                    </p>
                   </div>
                   <Switch
                     id="email-notifications"
                     checked={notifications.email}
-                    onCheckedChange={(checked) => setNotifications({...notifications, email: checked})}
+                    onCheckedChange={(checked) =>
+                      setNotifications({ ...notifications, email: checked })
+                    }
                     className="data-[state=checked]:bg-indigo-600 hover:bg-indigo-600/20 transition-colors"
                   />
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label htmlFor="push-notifications">Push Bildirimleri</Label>
-                    <p className="text-sm text-muted-foreground">Anlık bildirimler alın</p>
+                    <Label htmlFor="push-notifications">
+                      Push Bildirimleri
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Anlık bildirimler alın
+                    </p>
                   </div>
                   <Switch
                     id="push-notifications"
                     checked={notifications.push}
-                    onCheckedChange={(checked) => setNotifications({...notifications, push: checked})}
+                    onCheckedChange={(checked) =>
+                      setNotifications({ ...notifications, push: checked })
+                    }
                     className="data-[state=checked]:bg-indigo-600 hover:bg-indigo-600/20 transition-colors"
                   />
                 </div>
@@ -348,12 +409,16 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="reminders">Hatırlatıcılar</Label>
-                    <p className="text-sm text-muted-foreground">Çalışma hatırlatıcıları</p>
+                    <p className="text-sm text-muted-foreground">
+                      Çalışma hatırlatıcıları
+                    </p>
                   </div>
                   <Switch
                     id="reminders"
                     checked={notifications.reminders}
-                    onCheckedChange={(checked) => setNotifications({...notifications, reminders: checked})}
+                    onCheckedChange={(checked) =>
+                      setNotifications({ ...notifications, reminders: checked })
+                    }
                     className="data-[state=checked]:bg-indigo-600 hover:bg-indigo-600/20 transition-colors"
                   />
                 </div>
@@ -361,12 +426,19 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="achievements">Başarı Bildirimleri</Label>
-                    <p className="text-sm text-muted-foreground">Başarılarınızı kutlayın</p>
+                    <p className="text-sm text-muted-foreground">
+                      Başarılarınızı kutlayın
+                    </p>
                   </div>
                   <Switch
                     id="achievements"
                     checked={notifications.achievements}
-                    onCheckedChange={(checked) => setNotifications({...notifications, achievements: checked})}
+                    onCheckedChange={(checked) =>
+                      setNotifications({
+                        ...notifications,
+                        achievements: checked,
+                      })
+                    }
                     className="data-[state=checked]:bg-indigo-600 hover:bg-indigo-600/20 transition-colors"
                   />
                 </div>
@@ -387,18 +459,27 @@ export default function SettingsPage() {
               <CardContent className="space-y-4">
                 <div>
                   <Label htmlFor="theme">Tema</Label>
-                  <Select value={theme || 'system'} onValueChange={setTheme}>
+                  <Select value={theme || "system"} onValueChange={setTheme}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="light" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">
+                      <SelectItem
+                        value="light"
+                        className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white"
+                      >
                         Açık
                       </SelectItem>
-                      <SelectItem value="dark" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">
+                      <SelectItem
+                        value="dark"
+                        className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white"
+                      >
                         Koyu
                       </SelectItem>
-                      <SelectItem value="system" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">
+                      <SelectItem
+                        value="system"
+                        className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white"
+                      >
                         Sistem
                       </SelectItem>
                     </SelectContent>
@@ -406,18 +487,32 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <Label htmlFor="font-size">Yazı Boyutu</Label>
-                  <Select value={appearance.fontSize} onValueChange={(value) => setAppearance({...appearance, fontSize: value})}>
+                  <Select
+                    value={appearance.fontSize}
+                    onValueChange={(value) =>
+                      setAppearance({ ...appearance, fontSize: value })
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="small" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">
+                      <SelectItem
+                        value="small"
+                        className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white"
+                      >
                         Küçük
                       </SelectItem>
-                      <SelectItem value="medium" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">
+                      <SelectItem
+                        value="medium"
+                        className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white"
+                      >
                         Orta
                       </SelectItem>
-                      <SelectItem value="large" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">
+                      <SelectItem
+                        value="large"
+                        className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white"
+                      >
                         Büyük
                       </SelectItem>
                     </SelectContent>
@@ -426,12 +521,16 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="compact-mode">Kompakt Mod</Label>
-                    <p className="text-sm text-muted-foreground">Daha az boşluk kullanın</p>
+                    <p className="text-sm text-muted-foreground">
+                      Daha az boşluk kullanın
+                    </p>
                   </div>
                   <Switch
                     id="compact-mode"
                     checked={appearance.compactMode}
-                    onCheckedChange={(checked) => setAppearance({...appearance, compactMode: checked})}
+                    onCheckedChange={(checked) =>
+                      setAppearance({ ...appearance, compactMode: checked })
+                    }
                     className="data-[state=checked]:bg-indigo-600 hover:bg-indigo-600/20 transition-colors"
                   />
                 </div>
@@ -454,7 +553,12 @@ export default function SettingsPage() {
                   <Label htmlFor="default-subject">Varsayılan Ders</Label>
                   <Select
                     value={studyPreferences.defaultSubject}
-                    onValueChange={(value) => setStudyPreferences({...studyPreferences, defaultSubject: value})}
+                    onValueChange={(value) =>
+                      setStudyPreferences({
+                        ...studyPreferences,
+                        defaultSubject: value,
+                      })
+                    }
                     disabled={loading}
                   >
                     <SelectTrigger>
@@ -468,7 +572,8 @@ export default function SettingsPage() {
                       )}
                     </SelectTrigger>
                     <SelectContent>
-                      {subjects.filter(subject => subject.is_active).length === 0 ? (
+                      {subjects.filter((subject) => subject.is_active)
+                        .length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
                           <BookOpen className="w-12 h-12 text-muted-foreground/50 mb-3" />
                           <p className="text-sm font-medium text-muted-foreground mb-1">
@@ -478,7 +583,11 @@ export default function SettingsPage() {
                             Ders yöneticisinden yeni ders ekleyebilirsiniz
                           </p>
                           <Link href="/subject-manager">
-                            <Button size="sm" variant="outline" className="text-xs">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-xs"
+                            >
                               <GraduationCap className="w-3 h-3 mr-1" />
                               Ders Ekle
                             </Button>
@@ -486,9 +595,13 @@ export default function SettingsPage() {
                         </div>
                       ) : (
                         subjects
-                          .filter(subject => subject.is_active)
+                          .filter((subject) => subject.is_active)
                           .map((subject) => (
-                            <SelectItem key={subject.id} value={subject.name} className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">
+                            <SelectItem
+                              key={subject.id}
+                              value={subject.name}
+                              className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white"
+                            >
                               {subject.name}
                             </SelectItem>
                           ))
@@ -497,24 +610,61 @@ export default function SettingsPage() {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="questions-per-quiz">Test Başına Soru Sayısı</Label>
-                   <div className="flex gap-2">
+                  <Label htmlFor="questions-per-quiz">
+                    Test Başına Soru Sayısı
+                  </Label>
+                  <div className="flex gap-2">
                     <Select
-                      value={studyPreferences.questionsPerQuiz === -1 ? 'custom' : studyPreferences.questionsPerQuiz.toString()}
+                      value={
+                        studyPreferences.questionsPerQuiz === -1
+                          ? "custom"
+                          : studyPreferences.questionsPerQuiz.toString()
+                      }
                       onValueChange={(value) => {
-                        setStudyPreferences({...studyPreferences, questionsPerQuiz: value === 'custom' ? -1 : parseInt(value)});
-                        if (value !== 'custom') {setCustomQuestionsValue('');}
+                        setStudyPreferences({
+                          ...studyPreferences,
+                          questionsPerQuiz:
+                            value === "custom" ? -1 : parseInt(value),
+                        });
+                        if (value !== "custom") {
+                          setCustomQuestionsValue("");
+                        }
                       }}
                     >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="5" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">5 Soru</SelectItem>
-                        <SelectItem value="10" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">10 Soru</SelectItem>
-                        <SelectItem value="15" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">15 Soru</SelectItem>
-                        <SelectItem value="20" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">20 Soru</SelectItem>
-                        <SelectItem value="custom" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">Özel...</SelectItem>
+                        <SelectItem
+                          value="5"
+                          className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white"
+                        >
+                          5 Soru
+                        </SelectItem>
+                        <SelectItem
+                          value="10"
+                          className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white"
+                        >
+                          10 Soru
+                        </SelectItem>
+                        <SelectItem
+                          value="15"
+                          className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white"
+                        >
+                          15 Soru
+                        </SelectItem>
+                        <SelectItem
+                          value="20"
+                          className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white"
+                        >
+                          20 Soru
+                        </SelectItem>
+                        <SelectItem
+                          value="custom"
+                          className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white"
+                        >
+                          Özel...
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     {studyPreferences.questionsPerQuiz === -1 && (
@@ -522,7 +672,9 @@ export default function SettingsPage() {
                         type="number"
                         placeholder="Örn: 25"
                         value={customQuestionsValue}
-                        onChange={(e) => setCustomQuestionsValue(e.target.value)}
+                        onChange={(e) =>
+                          setCustomQuestionsValue(e.target.value)
+                        }
                         className="w-28"
                       />
                     )}
@@ -532,24 +684,58 @@ export default function SettingsPage() {
                   <Label htmlFor="time-limit">Zaman Limiti (dakika)</Label>
                   <div className="flex gap-2">
                     <Select
-                      value={studyPreferences.timeLimit === -1 ? 'custom' : studyPreferences.timeLimit.toString()}
-                       onValueChange={(value) => {
-                        setStudyPreferences({...studyPreferences, timeLimit: value === 'custom' ? -1 : parseInt(value)});
-                        if (value !== 'custom') {setCustomTimeValue('');}
+                      value={
+                        studyPreferences.timeLimit === -1
+                          ? "custom"
+                          : studyPreferences.timeLimit.toString()
+                      }
+                      onValueChange={(value) => {
+                        setStudyPreferences({
+                          ...studyPreferences,
+                          timeLimit: value === "custom" ? -1 : parseInt(value),
+                        });
+                        if (value !== "custom") {
+                          setCustomTimeValue("");
+                        }
                       }}
                     >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="15" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">15 Dakika</SelectItem>
-                        <SelectItem value="30" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">30 Dakika</SelectItem>
-                        <SelectItem value="45" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">45 Dakika</SelectItem>
-                        <SelectItem value="60" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">60 Dakika</SelectItem>
-                        <SelectItem value="custom" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white">Özel...</SelectItem>
+                        <SelectItem
+                          value="15"
+                          className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white"
+                        >
+                          15 Dakika
+                        </SelectItem>
+                        <SelectItem
+                          value="30"
+                          className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white"
+                        >
+                          30 Dakika
+                        </SelectItem>
+                        <SelectItem
+                          value="45"
+                          className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white"
+                        >
+                          45 Dakika
+                        </SelectItem>
+                        <SelectItem
+                          value="60"
+                          className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white"
+                        >
+                          60 Dakika
+                        </SelectItem>
+                        <SelectItem
+                          value="custom"
+                          className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white"
+                        >
+                          Özel...
+                        </SelectItem>
                       </SelectContent>
                     </Select>
-                     {studyPreferences.timeLimit === -1 && (
+                    {studyPreferences.timeLimit === -1 && (
                       <Input
                         type="number"
                         placeholder="Örn: 50"
@@ -563,24 +749,38 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="show-timer">Zamanlayıcı Göster</Label>
-                    <p className="text-sm text-muted-foreground">Test sırasında kalan süreyi göster</p>
+                    <p className="text-sm text-muted-foreground">
+                      Test sırasında kalan süreyi göster
+                    </p>
                   </div>
                   <Switch
                     id="show-timer"
                     checked={studyPreferences.showTimer}
-                    onCheckedChange={(checked) => setStudyPreferences({...studyPreferences, showTimer: checked})}
+                    onCheckedChange={(checked) =>
+                      setStudyPreferences({
+                        ...studyPreferences,
+                        showTimer: checked,
+                      })
+                    }
                     className="data-[state=checked]:bg-indigo-600 hover:bg-indigo-600/20 transition-colors"
                   />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="auto-submit">Otomatik Gönder</Label>
-                    <p className="text-sm text-muted-foreground">Süre dolduğunda otomatik gönder</p>
+                    <p className="text-sm text-muted-foreground">
+                      Süre dolduğunda otomatik gönder
+                    </p>
                   </div>
                   <Switch
                     id="auto-submit"
                     checked={studyPreferences.autoSubmit}
-                    onCheckedChange={(checked) => setStudyPreferences({...studyPreferences, autoSubmit: checked})}
+                    onCheckedChange={(checked) =>
+                      setStudyPreferences({
+                        ...studyPreferences,
+                        autoSubmit: checked,
+                      })
+                    }
                     className="data-[state=checked]:bg-indigo-600 hover:bg-indigo-600/20 transition-colors"
                   />
                 </div>
@@ -600,11 +800,19 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex flex-col sm:flex-row gap-2">
-                  <Button onClick={handleExportData} variant="outline" className="flex-1 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0">
+                  <Button
+                    onClick={handleExportData}
+                    variant="outline"
+                    className="flex-1 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
+                  >
                     <Download className="w-4 h-4 mr-2" />
                     Verileri Dışa Aktar
                   </Button>
-                  <Button onClick={handleImportData} variant="outline" className="flex-1 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0">
+                  <Button
+                    onClick={handleImportData}
+                    variant="outline"
+                    className="flex-1 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
+                  >
                     <Upload className="w-4 h-4 mr-2" />
                     Verileri İçe Aktar
                   </Button>
@@ -613,7 +821,10 @@ export default function SettingsPage() {
                 <div className="flex gap-2">
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="destructive" className="flex-1 hover:bg-gradient-to-r hover:from-red-600 hover:to-pink-600 hover:text-white hover:border-0">
+                      <Button
+                        variant="destructive"
+                        className="flex-1 hover:bg-gradient-to-r hover:from-red-600 hover:to-pink-600 hover:text-white hover:border-0"
+                      >
                         <Trash2 className="w-4 h-4 mr-2" />
                         Tüm Verileri Sil
                       </Button>
@@ -622,7 +833,8 @@ export default function SettingsPage() {
                       <AlertDialogHeader>
                         <AlertDialogTitle>Tüm Verileri Sil</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Tüm verileriniz silinecek. Bu işlem geri alınamaz. Devam etmek istiyor musunuz?
+                          Tüm verileriniz silinecek. Bu işlem geri alınamaz.
+                          Devam etmek istiyor musunuz?
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
@@ -638,7 +850,8 @@ export default function SettingsPage() {
                   </AlertDialog>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Dışa aktarılan veriler JSON formatında kaydedilir ve daha sonra içe aktarılabilir.
+                  Dışa aktarılan veriler JSON formatında kaydedilir ve daha
+                  sonra içe aktarılabilir.
                 </p>
               </CardContent>
             </Card>
@@ -646,7 +859,10 @@ export default function SettingsPage() {
 
           {/* Save Button */}
           <div className="flex justify-end">
-            <Button className="px-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white" onClick={handleSaveSettings}>
+            <Button
+              className="px-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+              onClick={handleSaveSettings}
+            >
               <Settings className="w-4 h-4 mr-2" />
               Ayarları Kaydet
             </Button>

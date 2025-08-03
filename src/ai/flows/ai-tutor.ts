@@ -1,44 +1,69 @@
-'use server';
+"use server";
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { ai } from "@/ai/genkit";
+import { z } from "genkit";
 
 const AiTutorInputSchema = z.object({
-  question: z.string().describe('The question text that the user is trying to solve.'),
-  subject: z.string().describe('The subject area of the question.'),
-  topic: z.string().describe('The specific topic of the question.'),
-  userAnswer: z.string().optional().describe('The user\'s current answer attempt (optional).'),
-  difficulty: z.enum(['Kolay', 'Orta', 'Zor']).optional().describe('The difficulty level of the question.'),
-  options: z.array(z.object({
-    text: z.string(),
-    isCorrect: z.boolean(),
-  })).optional().describe('The multiple choice options for the question.'),
-  correctAnswer: z.string().optional().describe('The correct answer text.'),
-  explanation: z.string().optional().describe('The standard explanation for the correct answer.'),
-  step: z.enum(['hint', 'explanation', 'step-by-step', 'concept-review']).describe('What type of help the user needs.'),
+  question: z
+    .string()
+    .describe("The question text that the user is trying to solve."),
+  subject: z.string().describe("The subject area of the question."),
+  topic: z.string().describe("The specific topic of the question."),
+  userAnswer: z
+    .string()
+    .optional()
+    .describe("The user's current answer attempt (optional)."),
+  difficulty: z
+    .enum(["Kolay", "Orta", "Zor"])
+    .optional()
+    .describe("The difficulty level of the question."),
+  options: z
+    .array(
+      z.object({
+        text: z.string(),
+        isCorrect: z.boolean(),
+      }),
+    )
+    .optional()
+    .describe("The multiple choice options for the question."),
+  correctAnswer: z.string().optional().describe("The correct answer text."),
+  explanation: z
+    .string()
+    .optional()
+    .describe("The standard explanation for the correct answer."),
+  step: z
+    .enum(["hint", "explanation", "step-by-step", "concept-review"])
+    .describe("What type of help the user needs."),
 });
 
 export type AiTutorInput = z.infer<typeof AiTutorInputSchema>;
 
 const AiTutorOutputSchema = z.object({
-  help: z.string().describe('The help content based on the requested step type.'),
-  confidence: z.number().optional().describe('AI confidence in the explanation (0-1).'),
+  help: z
+    .string()
+    .describe("The help content based on the requested step type."),
+  confidence: z
+    .number()
+    .optional()
+    .describe("AI confidence in the explanation (0-1)."),
 });
 
 export type AiTutorOutput = z.infer<typeof AiTutorOutputSchema>;
 
 // Difficulty translation function
-function translateDifficulty(difficulty: string): 'Kolay' | 'Orta' | 'Zor' | undefined {
-  const difficultyMap: Record<string, 'Kolay' | 'Orta' | 'Zor'> = {
-    'Easy': 'Kolay',
-    'Medium': 'Orta',
-    'Hard': 'Zor',
-    'easy': 'Kolay',
-    'medium': 'Orta',
-    'hard': 'Zor',
-    'EASY': 'Kolay',
-    'MEDIUM': 'Orta',
-    'HARD': 'Zor',
+function translateDifficulty(
+  difficulty: string,
+): "Kolay" | "Orta" | "Zor" | undefined {
+  const difficultyMap: Record<string, "Kolay" | "Orta" | "Zor"> = {
+    Easy: "Kolay",
+    Medium: "Orta",
+    Hard: "Zor",
+    easy: "Kolay",
+    medium: "Orta",
+    hard: "Zor",
+    EASY: "Kolay",
+    MEDIUM: "Orta",
+    HARD: "Zor",
   };
 
   return difficultyMap[difficulty] || undefined;
@@ -51,23 +76,25 @@ export async function getAiTutorHelp(
     // Translate difficulty from English to Turkish
     const translatedInput = {
       ...input,
-      difficulty: input.difficulty ? translateDifficulty(input.difficulty) : input.difficulty,
+      difficulty: input.difficulty
+        ? translateDifficulty(input.difficulty)
+        : input.difficulty,
     };
 
     return await aiTutorFlow(translatedInput);
   } catch {
     // Return fallback response
     return {
-      help: 'Şu anda AI asistanına erişilemiyor. Lütfen daha sonra tekrar deneyin.',
+      help: "Şu anda AI asistanına erişilemiyor. Lütfen daha sonra tekrar deneyin.",
       confidence: 0,
     };
   }
 }
 
 const prompt = ai.definePrompt({
-  name: 'aiTutorPrompt',
-  input: {schema: AiTutorInputSchema},
-  output: {schema: AiTutorOutputSchema},
+  name: "aiTutorPrompt",
+  input: { schema: AiTutorInputSchema },
+  output: { schema: AiTutorOutputSchema },
   prompt: `Sen bir uzman öğretmensin. Öğrencinin soruyu çözmesine yardım etmek için ipuçları, detaylı açıklamalar ve adım adım rehberlik sağlamalısın.
 
 Öğrenci şu anda şu soruyu çözmeye çalışıyor:
@@ -117,12 +144,12 @@ Yardım türü: {{{step}}}
 
 const aiTutorFlow = ai.defineFlow(
   {
-    name: 'aiTutorFlow',
+    name: "aiTutorFlow",
     inputSchema: AiTutorInputSchema,
     outputSchema: AiTutorOutputSchema,
   },
-  async input => {
-    const {output} = await prompt(input);
+  async (input) => {
+    const { output } = await prompt(input);
     return output!;
   },
 );

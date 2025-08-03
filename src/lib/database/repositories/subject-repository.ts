@@ -1,6 +1,6 @@
-import { eq, desc, like, count, and } from 'drizzle-orm';
-import { getDb } from '../connection';
-import { subjects, questions } from '../schema';
+import { eq, desc, like, count, and } from "drizzle-orm";
+import { getDb } from "../connection";
+import { subjects, questions } from "../schema";
 
 type SubjectRow = typeof subjects.$inferSelect;
 
@@ -9,7 +9,7 @@ export interface Subject {
   name: string;
   description: string;
   category: string;
-  difficulty: 'Başlangıç' | 'Orta' | 'İleri';
+  difficulty: "Başlangıç" | "Orta" | "İleri";
   questionCount: number;
   isActive: boolean;
   createdBy?: string | undefined;
@@ -21,7 +21,7 @@ export interface CreateSubjectData {
   name: string;
   description: string;
   category: string;
-  difficulty: 'Başlangıç' | 'Orta' | 'İleri';
+  difficulty: "Başlangıç" | "Orta" | "İleri";
   createdBy?: string;
 }
 
@@ -29,7 +29,7 @@ export interface UpdateSubjectData {
   name?: string;
   description?: string;
   category?: string;
-  difficulty?: 'Başlangıç' | 'Orta' | 'İleri';
+  difficulty?: "Başlangıç" | "Orta" | "İleri";
   isActive?: boolean;
 }
 
@@ -64,15 +64,13 @@ export class SubjectRepository {
   /**
    * Get all subjects with optional filtering
    */
-  static async getAllSubjects(
-    filters?: {
-      category?: string;
-      difficulty?: string;
-      isActive?: boolean;
-      search?: string;
-      userId?: string;
-    },
-  ): Promise<Subject[]> {
+  static async getAllSubjects(filters?: {
+    category?: string;
+    difficulty?: string;
+    isActive?: boolean;
+    search?: string;
+    userId?: string;
+  }): Promise<Subject[]> {
     try {
       const db = getDb();
       const conditions = [];
@@ -100,9 +98,12 @@ export class SubjectRepository {
 
       const baseQuery = db.select().from(subjects);
 
-      const results = conditions.length > 0
-        ? await baseQuery.where(and(...conditions)).orderBy(desc(subjects.createdAt))
-        : await baseQuery.orderBy(desc(subjects.createdAt));
+      const results =
+        conditions.length > 0
+          ? await baseQuery
+              .where(and(...conditions))
+              .orderBy(desc(subjects.createdAt))
+          : await baseQuery.orderBy(desc(subjects.createdAt));
 
       // Update question counts
       const subjectsWithCounts = await Promise.all(
@@ -110,7 +111,7 @@ export class SubjectRepository {
           const questionCount = await this.getQuestionCount(subject.id);
           return {
             ...subject,
-            difficulty: subject.difficulty as 'Başlangıç' | 'Orta' | 'İleri',
+            difficulty: subject.difficulty as "Başlangıç" | "Orta" | "İleri",
             createdBy: subject.createdBy || undefined,
             questionCount,
           };
@@ -148,7 +149,7 @@ export class SubjectRepository {
 
       return {
         ...subject,
-        difficulty: subject.difficulty as 'Başlangıç' | 'Orta' | 'İleri',
+        difficulty: subject.difficulty as "Başlangıç" | "Orta" | "İleri",
         createdBy: subject.createdBy || undefined,
         questionCount,
       };
@@ -160,24 +161,33 @@ export class SubjectRepository {
   /**
    * Update subject
    */
-  static async updateSubject(id: string, data: UpdateSubjectData): Promise<void> {
+  static async updateSubject(
+    id: string,
+    data: UpdateSubjectData,
+  ): Promise<void> {
     try {
       const db = getDb();
       const updateData: Partial<typeof subjects.$inferInsert> = {
         updatedAt: new Date(),
       };
 
-      if (data.name !== undefined) {updateData.name = data.name;}
-      if (data.description !== undefined) {updateData.description = data.description;}
-      if (data.category !== undefined) {updateData.category = data.category;}
-      if (data.difficulty !== undefined) {updateData.difficulty = data.difficulty;}
-      if (data.isActive !== undefined) {updateData.isActive = data.isActive;}
+      if (data.name !== undefined) {
+        updateData.name = data.name;
+      }
+      if (data.description !== undefined) {
+        updateData.description = data.description;
+      }
+      if (data.category !== undefined) {
+        updateData.category = data.category;
+      }
+      if (data.difficulty !== undefined) {
+        updateData.difficulty = data.difficulty;
+      }
+      if (data.isActive !== undefined) {
+        updateData.isActive = data.isActive;
+      }
 
-      await db
-        .update(subjects)
-        .set(updateData)
-        .where(eq(subjects.id, id));
-
+      await db.update(subjects).set(updateData).where(eq(subjects.id, id));
     } catch (error) {
       throw error;
     }
@@ -191,7 +201,7 @@ export class SubjectRepository {
       // Check if subject has questions
       const questionCount = await this.getQuestionCount(id);
       if (questionCount > 0) {
-        throw new Error('Cannot delete subject with existing questions');
+        throw new Error("Cannot delete subject with existing questions");
       }
 
       const db = getDb();
@@ -208,7 +218,7 @@ export class SubjectRepository {
     try {
       const subject = await this.getSubjectById(id);
       if (!subject) {
-        throw new Error('Subject not found');
+        throw new Error("Subject not found");
       }
 
       const db = getDb();
@@ -219,7 +229,6 @@ export class SubjectRepository {
           updatedAt: new Date(),
         })
         .where(eq(subjects.id, id));
-
     } catch (error) {
       throw error;
     }
@@ -245,7 +254,10 @@ export class SubjectRepository {
   /**
    * Get subjects by category
    */
-  static async getSubjectsByCategory(category: string, userId?: string): Promise<Subject[]> {
+  static async getSubjectsByCategory(
+    category: string,
+    userId?: string,
+  ): Promise<Subject[]> {
     try {
       const db = getDb();
       const conditions = [eq(subjects.category, category)];
@@ -267,7 +279,7 @@ export class SubjectRepository {
           const questionCount = await this.getQuestionCount(subject.id);
           return {
             ...subject,
-            difficulty: subject.difficulty as 'Başlangıç' | 'Orta' | 'İleri',
+            difficulty: subject.difficulty as "Başlangıç" | "Orta" | "İleri",
             createdBy: subject.createdBy || undefined,
             questionCount,
           };
@@ -294,19 +306,19 @@ export class SubjectRepository {
 
       const stats = {
         totalSubjects: allSubjects.length,
-        activeSubjects: allSubjects.filter(s => s.isActive).length,
+        activeSubjects: allSubjects.filter((s) => s.isActive).length,
         subjectsByCategory: {} as Record<string, number>,
         subjectsByDifficulty: {} as Record<string, number>,
       };
 
       // Count by category
-      allSubjects.forEach(subject => {
+      allSubjects.forEach((subject) => {
         stats.subjectsByCategory[subject.category] =
           (stats.subjectsByCategory[subject.category] || 0) + 1;
       });
 
       // Count by difficulty
-      allSubjects.forEach(subject => {
+      allSubjects.forEach((subject) => {
         stats.subjectsByDifficulty[subject.difficulty] =
           (stats.subjectsByDifficulty[subject.difficulty] || 0) + 1;
       });

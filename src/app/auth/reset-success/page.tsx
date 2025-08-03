@@ -1,16 +1,17 @@
-'use client';
+"use client";
 
-import React, { useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useEffect } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
 import {
-  CheckCircle,
-  Brain,
-  ArrowLeft,
-  Shield,
-} from 'lucide-react';
-import { useRouter } from 'next/navigation';
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { CheckCircle, Brain, ArrowLeft, Shield } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function ResetSuccessPage() {
   const router = useRouter();
@@ -18,7 +19,7 @@ export default function ResetSuccessPage() {
   useEffect(() => {
     // Auto redirect to login after 5 seconds
     const timer = setTimeout(() => {
-      router.push('/login');
+      router.push("/login");
     }, 5000);
 
     return () => clearTimeout(timer);
@@ -57,18 +58,20 @@ export default function ResetSuccessPage() {
                 Şifre Başarıyla Güncellendi!
               </CardTitle>
               <CardDescription className="text-base">
-                Şifreniz güvenli bir şekilde güncellendi. Artık yeni şifrenizle giriş yapabilirsiniz.
+                Şifreniz güvenli bir şekilde güncellendi. Artık yeni şifrenizle
+                giriş yapabilirsiniz.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
                 <p className="text-sm text-blue-800 dark:text-blue-200">
-                  <strong>Güvenlik Notu:</strong> Hesabınızın güvenliği için şifrenizi kimseyle paylaşmayın.
+                  <strong>Güvenlik Notu:</strong> Hesabınızın güvenliği için
+                  şifrenizi kimseyle paylaşmayın.
                 </p>
               </div>
 
               <Button
-                onClick={() => router.push('/login')}
+                onClick={() => router.push("/login")}
                 className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -76,7 +79,8 @@ export default function ResetSuccessPage() {
               </Button>
 
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                5 saniye sonra otomatik olarak giriş sayfasına yönlendirileceksiniz.
+                5 saniye sonra otomatik olarak giriş sayfasına
+                yönlendirileceksiniz.
               </p>
             </CardContent>
           </Card>

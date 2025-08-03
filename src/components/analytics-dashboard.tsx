@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   TrendingUp,
   TrendingDown,
@@ -15,8 +15,8 @@ import {
   LineChart,
   PieChart,
   Sparkles,
-} from 'lucide-react';
-import { demoAnalyticsData } from '@/data/demo-data';
+} from "lucide-react";
+import { demoAnalyticsData } from "@/data/demo-data";
 
 interface AnalyticsData {
   totalQuestions: number;
@@ -67,7 +67,9 @@ interface AnalyticsDashboardProps {
 }
 
 // return the useMockData parameter
-export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardProps) {
+export default function AnalyticsDashboard({
+  useMockData,
+}: AnalyticsDashboardProps) {
   const [analytics, setAnalytics] = useState<AnalyticsData>({
     totalQuestions: 0,
     correctAnswers: 0,
@@ -88,7 +90,6 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
     const generateMockData = () => {
       // Use rich demo data for BTK Hackathon
       if (useMockData) {
-
         setAnalytics(demoAnalyticsData);
       } else {
         // Simple mock data (old version)
@@ -101,8 +102,8 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
           rank: Math.floor(Math.random() * 1000) + 1,
           totalUsers: Math.floor(Math.random() * 5000) + 1000,
           improvement: Math.floor(Math.random() * 20) + 5,
-          weakTopics: ['Finansal Analiz', 'Muhasebe', 'İstatistik'],
-          strongTopics: ['Matematik', 'Ekonomi', 'Yönetim'],
+          weakTopics: ["Finansal Analiz", "Muhasebe", "İstatistik"],
+          strongTopics: ["Matematik", "Ekonomi", "Yönetim"],
           recentActivity: [],
         };
         setAnalytics(mockData);
@@ -112,23 +113,32 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
 
     const fetchRealData = async () => {
       try {
-
         // Get data from localStorage
         const getAnalyticsFromStorage = () => {
-          if (typeof window === 'undefined') {return null;}
+          if (typeof window === "undefined") {
+            return null;
+          }
 
           try {
             // Calculate analytics from quiz results
-            const quizResultsKey = useMockData ? 'exam_training_demo_quiz_results' : 'exam_training_quiz_results';
+            const quizResultsKey = useMockData
+              ? "exam_training_demo_quiz_results"
+              : "exam_training_quiz_results";
             const quizResults = localStorage.getItem(quizResultsKey);
-            const results: QuizResult[] = quizResults ? JSON.parse(quizResults) : [];
+            const results: QuizResult[] = quizResults
+              ? JSON.parse(quizResults)
+              : [];
 
             // Filter out demo results if not in demo mode
-            const filteredResults = useMockData ? results : results.filter((result: QuizResult) => !result.isDemo);
+            const filteredResults = useMockData
+              ? results
+              : results.filter((result: QuizResult) => !result.isDemo);
 
             // Get subject information from Subjects
-            const subjects = localStorage.getItem('exam_training_subjects');
-            const subjectsData: Subject[] = subjects ? JSON.parse(subjects) : [];
+            const subjects = localStorage.getItem("exam_training_subjects");
+            const subjectsData: Subject[] = subjects
+              ? JSON.parse(subjects)
+              : [];
 
             // Get question information from Questions (not currently used)
             // const questions = localStorage.getItem('exam_training_questions');
@@ -151,36 +161,56 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
             }
 
             // Calculate analytics
-            const totalQuestions = filteredResults.reduce((sum: number, result: QuizResult) => sum + result.totalQuestions, 0);
-            const correctAnswers = filteredResults.reduce((sum: number, result: QuizResult) => sum + result.score, 0);
-            const averageScore = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
-            const studyTime = filteredResults.reduce((sum: number, result: QuizResult) => sum + (result.timeSpent || 0), 0);
+            const totalQuestions = filteredResults.reduce(
+              (sum: number, result: QuizResult) => sum + result.totalQuestions,
+              0,
+            );
+            const correctAnswers = filteredResults.reduce(
+              (sum: number, result: QuizResult) => sum + result.score,
+              0,
+            );
+            const averageScore =
+              totalQuestions > 0
+                ? Math.round((correctAnswers / totalQuestions) * 100)
+                : 0;
+            const studyTime = filteredResults.reduce(
+              (sum: number, result: QuizResult) =>
+                sum + (result.timeSpent || 0),
+              0,
+            );
 
             // Calculate weak topics
             const weakTopicsMap: Record<string, number> = {};
             filteredResults.forEach((result: QuizResult) => {
               if (result.weakTopics) {
                 Object.entries(result.weakTopics).forEach(([topic, count]) => {
-                  weakTopicsMap[topic] = (weakTopicsMap[topic] || 0) + (count);
+                  weakTopicsMap[topic] = (weakTopicsMap[topic] || 0) + count;
                 });
               }
             });
 
             const weakTopics = Object.entries(weakTopicsMap)
-              .sort(([,a], [,b]) => (b) - (a))
+              .sort(([, a], [, b]) => b - a)
               .slice(0, 3)
               .map(([topic]) => topic);
 
             // Calculate strong topics based on actual performance
             // Topics that are NOT in weak topics and have good performance
             const allTopics = new Set<string>();
-            const topicPerformance: Record<string, { correct: number; total: number }> = {};
+            const topicPerformance: Record<
+              string,
+              { correct: number; total: number }
+            > = {};
 
             // Collect all topics from quiz results
             filteredResults.forEach((result: QuizResult) => {
-              const {weakTopics} = result;
-              if (weakTopics && typeof weakTopics === 'object' && !Array.isArray(weakTopics)) {
-                Object.keys(weakTopics).forEach(topic => {
+              const { weakTopics } = result;
+              if (
+                weakTopics &&
+                typeof weakTopics === "object" &&
+                !Array.isArray(weakTopics)
+              ) {
+                Object.keys(weakTopics).forEach((topic) => {
                   allTopics.add(topic);
                   if (!topicPerformance[topic]) {
                     topicPerformance[topic] = { correct: 0, total: 0 };
@@ -195,28 +225,32 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
 
             // Calculate strong topics (topics with >70% success rate and not in weak topics)
             const strongTopics = Array.from(allTopics)
-              .filter(topic => {
+              .filter((topic) => {
                 const performance = topicPerformance[topic];
-                if (!performance || performance.total < 2) {return false;} // Need at least 2 questions
+                if (!performance || performance.total < 2) {
+                  return false;
+                } // Need at least 2 questions
 
-                const successRate = (performance.correct / performance.total) * 100;
+                const successRate =
+                  (performance.correct / performance.total) * 100;
                 return successRate >= 70 && !weakTopics.includes(topic);
               })
               .slice(0, 3);
 
             // If no strong topics found, use some default topics
-            const defaultStrongTopics = strongTopics.length === 0 ?
-              subjectsData
-                .filter((subject: Subject) => subject.isActive)
-                .slice(0, 3)
-                .map((subject: Subject) => subject.name) :
-              strongTopics;
+            const defaultStrongTopics =
+              strongTopics.length === 0
+                ? subjectsData
+                    .filter((subject: Subject) => subject.isActive)
+                    .slice(0, 3)
+                    .map((subject: Subject) => subject.name)
+                : strongTopics;
 
             // Recent activity
             const recentActivity = filteredResults
               .slice(-5)
               .map((result: QuizResult) => ({
-                type: 'Quiz',
+                type: "Quiz",
                 score: Math.round((result.score / result.totalQuestions) * 100),
                 timestamp: result.completedAt,
                 subject: result.subject,
@@ -244,7 +278,7 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
         const analyticsData = getAnalyticsFromStorage();
 
         if (analyticsData) {
-          setAnalytics(prev => ({...prev, ...analyticsData}));
+          setAnalytics((prev) => ({ ...prev, ...analyticsData }));
         } else {
           // Fallback mock data
           const fallbackData: AnalyticsData = {
@@ -282,14 +316,19 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
   }, [useMockData]); // add useMockData as a dependency
 
   // add console log for debugging
-  useEffect(() => {
-  }, [analytics]);
+  useEffect(() => {}, [analytics]);
 
   const getScoreColor = (score: number) => {
-    if (score >= 90) {return 'text-green-600';}
-    if (score >= 80) {return 'text-blue-600';}
-    if (score >= 70) {return 'text-yellow-600';}
-    return 'text-red-600';
+    if (score >= 90) {
+      return "text-green-600";
+    }
+    if (score >= 80) {
+      return "text-blue-600";
+    }
+    if (score >= 70) {
+      return "text-yellow-600";
+    }
+    return "text-red-600";
   };
 
   const formatTime = (minutes: number) => {
@@ -334,11 +373,15 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
         {/* Total Questions */}
         <Card className="border-gradient-question hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-900 dark:text-gray-100">Toplam Cevaplanan Soru</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              Toplam Cevaplanan Soru
+            </CardTitle>
             <Target className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{analytics.totalQuestions.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              {analytics.totalQuestions.toLocaleString()}
+            </div>
             <p className="text-xs text-gray-600 dark:text-gray-400">
               Tüm zamanlar
             </p>
@@ -348,11 +391,15 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
         {/* Average Score */}
         <Card className="border-gradient-question hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-900 dark:text-gray-100">Ortalama Puan</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              Ortalama Puan
+            </CardTitle>
             <TrendingUp className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{analytics.averageScore}%</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              {analytics.averageScore}%
+            </div>
             <p className="text-xs text-gray-600 dark:text-gray-400">
               Genel başarı oranı
             </p>
@@ -362,11 +409,15 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
         {/* Study Time */}
         <Card className="border-gradient-question hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-900 dark:text-gray-100">Toplam Çalışma Süresi</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              Toplam Çalışma Süresi
+            </CardTitle>
             <Clock className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{formatTime(analytics.studyTime)}</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              {formatTime(analytics.studyTime)}
+            </div>
             <p className="text-xs text-gray-600 dark:text-gray-400">
               Tüm zamanlar
             </p>
@@ -399,14 +450,24 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
             </div>
 
             <div>
-               <div className="flex justify-between text-sm mb-2 text-gray-700 dark:text-gray-300">
+              <div className="flex justify-between text-sm mb-2 text-gray-700 dark:text-gray-300">
                 <span>Doğru Cevap Oranı</span>
-                <span>{analytics.totalQuestions > 0 ? Math.round((analytics.correctAnswers / analytics.totalQuestions) * 100) : 0}%</span>
+                <span>
+                  {analytics.totalQuestions > 0
+                    ? Math.round(
+                        (analytics.correctAnswers / analytics.totalQuestions) *
+                          100,
+                      )
+                    : 0}
+                  %
+                </span>
               </div>
               <div className="progress-gradient-bg rounded-full h-2">
                 <div
                   className="progress-gradient h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${analytics.totalQuestions > 0 ? (analytics.correctAnswers / analytics.totalQuestions) * 100 : 0}%` }}
+                  style={{
+                    width: `${analytics.totalQuestions > 0 ? (analytics.correctAnswers / analytics.totalQuestions) * 100 : 0}%`,
+                  }}
                 />
               </div>
             </div>
@@ -419,7 +480,9 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
               <div className="progress-gradient-bg rounded-full h-2">
                 <div
                   className="progress-gradient h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${Math.min((analytics.studyTime / 120) * 100, 100)}%` }}
+                  style={{
+                    width: `${Math.min((analytics.studyTime / 120) * 100, 100)}%`,
+                  }}
                 />
               </div>
             </div>
@@ -435,52 +498,84 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {analytics.strongTopics.length === 0 && analytics.weakTopics.length === 0 ? (
+            {analytics.strongTopics.length === 0 &&
+            analytics.weakTopics.length === 0 ? (
               <div className="text-center text-gray-500 dark:text-gray-400 py-4">
-                <p>Yeterli veri toplandığında konu analiziniz burada görünecek.</p>
+                <p>
+                  Yeterli veri toplandığında konu analiziniz burada görünecek.
+                </p>
               </div>
             ) : (
               <>
                 {/* Strong Topics */}
                 <div>
-                  <h4 className="text-sm font-medium mb-2 text-green-700 dark:text-green-400">Güçlü Konular</h4>
-                  {analytics.strongTopics && analytics.strongTopics.length > 0 ? (
+                  <h4 className="text-sm font-medium mb-2 text-green-700 dark:text-green-400">
+                    Güçlü Konular
+                  </h4>
+                  {analytics.strongTopics &&
+                  analytics.strongTopics.length > 0 ? (
                     <div className="space-y-2">
                       {analytics.strongTopics
                         // If a topic is in weak topics, it will not be shown in strong topics
-                        .filter(topic => !analytics.weakTopics.includes(topic))
+                        .filter(
+                          (topic) => !analytics.weakTopics.includes(topic),
+                        )
                         .map((topic, index) => (
-                          <div key={index} className="flex items-center justify-between">
-                            <span className="text-sm text-gray-700 dark:text-gray-300">{topic}</span>
-                            <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Güçlü</Badge>
+                          <div
+                            key={index}
+                            className="flex items-center justify-between"
+                          >
+                            <span className="text-sm text-gray-700 dark:text-gray-300">
+                              {topic}
+                            </span>
+                            <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                              Güçlü
+                            </Badge>
                           </div>
                         ))}
                     </div>
                   ) : (
                     <div className="text-center p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Henüz güçlü konu tespit edilmedi.</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-500">Daha fazla test çözerek güçlü konularınızı belirleyin.</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Henüz güçlü konu tespit edilmedi.
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-500">
+                        Daha fazla test çözerek güçlü konularınızı belirleyin.
+                      </p>
                     </div>
                   )}
                 </div>
 
                 {/* Weak Topics */}
                 <div>
-                  <h4 className="text-sm font-medium mb-2 text-red-700 dark:text-red-400">Geliştirilmesi Gerekenler</h4>
+                  <h4 className="text-sm font-medium mb-2 text-red-700 dark:text-red-400">
+                    Geliştirilmesi Gerekenler
+                  </h4>
                   {analytics.weakTopics && analytics.weakTopics.length > 0 ? (
                     <div className="space-y-2">
                       {analytics.weakTopics.map((topic, index) => (
-                        <div key={index} className="flex items-center justify-between">
-                          <span className="text-sm text-gray-700 dark:text-gray-300">{topic}</span>
-                          <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">Zayıf</Badge>
+                        <div
+                          key={index}
+                          className="flex items-center justify-between"
+                        >
+                          <span className="text-sm text-gray-700 dark:text-gray-300">
+                            {topic}
+                          </span>
+                          <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                            Zayıf
+                          </Badge>
                         </div>
                       ))}
                     </div>
                   ) : (
                     <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
                       <Award className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                      <p className="font-semibold text-green-800 dark:text-green-200">Harika İş!</p>
-                      <p className="text-sm text-green-700 dark:text-green-300">Geliştirilmesi gereken konu bulunamadı.</p>
+                      <p className="font-semibold text-green-800 dark:text-green-200">
+                        Harika İş!
+                      </p>
+                      <p className="text-sm text-green-700 dark:text-green-300">
+                        Geliştirilmesi gereken konu bulunamadı.
+                      </p>
                     </div>
                   )}
                 </div>
@@ -502,8 +597,13 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
           <CardContent>
             <div className="space-y-2">
               {analytics.weakTopics.map((topic, index) => (
-                <div key={index} className="flex items-center justify-between p-2 bg-red-50 dark:bg-red-900/20 rounded">
-                  <span className="text-sm text-gray-700 dark:text-gray-300">{topic}</span>
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-2 bg-red-50 dark:bg-red-900/20 rounded"
+                >
+                  <span className="text-sm text-gray-700 dark:text-gray-300">
+                    {topic}
+                  </span>
                   <Badge variant="destructive" className="text-xs">
                     Zayıf
                   </Badge>
@@ -523,8 +623,13 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
           <CardContent>
             <div className="space-y-2">
               {analytics.strongTopics.map((topic, index) => (
-                <div key={index} className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 rounded">
-                  <span className="text-sm text-gray-700 dark:text-gray-300">{topic}</span>
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 rounded"
+                >
+                  <span className="text-sm text-gray-700 dark:text-gray-300">
+                    {topic}
+                  </span>
                   <Badge className="bg-green-100 text-green-800 text-xs dark:bg-green-900 dark:text-green-200">
                     Güçlü
                   </Badge>
@@ -542,15 +647,22 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
             <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
               <LineChart className="w-5 h-5 text-purple-600" />
               Haftalık İlerleme Analizi
-              <Badge className="bg-orange-100 text-orange-800 text-xs dark:bg-orange-900 dark:text-orange-200">BTK Demo</Badge>
+              <Badge className="bg-orange-100 text-orange-800 text-xs dark:bg-orange-900 dark:text-orange-200">
+                BTK Demo
+              </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {analytics.weeklyProgress.map((day, index) => (
-                <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div
+                  key={index}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+                >
                   <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">{day.day}</span>
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">
+                      {day.day}
+                    </span>
                   </div>
                   <div className="flex-1 mx-2 min-w-0">
                     <div className="progress-gradient-bg rounded-full h-3">
@@ -561,8 +673,13 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
                     </div>
                   </div>
                   <div className="flex items-center gap-2 text-sm min-w-0">
-                    <span className="font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">%{day.score}</span>
-                    <Badge variant="outline" className="text-xs whitespace-nowrap">
+                    <span className="font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                      %{day.score}
+                    </span>
+                    <Badge
+                      variant="outline"
+                      className="text-xs whitespace-nowrap"
+                    >
                       {day.tests} test
                     </Badge>
                   </div>
@@ -580,19 +697,26 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
             <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
               <PieChart className="w-5 h-5 text-indigo-600" />
               Konu Bazlı Çalışma Dağılımı
-              <Badge className="bg-orange-100 text-orange-800 text-xs dark:bg-orange-900 dark:text-orange-200">BTK Demo</Badge>
+              <Badge className="bg-orange-100 text-orange-800 text-xs dark:bg-orange-900 dark:text-orange-200">
+                BTK Demo
+              </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {analytics.subjectDistribution.map((subject, index) => (
-                <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div
+                  key={index}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+                >
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div
                       className="w-4 h-4 rounded-full flex-shrink-0"
                       style={{ backgroundColor: subject.color }}
                     ></div>
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">{subject.subject}</span>
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">
+                      {subject.subject}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2 min-w-0">
                     <div className="w-20 sm:w-32 flex-shrink-0">
@@ -603,7 +727,9 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
                         />
                       </div>
                     </div>
-                    <span className="text-sm font-semibold w-12 text-gray-700 dark:text-gray-300 whitespace-nowrap">%{subject.percentage}</span>
+                    <span className="text-sm font-semibold w-12 text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                      %{subject.percentage}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -624,19 +750,30 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
           {analytics.recentActivity.length > 0 ? (
             <div className="space-y-3">
               {analytics.recentActivity.map((activity, index) => (
-                <div key={index} className="flex items-center justify-between p-3 border rounded-lg border-gray-200 dark:border-gray-700">
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-3 border rounded-lg border-gray-200 dark:border-gray-700"
+                >
                   <div className="flex items-center gap-3">
-                    {activity.type === 'Quiz' && <Target className="w-4 h-4 text-blue-500" />}
-                    {activity.type === 'Flashcard' && <Brain className="w-4 h-4 text-green-500" />}
-                    {activity.type === 'ai_chat' && <Sparkles className="w-4 h-4 text-purple-500" />}
+                    {activity.type === "Quiz" && (
+                      <Target className="w-4 h-4 text-blue-500" />
+                    )}
+                    {activity.type === "Flashcard" && (
+                      <Brain className="w-4 h-4 text-green-500" />
+                    )}
+                    {activity.type === "ai_chat" && (
+                      <Sparkles className="w-4 h-4 text-purple-500" />
+                    )}
                     <div>
                       <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {activity.type === 'Quiz' && 'Test Çözüldü'}
-                        {activity.type === 'Flashcard' && 'Flashcard Çalışması'}
-                        {activity.type === 'ai_chat' && 'AI Tutor Sohbeti'}
+                        {activity.type === "Quiz" && "Test Çözüldü"}
+                        {activity.type === "Flashcard" && "Flashcard Çalışması"}
+                        {activity.type === "ai_chat" && "AI Tutor Sohbeti"}
                       </p>
                       {activity.subject && (
-                        <p className="text-xs text-gray-700 dark:text-gray-300 font-medium">{activity.subject}</p>
+                        <p className="text-xs text-gray-700 dark:text-gray-300 font-medium">
+                          {activity.subject}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -647,14 +784,16 @@ export default function AnalyticsDashboard({ useMockData }: AnalyticsDashboardPr
                       %{activity.score}
                     </Badge>
                     <span className="text-xs text-gray-400 dark:text-gray-500">
-                      {new Date(activity.timestamp).toLocaleDateString('tr-TR')}
+                      {new Date(activity.timestamp).toLocaleDateString("tr-TR")}
                     </span>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-center text-gray-500 dark:text-gray-400 py-4">Henüz aktivite bulunmuyor.</p>
+            <p className="text-center text-gray-500 dark:text-gray-400 py-4">
+              Henüz aktivite bulunmuyor.
+            </p>
           )}
         </CardContent>
       </Card>

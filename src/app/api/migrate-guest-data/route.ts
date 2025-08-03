@@ -1,18 +1,21 @@
-import type { NextRequest} from 'next/server';
-import { NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
+import { cookies } from "next/headers";
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = createRouteHandlerClient({ cookies });
 
     // Get the current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
       return NextResponse.json(
-        { error: 'Unauthorized: User must be logged in to migrate data' },
+        { error: "Unauthorized: User must be logged in to migrate data" },
         { status: 401 },
       );
     }
@@ -22,7 +25,7 @@ export async function POST(request: NextRequest) {
 
     if (!guestData?.user?.isGuest) {
       return NextResponse.json(
-        { error: 'Invalid guest data format' },
+        { error: "Invalid guest data format" },
         { status: 400 },
       );
     }
@@ -53,20 +56,27 @@ export async function POST(request: NextRequest) {
     // Migrate quiz results
     if (quizResults.length > 0) {
       try {
-        const formattedQuizResults = quizResults.map((result: { createdAt: string; weakTopics: string[]; totalQuestions: number; timeSpent: number }) => ({
-          ...result,
-          userId: user.id, // Replace guest user ID with Supabase user ID
-          user_id: user.id,
-          created_at: result.createdAt,
-          weak_topics: JSON.stringify(result.weakTopics),
-          total_questions: result.totalQuestions,
-          time_spent: result.timeSpent,
-        }));
+        const formattedQuizResults = quizResults.map(
+          (result: {
+            createdAt: string;
+            weakTopics: string[];
+            totalQuestions: number;
+            timeSpent: number;
+          }) => ({
+            ...result,
+            userId: user.id, // Replace guest user ID with Supabase user ID
+            user_id: user.id,
+            created_at: result.createdAt,
+            weak_topics: JSON.stringify(result.weakTopics),
+            total_questions: result.totalQuestions,
+            time_spent: result.timeSpent,
+          }),
+        );
 
         // Note: This would require implementing actual database operations
         // For now, we'll store in user metadata or implement proper DB calls
         const { error: quizError } = await supabase
-          .from('quiz_results')
+          .from("quiz_results")
           .insert(formattedQuizResults);
 
         if (!quizError) {
@@ -75,93 +85,129 @@ export async function POST(request: NextRequest) {
           migrationResults.errors.push(`Quiz results: ${quizError.message}`);
         }
       } catch (error) {
-        migrationResults.errors.push(`Quiz results migration failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        migrationResults.errors.push(
+          `Quiz results migration failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
       }
     }
 
     // Migrate performance data
     if (performanceData.length > 0) {
       try {
-        const formattedPerformanceData = performanceData.map((perf: { averageScore: number; totalTests: number; averageTimeSpent: number; weakTopics: string[]; lastUpdated: string }) => ({
-          ...perf,
-          userId: user.id,
-          user_id: user.id,
-          average_score: perf.averageScore,
-          total_tests: perf.totalTests,
-          average_time_spent: perf.averageTimeSpent,
-          weak_topics: JSON.stringify(perf.weakTopics),
-          last_updated: perf.lastUpdated,
-        }));
+        const formattedPerformanceData = performanceData.map(
+          (perf: {
+            averageScore: number;
+            totalTests: number;
+            averageTimeSpent: number;
+            weakTopics: string[];
+            lastUpdated: string;
+          }) => ({
+            ...perf,
+            userId: user.id,
+            user_id: user.id,
+            average_score: perf.averageScore,
+            total_tests: perf.totalTests,
+            average_time_spent: perf.averageTimeSpent,
+            weak_topics: JSON.stringify(perf.weakTopics),
+            last_updated: perf.lastUpdated,
+          }),
+        );
 
         const { error: perfError } = await supabase
-          .from('performance_analytics')
+          .from("performance_analytics")
           .insert(formattedPerformanceData);
 
         if (!perfError) {
           migrationResults.performanceData = formattedPerformanceData.length;
         } else {
-          migrationResults.errors.push(`Performance data: ${perfError.message}`);
+          migrationResults.errors.push(
+            `Performance data: ${perfError.message}`,
+          );
         }
       } catch (error) {
-        migrationResults.errors.push(`Performance data migration failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        migrationResults.errors.push(
+          `Performance data migration failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
       }
     }
 
     // Migrate flashcard progress
     if (Object.keys(flashcardProgress).length > 0) {
       try {
-        const formattedFlashcardProgress = Object.values(flashcardProgress).map((progress: unknown) => {
-          const p = progress as { cardId: string; isKnown: boolean; reviewCount: number; lastReviewed: string; nextReview: string; createdAt: string; updatedAt: string };
-          return {
-            ...p,
-            userId: user.id,
-            user_id: user.id,
-            card_id: p.cardId,
-            is_known: p.isKnown,
-            review_count: p.reviewCount,
-            last_reviewed: p.lastReviewed,
-            next_review: p.nextReview,
-            created_at: p.createdAt,
-            updated_at: p.updatedAt,
-          };
-        });
+        const formattedFlashcardProgress = Object.values(flashcardProgress).map(
+          (progress: unknown) => {
+            const p = progress as {
+              cardId: string;
+              isKnown: boolean;
+              reviewCount: number;
+              lastReviewed: string;
+              nextReview: string;
+              createdAt: string;
+              updatedAt: string;
+            };
+            return {
+              ...p,
+              userId: user.id,
+              user_id: user.id,
+              card_id: p.cardId,
+              is_known: p.isKnown,
+              review_count: p.reviewCount,
+              last_reviewed: p.lastReviewed,
+              next_review: p.nextReview,
+              created_at: p.createdAt,
+              updated_at: p.updatedAt,
+            };
+          },
+        );
 
         const { error: flashcardError } = await supabase
-          .from('flashcard_progress')
+          .from("flashcard_progress")
           .insert(formattedFlashcardProgress);
 
         if (!flashcardError) {
-          migrationResults.flashcardProgress = formattedFlashcardProgress.length;
+          migrationResults.flashcardProgress =
+            formattedFlashcardProgress.length;
         } else {
-          migrationResults.errors.push(`Flashcard progress: ${flashcardError.message}`);
+          migrationResults.errors.push(
+            `Flashcard progress: ${flashcardError.message}`,
+          );
         }
       } catch (error) {
-        migrationResults.errors.push(`Flashcard progress migration failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        migrationResults.errors.push(
+          `Flashcard progress migration failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
       }
     }
 
     // Migrate AI recommendations
     if (aiRecommendations.length > 0) {
       try {
-        const formattedAIRecommendations = aiRecommendations.map((rec: { recommendedDifficulty: string; createdAt: string }) => ({
-          ...rec,
-          userId: user.id,
-          user_id: user.id,
-          recommended_difficulty: rec.recommendedDifficulty,
-          created_at: rec.createdAt,
-        }));
+        const formattedAIRecommendations = aiRecommendations.map(
+          (rec: { recommendedDifficulty: string; createdAt: string }) => ({
+            ...rec,
+            userId: user.id,
+            user_id: user.id,
+            recommended_difficulty: rec.recommendedDifficulty,
+            created_at: rec.createdAt,
+          }),
+        );
 
         const { error: aiError } = await supabase
-          .from('ai_recommendations')
+          .from("ai_recommendations")
           .insert(formattedAIRecommendations);
 
         if (!aiError) {
-          migrationResults.aiRecommendations = formattedAIRecommendations.length;
+          migrationResults.aiRecommendations =
+            formattedAIRecommendations.length;
         } else {
-          migrationResults.errors.push(`AI recommendations: ${aiError.message}`);
+          migrationResults.errors.push(
+            `AI recommendations: ${aiError.message}`,
+          );
         }
       } catch (error) {
-        migrationResults.errors.push(`AI recommendations migration failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        migrationResults.errors.push(
+          `AI recommendations migration failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
       }
     }
 
@@ -177,30 +223,34 @@ export async function POST(request: NextRequest) {
         });
 
         if (metadataError) {
-          migrationResults.errors.push(`Metadata update: ${metadataError.message}`);
+          migrationResults.errors.push(
+            `Metadata update: ${metadataError.message}`,
+          );
         }
       } catch (error) {
-        migrationResults.errors.push(`Metadata migration failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        migrationResults.errors.push(
+          `Metadata migration failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
       }
     }
 
     // Return migration results
     return NextResponse.json({
       success: true,
-      message: 'Guest data migration completed',
+      message: "Guest data migration completed",
       results: migrationResults,
-      totalMigrated: migrationResults.quizResults +
-                   migrationResults.performanceData +
-                   migrationResults.flashcardProgress +
-                   migrationResults.aiRecommendations,
+      totalMigrated:
+        migrationResults.quizResults +
+        migrationResults.performanceData +
+        migrationResults.flashcardProgress +
+        migrationResults.aiRecommendations,
       hasErrors: migrationResults.errors.length > 0,
     });
-
   } catch (error) {
     return NextResponse.json(
       {
-        error: 'Migration failed',
-        message: error instanceof Error ? error.message : 'Unknown error',
+        error: "Migration failed",
+        message: error instanceof Error ? error.message : "Unknown error",
         success: false,
       },
       { status: 500 },

@@ -1,10 +1,16 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import React, { useState } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   BookOpen,
   Brain,
@@ -19,44 +25,44 @@ import {
   Home,
   UserCircle,
   Lightbulb,
-} from 'lucide-react';
-import { ThemeToggle } from '@/components/theme-toggle';
-import { useAuth } from '@/hooks/useAuth';
+} from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { useAuth } from "@/hooks/useAuth";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 
 export default function MobileNav() {
   const [isOpen, setIsOpen] = useState(false);
   const { user, loading, logout, isAuthenticated } = useAuth();
   const navLinks = [
-    { href: '/landing', label: 'Tanıtım', icon: Home },
-    { href: '/demo', label: 'Demo', icon: Play },
-    { href: '/dashboard', label: 'Gösterge Paneli', icon: Brain },
-    { href: '/quiz', label: 'Test Çöz', icon: BookOpen },
-    { href: '/flashcard', label: 'Flashcard', icon: Brain },
-    { href: '/topic-explainer', label: 'Konu Anlatımı', icon: Lightbulb },
-    { href: '/ai-chat', label: 'AI Asistan', icon: Users },
-    { href: '/question-manager', label: 'Soru Yöneticisi', icon: Database },
-    { href: '/subject-manager', label: 'Ders Yöneticisi', icon: GraduationCap },
-    { href: '/settings', label: 'Ayarlar', icon: Settings },
+    { href: "/landing", label: "Tanıtım", icon: Home },
+    { href: "/demo", label: "Demo", icon: Play },
+    { href: "/dashboard", label: "Gösterge Paneli", icon: Brain },
+    { href: "/quiz", label: "Test Çöz", icon: BookOpen },
+    { href: "/flashcard", label: "Flashcard", icon: Brain },
+    { href: "/topic-explainer", label: "Konu Anlatımı", icon: Lightbulb },
+    { href: "/ai-chat", label: "AI Asistan", icon: Users },
+    { href: "/question-manager", label: "Soru Yöneticisi", icon: Database },
+    { href: "/subject-manager", label: "Ders Yöneticisi", icon: GraduationCap },
+    { href: "/settings", label: "Ayarlar", icon: Settings },
   ];
 
   // Desktop için sadece en önemli linkler
   const desktopNavLinks = [
-    { href: '/landing', label: 'Tanıtım', icon: Home },
-    { href: '/demo', label: 'Demo', icon: Play },
-    { href: '/dashboard', label: 'Dashboard', icon: Brain },
-    { href: '/quiz', label: 'Test', icon: BookOpen },
-    { href: '/flashcard', label: 'Flashcard', icon: Brain },
-    { href: '/topic-explainer', label: 'Konular', icon: Lightbulb },
-    { href: '/ai-chat', label: 'AI Tutor', icon: Users },
-    { href: '/question-manager', label: 'Sorular', icon: Database },
-    { href: '/subject-manager', label: 'Dersler', icon: GraduationCap },
+    { href: "/landing", label: "Tanıtım", icon: Home },
+    { href: "/demo", label: "Demo", icon: Play },
+    { href: "/dashboard", label: "Dashboard", icon: Brain },
+    { href: "/quiz", label: "Test", icon: BookOpen },
+    { href: "/flashcard", label: "Flashcard", icon: Brain },
+    { href: "/topic-explainer", label: "Konular", icon: Lightbulb },
+    { href: "/ai-chat", label: "AI Tutor", icon: Users },
+    { href: "/question-manager", label: "Sorular", icon: Database },
+    { href: "/subject-manager", label: "Dersler", icon: GraduationCap },
   ];
 
   return (
@@ -65,9 +71,11 @@ export default function MobileNav() {
         <div className="flex items-center justify-between h-16">
           <Link href="/landing" className="flex items-center gap-2">
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-2 rounded-lg">
-                <Brain className="h-6 w-6 text-white" />
+              <Brain className="h-6 w-6 text-white" />
             </div>
-            <span className="font-headline font-bold text-xl text-blue-600">AkılHane</span>
+            <span className="font-headline font-bold text-xl text-blue-600">
+              AkılHane
+            </span>
           </Link>
 
           {/* Desktop Navigation - Centered */}
@@ -94,24 +102,38 @@ export default function MobileNav() {
             ) : isAuthenticated && user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="flex items-center gap-2 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0 max-w-[200px]">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex items-center gap-2 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0 max-w-[200px]"
+                  >
                     <Avatar className="w-6 h-6 flex-shrink-0">
-                      <AvatarImage src={user?.user_metadata?.avatar_url} alt={user?.user_metadata?.full_name || user?.email} />
+                      <AvatarImage
+                        src={user?.user_metadata?.avatar_url}
+                        alt={user?.user_metadata?.full_name || user?.email}
+                      />
                       <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-medium">
-                        {user?.email?.charAt(0).toUpperCase() || user?.user_metadata?.full_name?.charAt(0).toUpperCase() || 'U'}
+                        {user?.email?.charAt(0).toUpperCase() ||
+                          user?.user_metadata?.full_name
+                            ?.charAt(0)
+                            .toUpperCase() ||
+                          "U"}
                       </AvatarFallback>
                     </Avatar>
                     <span className="truncate">
-                    {user?.email?.split('@')[0] || user?.user_metadata?.full_name || 'Kullanıcı'}
+                      {user?.email?.split("@")[0] ||
+                        user?.user_metadata?.full_name ||
+                        "Kullanıcı"}
                     </span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-background/95 border border-border w-64">
+                <DropdownMenuContent
+                  align="end"
+                  className="bg-background/95 border border-border w-64"
+                >
                   {/* User Email Display */}
                   <div className="px-2 py-1.5 text-xs text-muted-foreground border-b border-border">
-                    <div className="break-words break-all">
-                      {user?.email}
-                    </div>
+                    <div className="break-words break-all">{user?.email}</div>
                   </div>
                   <DropdownMenuItem asChild>
                     <Link href="/profile" className="flex items-center gap-2">
@@ -126,7 +148,12 @@ export default function MobileNav() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => { void logout(); }} className="flex items-center gap-2 text-red-600 dark:text-red-400">
+                  <DropdownMenuItem
+                    onClick={() => {
+                      void logout();
+                    }}
+                    className="flex items-center gap-2 text-red-600 dark:text-red-400"
+                  >
                     <LogOut className="w-4 h-4" />
                     Çıkış Yap
                   </DropdownMenuItem>
@@ -134,7 +161,11 @@ export default function MobileNav() {
               </DropdownMenu>
             ) : (
               <Link href="/login">
-                <Button variant="ghost" size="sm" className="flex items-center gap-1.5 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="flex items-center gap-1.5 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
+                >
                   <User className="w-4 h-4" />
                   Giriş Yap
                 </Button>
@@ -147,7 +178,10 @@ export default function MobileNav() {
             {/* LOGIN BUTTON - RETURNED */}
             {!loading && !isAuthenticated && (
               <Link href="/login">
-                <Button size="sm" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                <Button
+                  size="sm"
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                >
                   Giriş
                 </Button>
               </Link>
@@ -163,10 +197,7 @@ export default function MobileNav() {
                   <Menu className="h-6 w-6" />
                 </Button>
               </SheetTrigger>
-              <SheetContent
-                side="right"
-                className="glass-sheet"
-              >
+              <SheetContent side="right" className="glass-sheet">
                 <SheetTitle className="sr-only">Menu</SheetTitle>
                 <SheetDescription className="sr-only">
                   Ana navigasyon menüsü
@@ -174,11 +205,17 @@ export default function MobileNav() {
                 <div className="flex flex-col h-full">
                   {/* Fixed Header - Logo */}
                   <div className="flex-shrink-0 p-4 pb-2">
-                    <Link href="/" className="flex items-center gap-2 group" onClick={() => setIsOpen(false)}>
+                    <Link
+                      href="/"
+                      className="flex items-center gap-2 group"
+                      onClick={() => setIsOpen(false)}
+                    >
                       <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-2 rounded-lg shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
-                          <Brain className="h-8 w-8 text-white" />
+                        <Brain className="h-8 w-8 text-white" />
                       </div>
-                      <span className="font-headline font-bold text-2xl bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">AkılHane</span>
+                      <span className="font-headline font-bold text-2xl bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                        AkılHane
+                      </span>
                     </Link>
                   </div>
 
@@ -191,14 +228,25 @@ export default function MobileNav() {
                         <div className="glass-card-inner p-3 rounded-lg shadow-lg">
                           <div className="flex items-center gap-3 text-sm text-foreground">
                             <Avatar className="w-8 h-8 flex-shrink-0">
-                              <AvatarImage src={user?.user_metadata?.avatar_url} alt={user?.user_metadata?.full_name || user?.email} />
+                              <AvatarImage
+                                src={user?.user_metadata?.avatar_url}
+                                alt={
+                                  user?.user_metadata?.full_name || user?.email
+                                }
+                              />
                               <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-medium">
-                                {user?.email?.charAt(0).toUpperCase() || user?.user_metadata?.full_name?.charAt(0).toUpperCase() || 'U'}
+                                {user?.email?.charAt(0).toUpperCase() ||
+                                  user?.user_metadata?.full_name
+                                    ?.charAt(0)
+                                    .toUpperCase() ||
+                                  "U"}
                               </AvatarFallback>
                             </Avatar>
                             <div className="min-w-0 flex-1">
                               <span className="font-medium break-words break-all block">
-                                {user.user_metadata?.full_name || user.email?.split('@')[0] || 'Kullanıcı'}
+                                {user.user_metadata?.full_name ||
+                                  user.email?.split("@")[0] ||
+                                  "Kullanıcı"}
                               </span>
                             </div>
                           </div>
@@ -211,7 +259,9 @@ export default function MobileNav() {
                           className="flex items-center gap-3 p-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white backdrop-blur-sm transition-all duration-300 group hover:scale-105"
                         >
                           <UserCircle className="w-5 h-5 group-hover:text-white transition-colors duration-300" />
-                          <span className="font-medium group-hover:text-white transition-colors duration-300">Profilim</span>
+                          <span className="font-medium group-hover:text-white transition-colors duration-300">
+                            Profilim
+                          </span>
                         </Link>
 
                         {/* Logout button */}
@@ -239,7 +289,9 @@ export default function MobileNav() {
                           className="flex items-center gap-3 p-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white backdrop-blur-sm transition-all duration-300 group hover:scale-105"
                         >
                           <Icon className="w-5 h-5 group-hover:text-white transition-colors duration-300" />
-                          <span className="font-medium group-hover:text-white transition-colors duration-300">{label}</span>
+                          <span className="font-medium group-hover:text-white transition-colors duration-300">
+                            {label}
+                          </span>
                         </Link>
                       ))}
 

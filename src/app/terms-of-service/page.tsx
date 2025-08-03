@@ -1,5 +1,5 @@
-import Link from 'next/link';
-import MobileNav from '@/components/mobile-nav';
+import Link from "next/link";
+import MobileNav from "@/components/mobile-nav";
 
 export default function TermsOfServicePage() {
   return (
@@ -14,7 +14,10 @@ export default function TermsOfServicePage() {
           <nav className="mb-6">
             <ol className="flex items-center space-x-2 text-sm text-muted-foreground">
               <li>
-                <Link href="/" className="hover:text-foreground transition-colors">
+                <Link
+                  href="/"
+                  className="hover:text-foreground transition-colors"
+                >
                   Ana Sayfa
                 </Link>
               </li>
@@ -31,7 +34,9 @@ export default function TermsOfServicePage() {
 
             <div className="prose prose-gray dark:prose-invert max-w-none">
               <p className="text-lg mb-6 text-muted-foreground">
-                Bu Kullanım Şartları, AkılHane platformunu kullanımınızı düzenler. AkılHane&apos;ye erişerek veya kullanarak bu şartlara uymayı kabul etmiş olursunuz.
+                Bu Kullanım Şartları, AkılHane platformunu kullanımınızı
+                düzenler. AkılHane&apos;ye erişerek veya kullanarak bu şartlara
+                uymayı kabul etmiş olursunuz.
               </p>
 
               <section className="mb-8">
@@ -39,7 +44,9 @@ export default function TermsOfServicePage() {
                   1. Şartların Kabulü
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  AkılHane&apos;ye kayıt olarak veya kullanarak bu Kullanım Şartları&apos;nı ve Gizlilik Politikası&apos;nı kabul etmiş olursunuz. Kabul etmiyorsanız lütfen platformu kullanmayınız.
+                  AkılHane&apos;ye kayıt olarak veya kullanarak bu Kullanım
+                  Şartları&apos;nı ve Gizlilik Politikası&apos;nı kabul etmiş
+                  olursunuz. Kabul etmiyorsanız lütfen platformu kullanmayınız.
                 </p>
               </section>
 
@@ -48,7 +55,9 @@ export default function TermsOfServicePage() {
                   2. Platformun Kullanımı
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  AkılHane&apos;yi kişisel ve ticari olmayan eğitim amaçlı kullanabilirsiniz. Platformu kötüye kullanmamayı veya yetkisiz erişim girişiminde bulunmamayı kabul edersiniz.
+                  AkılHane&apos;yi kişisel ve ticari olmayan eğitim amaçlı
+                  kullanabilirsiniz. Platformu kötüye kullanmamayı veya yetkisiz
+                  erişim girişiminde bulunmamayı kabul edersiniz.
                 </p>
               </section>
 
@@ -57,7 +66,9 @@ export default function TermsOfServicePage() {
                   3. Kullanıcı Sorumlulukları
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  Hesabınızın gizliliğini korumak ve hesabınız üzerinden yapılan tüm işlemlerden sorumlu olmak sizin yükümlülüğünüzdedir. Doğru bilgi vermeyi ve gerektiğinde güncellemeyi kabul edersiniz.
+                  Hesabınızın gizliliğini korumak ve hesabınız üzerinden yapılan
+                  tüm işlemlerden sorumlu olmak sizin yükümlülüğünüzdedir. Doğru
+                  bilgi vermeyi ve gerektiğinde güncellemeyi kabul edersiniz.
                 </p>
               </section>
 
@@ -66,7 +77,9 @@ export default function TermsOfServicePage() {
                   4. Sınırlamalar ve Sorumluluk Reddi
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  AkılHane &quot;olduğu gibi&quot; sunulmaktadır ve herhangi bir garanti verilmemektedir. Platformun kullanımından doğabilecek zararlardan sorumlu değiliz.
+                  AkılHane &quot;olduğu gibi&quot; sunulmaktadır ve herhangi bir
+                  garanti verilmemektedir. Platformun kullanımından doğabilecek
+                  zararlardan sorumlu değiliz.
                 </p>
               </section>
 
@@ -75,10 +88,13 @@ export default function TermsOfServicePage() {
                   5. İletişim
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  Bu şartlarla ilgili sorularınız için lütfen{' '}
-                  <a href="mailto:support@akilhane.com" className="text-blue-600 dark:text-blue-400 hover:underline">
+                  Bu şartlarla ilgili sorularınız için lütfen{" "}
+                  <a
+                    href="mailto:support@akilhane.com"
+                    className="text-blue-600 dark:text-blue-400 hover:underline"
+                  >
                     support@akilhane.com
-                  </a>{' '}
+                  </a>{" "}
                   adresinden bize ulaşın.
                 </p>
               </section>

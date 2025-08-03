@@ -1,5 +1,5 @@
-import Link from 'next/link';
-import { Brain, Github, Linkedin, Youtube } from 'lucide-react';
+import Link from "next/link";
+import { Brain, Github, Linkedin, Youtube } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -29,17 +29,26 @@ export default function Footer() {
               </h3>
               <ul className="mt-4 space-y-2">
                 <li>
-                  <Link href="/" className="text-base text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                  <Link
+                    href="/"
+                    className="text-base text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                  >
                     Ana Sayfa
                   </Link>
                 </li>
                 <li>
-                  <Link href="/quiz" className="text-base text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                  <Link
+                    href="/quiz"
+                    className="text-base text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                  >
                     Test Çöz
                   </Link>
                 </li>
                 <li>
-                  <Link href="/flashcard" className="text-base text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                  <Link
+                    href="/flashcard"
+                    className="text-base text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                  >
                     Flashcard
                   </Link>
                 </li>
@@ -51,12 +60,18 @@ export default function Footer() {
               </h3>
               <ul className="mt-4 space-y-2">
                 <li>
-                  <Link href="/privacy-policy" className="text-base text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                  <Link
+                    href="/privacy-policy"
+                    className="text-base text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                  >
                     Gizlilik Politikası
                   </Link>
                 </li>
                 <li>
-                  <Link href="/terms-of-service" className="text-base text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                  <Link
+                    href="/terms-of-service"
+                    className="text-base text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                  >
                     Kullanım Şartları
                   </Link>
                 </li>
@@ -66,24 +81,39 @@ export default function Footer() {
 
           {/* Social Media */}
           <div className="flex justify-center md:justify-end items-start">
-             <div className="text-left md:text-right">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white tracking-wider uppercase">
-                    Bizi Takip Edin
-                </h3>
-                <div className="flex mt-4 space-x-6 justify-start md:justify-end">
-                    <a href="https://www.youtube.com/@Akilhane-Tech" className="text-gray-400 hover:text-gray-500 transition-colors duration-200" target="_blank" rel="noopener noreferrer">
-                        <span className="sr-only">YouTube</span>
-                        <Youtube className="h-6 w-6" />
-                    </a>
-                    <a href="https://github.com/melihcanndemir/akilhane" className="text-gray-400 hover:text-gray-500 transition-colors duration-200" target="_blank" rel="noopener noreferrer">
-                        <span className="sr-only">GitHub</span>
-                        <Github className="h-6 w-6" />
-                    </a>
-                    <a href="https://www.linkedin.com/in/melihcandemir/" className="text-gray-400 hover:text-gray-500 transition-colors duration-200" target="_blank" rel="noopener noreferrer">
-                        <span className="sr-only">LinkedIn</span>
-                        <Linkedin className="h-6 w-6" />
-                    </a>
-                </div>
+            <div className="text-left md:text-right">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white tracking-wider uppercase">
+                Bizi Takip Edin
+              </h3>
+              <div className="flex mt-4 space-x-6 justify-start md:justify-end">
+                <a
+                  href="https://www.youtube.com/@Akilhane-Tech"
+                  className="text-gray-400 hover:text-gray-500 transition-colors duration-200"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <span className="sr-only">YouTube</span>
+                  <Youtube className="h-6 w-6" />
+                </a>
+                <a
+                  href="https://github.com/melihcanndemir/akilhane"
+                  className="text-gray-400 hover:text-gray-500 transition-colors duration-200"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <span className="sr-only">GitHub</span>
+                  <Github className="h-6 w-6" />
+                </a>
+                <a
+                  href="https://www.linkedin.com/in/melihcandemir/"
+                  className="text-gray-400 hover:text-gray-500 transition-colors duration-200"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <span className="sr-only">LinkedIn</span>
+                  <Linkedin className="h-6 w-6" />
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -100,8 +130,8 @@ export default function Footer() {
               className="text-blue-500 hover:text-blue-600 transition-colors duration-200 font-medium"
             >
               Melih Can Demir
-            </a>
-            {' '}tarafından ❤️ ile oluşturuldu
+            </a>{" "}
+            tarafından ❤️ ile oluşturuldu
           </p>
         </div>
       </div>

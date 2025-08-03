@@ -1,27 +1,22 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import SubjectManager from '@/components/subject-manager';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import {
-  Database,
-  BookOpen,
-  Brain,
-  GraduationCap,
-} from 'lucide-react';
-import Link from 'next/link';
-import MobileNav from '@/components/mobile-nav';
-import LoadingSpinner from '@/components/loading-spinner';
-import { shouldUseDemoData, demoSubjects } from '@/data/demo-data';
+import React, { useState, useEffect } from "react";
+import SubjectManager from "@/components/subject-manager";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Database, BookOpen, Brain, GraduationCap } from "lucide-react";
+import Link from "next/link";
+import MobileNav from "@/components/mobile-nav";
+import LoadingSpinner from "@/components/loading-spinner";
+import { shouldUseDemoData, demoSubjects } from "@/data/demo-data";
 
 interface Subject {
   id: string;
   name: string;
   description: string;
   category: string;
-  difficulty: 'Başlangıç' | 'Orta' | 'İleri';
+  difficulty: "Başlangıç" | "Orta" | "İleri";
   questionCount: number;
   isActive: boolean;
   createdAt: string;
@@ -58,8 +53,13 @@ export default function SubjectManagerPage() {
       if (demoMode) {
         // Use demo data for statistics
         const totalSubjects = demoSubjects.length;
-        const totalQuestions = demoSubjects.reduce((sum, subject) => sum + subject.questionCount, 0);
-        const categories = new Set(demoSubjects.map(subject => subject.category));
+        const totalQuestions = demoSubjects.reduce(
+          (sum, subject) => sum + subject.questionCount,
+          0,
+        );
+        const categories = new Set(
+          demoSubjects.map((subject) => subject.category),
+        );
         const totalCategories = categories.size;
 
         setStats({
@@ -70,9 +70,11 @@ export default function SubjectManagerPage() {
       } else {
         // Try to get data from localStorage first
         const getSubjectsFromStorage = () => {
-          if (typeof window === 'undefined') {return [];}
+          if (typeof window === "undefined") {
+            return [];
+          }
           try {
-            const stored = localStorage.getItem('exam_training_subjects');
+            const stored = localStorage.getItem("exam_training_subjects");
             return stored ? JSON.parse(stored) : [];
           } catch {
             return [];
@@ -84,8 +86,14 @@ export default function SubjectManagerPage() {
         if (localSubjects.length > 0) {
           // Use localStorage data
           const totalSubjects = localSubjects.length;
-          const totalQuestions = localSubjects.reduce((sum: number, subject: Subject) => sum + (subject.questionCount || 0), 0);
-          const categories = new Set(localSubjects.map((subject: Subject) => subject.category));
+          const totalQuestions = localSubjects.reduce(
+            (sum: number, subject: Subject) =>
+              sum + (subject.questionCount || 0),
+            0,
+          );
+          const categories = new Set(
+            localSubjects.map((subject: Subject) => subject.category),
+          );
           const totalCategories = categories.size;
 
           setStats({
@@ -95,13 +103,18 @@ export default function SubjectManagerPage() {
           });
         } else {
           // Try API as fallback
-          const response = await fetch('/api/subjects');
+          const response = await fetch("/api/subjects");
           if (response.ok) {
             const subjects: Subject[] = await response.json();
 
             const totalSubjects = subjects.length;
-            const totalQuestions = subjects.reduce((sum, subject) => sum + subject.questionCount, 0);
-            const categories = new Set(subjects.map(subject => subject.category));
+            const totalQuestions = subjects.reduce(
+              (sum, subject) => sum + subject.questionCount,
+              0,
+            );
+            const categories = new Set(
+              subjects.map((subject) => subject.category),
+            );
             const totalCategories = categories.size;
 
             setStats({
@@ -143,7 +156,8 @@ export default function SubjectManagerPage() {
                       )}
                     </CardTitle>
                     <p className="text-muted-foreground">
-                      Dersleri ekleyin, düzenleyin ve yönetin. Her ders için sorular ekleyebilirsiniz.
+                      Dersleri ekleyin, düzenleyin ve yönetin. Her ders için
+                      sorular ekleyebilirsiniz.
                     </p>
                   </div>
                 </div>
@@ -162,22 +176,33 @@ export default function SubjectManagerPage() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2 p-4 border-gradient-question">
-                    <BookOpen className="w-6 h-6 text-blue-500 flex-shrink-0" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Toplam Ders</p>
-                      {isLoading ? <LoadingSpinner className="p-0 h-6 w-6" /> : <p className="text-xl font-bold">{stats.totalSubjects}</p>}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 p-4 border-gradient-question">
-                    <Brain className="w-6 h-6 text-purple-500 flex-shrink-0" />
-                     <div>
-                      <p className="text-sm text-muted-foreground">Toplam Kategori</p>
-                       {isLoading ? <LoadingSpinner className="p-0 h-6 w-6" /> : <p className="text-xl font-bold">{stats.totalCategories}</p>}
-                    </div>
+                <div className="flex items-center gap-2 p-4 border-gradient-question">
+                  <BookOpen className="w-6 h-6 text-blue-500 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Toplam Ders</p>
+                    {isLoading ? (
+                      <LoadingSpinner className="p-0 h-6 w-6" />
+                    ) : (
+                      <p className="text-xl font-bold">{stats.totalSubjects}</p>
+                    )}
                   </div>
                 </div>
-
+                <div className="flex items-center gap-2 p-4 border-gradient-question">
+                  <Brain className="w-6 h-6 text-purple-500 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      Toplam Kategori
+                    </p>
+                    {isLoading ? (
+                      <LoadingSpinner className="p-0 h-6 w-6" />
+                    ) : (
+                      <p className="text-xl font-bold">
+                        {stats.totalCategories}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
 

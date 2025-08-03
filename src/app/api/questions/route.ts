@@ -1,19 +1,23 @@
-import type { NextRequest} from 'next/server';
-import { NextResponse } from 'next/server';
-import { QuestionRepository } from '@/lib/database/repositories/question-repository';
-import { initializeDatabase } from '@/lib/database/connection';
-import { shouldUseDemoData, getDemoQuestions, getAllDemoQuestions } from '@/data/demo-data';
-import { checkAuth } from '@/lib/supabase';
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { QuestionRepository } from "@/lib/database/repositories/question-repository";
+import { initializeDatabase } from "@/lib/database/connection";
+import {
+  shouldUseDemoData,
+  getDemoQuestions,
+  getAllDemoQuestions,
+} from "@/data/demo-data";
+import { checkAuth } from "@/lib/supabase";
 
 // Force this route to be dynamic
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   try {
     // Demo mode control
     if (shouldUseDemoData()) {
       return NextResponse.json(
-        { error: 'Demo modunda yeni soru eklenemez' },
+        { error: "Demo modunda yeni soru eklenemez" },
         { status: 403 },
       );
     }
@@ -23,7 +27,7 @@ export async function POST(request: NextRequest) {
 
     if (!isLoggedIn) {
       return NextResponse.json(
-        { error: 'Oturum açmanız gerekiyor!' },
+        { error: "Oturum açmanız gerekiyor!" },
         { status: 401 },
       );
     }
@@ -45,9 +49,18 @@ export async function POST(request: NextRequest) {
     } = body;
 
     // Validate required fields
-    if (!subject || !topic || !type || !difficulty || !text || !options || !correctAnswer || !explanation) {
+    if (
+      !subject ||
+      !topic ||
+      !type ||
+      !difficulty ||
+      !text ||
+      !options ||
+      !correctAnswer ||
+      !explanation
+    ) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: "Missing required fields" },
         { status: 400 },
       );
     }
@@ -55,16 +68,16 @@ export async function POST(request: NextRequest) {
     // Validate options structure
     if (!Array.isArray(options) || options.length < 2) {
       return NextResponse.json(
-        { error: 'Options must be an array with at least 2 items' },
+        { error: "Options must be an array with at least 2 items" },
         { status: 400 },
       );
     }
 
     // Validate that exactly one option is correct
-    const correctOptions = options.filter(opt => opt.isCorrect);
+    const correctOptions = options.filter((opt) => opt.isCorrect);
     if (correctOptions.length !== 1) {
       return NextResponse.json(
-        { error: 'Exactly one option must be marked as correct' },
+        { error: "Exactly one option must be marked as correct" },
         { status: 400 },
       );
     }
@@ -85,14 +98,16 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       {
-        message: 'Question created successfully',
+        message: "Question created successfully",
         questionId,
       },
       { status: 201 },
     );
   } catch (error) {
     return NextResponse.json(
-      { error: `Failed to create question: ${error instanceof Error ? error.message : 'Unknown error'}` },
+      {
+        error: `Failed to create question: ${error instanceof Error ? error.message : "Unknown error"}`,
+      },
       { status: 500 },
     );
   }
@@ -101,9 +116,9 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const subjectId = searchParams.get('subjectId');
-    const limit = searchParams.get('limit');
-    const difficulty = searchParams.get('difficulty');
+    const subjectId = searchParams.get("subjectId");
+    const limit = searchParams.get("limit");
+    const difficulty = searchParams.get("difficulty");
 
     // Demo mode control
     if (shouldUseDemoData()) {
@@ -117,7 +132,9 @@ export async function GET(request: NextRequest) {
 
       // Apply filters
       if (difficulty) {
-        demoQuestions = demoQuestions.filter((q: { difficulty: string }) => q.difficulty === difficulty);
+        demoQuestions = demoQuestions.filter(
+          (q: { difficulty: string }) => q.difficulty === difficulty,
+        );
       }
 
       if (limit) {
@@ -142,14 +159,25 @@ export async function GET(request: NextRequest) {
     const userId = user?.id;
 
     if (subjectId) {
-      questions = await QuestionRepository.getQuestionsBySubject(subjectId, limit ? parseInt(limit) : undefined, userId);
+      questions = await QuestionRepository.getQuestionsBySubject(
+        subjectId,
+        limit ? parseInt(limit) : undefined,
+        userId,
+      );
     } else {
-      questions = await QuestionRepository.getRandomQuestions('', limit ? parseInt(limit) : 10, difficulty as 'Easy' | 'Medium' | 'Hard' | undefined, userId);
+      questions = await QuestionRepository.getRandomQuestions(
+        "",
+        limit ? parseInt(limit) : 10,
+        difficulty as "Easy" | "Medium" | "Hard" | undefined,
+        userId,
+      );
     }
 
     // Apply filters
     if (difficulty) {
-      questions = questions.filter((q: { difficulty: string }) => q.difficulty === difficulty);
+      questions = questions.filter(
+        (q: { difficulty: string }) => q.difficulty === difficulty,
+      );
     }
 
     if (limit) {
@@ -160,7 +188,7 @@ export async function GET(request: NextRequest) {
   } catch {
     // If there is an error, return demo data
     const { searchParams } = new URL(request.url);
-    const subjectId = searchParams.get('subjectId');
+    const subjectId = searchParams.get("subjectId");
     let demoQuestions = getAllDemoQuestions();
 
     if (subjectId) {

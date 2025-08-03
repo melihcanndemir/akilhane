@@ -6,9 +6,16 @@
 // AI Configuration - Support multiple key names for better compatibility
 export const AI_CONFIG = {
   // Check for multiple possible API key environment variable names
-  apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY || process.env.GOOGLE_AI_API_KEY,
-  hasApiKey: Boolean(process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY || process.env.GOOGLE_AI_API_KEY),
-  model: 'googleai/gemini-2.0-flash',
+  apiKey:
+    process.env.GEMINI_API_KEY ||
+    process.env.GOOGLE_GENAI_API_KEY ||
+    process.env.GOOGLE_AI_API_KEY,
+  hasApiKey: Boolean(
+    process.env.GEMINI_API_KEY ||
+      process.env.GOOGLE_GENAI_API_KEY ||
+      process.env.GOOGLE_AI_API_KEY,
+  ),
+  model: "googleai/gemini-2.0-flash",
 };
 
 // Supabase Configuration
@@ -29,15 +36,19 @@ export const CLOUDINARY_CONFIG = {
   apiKey: process.env.CLOUDINARY_API_KEY,
   apiSecret: process.env.CLOUDINARY_API_SECRET,
   publicCloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-  hasConfig: Boolean(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET),
+  hasConfig: Boolean(
+    process.env.CLOUDINARY_CLOUD_NAME &&
+      process.env.CLOUDINARY_API_KEY &&
+      process.env.CLOUDINARY_API_SECRET,
+  ),
 };
 
 // App Configuration
 export const APP_CONFIG = {
   nodeEnv: process.env.NODE_ENV,
-  isDevelopment: process.env.NODE_ENV === 'development',
-  isProduction: process.env.NODE_ENV === 'production',
-  demoMode: process.env.NEXT_PUBLIC_DEMO_MODE === 'true',
+  isDevelopment: process.env.NODE_ENV === "development",
+  isProduction: process.env.NODE_ENV === "production",
+  demoMode: process.env.NEXT_PUBLIC_DEMO_MODE === "true",
 };
 
 // Configuration validation function
@@ -46,15 +57,17 @@ export function validateConfig() {
 
   // Check Supabase configuration
   if (!SUPABASE_CONFIG.url) {
-    issues.push('NEXT_PUBLIC_SUPABASE_URL is missing');
+    issues.push("NEXT_PUBLIC_SUPABASE_URL is missing");
   }
   if (!SUPABASE_CONFIG.anonKey) {
-    issues.push('NEXT_PUBLIC_SUPABASE_ANON_KEY is missing');
+    issues.push("NEXT_PUBLIC_SUPABASE_ANON_KEY is missing");
   }
 
   // Check AI configuration (optional for demo mode)
   if (!AI_CONFIG.hasApiKey && !APP_CONFIG.demoMode) {
-    issues.push('AI API key is missing (GEMINI_API_KEY, GOOGLE_GENAI_API_KEY, or GOOGLE_AI_API_KEY)');
+    issues.push(
+      "AI API key is missing (GEMINI_API_KEY, GOOGLE_GENAI_API_KEY, or GOOGLE_AI_API_KEY)",
+    );
   }
 
   // Check Cloudinary configuration (optional)
@@ -78,10 +91,13 @@ export function validateConfig() {
       },
       ai: {
         hasApiKey: AI_CONFIG.hasApiKey,
-        keySource: AI_CONFIG.hasApiKey ?
-          (process.env.GEMINI_API_KEY ? 'GEMINI_API_KEY' :
-           process.env.GOOGLE_GENAI_API_KEY ? 'GOOGLE_GENAI_API_KEY' :
-           'GOOGLE_AI_API_KEY') : 'none',
+        keySource: AI_CONFIG.hasApiKey
+          ? process.env.GEMINI_API_KEY
+            ? "GEMINI_API_KEY"
+            : process.env.GOOGLE_GENAI_API_KEY
+              ? "GOOGLE_GENAI_API_KEY"
+              : "GOOGLE_AI_API_KEY"
+          : "none",
       },
       cloudinary: {
         hasConfig: CLOUDINARY_CONFIG.hasConfig,

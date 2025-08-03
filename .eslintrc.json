@@ -1,7 +1,6 @@
 {
   "extends": [
-    "next/core-web-vitals",
-    "next/typescript"
+    "next/core-web-vitals"
   ],
   "rules": {
     "@typescript-eslint/no-unused-vars": "warn",
@@ -50,7 +49,10 @@
     "react/no-unescaped-entities": "off",
     "@typescript-eslint/no-misused-promises": "warn",
     "jsx-a11y/alt-text": "warn",
-    "@next/next/no-img-element": "warn"
+    "@next/next/no-img-element": "warn",
+    "quotes": "off",
+    "@typescript-eslint/quotes": "off",
+    "prettier/prettier": "off"
   },
   "parserOptions": {
     "project": "./tsconfig.json"

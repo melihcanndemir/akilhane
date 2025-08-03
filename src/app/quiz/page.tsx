@@ -1,14 +1,32 @@
-'use client';
+"use client";
 
-import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import QuizComponent from '@/components/quiz';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BookOpen, Play, GraduationCap, Loader2, ArrowLeft } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { shouldUseDemoData } from '@/data/demo-data';
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import QuizComponent from "@/components/quiz";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  BookOpen,
+  Play,
+  GraduationCap,
+  Loader2,
+  ArrowLeft,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { shouldUseDemoData } from "@/data/demo-data";
 
 interface Subject {
   id: string;
@@ -21,10 +39,12 @@ interface Subject {
 
 // LocalStorage service for subjects
 class SubjectLocalStorageService {
-  private static readonly STORAGE_KEY = 'exam_training_subjects';
+  private static readonly STORAGE_KEY = "exam_training_subjects";
 
   static getSubjects(): Subject[] {
-    if (typeof window === 'undefined') {return [];}
+    if (typeof window === "undefined") {
+      return [];
+    }
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       return stored ? JSON.parse(stored) : [];
@@ -36,10 +56,12 @@ class SubjectLocalStorageService {
 
 // LocalStorage service for questions
 class QuestionLocalStorageService {
-  private static readonly STORAGE_KEY = 'exam_training_questions';
+  private static readonly STORAGE_KEY = "exam_training_questions";
 
   static getQuestions(): unknown[] {
-    if (typeof window === 'undefined') {return [];}
+    if (typeof window === "undefined") {
+      return [];
+    }
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       return stored ? JSON.parse(stored) : [];
@@ -50,17 +72,19 @@ class QuestionLocalStorageService {
 
   static getQuestionsBySubject(subject: string): unknown[] {
     const questions = this.getQuestions();
-    return questions.filter((q: unknown) => (q as { subject: string }).subject === subject);
+    return questions.filter(
+      (q: unknown) => (q as { subject: string }).subject === subject,
+    );
   }
 }
 
 function QuizPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const subject = searchParams.get('subject');
+  const subject = searchParams.get("subject");
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedSubject, setSelectedSubject] = useState('');
+  const [selectedSubject, setSelectedSubject] = useState("");
   const [isDemoMode, setIsDemoMode] = useState(false);
 
   useEffect(() => {
@@ -76,26 +100,26 @@ function QuizPageContent() {
           // Demo subjects
           const demoSubjects: Subject[] = [
             {
-              id: 'subj_matematik_001',
-              name: 'Matematik',
-              category: 'Fen Bilimleri',
-              difficulty: 'Orta',
+              id: "subj_matematik_001",
+              name: "Matematik",
+              category: "Fen Bilimleri",
+              difficulty: "Orta",
               isActive: true,
               questionCount: 245,
             },
             {
-              id: 'subj_fizik_002',
-              name: 'Fizik',
-              category: 'Fen Bilimleri',
-              difficulty: 'Orta',
+              id: "subj_fizik_002",
+              name: "Fizik",
+              category: "Fen Bilimleri",
+              difficulty: "Orta",
               isActive: true,
               questionCount: 198,
             },
             {
-              id: 'subj_kimya_003',
-              name: 'Kimya',
-              category: 'Fen Bilimleri',
-              difficulty: 'İleri',
+              id: "subj_kimya_003",
+              name: "Kimya",
+              category: "Fen Bilimleri",
+              difficulty: "İleri",
               isActive: true,
               questionCount: 167,
             },
@@ -108,8 +132,10 @@ function QuizPageContent() {
         const localSubjects = SubjectLocalStorageService.getSubjects();
 
         // Calculate question count for each subject
-        const subjectsWithQuestionCount = localSubjects.map(subject => {
-          const questions = QuestionLocalStorageService.getQuestionsBySubject(subject.name);
+        const subjectsWithQuestionCount = localSubjects.map((subject) => {
+          const questions = QuestionLocalStorageService.getQuestionsBySubject(
+            subject.name,
+          );
           return {
             ...subject,
             questionCount: questions.length,
@@ -117,8 +143,8 @@ function QuizPageContent() {
         });
 
         // Filter only active courses with questions
-        const activeSubjectsWithQuestions = subjectsWithQuestionCount.filter(subject =>
-          subject.isActive && subject.questionCount > 0,
+        const activeSubjectsWithQuestions = subjectsWithQuestionCount.filter(
+          (subject) => subject.isActive && subject.questionCount > 0,
         );
 
         setSubjects(activeSubjectsWithQuestions);
@@ -134,7 +160,8 @@ function QuizPageContent() {
   const handleStartQuiz = () => {
     if (selectedSubject) {
       // Check if there are real questions for this subject
-      const questionsForSubject = QuestionLocalStorageService.getQuestionsBySubject(selectedSubject);
+      const questionsForSubject =
+        QuestionLocalStorageService.getQuestionsBySubject(selectedSubject);
       const hasRealQuestions = questionsForSubject.length > 0;
 
       if (hasRealQuestions) {
@@ -143,7 +170,7 @@ function QuizPageContent() {
         router.push(quizUrl);
       } else {
         // No real questions - use demo mode
-        localStorage.setItem('btk_demo_mode', 'true');
+        localStorage.setItem("btk_demo_mode", "true");
         const quizUrl = `/quiz?subject=${encodeURIComponent(selectedSubject)}&demo=true`;
         router.push(quizUrl);
       }
@@ -163,7 +190,7 @@ function QuizPageContent() {
         {/* Back button */}
         <div className="mb-6">
           <Button
-            onClick={() => window.location.href = '/dashboard'}
+            onClick={() => (window.location.href = "/dashboard")}
             variant="outline"
             size="sm"
             className="flex items-center gap-2 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
@@ -186,7 +213,8 @@ function QuizPageContent() {
             )}
           </div>
           <p className="text-lg text-gray-600 dark:text-gray-300">
-            Bilgilerinizi test etmek için bir ders seçin ve quiz&apos;e başlayın.
+            Bilgilerinizi test etmek için bir ders seçin ve quiz&apos;e
+            başlayın.
           </p>
         </div>
 
@@ -214,14 +242,14 @@ function QuizPageContent() {
                 </p>
                 <div className="space-y-2">
                   <Button
-                    onClick={() => router.push('/subject-manager')}
+                    onClick={() => router.push("/subject-manager")}
                     className="mr-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
                   >
                     <GraduationCap className="w-4 h-4 mr-2" />
                     Ders Ekle
                   </Button>
                   <Button
-                    onClick={() => router.push('/question-manager')}
+                    onClick={() => router.push("/question-manager")}
                     variant="outline"
                     className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
                   >
@@ -232,7 +260,10 @@ function QuizPageContent() {
               </div>
             ) : (
               <>
-                <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+                <Select
+                  value={selectedSubject}
+                  onValueChange={setSelectedSubject}
+                >
                   <SelectTrigger className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0">
                     <SelectValue placeholder="Quiz yapmak istediğiniz dersi seçin" />
                   </SelectTrigger>
@@ -277,7 +308,10 @@ function QuizPageContent() {
                     setSelectedSubject(subject.name);
 
                     // Check if there are real questions for this subject
-                    const questionsForSubject = QuestionLocalStorageService.getQuestionsBySubject(subject.name);
+                    const questionsForSubject =
+                      QuestionLocalStorageService.getQuestionsBySubject(
+                        subject.name,
+                      );
                     const hasRealQuestions = questionsForSubject.length > 0;
 
                     if (hasRealQuestions) {
@@ -286,7 +320,7 @@ function QuizPageContent() {
                       router.push(quizUrl);
                     } else {
                       // No real questions - use demo mode
-                      localStorage.setItem('btk_demo_mode', 'true');
+                      localStorage.setItem("btk_demo_mode", "true");
                       const quizUrl = `/quiz?subject=${encodeURIComponent(subject.name)}&demo=true`;
                       router.push(quizUrl);
                     }

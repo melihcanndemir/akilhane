@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import {
   BookOpen,
   Lightbulb,
@@ -20,15 +20,15 @@ import {
   Eye,
   EyeOff,
   Loader2,
-} from 'lucide-react';
-import Link from 'next/link';
-import { useToast } from '@/hooks/use-toast';
-import type { TopicExplainerInput } from '@/ai/flows/topic-explainer-ai';
-import { generateTopicStepContent } from '@/ai/flows/topic-explainer-ai';
-import HuggingFaceImageGenerator from '@/components/huggingface-image-generator';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import rehypeHighlight from 'rehype-highlight';
+} from "lucide-react";
+import Link from "next/link";
+import { useToast } from "@/hooks/use-toast";
+import type { TopicExplainerInput } from "@/ai/flows/topic-explainer-ai";
+import { generateTopicStepContent } from "@/ai/flows/topic-explainer-ai";
+import HuggingFaceImageGenerator from "@/components/huggingface-image-generator";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
 
 interface TopicData {
   topic: string;
@@ -39,13 +39,13 @@ interface TopicData {
     content: string;
     examples: string[];
     tips: string[];
-    difficulty: 'easy' | 'medium' | 'hard';
+    difficulty: "easy" | "medium" | "hard";
     estimatedTime: number;
     visualDescription?: string;
     confidence?: number;
   }>;
   totalTime: number;
-  difficulty: 'easy' | 'medium' | 'hard';
+  difficulty: "easy" | "medium" | "hard";
   prerequisites: string[];
   learningObjectives: string[];
 }
@@ -63,8 +63,10 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
   const [isMuted, setIsMuted] = useState(false);
   const [showVisuals, setShowVisuals] = useState(true);
   const [progress, setProgress] = useState(0);
-  const [completedSteps, setCompletedSteps] = useState<Set<string>>(() => new Set());
-  const [userNotes, setUserNotes] = useState<string>('');
+  const [completedSteps, setCompletedSteps] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const [userNotes, setUserNotes] = useState<string>("");
   const [showTips, setShowTips] = useState(true);
   const [topicData, setTopicData] = useState<TopicData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -82,15 +84,16 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
         setTopicData(aiGeneratedData);
 
         toast({
-          title: 'AI İçerik Hazır',
+          title: "AI İçerik Hazır",
           description: `${topic} konusu için AI destekli içerik başarıyla oluşturuldu.`,
         });
       } catch (error) {
-        console.error('Topic data loading error:', error);
+        console.error("Topic data loading error:", error);
         toast({
-          title: 'AI Hatası',
-          description: 'AI içerik üretilirken bir hata oluştu. Fallback içerik kullanılıyor.',
-          variant: 'destructive',
+          title: "AI Hatası",
+          description:
+            "AI içerik üretilirken bir hata oluştu. Fallback içerik kullanılıyor.",
+          variant: "destructive",
         });
       } finally {
         setIsLoading(false);
@@ -102,13 +105,16 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
   }, [topic, subject, toast]);
 
   // Real AI-powered topic data generation
-  const generateAITopicData = async (topicName: string, subjectName: string): Promise<TopicData> => {
+  const generateAITopicData = async (
+    topicName: string,
+    subjectName: string,
+  ): Promise<TopicData> => {
     const stepConfigs = [
-      { id: 'intro', difficulty: 'easy' as const, estimatedTime: 8 },
-      { id: 'core', difficulty: 'medium' as const, estimatedTime: 12 },
-      { id: 'advanced', difficulty: 'hard' as const, estimatedTime: 15 },
-      { id: 'practice', difficulty: 'medium' as const, estimatedTime: 18 },
-      { id: 'mastery', difficulty: 'hard' as const, estimatedTime: 20 },
+      { id: "intro", difficulty: "easy" as const, estimatedTime: 8 },
+      { id: "core", difficulty: "medium" as const, estimatedTime: 12 },
+      { id: "advanced", difficulty: "hard" as const, estimatedTime: 15 },
+      { id: "practice", difficulty: "medium" as const, estimatedTime: 18 },
+      { id: "mastery", difficulty: "hard" as const, estimatedTime: 20 },
     ];
 
     const steps = [];
@@ -119,7 +125,12 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
         const aiInput: TopicExplainerInput = {
           topic: topicName,
           subject: subjectName,
-          step: config.id as 'intro' | 'core' | 'advanced' | 'practice' | 'mastery',
+          step: config.id as
+            | "intro"
+            | "core"
+            | "advanced"
+            | "practice"
+            | "mastery",
           difficulty: config.difficulty,
           estimatedTime: config.estimatedTime,
         };
@@ -142,10 +153,17 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
         // Fallback content for this step
         steps.push({
           id: config.id,
-          title: `${topicName} ${config.id === 'intro' ? 'Giriş' :
-                  config.id === 'core' ? 'Ana Kavramlar' :
-                  config.id === 'advanced' ? 'İleri Seviye' :
-                  config.id === 'practice' ? 'Pratik Uygulamalar' : 'Uzmanlık Seviyesi'}`,
+          title: `${topicName} ${
+            config.id === "intro"
+              ? "Giriş"
+              : config.id === "core"
+                ? "Ana Kavramlar"
+                : config.id === "advanced"
+                  ? "İleri Seviye"
+                  : config.id === "practice"
+                    ? "Pratik Uygulamalar"
+                    : "Uzmanlık Seviyesi"
+          }`,
           content: `${topicName} konusunun ${config.id} aşamasında öğrenilmesi gereken temel kavramlar ve uygulamalar.`,
           examples: [
             `${topicName} konusunun günlük hayattaki uygulamaları`,
@@ -154,8 +172,8 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
           ],
           tips: [
             `${topicName} konusunu adım adım öğrenin`,
-            'Her kavramı tam anlamadan geçmeyin',
-            'Bol bol pratik yapın',
+            "Her kavramı tam anlamadan geçmeyin",
+            "Bol bol pratik yapın",
           ],
           difficulty: config.difficulty,
           estimatedTime: config.estimatedTime,
@@ -170,8 +188,11 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
       subject: subjectName,
       steps,
       totalTime: steps.reduce((sum, step) => sum + step.estimatedTime, 0),
-      difficulty: 'medium' as const,
-      prerequisites: [`${subjectName} temel bilgileri`, 'Aktif öğrenme becerisi'],
+      difficulty: "medium" as const,
+      prerequisites: [
+        `${subjectName} temel bilgileri`,
+        "Aktif öğrenme becerisi",
+      ],
       learningObjectives: [
         `${topicName} konusunun temel kavramlarını anlamak`,
         `${topicName} konusunu günlük hayatta uygulayabilmek`,
@@ -189,7 +210,7 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
 
     if (isPlaying && currentStep < (steps?.length || 0) - 1) {
       interval = setInterval(() => {
-        setCurrentStep(prev => {
+        setCurrentStep((prev) => {
           if (prev < (steps?.length || 0) - 1) {
             const newStep = prev + 1;
             setProgress(((newStep + 1) / (steps?.length || 1)) * 100);
@@ -213,7 +234,9 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
-      setCompletedSteps((prev: Set<string>) => new Set([...prev, steps[currentStep]?.id || '']));
+      setCompletedSteps(
+        (prev: Set<string>) => new Set([...prev, steps[currentStep]?.id || ""]),
+      );
     }
   };
 
@@ -237,16 +260,20 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
   const toggleMute = () => {
     setIsMuted(!isMuted);
     toast({
-      title: isMuted ? 'Ses Açıldı' : 'Ses Kapatıldı',
-      description: isMuted ? 'Ses efektleri tekrar aktif' : 'Ses efektleri kapatıldı',
+      title: isMuted ? "Ses Açıldı" : "Ses Kapatıldı",
+      description: isMuted
+        ? "Ses efektleri tekrar aktif"
+        : "Ses efektleri kapatıldı",
     });
   };
 
   const toggleVisuals = () => {
     setShowVisuals(!showVisuals);
     toast({
-      title: showVisuals ? 'Görseller Kapatıldı' : 'Görseller Açıldı',
-      description: showVisuals ? 'Görsel yardımcılar gizlendi' : 'Görsel yardımcılar gösteriliyor',
+      title: showVisuals ? "Görseller Kapatıldı" : "Görseller Açıldı",
+      description: showVisuals
+        ? "Görsel yardımcılar gizlendi"
+        : "Görsel yardımcılar gösteriliyor",
     });
   };
 
@@ -264,7 +291,9 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
             )}
           </div>
           <p className="text-gray-600 dark:text-gray-300">
-            {aiGenerating ? 'AI içerik üretiliyor...' : 'Konu verileri yükleniyor...'}
+            {aiGenerating
+              ? "AI içerik üretiliyor..."
+              : "Konu verileri yükleniyor..."}
           </p>
           {aiGenerating && (
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
@@ -281,7 +310,9 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-8 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Konu Bulunamadı</h2>
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
+            Konu Bulunamadı
+          </h2>
           <p className="text-gray-600 dark:text-gray-300 mb-6">
             &quot;{topic}&quot; konusu için veri bulunamadı.
           </p>
@@ -302,7 +333,9 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-8 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Adım Bulunamadı</h2>
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
+            Adım Bulunamadı
+          </h2>
           <p className="text-gray-600 dark:text-gray-300 mb-6">
             Seçilen adım bulunamadı.
           </p>
@@ -369,8 +402,12 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
               size="sm"
               className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
             >
-              {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-              {isPlaying ? 'Duraklat' : 'Otomatik Oynat'}
+              {isPlaying ? (
+                <Pause className="w-4 h-4" />
+              ) : (
+                <Play className="w-4 h-4" />
+              )}
+              {isPlaying ? "Duraklat" : "Otomatik Oynat"}
             </Button>
 
             <Button
@@ -379,7 +416,11 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
               size="sm"
               className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white"
             >
-              {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+              {isMuted ? (
+                <VolumeX className="w-4 h-4" />
+              ) : (
+                <Volume2 className="w-4 h-4" />
+              )}
             </Button>
 
             <Button
@@ -388,7 +429,11 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
               size="sm"
               className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white"
             >
-              {showVisuals ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              {showVisuals ? (
+                <EyeOff className="w-4 h-4" />
+              ) : (
+                <Eye className="w-4 h-4" />
+              )}
               Görseller
             </Button>
 
@@ -429,12 +474,18 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
                         <div className="flex items-center gap-2 mt-2">
                           <Badge
                             variant={
-                              currentStepData.difficulty === 'easy' ? 'default' :
-                              currentStepData.difficulty === 'medium' ? 'secondary' : 'destructive'
+                              currentStepData.difficulty === "easy"
+                                ? "default"
+                                : currentStepData.difficulty === "medium"
+                                  ? "secondary"
+                                  : "destructive"
                             }
                           >
-                            {currentStepData.difficulty === 'easy' ? 'Kolay' :
-                             currentStepData.difficulty === 'medium' ? 'Orta' : 'Zor'}
+                            {currentStepData.difficulty === "easy"
+                              ? "Kolay"
+                              : currentStepData.difficulty === "medium"
+                                ? "Orta"
+                                : "Zor"}
                           </Badge>
                           <span className="text-sm text-gray-500 dark:text-gray-400">
                             ~{currentStepData.estimatedTime} dakika
@@ -451,21 +502,55 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
                           remarkPlugins={[remarkGfm]}
                           rehypePlugins={[rehypeHighlight]}
                           components={{
-                            h1: ({ children }) => <h1 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">{children}</h1>,
-                            h2: ({ children }) => <h2 className="text-xl font-semibold mb-3 text-gray-800 dark:text-white">{children}</h2>,
-                            h3: ({ children }) => <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-white">{children}</h3>,
-                            p: ({ children }) => <p className="mb-4 text-gray-700 dark:text-gray-300">{children}</p>,
-                            ul: ({ children }) => <ul className="list-disc list-inside mb-4 space-y-1 text-gray-700 dark:text-gray-300">{children}</ul>,
-                            ol: ({ children }) => <ol className="list-decimal list-inside mb-4 space-y-1 text-gray-700 dark:text-gray-300">{children}</ol>,
-                            li: ({ children }) => <li className="text-gray-700 dark:text-gray-300">{children}</li>,
+                            h1: ({ children }) => (
+                              <h1 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">
+                                {children}
+                              </h1>
+                            ),
+                            h2: ({ children }) => (
+                              <h2 className="text-xl font-semibold mb-3 text-gray-800 dark:text-white">
+                                {children}
+                              </h2>
+                            ),
+                            h3: ({ children }) => (
+                              <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-white">
+                                {children}
+                              </h3>
+                            ),
+                            p: ({ children }) => (
+                              <p className="mb-4 text-gray-700 dark:text-gray-300">
+                                {children}
+                              </p>
+                            ),
+                            ul: ({ children }) => (
+                              <ul className="list-disc list-inside mb-4 space-y-1 text-gray-700 dark:text-gray-300">
+                                {children}
+                              </ul>
+                            ),
+                            ol: ({ children }) => (
+                              <ol className="list-decimal list-inside mb-4 space-y-1 text-gray-700 dark:text-gray-300">
+                                {children}
+                              </ol>
+                            ),
+                            li: ({ children }) => (
+                              <li className="text-gray-700 dark:text-gray-300">
+                                {children}
+                              </li>
+                            ),
                             code: ({ children, className }) => {
                               const isInline = !className;
                               if (isInline) {
-                                return <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm font-mono text-gray-800 dark:text-gray-200">{children}</code>;
+                                return (
+                                  <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm font-mono text-gray-800 dark:text-gray-200">
+                                    {children}
+                                  </code>
+                                );
                               }
                               return (
                                 <pre className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto mb-4">
-                                  <code className="text-sm font-mono text-gray-800 dark:text-gray-200">{children}</code>
+                                  <code className="text-sm font-mono text-gray-800 dark:text-gray-200">
+                                    {children}
+                                  </code>
                                 </pre>
                               );
                             },
@@ -474,8 +559,16 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
                                 {children}
                               </blockquote>
                             ),
-                            strong: ({ children }) => <strong className="font-semibold text-gray-800 dark:text-white">{children}</strong>,
-                            em: ({ children }) => <em className="italic text-gray-600 dark:text-gray-400">{children}</em>,
+                            strong: ({ children }) => (
+                              <strong className="font-semibold text-gray-800 dark:text-white">
+                                {children}
+                              </strong>
+                            ),
+                            em: ({ children }) => (
+                              <em className="italic text-gray-600 dark:text-gray-400">
+                                {children}
+                              </em>
+                            ),
                           }}
                         >
                           {currentStepData.content}
@@ -492,12 +585,18 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
                       >
                         {/* Hugging Face AI Image Generator */}
                         <HuggingFaceImageGenerator
-                          description={currentStepData.visualDescription || `${topic} konusu için AI destekli görsel`}
+                          description={
+                            currentStepData.visualDescription ||
+                            `${topic} konusu için AI destekli görsel`
+                          }
                           topic={topic}
                           subject={subject}
                           onImageGenerated={(imageUrl: string) => {
                             // eslint-disable-next-line no-console
-                            console.log('Hugging Face AI görsel üretildi:', imageUrl);
+                            console.log(
+                              "Hugging Face AI görsel üretildi:",
+                              imageUrl,
+                            );
                           }}
                         />
                       </motion.div>
@@ -529,21 +628,55 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
                                   remarkPlugins={[remarkGfm]}
                                   rehypePlugins={[rehypeHighlight]}
                                   components={{
-                                    h1: ({ children }) => <h1 className="text-lg font-bold mb-2 text-gray-800 dark:text-white">{children}</h1>,
-                                    h2: ({ children }) => <h2 className="text-base font-semibold mb-2 text-gray-800 dark:text-white">{children}</h2>,
-                                    h3: ({ children }) => <h3 className="text-sm font-semibold mb-1 text-gray-800 dark:text-white">{children}</h3>,
-                                    p: ({ children }) => <p className="mb-2 text-gray-700 dark:text-gray-300">{children}</p>,
-                                    ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1 text-gray-700 dark:text-gray-300">{children}</ul>,
-                                    ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1 text-gray-700 dark:text-gray-300">{children}</ol>,
-                                    li: ({ children }) => <li className="text-gray-700 dark:text-gray-300">{children}</li>,
+                                    h1: ({ children }) => (
+                                      <h1 className="text-lg font-bold mb-2 text-gray-800 dark:text-white">
+                                        {children}
+                                      </h1>
+                                    ),
+                                    h2: ({ children }) => (
+                                      <h2 className="text-base font-semibold mb-2 text-gray-800 dark:text-white">
+                                        {children}
+                                      </h2>
+                                    ),
+                                    h3: ({ children }) => (
+                                      <h3 className="text-sm font-semibold mb-1 text-gray-800 dark:text-white">
+                                        {children}
+                                      </h3>
+                                    ),
+                                    p: ({ children }) => (
+                                      <p className="mb-2 text-gray-700 dark:text-gray-300">
+                                        {children}
+                                      </p>
+                                    ),
+                                    ul: ({ children }) => (
+                                      <ul className="list-disc list-inside mb-2 space-y-1 text-gray-700 dark:text-gray-300">
+                                        {children}
+                                      </ul>
+                                    ),
+                                    ol: ({ children }) => (
+                                      <ol className="list-decimal list-inside mb-2 space-y-1 text-gray-700 dark:text-gray-300">
+                                        {children}
+                                      </ol>
+                                    ),
+                                    li: ({ children }) => (
+                                      <li className="text-gray-700 dark:text-gray-300">
+                                        {children}
+                                      </li>
+                                    ),
                                     code: ({ children, className }) => {
                                       const isInline = !className;
                                       if (isInline) {
-                                        return <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm font-mono text-gray-800 dark:text-gray-200">{children}</code>;
+                                        return (
+                                          <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm font-mono text-gray-800 dark:text-gray-200">
+                                            {children}
+                                          </code>
+                                        );
                                       }
                                       return (
                                         <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg overflow-x-auto mb-2">
-                                          <code className="text-sm font-mono text-gray-800 dark:text-gray-200">{children}</code>
+                                          <code className="text-sm font-mono text-gray-800 dark:text-gray-200">
+                                            {children}
+                                          </code>
                                         </pre>
                                       );
                                     },
@@ -552,8 +685,16 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
                                         {children}
                                       </blockquote>
                                     ),
-                                    strong: ({ children }) => <strong className="font-semibold text-gray-800 dark:text-white">{children}</strong>,
-                                    em: ({ children }) => <em className="italic text-gray-600 dark:text-gray-400">{children}</em>,
+                                    strong: ({ children }) => (
+                                      <strong className="font-semibold text-gray-800 dark:text-white">
+                                        {children}
+                                      </strong>
+                                    ),
+                                    em: ({ children }) => (
+                                      <em className="italic text-gray-600 dark:text-gray-400">
+                                        {children}
+                                      </em>
+                                    ),
                                   }}
                                 >
                                   {example}
@@ -585,21 +726,55 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
                                   remarkPlugins={[remarkGfm]}
                                   rehypePlugins={[rehypeHighlight]}
                                   components={{
-                                    h1: ({ children }) => <h1 className="text-base font-bold mb-1 text-yellow-800 dark:text-yellow-300">{children}</h1>,
-                                    h2: ({ children }) => <h2 className="text-sm font-semibold mb-1 text-yellow-800 dark:text-yellow-300">{children}</h2>,
-                                    h3: ({ children }) => <h3 className="text-xs font-semibold mb-1 text-yellow-800 dark:text-yellow-300">{children}</h3>,
-                                    p: ({ children }) => <p className="mb-1 text-yellow-700 dark:text-yellow-300">{children}</p>,
-                                    ul: ({ children }) => <ul className="list-disc list-inside mb-1 space-y-1 text-yellow-700 dark:text-yellow-300">{children}</ul>,
-                                    ol: ({ children }) => <ol className="list-decimal list-inside mb-1 space-y-1 text-yellow-700 dark:text-yellow-300">{children}</ol>,
-                                    li: ({ children }) => <li className="text-yellow-700 dark:text-yellow-300">{children}</li>,
+                                    h1: ({ children }) => (
+                                      <h1 className="text-base font-bold mb-1 text-yellow-800 dark:text-yellow-300">
+                                        {children}
+                                      </h1>
+                                    ),
+                                    h2: ({ children }) => (
+                                      <h2 className="text-sm font-semibold mb-1 text-yellow-800 dark:text-yellow-300">
+                                        {children}
+                                      </h2>
+                                    ),
+                                    h3: ({ children }) => (
+                                      <h3 className="text-xs font-semibold mb-1 text-yellow-800 dark:text-yellow-300">
+                                        {children}
+                                      </h3>
+                                    ),
+                                    p: ({ children }) => (
+                                      <p className="mb-1 text-yellow-700 dark:text-yellow-300">
+                                        {children}
+                                      </p>
+                                    ),
+                                    ul: ({ children }) => (
+                                      <ul className="list-disc list-inside mb-1 space-y-1 text-yellow-700 dark:text-yellow-300">
+                                        {children}
+                                      </ul>
+                                    ),
+                                    ol: ({ children }) => (
+                                      <ol className="list-decimal list-inside mb-1 space-y-1 text-yellow-700 dark:text-yellow-300">
+                                        {children}
+                                      </ol>
+                                    ),
+                                    li: ({ children }) => (
+                                      <li className="text-yellow-700 dark:text-yellow-300">
+                                        {children}
+                                      </li>
+                                    ),
                                     code: ({ children, className }) => {
                                       const isInline = !className;
                                       if (isInline) {
-                                        return <code className="bg-yellow-100 dark:bg-yellow-900 px-1 py-0.5 rounded text-sm font-mono text-yellow-800 dark:text-yellow-300">{children}</code>;
+                                        return (
+                                          <code className="bg-yellow-100 dark:bg-yellow-900 px-1 py-0.5 rounded text-sm font-mono text-yellow-800 dark:text-yellow-300">
+                                            {children}
+                                          </code>
+                                        );
                                       }
                                       return (
                                         <pre className="bg-yellow-100 dark:bg-yellow-900 p-2 rounded-lg overflow-x-auto mb-1">
-                                          <code className="text-sm font-mono text-yellow-800 dark:text-yellow-300">{children}</code>
+                                          <code className="text-sm font-mono text-yellow-800 dark:text-yellow-300">
+                                            {children}
+                                          </code>
                                         </pre>
                                       );
                                     },
@@ -608,8 +783,16 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
                                         {children}
                                       </blockquote>
                                     ),
-                                    strong: ({ children }) => <strong className="font-semibold text-yellow-800 dark:text-yellow-300">{children}</strong>,
-                                    em: ({ children }) => <em className="italic text-yellow-600 dark:text-yellow-400">{children}</em>,
+                                    strong: ({ children }) => (
+                                      <strong className="font-semibold text-yellow-800 dark:text-yellow-300">
+                                        {children}
+                                      </strong>
+                                    ),
+                                    em: ({ children }) => (
+                                      <em className="italic text-yellow-600 dark:text-yellow-400">
+                                        {children}
+                                      </em>
+                                    ),
                                   }}
                                 >
                                   {tip}
@@ -668,31 +851,41 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
                       onClick={() => setCurrentStep(index)}
                       className={`p-3 rounded-lg cursor-pointer transition-all duration-200 ${
                         index === currentStep
-                          ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
+                          ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
                           : completedSteps?.has(step.id)
-                          ? 'bg-green-100 dark:bg-green-900/20 border border-green-200 dark:border-green-700'
-                          : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'
+                            ? "bg-green-100 dark:bg-green-900/20 border border-green-200 dark:border-green-700"
+                            : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                          index === currentStep
-                            ? 'bg-white text-blue-600'
-                            : completedSteps?.has(step.id)
-                            ? 'bg-green-500 text-white'
-                            : 'bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
-                        }`}>
-                          {completedSteps?.has(step.id) ? '✓' : index + 1}
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                            index === currentStep
+                              ? "bg-white text-blue-600"
+                              : completedSteps?.has(step.id)
+                                ? "bg-green-500 text-white"
+                                : "bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300"
+                          }`}
+                        >
+                          {completedSteps?.has(step.id) ? "✓" : index + 1}
                         </div>
                         <div className="flex-1">
-                          <h4 className={`font-medium ${
-                            index === currentStep ? 'text-white' : 'text-gray-800 dark:text-white'
-                          }`}>
+                          <h4
+                            className={`font-medium ${
+                              index === currentStep
+                                ? "text-white"
+                                : "text-gray-800 dark:text-white"
+                            }`}
+                          >
                             {step.title}
                           </h4>
-                          <p className={`text-xs ${
-                            index === currentStep ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'
-                          }`}>
+                          <p
+                            className={`text-xs ${
+                              index === currentStep
+                                ? "text-blue-100"
+                                : "text-gray-500 dark:text-gray-400"
+                            }`}
+                          >
                             {step.estimatedTime} dakika
                           </p>
                         </div>
@@ -738,7 +931,7 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
                   className="w-full justify-start"
                 >
                   <Lightbulb className="w-4 h-4 mr-2" />
-                  {showTips ? 'İpuçlarını Gizle' : 'İpuçlarını Göster'}
+                  {showTips ? "İpuçlarını Gizle" : "İpuçlarını Göster"}
                 </Button>
                 <Button
                   onClick={() => setShowVisuals(!showVisuals)}
@@ -747,7 +940,7 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
                   className="w-full justify-start"
                 >
                   <Eye className="w-4 h-4 mr-2" />
-                  {showVisuals ? 'Görselleri Gizle' : 'Görselleri Göster'}
+                  {showVisuals ? "Görselleri Gizle" : "Görselleri Göster"}
                 </Button>
                 <Button
                   onClick={handleRestart}
