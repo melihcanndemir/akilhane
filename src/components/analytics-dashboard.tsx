@@ -189,16 +189,27 @@ export default function AnalyticsDashboard({
 
             filteredResults.forEach((result: QuizResult) => {
               if (result.weakTopics) {
-                Object.entries(result.weakTopics).forEach(([topic, count]) => {
-                  weakTopicsMap[topic] = (weakTopicsMap[topic] || 0) + count;
+                // Calculate total questions for this result
+                const totalQuestionsInResult = result.totalQuestions;
 
-                  // Track performance for all topics
+                // Get all topics from this result
+                const allTopicsInResult = Object.keys(result.weakTopics);
+                const questionsPerTopic = totalQuestionsInResult / allTopicsInResult.length;
+
+                Object.entries(result.weakTopics).forEach(([topic, weakCount]) => {
+                  weakTopicsMap[topic] = (weakTopicsMap[topic] || 0) + weakCount;
+
+                  // Track performance for all topics with real data
                   if (!topicPerformanceMap[topic]) {
                     topicPerformanceMap[topic] = { correct: 0, total: 0 };
                   }
-                  const weakCount = count || 0;
-                  topicPerformanceMap[topic].total += 3; // Assume 3 questions per topic
-                  topicPerformanceMap[topic].correct += Math.max(0, 3 - weakCount);
+
+                  // Calculate real performance for this topic
+                  const topicQuestions = Math.round(questionsPerTopic);
+                  const topicCorrect = Math.max(0, topicQuestions - weakCount);
+
+                  topicPerformanceMap[topic].total += topicQuestions;
+                  topicPerformanceMap[topic].correct += topicCorrect;
                 });
               }
             });
@@ -209,19 +220,24 @@ export default function AnalyticsDashboard({
               .slice(0, 3)
               .map(([topic]) => topic);
 
-            // Topics that need improvement (60% or lower success rate)
+            // Topics that need improvement (configurable threshold)
+            const IMPROVEMENT_THRESHOLD = 60; // Configurable threshold
             const topicsNeedingImprovement = Object.entries(topicPerformanceMap)
               .filter(([, performance]) => {
                 if (performance.total < 2) {
                   return false; // Need at least 2 questions
                 }
                 const successRate = (performance.correct / performance.total) * 100;
-                return successRate <= 60; // 60% or lower
+                return successRate <= IMPROVEMENT_THRESHOLD;
               })
-              .map(([topic]) => topic)
+              .map(([topic, performance]) => ({
+                topic,
+                successRate: Math.round((performance.correct / performance.total) * 100),
+              }))
               .slice(0, 3);
 
-            // Calculate strong topics (topics with >80% success rate and not in weak topics or needing improvement)
+            // Calculate strong topics (topics with configurable threshold)
+            const STRONG_THRESHOLD = 80; // Configurable threshold
             const strongTopics = Array.from(Object.keys(topicPerformanceMap))
               .filter((topic) => {
                 const performance = topicPerformanceMap[topic];
@@ -231,9 +247,9 @@ export default function AnalyticsDashboard({
 
                 const successRate =
                   (performance.correct / performance.total) * 100;
-                return successRate >= 80 &&
+                return successRate >= STRONG_THRESHOLD &&
                        !weakTopics.includes(topic) &&
-                       !topicsNeedingImprovement.includes(topic);
+                       !topicsNeedingImprovement.some(item => item.topic === topic);
               })
               .slice(0, 3);
 
@@ -267,7 +283,7 @@ export default function AnalyticsDashboard({
               improvement: Math.floor(Math.random() * 20) + 5,
               weakTopics,
               strongTopics: defaultStrongTopics,
-              topicsNeedingImprovement,
+              topicsNeedingImprovement: topicsNeedingImprovement.map(item => item.topic),
               recentActivity,
             };
           } catch {
@@ -582,7 +598,7 @@ export default function AnalyticsDashboard({
                   )}
                 </div>
 
-                {/* Topics Needing Improvement (60% or lower) */}
+                {/* Topics Needing Improvement (configurable threshold) */}
                 <div>
                   <h4 className="text-sm font-medium mb-2 text-orange-700 dark:text-orange-400">
                     %60 ve Altı Başarı
