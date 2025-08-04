@@ -86,6 +86,7 @@ function QuizPageContent() {
   const [loading, setLoading] = useState(true);
   const [selectedSubject, setSelectedSubject] = useState("");
   const [isDemoMode, setIsDemoMode] = useState(false);
+  const [defaultSubject, setDefaultSubject] = useState("");
 
   useEffect(() => {
     const loadSubjects = async () => {
@@ -148,6 +149,26 @@ function QuizPageContent() {
         );
 
         setSubjects(activeSubjectsWithQuestions);
+
+        // Load default subject from settings
+        try {
+          const saved = localStorage.getItem("userSettings");
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (parsed.studyPreferences?.defaultSubject) {
+              setDefaultSubject(parsed.studyPreferences.defaultSubject);
+              // Auto-select default subject if it exists in subjects list
+              const defaultSubjectExists = activeSubjectsWithQuestions.some(
+                (s) => s.name === parsed.studyPreferences.defaultSubject,
+              );
+              if (defaultSubjectExists) {
+                setSelectedSubject(parsed.studyPreferences.defaultSubject);
+              }
+            }
+          }
+        } catch {
+          // Error handling silently
+        }
       } catch {
       } finally {
         setLoading(false);
@@ -272,9 +293,12 @@ function QuizPageContent() {
                       <SelectItem
                         key={subject.id}
                         value={subject.name}
-                        className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white"
+                        className={`hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-blue-600 data-[highlighted]:to-purple-600 data-[highlighted]:text-white ${
+                          subject.name === defaultSubject ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white" : ""
+                        }`}
                       >
                         {subject.name} ({subject.questionCount} soru)
+                        {subject.name === defaultSubject && " (Varsayılan)"}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -287,7 +311,7 @@ function QuizPageContent() {
                   size="lg"
                 >
                   <Play className="w-4 h-4 mr-2" />
-                  Quiz&apos;e Başla
+                  {selectedSubject === defaultSubject ? "Varsayılan Dersle Quiz'e Başla" : "Quiz'e Başla"}
                 </Button>
               </>
             )}

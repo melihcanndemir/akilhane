@@ -13,6 +13,7 @@
     <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License">
     <img src="https://img.shields.io/badge/version-1.0.0-blue.svg" alt="Version">
     <img src="https://img.shields.io/badge/status-production-green.svg" alt="Status">
+    <img src="https://deploy-badge.vercel.app/vercel/akilhane?root=landing" alt="Vercel Deploy Status">
   </p>
   <br>
 </div>
