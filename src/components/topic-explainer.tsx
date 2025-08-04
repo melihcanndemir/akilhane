@@ -98,16 +98,15 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({
         if (hasSavedContent && savedTopicId) {
           const savedTopic = TopicExplainerLocalStorageService.getTopicById(savedTopicId);
           if (savedTopic) {
-            const parsedData = JSON.parse(savedTopic.content);
+                        const parsedData = JSON.parse(savedTopic.content);
             setTopicData(parsedData);
             setNotesKey(savedTopicId);
-
+ 
             // Load saved notes
             const savedNotes = localStorage.getItem(`akilhane_notes_${savedTopicId}`);
             if (savedNotes) {
               setUserNotes(savedNotes);
             }
-            setTopicData(parsedData);
 
             toast({
               title: "Kaydedilen İçerik Yüklendi",
@@ -154,7 +153,7 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({
 
   // Auto-save notes when userNotes changes
   useEffect(() => {
-    if (notesKey && userNotes !== "") {
+    if (notesKey) {
       const timeoutId = setTimeout(() => {
         localStorage.setItem(`akilhane_notes_${notesKey}`, userNotes);
       }, 500); // Debounce 500ms
