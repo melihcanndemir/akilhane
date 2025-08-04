@@ -262,81 +262,81 @@ const VoicePlayer: React.FC<VoicePlayerProps> = ({
             )}
           </Button>
 
-          <Button
-            onClick={() => setShowSettings(!showSettings)}
-            size="sm"
-            variant="outline"
-            className="hover:bg-gradient-to-r hover:from-green-600 hover:to-emerald-600 hover:text-white"
-          >
-            <Settings className="w-4 h-4" />
-          </Button>
+                     <Button
+             onClick={() => setShowSettings(!showSettings)}
+             size="sm"
+             variant="outline"
+             className="hidden md:flex hover:bg-gradient-to-r hover:from-green-600 hover:to-emerald-600 hover:text-white"
+           >
+             <Settings className="w-4 h-4" />
+           </Button>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="text-xs">
-            {currentSpeed}x
-          </Badge>
-          {selectedVoice && (
-            <Badge variant="secondary" className="text-xs">
-              {selectedVoice.name}
-            </Badge>
-          )}
-        </div>
+                 <div className="flex items-center gap-1 sm:gap-2">
+           <Badge variant="outline" className="text-xs px-1 sm:px-2 hidden sm:block">
+             {currentSpeed}x
+           </Badge>
+           {selectedVoice && (
+             <Badge variant="secondary" className="text-xs px-1 sm:px-2 hidden sm:block">
+               {selectedVoice.name}
+             </Badge>
+           )}
+         </div>
       </div>
 
-      {/* Settings Panel */}
-      {showControls && showSettings && (
-        <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-4">
-          {/* Speed Control */}
-          <div>
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-              Ses Hızı: {currentSpeed}x
-            </label>
-            <Slider
-              value={[currentSpeed]}
-              onValueChange={handleSpeedChange}
-              max={2}
-              min={0.5}
-              step={0.1}
-              className="w-full"
-            />
-          </div>
+             {/* Settings Panel - Desktop Only */}
+       {showControls && showSettings && (
+         <div className="hidden md:block border-t border-gray-200 dark:border-gray-700 pt-4 space-y-4">
+           {/* Speed Control */}
+           <div>
+             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+               Ses Hızı: {currentSpeed}x
+             </label>
+             <Slider
+               value={[currentSpeed]}
+               onValueChange={handleSpeedChange}
+               max={2}
+               min={0.5}
+               step={0.1}
+               className="w-full"
+             />
+           </div>
 
-          {/* Voice Selection */}
-          {availableVoices.length > 0 && (
-            <div>
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                Ses Seçimi
-              </label>
-              <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
-                {availableVoices.map((voice) => (
-                  <Button
-                    key={voice.name}
-                    onClick={() => handleVoiceChange(voice)}
-                    size="sm"
-                    variant={selectedVoice?.name === voice.name ? "default" : "outline"}
-                    className="text-xs justify-start"
-                  >
-                    {voice.name} ({voice.lang})
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
+           {/* Voice Selection */}
+           {availableVoices.length > 0 && (
+             <div>
+               <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                 Ses Seçimi
+               </label>
+               <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
+                 {availableVoices.map((voice) => (
+                   <Button
+                     key={voice.name}
+                     onClick={() => handleVoiceChange(voice)}
+                     size="sm"
+                     variant={selectedVoice?.name === voice.name ? "default" : "outline"}
+                     className="text-xs justify-start"
+                   >
+                     {voice.name} ({voice.lang})
+                   </Button>
+                 ))}
+               </div>
+             </div>
+           )}
 
-          {/* Text Preview */}
-          <div>
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-              Seslendirilecek Metin
-            </label>
-            <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg max-h-32 overflow-y-auto">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {text || "Seslendirilecek metin yok"}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+           {/* Text Preview */}
+           <div>
+             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+               Seslendirilecek Metin
+             </label>
+             <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg max-h-32 overflow-y-auto">
+               <p className="text-sm text-gray-600 dark:text-gray-400">
+                 {text || "Seslendirilecek metin yok"}
+               </p>
+             </div>
+           </div>
+         </div>
+       )}
     </div>
   );
 };
