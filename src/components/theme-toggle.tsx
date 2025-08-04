@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export function ThemeToggle() {
-  const { setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
 
   return (
     <DropdownMenu>
@@ -31,19 +31,25 @@ export function ThemeToggle() {
       <DropdownMenuContent align="end">
         <DropdownMenuItem
           onClick={() => setTheme("light")}
-          className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white"
+          className={`hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white ${
+            theme === "light" ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white" : ""
+          }`}
         >
           Açık
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => setTheme("dark")}
-          className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white"
+          className={`hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white ${
+            theme === "dark" ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white" : ""
+          }`}
         >
           Koyu
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => setTheme("system")}
-          className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white"
+          className={`hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white ${
+            theme === "system" ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white" : ""
+          }`}
         >
           Sistem
         </DropdownMenuItem>

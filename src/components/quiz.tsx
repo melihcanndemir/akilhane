@@ -544,38 +544,6 @@ const QuizComponent: React.FC<QuizProps> = ({
     setIsSaving,
   ]);
 
-  // Timer for countdown (time limit)
-  useEffect(() => {
-    if (
-      timeLimit &&
-      timeRemaining !== null &&
-      timeRemaining > 0 &&
-      !quizFinished
-    ) {
-      const timer = setInterval(() => {
-        setTimeRemaining((prev) => {
-          if (prev === null || prev <= 1) {
-            // Time's up - auto submit if enabled
-            if (userSettings.studyPreferences.autoSubmit) {
-              handleFinish();
-            }
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
-      return () => clearInterval(timer);
-    }
-    return undefined;
-  }, [
-    timeLimit,
-    timeRemaining,
-    quizFinished,
-    userSettings.studyPreferences.autoSubmit,
-    handleFinish,
-  ]);
-
   const currentQuestion = questions[currentQuestionIndex];
 
   const handleAnswerSelect = (index: number) => {
@@ -584,7 +552,7 @@ const QuizComponent: React.FC<QuizProps> = ({
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = useCallback(() => {
     if (selectedAnswer !== null && currentQuestion) {
       const isCorrect =
         currentQuestion.options[selectedAnswer]?.isCorrect ?? false;
@@ -604,18 +572,108 @@ const QuizComponent: React.FC<QuizProps> = ({
 
       setShowResult(true);
     }
-  };
+  }, [selectedAnswer, currentQuestion, score]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       setSelectedAnswer(null);
       setShowResult(false);
       setAiTutorHelp(null);
     }
-  };
+  }, [currentQuestionIndex, questions.length]);
+
+  // AutoSubmit fonksiyonu ekleyin
+  const handleAutoSubmit = useCallback(() => {
+    if (!showResult && currentQuestion) {
+      // Eğer henüz cevap verilmemişse, random bir cevap seç
+      if (selectedAnswer === null) {
+        const randomAnswer = Math.floor(Math.random() * currentQuestion.options.length);
+        setSelectedAnswer(randomAnswer);
+
+        // State update'in tamamlanması için timeout kullan
+        setTimeout(() => {
+          const isCorrect = currentQuestion.options[randomAnswer]?.isCorrect ?? false;
+          if (isCorrect) {
+            setScore(prev => prev + 1);
+          }
+
+          setUserAnswers((prev) => [
+            ...prev,
+            {
+              questionId: currentQuestion.id,
+              topic: currentQuestion.topic,
+              isCorrect,
+            },
+          ]);
+
+          setShowResult(true);
+        }, 100);
+      } else {
+        // Cevap seçilmişse direkt submit et
+        handleSubmit();
+      }
+    } else if (showResult) {
+      // Sonuç gösteriliyorsa bir sonraki soruya geç veya bitir
+      if (currentQuestionIndex < questions.length - 1) {
+        handleNext();
+      } else {
+        handleFinish();
+      }
+    } else {
+      // Diğer durumlarda quiz'i bitir
+      handleFinish();
+    }
+  }, [
+    showResult,
+    currentQuestion,
+    selectedAnswer,
+    handleSubmit,
+    currentQuestionIndex,
+    questions.length,
+    handleNext,
+    handleFinish,
+  ]);
+
+  // Timer for countdown (time limit)
+  useEffect(() => {
+    if (
+      timeLimit &&
+      timeRemaining !== null &&
+      timeRemaining > 0 &&
+      !quizFinished
+    ) {
+      const timer = setInterval(() => {
+        setTimeRemaining((prev) => {
+          if (prev === null || prev <= 1) {
+            // AutoSubmit aktifse otomatik submit yap
+            if (userSettings.studyPreferences.autoSubmit) {
+              // Timer callback'i async olamayacağı için setTimeout kullan
+              setTimeout(() => {
+                handleAutoSubmit();
+              }, 10);
+            }
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+    return undefined;
+  }, [
+    timeLimit,
+    timeRemaining,
+    quizFinished,
+    userSettings.studyPreferences.autoSubmit,
+    handleAutoSubmit, // Bu önemli!
+  ]);
 
   const handleRetake = () => {
+    // Mevcut soruları sakla
+    const currentQuestions = [...questions];
+
     // Reset all quiz-related state
     setQuestions([]);
     setCurrentQuestionIndex(0);
@@ -637,6 +695,20 @@ const QuizComponent: React.FC<QuizProps> = ({
     });
     setTimeRemaining(null);
     setTimeLimit(null);
+
+    // Soruları geri yükle
+    setTimeout(() => {
+      setQuestions(currentQuestions);
+      setTotalQuestions(currentQuestions.length);
+      setStartTime(new Date());
+
+      // Set time limit if configured
+      if (userSettings.studyPreferences.timeLimit > 0) {
+        const timeLimitMinutes = userSettings.studyPreferences.timeLimit;
+        setTimeLimit(timeLimitMinutes * 60); // Convert to seconds
+        setTimeRemaining(timeLimitMinutes * 60);
+      }
+    }, 0);
   };
 
   // Handle voice commands

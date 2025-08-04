@@ -43,22 +43,24 @@ import {
   GraduationCap,
   Loader2,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useToast } from "@/hooks/use-toast";
 import MobileNav from "@/components/mobile-nav";
 
 interface Subject {
-  id: number;
+  id: string;
   name: string;
   category: string;
   difficulty: string;
-  is_active: boolean;
+  isActive: boolean;
 }
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
+
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState({
@@ -107,7 +109,6 @@ export default function SettingsPage() {
         fontSize: "medium",
         compactMode: false,
       };
-      let loadedTheme = "system";
 
       // 1. Load settings from localStorage
       const saved = localStorage.getItem("userSettings");
@@ -128,32 +129,40 @@ export default function SettingsPage() {
           }
           if (parsed.appearance) {
             loadedAppearance = { ...loadedAppearance, ...parsed.appearance };
-            loadedTheme = parsed.appearance.theme || loadedTheme;
+            // loadedTheme = parsed.appearance.theme || loadedTheme; // Bu satırı kaldırıyoruz
           }
         } catch {
           // Failed to parse settings from localStorage
         }
       }
 
-      // 2. Load subjects from API
+      // 2. Load subjects from localStorage
       try {
-        const response = await fetch("/api/subjects");
-        if (response.ok) {
-          const subjectData = await response.json();
-          setSubjects(subjectData);
+        // LocalStorage'dan dersleri yükle
+        const localSubjects = localStorage.getItem("exam_training_subjects");
+
+        if (localSubjects) {
+          const parsedSubjects = JSON.parse(localSubjects);
+
+          const activeSubjects = parsedSubjects.filter((s: Subject) => s.isActive);
+
+          setSubjects(activeSubjects);
 
           // 3. Default subject ayarla
-          if (!loadedStudyPrefs.defaultSubject && subjectData.length > 0) {
-            const firstActiveSubject = subjectData.find(
-              (s: Subject) => s.is_active,
+          if (!loadedStudyPrefs.defaultSubject && activeSubjects.length > 0) {
+            const firstActiveSubject = activeSubjects.find(
+              (s: Subject) => s.isActive,
             );
             if (firstActiveSubject) {
               loadedStudyPrefs.defaultSubject = firstActiveSubject.name;
             }
           }
+        } else {
+          // LocalStorage boş - kullanıcı henüz ders eklememiş
+          setSubjects([]);
         }
       } catch {
-        // Error fetching subjects
+        setSubjects([]);
       }
 
       // 4. Custom değerleri ayarla
@@ -179,16 +188,12 @@ export default function SettingsPage() {
       setNotifications(loadedNotifications);
       setAppearance(loadedAppearance);
       setStudyPreferences(loadedStudyPrefs);
-      setTheme(loadedTheme);
+      // setTheme(loadedTheme); // Bu satırı kaldırıyoruz çünkü mevcut temayı korumak istiyoruz
 
-      // 6. Apply visual styles
+      // 6. Apply font size and compact mode immediately
       const root = document.documentElement;
-      if (loadedAppearance.compactMode) {
-        root.classList.add("compact-mode");
-      } else {
-        root.classList.remove("compact-mode");
-      }
 
+      // Font size ayarla
       switch (loadedAppearance.fontSize) {
         case "small":
           root.style.fontSize = "14px";
@@ -202,6 +207,13 @@ export default function SettingsPage() {
         default:
           root.style.fontSize = "16px";
           break;
+      }
+
+      // Compact mode ayarla
+      if (loadedAppearance.compactMode) {
+        root.classList.add("compact-mode");
+      } else {
+        root.classList.remove("compact-mode");
       }
 
       setLoading(false);
@@ -324,7 +336,7 @@ export default function SettingsPage() {
       notifications,
       appearance: {
         ...appearance,
-        theme, // Get the current theme from the hook
+        // theme'i localStorage'a kaydetmiyoruz çünkü next-themes kendi yönetiyor
       },
       studyPreferences: settingsToSave,
     };
@@ -357,92 +369,88 @@ export default function SettingsPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Notifications */}
-            <Card className="glass-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Bell className="w-5 h-5" />
-                  Bildirimler
-                </CardTitle>
-                <CardDescription>
-                  Bildirim tercihlerinizi ayarlayın
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="email-notifications">
-                      E-posta Bildirimleri
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      Önemli güncellemeler için e-posta alın
-                    </p>
+            <Card className="glass-card relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-purple-600/10 backdrop-blur-sm z-10"></div>
+
+              <div className="relative z-10">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Bell className="w-5 h-5" />
+                    Bildirimler
+                    <Badge className="ml-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs">
+                      Yakında
+                    </Badge>
+                  </CardTitle>
+                  <CardDescription>
+                    Bildirim tercihlerinizi ayarlayın
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4 opacity-50">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label htmlFor="email-notifications">
+                        E-posta Bildirimleri
+                      </Label>
+                      <p className="text-sm text-muted-foreground">
+                        Önemli güncellemeler için e-posta alın
+                      </p>
+                    </div>
+                    <Switch
+                      id="email-notifications"
+                      checked={false}
+                      disabled
+                      className="data-[state=checked]:bg-indigo-600 hover:bg-indigo-600/20 transition-colors"
+                    />
                   </div>
-                  <Switch
-                    id="email-notifications"
-                    checked={notifications.email}
-                    onCheckedChange={(checked) =>
-                      setNotifications({ ...notifications, email: checked })
-                    }
-                    className="data-[state=checked]:bg-indigo-600 hover:bg-indigo-600/20 transition-colors"
-                  />
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="push-notifications">
-                      Push Bildirimleri
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      Anlık bildirimler alın
-                    </p>
+                  <Separator />
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label htmlFor="push-notifications">
+                        Push Bildirimleri
+                      </Label>
+                      <p className="text-sm text-muted-foreground">
+                        Anlık bildirimler alın
+                      </p>
+                    </div>
+                    <Switch
+                      id="push-notifications"
+                      checked={false}
+                      disabled
+                      className="data-[state=checked]:bg-indigo-600 hover:bg-indigo-600/20 transition-colors"
+                    />
                   </div>
-                  <Switch
-                    id="push-notifications"
-                    checked={notifications.push}
-                    onCheckedChange={(checked) =>
-                      setNotifications({ ...notifications, push: checked })
-                    }
-                    className="data-[state=checked]:bg-indigo-600 hover:bg-indigo-600/20 transition-colors"
-                  />
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="reminders">Hatırlatıcılar</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Çalışma hatırlatıcıları
-                    </p>
+                  <Separator />
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label htmlFor="reminders">Hatırlatıcılar</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Çalışma hatırlatıcıları
+                      </p>
+                    </div>
+                    <Switch
+                      id="reminders"
+                      checked={false}
+                      disabled
+                      className="data-[state=checked]:bg-indigo-600 hover:bg-indigo-600/20 transition-colors"
+                    />
                   </div>
-                  <Switch
-                    id="reminders"
-                    checked={notifications.reminders}
-                    onCheckedChange={(checked) =>
-                      setNotifications({ ...notifications, reminders: checked })
-                    }
-                    className="data-[state=checked]:bg-indigo-600 hover:bg-indigo-600/20 transition-colors"
-                  />
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="achievements">Başarı Bildirimleri</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Başarılarınızı kutlayın
-                    </p>
+                  <Separator />
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label htmlFor="achievements">Başarı Bildirimleri</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Başarılarınızı kutlayın
+                      </p>
+                    </div>
+                    <Switch
+                      id="achievements"
+                      checked={false}
+                      disabled
+                      className="data-[state=checked]:bg-indigo-600 hover:bg-indigo-600/20 transition-colors"
+                    />
                   </div>
-                  <Switch
-                    id="achievements"
-                    checked={notifications.achievements}
-                    onCheckedChange={(checked) =>
-                      setNotifications({
-                        ...notifications,
-                        achievements: checked,
-                      })
-                    }
-                    className="data-[state=checked]:bg-indigo-600 hover:bg-indigo-600/20 transition-colors"
-                  />
-                </div>
-              </CardContent>
+                </CardContent>
+              </div>
             </Card>
 
             {/* Appearance */}
@@ -572,7 +580,7 @@ export default function SettingsPage() {
                       )}
                     </SelectTrigger>
                     <SelectContent>
-                      {subjects.filter((subject) => subject.is_active)
+                      {subjects.filter((subject) => subject.isActive)
                         .length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
                           <BookOpen className="w-12 h-12 text-muted-foreground/50 mb-3" />
@@ -595,7 +603,7 @@ export default function SettingsPage() {
                         </div>
                       ) : (
                         subjects
-                          .filter((subject) => subject.is_active)
+                          .filter((subject) => subject.isActive)
                           .map((subject) => (
                             <SelectItem
                               key={subject.id}

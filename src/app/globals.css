@@ -153,35 +153,31 @@
 
 /* Compact Mode Styles */
 .compact-mode {
-  --spacing-xs: 0.25rem;
-  --spacing-sm: 0.5rem;
-  --spacing-md: 0.75rem;
-  --spacing-lg: 1rem;
-  --spacing-xl: 1.25rem;
+  --compact-spacing: 0.5rem;
 }
 
 .compact-mode .p-4 {
-  padding: var(--spacing-sm) !important;
+  padding: var(--compact-spacing) !important;
 }
 
 .compact-mode .p-8 {
-  padding: var(--spacing-md) !important;
+  padding: calc(var(--compact-spacing) * 2) !important;
 }
 
 .compact-mode .space-y-4 > * + * {
-  margin-top: var(--spacing-sm) !important;
+  margin-top: var(--compact-spacing) !important;
 }
 
 .compact-mode .space-y-8 > * + * {
-  margin-top: var(--spacing-md) !important;
+  margin-top: calc(var(--compact-spacing) * 2) !important;
 }
 
 .compact-mode .gap-4 {
-  gap: var(--spacing-sm) !important;
+  gap: var(--compact-spacing) !important;
 }
 
 .compact-mode .gap-8 {
-  gap: var(--spacing-md) !important;
+  gap: calc(var(--compact-spacing) * 2) !important;
 }
 
 .compact-mode .h-16 {

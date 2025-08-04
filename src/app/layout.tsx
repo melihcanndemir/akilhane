@@ -1,11 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Space_Grotesk, Source_Code_Pro } from "next/font/google";
 import "./globals.css";
-import { Toaster } from "@/components/ui/toaster";
-import { ThemeProvider } from "@/components/theme-provider";
-import PWAServiceWorker from "@/components/pwa-service-worker";
-import PWAInstallPrompt from "@/components/pwa-install-prompt";
-import Footer from "@/components/footer"; // Import the new component
+import LayoutContent from "@/components/layout-content";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -72,18 +68,7 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body className="font-body antialiased flex flex-col min-h-screen">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <div className="flex-grow">{children}</div>
-          <Toaster />
-          <PWAServiceWorker />
-          <PWAInstallPrompt />
-          <Footer />
-        </ThemeProvider>
+        <LayoutContent>{children}</LayoutContent>
       </body>
     </html>
   );
