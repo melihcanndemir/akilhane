@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Brain, Github, Linkedin, Youtube } from "lucide-react";
+import { Brain, Github, Linkedin, Youtube, Heart } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -161,7 +161,7 @@ export default function Footer() {
           <p className="text-base text-gray-400">
             © {new Date().getFullYear()} AkılHane. Tüm hakları saklıdır.
           </p>
-          <p className="text-sm text-gray-400 mt-2">
+          <p className="text-sm text-gray-400 mt-2 flex items-center justify-center gap-1">
             <a
               href="https://www.linkedin.com/in/melihcandemir/"
               target="_blank"
@@ -170,7 +170,9 @@ export default function Footer() {
             >
               Melih Can Demir
             </a>{" "}
-            tarafından ❤️ ile oluşturuldu
+            tarafından{" "}
+            <Heart className="h-4 w-4 text-red-500 animate-pulse" />
+            {" "}ile oluşturuldu
           </p>
         </div>
       </div>

@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { shouldUseDemoData } from "@/data/demo-data";
+import TopicExplainerLocalStorageService from "@/services/topic-explainer-service";
+import { Trash2 } from "lucide-react";
 
 interface Topic {
   name: string;
@@ -77,8 +79,18 @@ const TopicExplainerPageContent = () => {
 
   // If topic and subject are provided, show the explainer
   if (topic && subject) {
+    // Check if content exists in localStorage
+    const savedTopics = TopicExplainerLocalStorageService.getTopicsByTopic(topic);
+    const hasSavedContent = savedTopics.length > 0;
+
     return (
-      <TopicExplainer topic={topic} subject={subject} isDemoMode={isDemoMode} />
+      <TopicExplainer
+        topic={topic}
+        subject={subject}
+        isDemoMode={isDemoMode}
+        hasSavedContent={hasSavedContent}
+        savedTopicId={hasSavedContent && savedTopics[0] ? savedTopics[0].id : null}
+      />
     );
   }
 
@@ -132,6 +144,17 @@ const TopicExplainerPageContent = () => {
 
   const availableTopics = getRealTopics();
 
+  // Clear all saved topic content
+  const handleClearAllContent = () => {
+    const savedTopics = TopicExplainerLocalStorageService.getSavedTopics();
+    savedTopics.forEach(topic => {
+      TopicExplainerLocalStorageService.deleteTopic(topic.id);
+    });
+
+    // Reload the page to refresh the list
+    window.location.reload();
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-8">
       <div className="max-w-6xl mx-auto">
@@ -151,9 +174,18 @@ const TopicExplainerPageContent = () => {
             <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Akıllı Konu Anlatımı
             </h1>
-            <Badge className="bg-gradient-to-r from-green-600 to-emerald-600 text-white">
+            <Badge className="px-3 py-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full text-xs font-medium w-full sm:w-auto text-center">
               💾 LocalStorage
             </Badge>
+            <Button
+              onClick={handleClearAllContent}
+              size="sm"
+              variant="outline"
+              className="hover:bg-gradient-to-r hover:from-red-600 hover:to-pink-600 hover:text-white"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Tümünü Temizle
+            </Button>
           </div>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl">
             AI destekli, görsel ve interaktif konu anlatımları ile öğrenmeyi
