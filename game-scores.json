@@ -1,9 +1,10 @@
 {
-  "total_xp": 2750,
-  "missions_completed": 10,
+  "total_xp": 5550,
+  "missions_completed": 20,
   "achievements": [
     "First Mission",
-    "Code Quality Master"
+    "Code Quality Master",
+    "Type Safety Expert"
   ],
   "history": [
     {
@@ -65,7 +66,67 @@
       "mission": "Deploy Mission",
       "xp_earned": 500,
       "details": "Deployed to production"
+    },
+    {
+      "timestamp": "2025-08-04T05:11:29.537465",
+      "mission": "Lint Check",
+      "xp_earned": 100,
+      "details": "Code quality check passed"
+    },
+    {
+      "timestamp": "2025-08-04T05:11:29.539315",
+      "mission": "Type Check",
+      "xp_earned": 150,
+      "details": "TypeScript types are safe"
+    },
+    {
+      "timestamp": "2025-08-04T05:11:29.541183",
+      "mission": "Build Check",
+      "xp_earned": 200,
+      "details": "Production build successful"
+    },
+    {
+      "timestamp": "2025-08-04T05:11:29.542792",
+      "mission": "AI Flow Test",
+      "xp_earned": 300,
+      "details": "AI flows are working"
+    },
+    {
+      "timestamp": "2025-08-04T05:11:29.544633",
+      "mission": "Deploy Mission",
+      "xp_earned": 500,
+      "details": "Deployed to production"
+    },
+    {
+      "timestamp": "2025-08-04T05:11:51.588507",
+      "mission": "Lint Check",
+      "xp_earned": 100,
+      "details": "Code quality check passed"
+    },
+    {
+      "timestamp": "2025-08-04T05:11:51.589799",
+      "mission": "Type Check",
+      "xp_earned": 150,
+      "details": "TypeScript types are safe"
+    },
+    {
+      "timestamp": "2025-08-04T05:11:51.591095",
+      "mission": "Build Check",
+      "xp_earned": 200,
+      "details": "Production build successful"
+    },
+    {
+      "timestamp": "2025-08-04T05:11:51.592861",
+      "mission": "AI Flow Test",
+      "xp_earned": 300,
+      "details": "AI flows are working"
+    },
+    {
+      "timestamp": "2025-08-04T05:11:51.594523",
+      "mission": "Deploy Mission",
+      "xp_earned": 500,
+      "details": "Deployed to production"
     }
   ],
-  "level": 3
+  "level": 6
 }

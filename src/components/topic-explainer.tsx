@@ -34,6 +34,7 @@ import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import TopicExplainerLocalStorageService from "@/services/topic-explainer-service";
 import VoicePlayer from "@/components/voice-player";
+import BreakoutLoadingGame from "@/components/breakout-loading-game";
 
 interface TopicData {
   topic: string;
@@ -377,26 +378,18 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-8 flex items-center justify-center">
-        <div className="text-center">
-          <div className="relative">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            {aiGenerating && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
-              </div>
-            )}
-          </div>
-          <p className="text-gray-600 dark:text-gray-300">
-            {aiGenerating
-              ? "AI içerik üretiliyor..."
-              : "Konu verileri yükleniyor..."}
-          </p>
-          {aiGenerating && (
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-              Bu işlem birkaç saniye sürebilir
-            </p>
-          )}
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-8">
+        <div className="max-w-4xl mx-auto">
+          <BreakoutLoadingGame
+            isLoading={true}
+            loadingText={aiGenerating ? "AI içerik üretiliyor..." : "Konu verileri yükleniyor..."}
+            onGameComplete={() => {
+              if (!isLoading && !aiGenerating) {
+                // Game completed, but we're still loading
+                // This is just for fun during loading
+              }
+            }}
+          />
         </div>
       </div>
     );
@@ -472,6 +465,15 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({
             <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
               🤖 AI Tutor
             </Badge>
+            <Link href="/breakout-game">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2 hover:bg-gradient-to-r hover:from-green-600 hover:to-emerald-600 hover:text-white hover:border-0"
+              >
+                🎮 Breakout Oyunu
+              </Button>
+            </Link>
             {currentStepData.confidence && (
               <Badge variant="outline" className="text-xs">
                 AI Güven: %{Math.round(currentStepData.confidence * 100)}
