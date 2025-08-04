@@ -80,6 +80,7 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({
     () => new Set(),
   );
   const [userNotes, setUserNotes] = useState<string>("");
+  const [notesKey, setNotesKey] = useState<string>("");
   const [showTips, setShowTips] = useState(true);
   const [topicData, setTopicData] = useState<TopicData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -97,8 +98,15 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({
         if (hasSavedContent && savedTopicId) {
           const savedTopic = TopicExplainerLocalStorageService.getTopicById(savedTopicId);
           if (savedTopic) {
-            const parsedData = JSON.parse(savedTopic.content);
+                        const parsedData = JSON.parse(savedTopic.content);
             setTopicData(parsedData);
+            setNotesKey(savedTopicId);
+
+            // Load saved notes
+            const savedNotes = localStorage.getItem(`akilhane_notes_${savedTopicId}`);
+            if (savedNotes) {
+              setUserNotes(savedNotes);
+            }
 
             toast({
               title: "Kaydedilen İçerik Yüklendi",
@@ -115,12 +123,13 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({
 
         // Auto-save the generated content
         const content = JSON.stringify(aiGeneratedData);
-        TopicExplainerLocalStorageService.saveTopic(
+        const savedTopic = TopicExplainerLocalStorageService.saveTopic(
           topic,
           subject,
           content,
           aiGeneratedData.steps,
         );
+        setNotesKey(savedTopic.id);
 
         toast({
           title: "AI İçerik Hazır",
@@ -141,6 +150,18 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({
 
     loadTopicData();
   }, [topic, subject, hasSavedContent, savedTopicId, toast]);
+
+  // Auto-save notes when userNotes changes
+  useEffect(() => {
+    if (notesKey) {
+      const timeoutId = setTimeout(() => {
+        localStorage.setItem(`akilhane_notes_${notesKey}`, userNotes);
+      }, 500); // Debounce 500ms
+
+      return () => clearTimeout(timeoutId);
+    }
+    return undefined;
+  }, [userNotes, notesKey]);
 
   // Real AI-powered topic data generation
   const generateAITopicData = async (
@@ -542,7 +563,7 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({
               ) : (
                 <Play className="w-4 h-4" />
               )}
-              {isPlaying ? "Duraklat" : "Otomatik Oynat"}
+              <span className="hidden sm:inline">{isPlaying ? "Duraklat" : "Otomatik Oynat"}</span>
             </Button>
 
             <Button
@@ -550,6 +571,7 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({
               variant="outline"
               size="sm"
               className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white"
+              title={isMuted ? "Sesi Aç" : "Sesi Kapat"}
             >
               {isMuted ? (
                 <VolumeX className="w-4 h-4" />
@@ -563,13 +585,14 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({
               variant="outline"
               size="sm"
               className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white"
+              title={showVisuals ? "Görselleri Gizle" : "Görselleri Göster"}
             >
               {showVisuals ? (
                 <EyeOff className="w-4 h-4" />
               ) : (
                 <Eye className="w-4 h-4" />
               )}
-              Görseller
+              <span className="hidden sm:inline">Görseller</span>
             </Button>
 
             <Button
@@ -577,9 +600,10 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({
               variant="outline"
               size="sm"
               className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white"
+              title="Baştan Başla"
             >
               <RotateCcw className="w-4 h-4" />
-              Baştan Başla
+              <span className="hidden sm:inline">Baştan Başla</span>
             </Button>
           </div>
         </div>
