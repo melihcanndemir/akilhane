@@ -11,7 +11,6 @@ import {
   VolumeX,
   RotateCcw,
   Settings,
-  X,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -33,7 +32,6 @@ const VoicePlayer: React.FC<VoicePlayerProps> = ({
   autoPlay = false,
   speed = 1,
   language = "tr-TR",
-  voice,
   className = "",
   showControls = true,
   onPlay,
@@ -64,17 +62,17 @@ const VoicePlayer: React.FC<VoicePlayerProps> = ({
         variant: "destructive",
       });
     }
-  }, []);
+  }, [toast]);
 
   // Load available voices
   const loadVoices = () => {
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       const voices = window.speechSynthesis.getVoices();
       setAvailableVoices(voices);
-      
+
       // Select Turkish voice if available
-      const turkishVoice = voices.find(v => 
-        v.lang.includes("tr") || v.lang.includes("TR")
+      const turkishVoice = voices.find(v =>
+        v.lang.includes("tr") || v.lang.includes("TR"),
       );
       setSelectedVoice(turkishVoice || voices[0] || null);
     }
@@ -92,10 +90,11 @@ const VoicePlayer: React.FC<VoicePlayerProps> = ({
     if (autoPlay && isSupported && text) {
       handlePlay();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoPlay, text, isSupported]);
 
   const handlePlay = () => {
-    if (!isSupported || !text) return;
+    if (!isSupported || !text) {return;}
 
     try {
       // Stop any current speech
@@ -109,7 +108,7 @@ const VoicePlayer: React.FC<VoicePlayerProps> = ({
       utterance.lang = language;
       utterance.rate = currentSpeed;
       utterance.volume = isMuted ? 0 : 1;
-      
+
       if (selectedVoice) {
         utterance.voice = selectedVoice;
       }
@@ -135,8 +134,8 @@ const VoicePlayer: React.FC<VoicePlayerProps> = ({
         onPlay?.();
       };
 
-      utterance.onerror = (event) => {
-        console.error("Speech synthesis error:", event);
+      utterance.onerror = () => {
+        // Speech synthesis error handling
         setIsPlaying(false);
         toast({
           title: "Seslendirme Hatası",
@@ -152,8 +151,8 @@ const VoicePlayer: React.FC<VoicePlayerProps> = ({
         title: "Seslendirme Başladı",
         description: "Metin seslendiriliyor...",
       });
-    } catch (error) {
-      console.error("Speech synthesis error:", error);
+    } catch {
+      // Speech synthesis error handling
       toast({
         title: "Seslendirme Hatası",
         description: "Seslendirme başlatılamadı.",
@@ -181,17 +180,19 @@ const VoicePlayer: React.FC<VoicePlayerProps> = ({
 
   const handleSpeedChange = (value: number[]) => {
     const newSpeed = value[0];
-    setCurrentSpeed(newSpeed);
-    
-    // Update current utterance if playing
-    if (isPlaying && utteranceRef.current) {
-      utteranceRef.current.rate = newSpeed;
+    if (newSpeed !== undefined) {
+      setCurrentSpeed(newSpeed);
+
+      // Update current utterance if playing
+      if (isPlaying && utteranceRef.current) {
+        utteranceRef.current.rate = newSpeed;
+      }
     }
   };
 
   const handleVoiceChange = (voice: SpeechSynthesisVoice) => {
     setSelectedVoice(voice);
-    
+
     // Update current utterance if playing
     if (isPlaying && utteranceRef.current) {
       utteranceRef.current.voice = voice;
@@ -200,7 +201,7 @@ const VoicePlayer: React.FC<VoicePlayerProps> = ({
 
   const toggleMute = () => {
     setIsMuted(!isMuted);
-    
+
     // Update current utterance if playing
     if (utteranceRef.current) {
       utteranceRef.current.volume = !isMuted ? 0 : 1;
@@ -340,4 +341,4 @@ const VoicePlayer: React.FC<VoicePlayerProps> = ({
   );
 };
 
-export default VoicePlayer; 
+export default VoicePlayer;

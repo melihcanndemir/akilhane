@@ -63,11 +63,11 @@ interface TopicExplainerProps {
   savedTopicId?: string | null;
 }
 
-const TopicExplainer: React.FC<TopicExplainerProps> = ({ 
-  topic, 
-  subject, 
-  hasSavedContent = false, 
-  savedTopicId = null 
+const TopicExplainer: React.FC<TopicExplainerProps> = ({
+  topic,
+  subject,
+  hasSavedContent = false,
+  savedTopicId = null,
 }) => {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
@@ -98,7 +98,7 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({
           if (savedTopic) {
             const parsedData = JSON.parse(savedTopic.content);
             setTopicData(parsedData);
-            
+
             toast({
               title: "Kaydedilen İçerik Yüklendi",
               description: `${topic} konusu için kaydedilen içerik kullanılıyor.`,
@@ -118,7 +118,7 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({
           topic,
           subject,
           content,
-          aiGeneratedData
+          aiGeneratedData.steps,
         );
 
         toast({
@@ -315,17 +315,17 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({
 
   // Save current topic content
   const handleSaveTopic = async () => {
-    if (!topicData) return;
+    if (!topicData) {return;}
 
     try {
       setIsSaving(true);
-      
+
       const content = JSON.stringify(topicData);
       TopicExplainerLocalStorageService.saveTopic(
         topic,
         subject,
         content,
-        topicData
+        topicData.steps,
       );
 
       toast({
@@ -345,19 +345,19 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({
 
   // Delete saved topic
   const handleDeleteTopic = async () => {
-    if (!savedTopicId) return;
+    if (!savedTopicId) {return;}
 
     try {
       setIsDeleting(true);
-      
+
       const success = TopicExplainerLocalStorageService.deleteTopic(savedTopicId);
-      
+
       if (success) {
         toast({
           title: "Başarılı!",
           description: "Konu başarıyla silindi.",
         });
-        
+
         // Redirect back to topic list
         window.location.href = "/topic-explainer";
       } else {
@@ -479,7 +479,9 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({
             )}
             <div className="flex items-center gap-2">
               <Button
-                onClick={handleSaveTopic}
+                onClick={() => {
+                  void handleSaveTopic();
+                }}
                 disabled={isSaving || !topicData}
                 size="sm"
                 variant="outline"
@@ -494,7 +496,9 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({
               </Button>
               {savedTopicId && (
                 <Button
-                  onClick={handleDeleteTopic}
+                  onClick={() => {
+                    void handleDeleteTopic();
+                  }}
                   disabled={isDeleting}
                   size="sm"
                   variant="outline"

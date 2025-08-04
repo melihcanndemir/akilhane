@@ -82,11 +82,11 @@ const TopicExplainerPageContent = () => {
     // Check if content exists in localStorage
     const savedTopics = TopicExplainerLocalStorageService.getTopicsByTopic(topic);
     const hasSavedContent = savedTopics.length > 0;
-    
+
     return (
-      <TopicExplainer 
-        topic={topic} 
-        subject={subject} 
+      <TopicExplainer
+        topic={topic}
+        subject={subject}
         isDemoMode={isDemoMode}
         hasSavedContent={hasSavedContent}
         savedTopicId={hasSavedContent && savedTopics[0] ? savedTopics[0].id : null}
@@ -150,7 +150,7 @@ const TopicExplainerPageContent = () => {
     savedTopics.forEach(topic => {
       TopicExplainerLocalStorageService.deleteTopic(topic.id);
     });
-    
+
     // Reload the page to refresh the list
     window.location.reload();
   };

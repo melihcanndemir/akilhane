@@ -1,4 +1,16 @@
 // Topic Explainer LocalStorage Service
+export interface TopicStepData {
+  id: string;
+  title: string;
+  content: string;
+  examples: string[];
+  tips: string[];
+  difficulty: "easy" | "medium" | "hard";
+  estimatedTime: number;
+  visualDescription?: string;
+  confidence?: number;
+}
+
 export interface SavedTopicContent {
   id: string;
   topic: string;
@@ -6,7 +18,7 @@ export interface SavedTopicContent {
   content: string;
   createdAt: string;
   updatedAt: string;
-  stepData?: any;
+  stepData?: TopicStepData[];
 }
 
 class TopicExplainerLocalStorageService {
@@ -24,13 +36,13 @@ class TopicExplainerLocalStorageService {
     }
   }
 
-  static saveTopic(topic: string, subject: string, content: string, stepData?: any): SavedTopicContent {
+  static saveTopic(topic: string, subject: string, content: string, stepData?: TopicStepData[]): SavedTopicContent {
     const savedTopic: SavedTopicContent = {
       id: `topic_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       topic,
       subject,
       content,
-      stepData,
+      ...(stepData && { stepData }),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -92,4 +104,4 @@ class TopicExplainerLocalStorageService {
   }
 }
 
-export default TopicExplainerLocalStorageService; 
+export default TopicExplainerLocalStorageService;
