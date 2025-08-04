@@ -20,6 +20,9 @@ import {
   Eye,
   EyeOff,
   Loader2,
+  Save,
+  Trash2,
+  Volume,
 } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
@@ -29,6 +32,8 @@ import HuggingFaceImageGenerator from "@/components/huggingface-image-generator"
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
+import TopicExplainerLocalStorageService from "@/services/topic-explainer-service";
+import VoicePlayer from "@/components/voice-player";
 
 interface TopicData {
   topic: string;
@@ -54,9 +59,16 @@ interface TopicExplainerProps {
   topic: string;
   subject: string;
   isDemoMode?: boolean;
+  hasSavedContent?: boolean;
+  savedTopicId?: string | null;
 }
 
-const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
+const TopicExplainer: React.FC<TopicExplainerProps> = ({ 
+  topic, 
+  subject, 
+  hasSavedContent = false, 
+  savedTopicId = null 
+}) => {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -71,21 +83,47 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
   const [topicData, setTopicData] = useState<TopicData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [aiGenerating, setAiGenerating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  // Load topic data with real AI generation
+  // Load topic data - first check localStorage, then generate if needed
   useEffect(() => {
     const loadTopicData = async () => {
       try {
         setIsLoading(true);
-        setAiGenerating(true);
 
-        // Generate AI-powered topic data using real AI
+        // First check if we have saved content
+        if (hasSavedContent && savedTopicId) {
+          const savedTopic = TopicExplainerLocalStorageService.getTopicById(savedTopicId);
+          if (savedTopic) {
+            const parsedData = JSON.parse(savedTopic.content);
+            setTopicData(parsedData);
+            
+            toast({
+              title: "Kaydedilen İçerik Yüklendi",
+              description: `${topic} konusu için kaydedilen içerik kullanılıyor.`,
+            });
+            return;
+          }
+        }
+
+        // If no saved content, generate with AI
+        setAiGenerating(true);
         const aiGeneratedData = await generateAITopicData(topic, subject);
         setTopicData(aiGeneratedData);
 
+        // Auto-save the generated content
+        const content = JSON.stringify(aiGeneratedData);
+        TopicExplainerLocalStorageService.saveTopic(
+          topic,
+          subject,
+          content,
+          aiGeneratedData
+        );
+
         toast({
           title: "AI İçerik Hazır",
-          description: `${topic} konusu için AI destekli içerik başarıyla oluşturuldu.`,
+          description: `${topic} konusu için AI destekli içerik başarıyla oluşturuldu ve kaydedildi.`,
         });
       } catch {
         toast({
@@ -101,7 +139,7 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
     };
 
     loadTopicData();
-  }, [topic, subject, toast]);
+  }, [topic, subject, hasSavedContent, savedTopicId, toast]);
 
   // Real AI-powered topic data generation
   const generateAITopicData = async (
@@ -275,6 +313,67 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
     });
   };
 
+  // Save current topic content
+  const handleSaveTopic = async () => {
+    if (!topicData) return;
+
+    try {
+      setIsSaving(true);
+      
+      const content = JSON.stringify(topicData);
+      TopicExplainerLocalStorageService.saveTopic(
+        topic,
+        subject,
+        content,
+        topicData
+      );
+
+      toast({
+        title: "Başarılı!",
+        description: `${topic} konusu başarıyla kaydedildi.`,
+      });
+    } catch {
+      toast({
+        title: "Hata!",
+        description: "Konu kaydedilirken bir hata oluştu.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Delete saved topic
+  const handleDeleteTopic = async () => {
+    if (!savedTopicId) return;
+
+    try {
+      setIsDeleting(true);
+      
+      const success = TopicExplainerLocalStorageService.deleteTopic(savedTopicId);
+      
+      if (success) {
+        toast({
+          title: "Başarılı!",
+          description: "Konu başarıyla silindi.",
+        });
+        
+        // Redirect back to topic list
+        window.location.href = "/topic-explainer";
+      } else {
+        throw new Error("Failed to delete topic");
+      }
+    } catch {
+      toast({
+        title: "Hata!",
+        description: "Konu silinirken bir hata oluştu.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   // Loading state
   if (isLoading) {
     return (
@@ -378,6 +477,38 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
                 AI Güven: %{Math.round(currentStepData.confidence * 100)}
               </Badge>
             )}
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={handleSaveTopic}
+                disabled={isSaving || !topicData}
+                size="sm"
+                variant="outline"
+                className="hover:bg-gradient-to-r hover:from-green-600 hover:to-emerald-600 hover:text-white"
+              >
+                {isSaving ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
+                Kaydet
+              </Button>
+              {savedTopicId && (
+                <Button
+                  onClick={handleDeleteTopic}
+                  disabled={isDeleting}
+                  size="sm"
+                  variant="outline"
+                  className="hover:bg-gradient-to-r hover:from-red-600 hover:to-pink-600 hover:text-white"
+                >
+                  {isDeleting ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4" />
+                  )}
+                  Sil
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Progress Bar */}
@@ -493,6 +624,30 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-6">
+                    {/* Voice Player */}
+                    <div className="mb-6">
+                      <VoicePlayer
+                        text={currentStepData.content}
+                        autoPlay={false}
+                        speed={1}
+                        language="tr-TR"
+                        showControls={true}
+                        className="mb-4"
+                        onPlay={() => {
+                          toast({
+                            title: "Seslendirme Başladı",
+                            description: `${currentStepData.title} adımı seslendiriliyor...`,
+                          });
+                        }}
+                        onEnd={() => {
+                          toast({
+                            title: "Seslendirme Tamamlandı",
+                            description: "Konu anlatımı tamamlandı.",
+                          });
+                        }}
+                      />
+                    </div>
+
                     {/* Main Content */}
                     <div className="prose dark:prose-invert max-w-none">
                       <div className="text-lg leading-relaxed text-gray-700 dark:text-gray-300">
@@ -935,6 +1090,21 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({ topic, subject }) => {
                 >
                   <Eye className="w-4 h-4 mr-2" />
                   {showVisuals ? "Görselleri Gizle" : "Görselleri Göster"}
+                </Button>
+                <Button
+                  onClick={() => {
+                    // Voice player will be controlled by the component itself
+                    toast({
+                      title: "Seslendirme",
+                      description: "Seslendirme kontrolleri ana içerik alanında bulunmaktadır.",
+                    });
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start"
+                >
+                  <Volume className="w-4 h-4 mr-2" />
+                  Seslendirme Kontrolleri
                 </Button>
                 <Button
                   onClick={handleRestart}
