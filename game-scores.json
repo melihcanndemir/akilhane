@@ -1,0 +1,71 @@
+{
+  "total_xp": 2750,
+  "missions_completed": 10,
+  "achievements": [
+    "First Mission",
+    "Code Quality Master"
+  ],
+  "history": [
+    {
+      "timestamp": "2025-08-04T05:03:53.709129",
+      "mission": "Lint Check",
+      "xp_earned": 100,
+      "details": "Code quality check passed"
+    },
+    {
+      "timestamp": "2025-08-04T05:03:53.711185",
+      "mission": "Type Check",
+      "xp_earned": 150,
+      "details": "TypeScript types are safe"
+    },
+    {
+      "timestamp": "2025-08-04T05:03:53.712907",
+      "mission": "Build Check",
+      "xp_earned": 200,
+      "details": "Production build successful"
+    },
+    {
+      "timestamp": "2025-08-04T05:03:53.714774",
+      "mission": "AI Flow Test",
+      "xp_earned": 300,
+      "details": "AI flows are working"
+    },
+    {
+      "timestamp": "2025-08-04T05:03:53.716437",
+      "mission": "Deploy Mission",
+      "xp_earned": 500,
+      "details": "Deployed to production"
+    },
+    {
+      "timestamp": "2025-08-04T05:04:33.130540",
+      "mission": "Lint Check",
+      "xp_earned": 100,
+      "details": "Code quality check passed"
+    },
+    {
+      "timestamp": "2025-08-04T05:04:33.131769",
+      "mission": "Type Check",
+      "xp_earned": 150,
+      "details": "TypeScript types are safe"
+    },
+    {
+      "timestamp": "2025-08-04T05:04:33.132870",
+      "mission": "Build Check",
+      "xp_earned": 200,
+      "details": "Production build successful"
+    },
+    {
+      "timestamp": "2025-08-04T05:04:33.134109",
+      "mission": "AI Flow Test",
+      "xp_earned": 300,
+      "details": "AI flows are working"
+    },
+    {
+      "timestamp": "2025-08-04T05:04:33.135334",
+      "mission": "Deploy Mission",
+      "xp_earned": 500,
+      "details": "Deployed to production"
+    }
+  ],
+  "level": 3
+}
