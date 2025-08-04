@@ -319,6 +319,7 @@ export interface DemoAnalyticsData {
   improvement: number;
   weakTopics: string[];
   strongTopics: string[];
+  topicsNeedingImprovement: string[];
   recentActivity: Array<{
     type: string;
     score: number;
@@ -368,6 +369,11 @@ export const demoAnalyticsData: DemoAnalyticsData = {
     "Anorganik Kimya",
     "Coğrafya",
     "Türk Dili",
+  ],
+  topicsNeedingImprovement: [
+    "Türev Uygulamaları",
+    "Elektrik ve Manyetizma",
+    "Organik Kimya",
   ],
   recentActivity: [
     {
