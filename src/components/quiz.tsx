@@ -571,6 +571,17 @@ const QuizComponent: React.FC<QuizProps> = ({
       ]);
 
       setShowResult(true);
+
+      // Otomatik olarak açıklamayı oku (2 saniye sonra)
+      setTimeout(() => {
+        if (currentQuestion.explanation) {
+          // Voice assistant'a açıklama okuma sinyali gönder
+          const event = new CustomEvent('readExplanation', {
+            detail: { explanation: currentQuestion.explanation },
+          });
+          window.dispatchEvent(event);
+        }
+      }, 2000);
     }
   }, [selectedAnswer, currentQuestion, score]);
 
@@ -733,6 +744,22 @@ const QuizComponent: React.FC<QuizProps> = ({
         setCurrentQuestionIndex(0);
         setSelectedAnswer(null);
         setShowResult(false);
+        break;
+      case "hint":
+        // Request AI Tutor hint
+        void requestAiTutorHelp("hint");
+        break;
+      case "explanation":
+        // Request AI Tutor explanation
+        void requestAiTutorHelp("explanation");
+        break;
+      case "step-by-step":
+        // Request AI Tutor step-by-step
+        void requestAiTutorHelp("step-by-step");
+        break;
+      case "concept-review":
+        // Request AI Tutor concept review
+        void requestAiTutorHelp("concept-review");
         break;
       default:
     }
@@ -994,11 +1021,23 @@ const QuizComponent: React.FC<QuizProps> = ({
             )}
 
             {/* AI Tutor Help */}
-            {showResult && (
-              <div className="mb-6">
-                <h3 className="font-semibold mb-3">AI Tutor Yardımı:</h3>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {(
+            <div className="mb-6">
+              <h3 className="font-semibold mb-3">AI Tutor Yardımı:</h3>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {!showResult ? (
+                  // Cevaplanmadan önce sadece İpucu butonu
+                  <button
+                    onClick={() => {
+                      void requestAiTutorHelp("hint");
+                    }}
+                    disabled={isLoadingTutor}
+                    className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50"
+                  >
+                    💡 İpucu
+                  </button>
+                ) : (
+                  // Cevaplandıktan sonra tüm butonlar
+                  (
                     [
                       "hint",
                       "explanation",
@@ -1019,39 +1058,39 @@ const QuizComponent: React.FC<QuizProps> = ({
                       {step === "step-by-step" && "🔍 Adım Adım"}
                       {step === "concept-review" && "🎯 Konu Tekrarı"}
                     </button>
-                  ))}
-                </div>
-
-                {isLoadingTutor && (
-                  <div className="text-center py-4">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-                    <p className="text-sm text-muted-foreground">
-                      AI yardımı hazırlanıyor...
-                    </p>
-                  </div>
-                )}
-
-                {aiTutorHelp && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="border-gradient-question bg-white dark:bg-gray-800 rounded-lg p-4"
-                  >
-                    <h4 className="font-semibold mb-2">
-                      {tutorStep === "hint" && "💡 İpucu"}
-                      {tutorStep === "explanation" && "📚 Açıklama"}
-                      {tutorStep === "step-by-step" && "🔍 Adım Adım"}
-                      {tutorStep === "concept-review" && "🎯 Konu Tekrarı"}
-                    </h4>
-                    <div className="ai-tutor-markdown">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {aiTutorHelp.help}
-                      </ReactMarkdown>
-                    </div>
-                  </motion.div>
+                  ))
                 )}
               </div>
-            )}
+
+              {isLoadingTutor && (
+                <div className="text-center py-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                  <p className="text-sm text-muted-foreground">
+                    AI yardımı hazırlanıyor...
+                  </p>
+                </div>
+              )}
+
+              {aiTutorHelp && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="border-gradient-question bg-white dark:bg-gray-800 rounded-lg p-4"
+                >
+                  <h4 className="font-semibold mb-2">
+                    {tutorStep === "hint" && "💡 İpucu"}
+                    {tutorStep === "explanation" && "📚 Açıklama"}
+                    {tutorStep === "step-by-step" && "🔍 Adım Adım"}
+                    {tutorStep === "concept-review" && "🎯 Konu Tekrarı"}
+                  </h4>
+                  <div className="ai-tutor-markdown">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {aiTutorHelp.help}
+                    </ReactMarkdown>
+                  </div>
+                </motion.div>
+              )}
+            </div>
 
             {/* Action Buttons */}
             <div className="flex gap-4">
@@ -1104,12 +1143,16 @@ const QuizComponent: React.FC<QuizProps> = ({
       <VoiceAssistant
         onCommand={handleVoiceCommand}
         currentQuestion={currentQuestion.text}
+        currentOptions={currentQuestion.options}
         currentAnswer={
           currentQuestion.options.find((opt) => opt.isCorrect)?.text || ""
         }
+        currentExplanation={currentQuestion.explanation}
         aiTutorOutput={aiTutorHelp?.help || ""}
         isListening={isListening}
         onListeningChange={setIsListening}
+        showExplanation={showResult}
+        mode="quiz"
       />
     </div>
   );
