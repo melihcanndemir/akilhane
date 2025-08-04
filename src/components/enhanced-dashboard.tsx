@@ -41,6 +41,7 @@ import LoadingSpinner from "./loading-spinner";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import AIPerformanceRecommendation from "./ai-performance-recommendation";
 import {
   shouldUseDemoData,
   toggleDemoMode,
@@ -978,57 +979,70 @@ export default function EnhancedDashboard() {
             </div>
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
-              <Card className="border-gradient-question hover:shadow-lg cursor-pointer hover:scale-105 transition-transform duration-200">
-                <Link href="/quiz">
-                  <CardContent className="p-8 text-center">
-                    <Zap className="h-10 w-10 mx-auto mb-4 text-blue-600" />
-                    <h3 className="font-semibold mb-3 text-lg">Hızlı Test</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {userSettings.studyPreferences.questionsPerQuiz} soruluk
-                      hızlı test çöz
-                    </p>
-                  </CardContent>
-                </Link>
-              </Card>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+              {/* AI Performance Recommendation */}
+              <div className="lg:col-span-1">
+                <AIPerformanceRecommendation
+                  performanceData={performanceData}
+                  recentResults={recentResults}
+                  totalStats={totalStats}
+                  useDemoData={useDemoData}
+                  className="h-full"
+                />
+              </div>
 
-              <Card className="border-gradient-question hover:shadow-lg cursor-pointer hover:scale-105 transition-transform duration-200">
-                <Link href="/flashcard">
-                  <CardContent className="p-8 text-center">
-                    <Brain className="h-10 w-10 mx-auto mb-4 text-green-600" />
-                    <h3 className="font-semibold mb-3 text-lg">Flashcard</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Akıllı kartlarla çalış
-                    </p>
-                  </CardContent>
-                </Link>
-              </Card>
+              {/* Other Quick Actions */}
+              <div className="lg:col-span-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Card className="border-gradient-question hover:shadow-lg cursor-pointer hover:scale-105 transition-transform duration-200">
+                    <Link href="/quiz">
+                      <CardContent className="p-6 text-center">
+                        <Zap className="h-8 w-8 mx-auto mb-3 text-blue-600" />
+                        <h3 className="font-semibold mb-2 text-base">Hızlı Test</h3>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                          {userSettings.studyPreferences.questionsPerQuiz} soruluk hızlı test çöz
+                        </p>
+                      </CardContent>
+                    </Link>
+                  </Card>
 
-              <Card className="border-gradient-question hover:shadow-lg cursor-pointer hover:scale-105 transition-transform duration-200">
-                <Link href="/ai-chat">
-                  <CardContent className="p-8 text-center">
-                    <BookOpen className="h-10 w-10 mx-auto mb-4 text-purple-600" />
-                    <h3 className="font-semibold mb-3 text-lg">AI Tutor</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Yapay zeka ile sohbet et
-                    </p>
-                  </CardContent>
-                </Link>
-              </Card>
+                  <Card className="border-gradient-question hover:shadow-lg cursor-pointer hover:scale-105 transition-transform duration-200">
+                    <Link href="/flashcard">
+                      <CardContent className="p-6 text-center">
+                        <Brain className="h-8 w-8 mx-auto mb-3 text-green-600" />
+                        <h3 className="font-semibold mb-2 text-base">Flashcard</h3>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                          Akıllı kartlarla çalış
+                        </p>
+                      </CardContent>
+                    </Link>
+                  </Card>
 
-              <Card className="border-gradient-question hover:shadow-lg cursor-pointer hover:scale-105 transition-transform duration-200">
-                <Link href="/subject-manager">
-                  <CardContent className="p-8 text-center">
-                    <Database className="h-10 w-10 mx-auto mb-4 text-indigo-600" />
-                    <h3 className="font-semibold mb-3 text-lg">
-                      Konu Yönetimi
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Konuları düzenle
-                    </p>
-                  </CardContent>
-                </Link>
-              </Card>
+                  <Card className="border-gradient-question hover:shadow-lg cursor-pointer hover:scale-105 transition-transform duration-200">
+                    <Link href="/ai-chat">
+                      <CardContent className="p-6 text-center">
+                        <BookOpen className="h-8 w-8 mx-auto mb-3 text-purple-600" />
+                        <h3 className="font-semibold mb-2 text-base">AI Tutor</h3>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                          Yapay zeka ile sohbet et
+                        </p>
+                      </CardContent>
+                    </Link>
+                  </Card>
+
+                  <Card className="border-gradient-question hover:shadow-lg cursor-pointer hover:scale-105 transition-transform duration-200">
+                    <Link href="/subject-manager">
+                      <CardContent className="p-6 text-center">
+                        <Database className="h-8 w-8 mx-auto mb-3 text-indigo-600" />
+                        <h3 className="font-semibold mb-2 text-base">Konu Yönetimi</h3>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                          Konuları düzenle
+                        </p>
+                      </CardContent>
+                    </Link>
+                  </Card>
+                </div>
+              </div>
             </div>
           </>
         )}

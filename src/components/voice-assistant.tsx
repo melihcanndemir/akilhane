@@ -10,6 +10,7 @@ import {
   Play,
   Pause,
   Brain,
+  BookOpen,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -45,10 +46,14 @@ interface VoiceAssistantProps {
   onTranscript?: (transcript: string) => void;
   currentQuestion?: string;
   currentAnswer?: string;
+  currentOptions?: Array<{ text: string; isCorrect: boolean }>;
+  currentExplanation?: string;
   aiTutorOutput?: string;
   isListening?: boolean;
   onListeningChange?: (listening: boolean) => void;
   show?: boolean;
+  showExplanation?: boolean;
+  mode?: "quiz" | "flashcard" | "ai-chat";
 }
 
 const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
@@ -56,16 +61,21 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
   onTranscript,
   currentQuestion,
   currentAnswer,
+  currentOptions,
+  currentExplanation,
   aiTutorOutput,
   isListening = false,
   onListeningChange,
   show = true,
+  showExplanation = false,
+  mode = "quiz",
 }) => {
   const [isSupported, setIsSupported] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [isReadingQuestion, setIsReadingQuestion] = useState(false);
   const [isReadingAnswer, setIsReadingAnswer] = useState(false);
+  const [isReadingExplanation, setIsReadingExplanation] = useState(false);
   const [isReadingAiTutor, setIsReadingAiTutor] = useState(false);
   const [recognitionState, setRecognitionState] = useState<
     "idle" | "starting" | "active" | "stopping"
@@ -165,8 +175,7 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       // Log errors only in development
       if (process.env.NODE_ENV === "development") {
-        // eslint-disable-next-line no-console
-        console.warn("Speech recognition error:", event.error);
+        // do nothing
       }
 
       // Handle different error types appropriately
@@ -181,8 +190,7 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
           setRecognitionState("idle");
           onListeningChange?.(false);
           if (process.env.NODE_ENV === "development") {
-            // eslint-disable-next-line no-console
-            console.error("Microphone access denied or unavailable");
+            // do nothing
           }
           break;
         case "not-allowed":
@@ -190,8 +198,7 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
           setRecognitionState("idle");
           onListeningChange?.(false);
           if (process.env.NODE_ENV === "development") {
-            // eslint-disable-next-line no-console
-            console.error("Speech recognition permission denied");
+            // do nothing
           }
           break;
         case "network":
@@ -199,8 +206,7 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
           setRecognitionState("idle");
           onListeningChange?.(false);
           if (process.env.NODE_ENV === "development") {
-            // eslint-disable-next-line no-console
-            console.error("Network error during speech recognition");
+            // do nothing
           }
           break;
         case "aborted":
@@ -213,8 +219,7 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
           setRecognitionState("idle");
           onListeningChange?.(false);
           if (process.env.NODE_ENV === "development") {
-            // eslint-disable-next-line no-console
-            console.error("Unknown speech recognition error:", event.error);
+            // do nothing
           }
       }
       setTranscript("");
@@ -271,6 +276,30 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
     synthesisRef.current = window.speechSynthesis;
   }, [isSupported]);
 
+  // Listen for automatic explanation reading
+  useEffect(() => {
+    const handleReadExplanation = (event: CustomEvent) => {
+      if (event.detail?.explanation) {
+        speakText(event.detail.explanation, "explanation");
+      }
+    };
+
+    window.addEventListener('readExplanation', handleReadExplanation as EventListener);
+
+    return () => {
+      window.removeEventListener('readExplanation', handleReadExplanation as EventListener);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Reset reading states when currentQuestion changes
+  useEffect(() => {
+    setIsReadingQuestion(false);
+    setIsReadingAnswer(false);
+    setIsReadingExplanation(false);
+    setIsReadingAiTutor(false);
+  }, [currentQuestion]);
+
   const handleCommand = (command: string) => {
     // For AI Chat - send transcript directly for voice input
     if (onTranscript) {
@@ -286,13 +315,24 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
     }
 
     // Quiz/Flashcard commands
-    if (command.includes("cevap") || command.includes("yanıt")) {
-      if (currentAnswer) {
+    if (command.includes("cevap") || command.includes("yanıt") || command.includes("şıkları")) {
+      if (currentOptions && currentOptions.length > 0) {
+        const optionsText = currentOptions.map((option, index) =>
+          `${index + 1}. ${option.text}`,
+        ).join(". ");
+        speakText(`Şıklar: ${optionsText}`, "answer");
+      } else if (currentAnswer) {
         speakText(currentAnswer, "answer");
       }
     } else if (command.includes("soru") || command.includes("oku")) {
       if (currentQuestion) {
         speakText(currentQuestion, "question");
+      }
+    } else if (command.includes("açıklama") || command.includes("açıkla")) {
+      if (currentExplanation) {
+        speakText(currentExplanation, "explanation");
+      } else {
+        speakText("Bu soru için henüz açıklama mevcut değil.", "help");
       }
     } else if (
       (command.includes("ai") && command.includes("oku")) ||
@@ -307,6 +347,12 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
           "help",
         );
       }
+    } else if (command.includes("ipucu") && command.includes("oku")) {
+      // AI Tutor ipucu iste
+      onCommand?.("hint");
+    } else if (command.includes("ipucu") || command.includes("hint")) {
+      // AI Tutor ipucu iste
+      onCommand?.("hint");
     } else if (command.includes("açıkla") || command.includes("açıklama")) {
       if (currentAnswer) {
         speakText(`Cevap: ${currentAnswer}`, "answer");
@@ -318,7 +364,7 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
       onCommand?.("next");
     } else if (command.includes("önceki") || command.includes("geri")) {
       onCommand?.("previous");
-    } else if (command.includes("karıştır") || command.includes("shuffle")) {
+    } else if (command.includes("başa dön") || command.includes("baştan") || command.includes("karıştır") || command.includes("shuffle")) {
       onCommand?.("shuffle");
     } else if (
       command.includes("çevir") ||
@@ -333,16 +379,21 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
     } else if (command.includes("dur") || command.includes("stop")) {
       stopSpeaking();
     } else if (command.includes("yardım") || command.includes("komutlar")) {
-      speakText(
-        "Mevcut komutlar: soru oku, cevap oku, AI oku, sonraki, önceki, karıştır, çevir, göster, gizle, dur, yardım",
-        "help",
-      );
+      let helpText = "";
+      if (mode === "flashcard") {
+        helpText = "Mevcut komutlar: soru oku, sonraki, önceki, başa dön, çevir, dur, yardım";
+      } else if (onTranscript) {
+        helpText = "Mevcut komutlar: temizle, dur, yardım";
+      } else {
+        helpText = "Mevcut komutlar: soru oku, cevap oku, AI oku, sonraki, önceki, başa dön, çevir, göster, gizle, dur, yardım";
+      }
+      speakText(helpText, "help");
     }
   };
 
   const speakText = (
     text: string,
-    type: "question" | "answer" | "help" | "ai-tutor" = "question",
+    type: "question" | "answer" | "help" | "ai-tutor" | "explanation" = "question",
   ) => {
     if (!synthesisRef.current) {
       return;
@@ -365,6 +416,9 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
       if (type === "answer") {
         setIsReadingAnswer(true);
       }
+      if (type === "explanation") {
+        setIsReadingExplanation(true);
+      }
       if (type === "ai-tutor") {
         setIsReadingAiTutor(true);
       }
@@ -374,6 +428,7 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
       setIsSpeaking(false);
       setIsReadingQuestion(false);
       setIsReadingAnswer(false);
+      setIsReadingExplanation(false);
       setIsReadingAiTutor(false);
     };
 
@@ -381,6 +436,7 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
       setIsSpeaking(false);
       setIsReadingQuestion(false);
       setIsReadingAnswer(false);
+      setIsReadingExplanation(false);
       setIsReadingAiTutor(false);
     };
 
@@ -534,21 +590,52 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
             )}
 
             {/* Speak answer button */}
-            {currentAnswer && (
+            {(currentAnswer || currentOptions) && (
               <Button
                 key="speak-answer"
-                onClick={() => speakText(currentAnswer, "answer")}
+                onClick={() => {
+                  if (currentOptions && currentOptions.length > 0) {
+                    const optionsText = currentOptions.map((option, index) =>
+                      `${index + 1}. ${option.text}`,
+                    ).join(". ");
+                    speakText(`Şıklar: ${optionsText}`, "answer");
+                  } else if (currentAnswer) {
+                    speakText(currentAnswer, "answer");
+                  }
+                }}
                 size="sm"
                 variant="outline"
                 className={`rounded-full w-12 h-12 shadow-lg ${
                   isReadingAnswer ? "bg-green-100 border-green-300" : ""
                 }`}
                 disabled={isSpeaking && !isReadingAnswer}
+                title="Şıkları Oku"
               >
                 {isReadingAnswer ? (
                   <Pause className="w-4 h-4" />
                 ) : (
                   <Volume2 className="w-4 h-4" />
+                )}
+              </Button>
+            )}
+
+            {/* Speak explanation button */}
+            {currentExplanation && showExplanation && (
+              <Button
+                key="speak-explanation"
+                onClick={() => speakText(currentExplanation, "explanation")}
+                size="sm"
+                variant="outline"
+                className={`rounded-full w-12 h-12 shadow-lg ${
+                  isReadingExplanation ? "bg-blue-100 border-blue-300" : ""
+                }`}
+                disabled={isSpeaking && !isReadingExplanation}
+                title="Açıklamayı Oku"
+              >
+                {isReadingExplanation ? (
+                  <Pause className="w-4 h-4" />
+                ) : (
+                  <BookOpen className="w-4 h-4" />
                 )}
               </Button>
             )}
@@ -661,6 +748,149 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
                         </span>
                       </div>
                     </>
+                  ) : mode === "quiz" ? (
+                    <>
+                      <div
+                        key="read-question"
+                        className="flex items-center gap-3 p-2 hover:bg-blue-50 dark:hover:bg-blue-900/10 rounded-xl transition-colors group"
+                      >
+                        <div className="w-2 h-2 bg-blue-500 rounded-full group-hover:scale-125 transition-transform"></div>
+                        <span className="text-sm text-gray-700 dark:text-gray-200">
+                          <span className="font-semibold text-blue-600 dark:text-blue-400">
+                            &quot;Soru oku&quot;
+                          </span>
+                          <span className="text-gray-500 dark:text-gray-400">
+                            {" "}
+                            - Mevcut soruyu sesli oku
+                          </span>
+                        </span>
+                      </div>
+                      <div
+                        key="read-answer"
+                        className="flex items-center gap-3 p-2 hover:bg-green-50 dark:hover:bg-green-900/10 rounded-xl transition-colors group"
+                      >
+                        <div className="w-2 h-2 bg-green-500 rounded-full group-hover:scale-125 transition-transform"></div>
+                        <span className="text-sm text-gray-700 dark:text-gray-200">
+                          <span className="font-semibold text-green-600 dark:text-green-400">
+                            &quot;Şıkları oku&quot;
+                          </span>
+                          <span className="text-gray-500 dark:text-gray-400">
+                            {" "}
+                            - Şıkları sesli oku
+                          </span>
+                        </span>
+                      </div>
+                      {showExplanation && (
+                        <div
+                          key="read-explanation"
+                          className="flex items-center gap-3 p-2 hover:bg-blue-50 dark:hover:bg-blue-900/10 rounded-xl transition-colors group"
+                        >
+                          <div className="w-2 h-2 bg-blue-500 rounded-full group-hover:scale-125 transition-transform"></div>
+                          <span className="text-sm text-gray-700 dark:text-gray-200">
+                            <span className="font-semibold text-blue-600 dark:text-blue-400">
+                              &quot;Açıklama oku&quot;
+                            </span>
+                            <span className="text-gray-500 dark:text-gray-400">
+                              {" "}
+                              - Açıklamayı sesli oku
+                            </span>
+                          </span>
+                        </div>
+                      )}
+                      <div
+                        key="read-ai-tutor"
+                        className="flex items-center gap-3 p-2 hover:bg-purple-50 dark:hover:bg-purple-900/10 rounded-xl transition-colors group"
+                      >
+                        <div className="w-2 h-2 bg-purple-500 rounded-full group-hover:scale-125 transition-transform"></div>
+                        <span className="text-sm text-gray-700 dark:text-gray-200">
+                          <span className="font-semibold text-purple-600 dark:text-purple-400">
+                            &quot;İpucu oku&quot;
+                          </span>
+                          <span className="text-gray-500 dark:text-gray-400">
+                            {" "}
+                            - AI Tutor ipucunu sesli oku
+                          </span>
+                        </span>
+                      </div>
+                    </>
+                  ) : mode === "flashcard" ? (
+                    <>
+                      <div
+                        key="read-question"
+                        className="flex items-center gap-3 p-2 hover:bg-blue-50 dark:hover:bg-blue-900/10 rounded-xl transition-colors group"
+                      >
+                        <div className="w-2 h-2 bg-blue-500 rounded-full group-hover:scale-125 transition-transform"></div>
+                        <span className="text-sm text-gray-700 dark:text-gray-200">
+                          <span className="font-semibold text-blue-600 dark:text-blue-400">
+                            &quot;Soru oku&quot;
+                          </span>
+                          <span className="text-gray-500 dark:text-gray-400">
+                            {" "}
+                            - Mevcut soruyu sesli oku
+                          </span>
+                        </span>
+                      </div>
+                      <div
+                        key="flip"
+                        className="flex items-center gap-3 p-2 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 rounded-xl transition-colors group"
+                      >
+                        <div className="w-2 h-2 bg-indigo-500 rounded-full group-hover:scale-125 transition-transform"></div>
+                        <span className="text-sm text-gray-700 dark:text-gray-200">
+                          <span className="font-semibold text-indigo-600 dark:text-indigo-400">
+                            &quot;Çevir&quot;
+                          </span>
+                          <span className="text-gray-500 dark:text-gray-400">
+                            {" "}
+                            - Flashcard&apos;ı çevir
+                          </span>
+                        </span>
+                      </div>
+                      <div
+                        key="next"
+                        className="flex items-center gap-3 p-2 hover:bg-purple-50 dark:hover:bg-purple-900/10 rounded-xl transition-colors group"
+                      >
+                        <div className="w-2 h-2 bg-purple-500 rounded-full group-hover:scale-125 transition-transform"></div>
+                        <span className="text-sm text-gray-700 dark:text-gray-200">
+                          <span className="font-semibold text-purple-600 dark:text-purple-400">
+                            &quot;Sonraki&quot;
+                          </span>
+                          <span className="text-gray-500 dark:text-gray-400">
+                            {" "}
+                            - Sonraki kart
+                          </span>
+                        </span>
+                      </div>
+                      <div
+                        key="previous"
+                        className="flex items-center gap-3 p-2 hover:bg-orange-50 dark:hover:bg-orange-900/10 rounded-xl transition-colors group"
+                      >
+                        <div className="w-2 h-2 bg-orange-500 rounded-full group-hover:scale-125 transition-transform"></div>
+                        <span className="text-sm text-gray-700 dark:text-gray-200">
+                          <span className="font-semibold text-orange-600 dark:text-orange-400">
+                            &quot;Önceki&quot;
+                          </span>
+                          <span className="text-gray-500 dark:text-gray-400">
+                            {" "}
+                            - Önceki kart
+                          </span>
+                        </span>
+                      </div>
+                      <div
+                        key="shuffle"
+                        className="flex items-center gap-3 p-2 hover:bg-pink-50 dark:hover:bg-pink-900/10 rounded-xl transition-colors group"
+                      >
+                        <div className="w-2 h-2 bg-pink-500 rounded-full group-hover:scale-125 transition-transform"></div>
+                        <span className="text-sm text-gray-700 dark:text-gray-200">
+                          <span className="font-semibold text-pink-600 dark:text-pink-400">
+                            &quot;Başa dön&quot;
+                          </span>
+                          <span className="text-gray-500 dark:text-gray-400">
+                            {" "}
+                            - İlk karta dön
+                          </span>
+                        </span>
+                      </div>
+                    </>
                   ) : (
                     <>
                       <div
@@ -689,7 +919,22 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
                           </span>
                           <span className="text-gray-500 dark:text-gray-400">
                             {" "}
-                            - Cevabı sesli oku
+                            - Şıkları sesli oku
+                          </span>
+                        </span>
+                      </div>
+                      <div
+                        key="read-explanation"
+                        className="flex items-center gap-3 p-2 hover:bg-blue-50 dark:hover:bg-blue-900/10 rounded-xl transition-colors group"
+                      >
+                        <div className="w-2 h-2 bg-blue-500 rounded-full group-hover:scale-125 transition-transform"></div>
+                        <span className="text-sm text-gray-700 dark:text-gray-200">
+                          <span className="font-semibold text-blue-600 dark:text-blue-400">
+                            &quot;Açıklama oku&quot;
+                          </span>
+                          <span className="text-gray-500 dark:text-gray-400">
+                            {" "}
+                            - Açıklamayı sesli oku
                           </span>
                         </span>
                       </div>
@@ -705,6 +950,21 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
                           <span className="text-gray-500 dark:text-gray-400">
                             {" "}
                             - AI Tutor çıktısını sesli oku
+                          </span>
+                        </span>
+                      </div>
+                      <div
+                        key="hint"
+                        className="flex items-center gap-3 p-2 hover:bg-yellow-50 dark:hover:bg-yellow-900/10 rounded-xl transition-colors group"
+                      >
+                        <div className="w-2 h-2 bg-yellow-500 rounded-full group-hover:scale-125 transition-transform"></div>
+                        <span className="text-sm text-gray-700 dark:text-gray-200">
+                          <span className="font-semibold text-yellow-600 dark:text-yellow-400">
+                            &quot;İpucu&quot;
+                          </span>
+                          <span className="text-gray-500 dark:text-gray-400">
+                            {" "}
+                            - AI Tutor ipucu iste
                           </span>
                         </span>
                       </div>
@@ -795,21 +1055,6 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
                           <span className="text-gray-500 dark:text-gray-400">
                             {" "}
                             - Cevabı gizle
-                          </span>
-                        </span>
-                      </div>
-                      <div
-                        key="stop"
-                        className="flex items-center gap-3 p-2 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-colors group"
-                      >
-                        <div className="w-2 h-2 bg-red-500 rounded-full group-hover:scale-125 transition-transform"></div>
-                        <span className="text-sm text-gray-700 dark:text-gray-200">
-                          <span className="font-semibold text-red-600 dark:text-red-400">
-                            &quot;Dur&quot;
-                          </span>
-                          <span className="text-gray-500 dark:text-gray-400">
-                            {" "}
-                            - Sesli okumayı durdur
                           </span>
                         </span>
                       </div>

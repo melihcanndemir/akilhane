@@ -286,8 +286,23 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
   };
 
   const shuffleCards = () => {
+    // Create a shuffled copy of the filtered cards
     const shuffled = [...filteredCards].sort(() => Math.random() - 0.5);
-    setFlashcards(shuffled);
+
+    // Update the main flashcards array with the shuffled order
+    // but preserve the original cards that aren't in the current filter
+    const originalCards = [...flashcards];
+    const shuffledIds = new Set(shuffled.map(card => card.id));
+
+    // Replace cards that are in the current filter with shuffled ones
+    const updatedFlashcards = originalCards.map(card => {
+      if (shuffledIds.has(card.id)) {
+        return shuffled.find(shuffledCard => shuffledCard.id === card.id) || card;
+      }
+      return card;
+    });
+
+    setFlashcards(updatedFlashcards);
     setCurrentIndex(0);
     setIsFlipped(false);
     setShowAnswer(false);
@@ -522,14 +537,25 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
             animate={{ opacity: 1, y: 0 }}
             className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-6 mb-6 border border-blue-200 dark:border-blue-700"
           >
-            <div className="flex items-center gap-3 mb-4">
-              <span className="text-2xl">🧠</span>
-              <h3 className="text-lg font-semibold text-indigo-800 dark:text-indigo-300">
-                AI Önerisi
-              </h3>
-              <span className="text-sm text-indigo-600 dark:text-indigo-400">
-                Güven: {Math.round(aiRecommendation.confidence * 100)}%
-              </span>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">🧠</span>
+                <h3 className="text-lg font-semibold text-indigo-800 dark:text-indigo-300">
+                  AI Önerisi
+                </h3>
+                <span className="text-sm text-indigo-600 dark:text-indigo-400">
+                  Güven: {Math.round(aiRecommendation.confidence * 100)}%
+                </span>
+              </div>
+              <button
+                onClick={() => setAiRecommendation(null)}
+                className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors p-1"
+                title="Öneriyi gizle"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
@@ -747,7 +773,7 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
             onClick={shuffleCards}
             className="px-6 py-3 bg-indigo-600 dark:bg-indigo-700 text-white rounded-lg font-medium hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors"
           >
-            🔀 Karıştır
+            🏠 Başa dön
           </button>
 
           <button
@@ -777,11 +803,15 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
 
       {/* Voice Assistant */}
       <VoiceAssistant
+        key={`${currentCard?.id}-${currentIndex}`}
         onCommand={handleVoiceCommand}
         currentQuestion={currentCard?.question}
         currentAnswer={currentCard?.answer}
+        {...(currentCard?.options && { currentOptions: currentCard.options })}
+        currentExplanation={currentCard?.explanation}
         isListening={isListening}
         onListeningChange={setIsListening}
+        mode="flashcard"
       />
     </div>
   );
