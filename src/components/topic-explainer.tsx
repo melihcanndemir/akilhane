@@ -101,7 +101,7 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({
                         const parsedData = JSON.parse(savedTopic.content);
             setTopicData(parsedData);
             setNotesKey(savedTopicId);
- 
+
             // Load saved notes
             const savedNotes = localStorage.getItem(`akilhane_notes_${savedTopicId}`);
             if (savedNotes) {
