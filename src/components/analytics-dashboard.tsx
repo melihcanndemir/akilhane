@@ -29,6 +29,7 @@ interface AnalyticsData {
   improvement: number;
   weakTopics: string[];
   strongTopics: string[];
+  topicsNeedingImprovement: string[];
   recentActivity: Array<{
     type: string;
     score: number;
@@ -81,6 +82,7 @@ export default function AnalyticsDashboard({
     improvement: 0,
     weakTopics: [],
     strongTopics: [],
+    topicsNeedingImprovement: [],
     recentActivity: [],
   });
 
@@ -104,6 +106,7 @@ export default function AnalyticsDashboard({
           improvement: Math.floor(Math.random() * 20) + 5,
           weakTopics: ["Finansal Analiz", "Muhasebe", "İstatistik"],
           strongTopics: ["Matematik", "Ekonomi", "Yönetim"],
+          topicsNeedingImprovement: ["Finansal Analiz", "Muhasebe"],
           recentActivity: [],
         };
         setAnalytics(mockData);
@@ -154,8 +157,9 @@ export default function AnalyticsDashboard({
                 rank: 0,
                 totalUsers: 1,
                 improvement: 0,
-                weakTopics: [],
-                strongTopics: [],
+                              weakTopics: [],
+              strongTopics: [],
+              topicsNeedingImprovement: [],
                 recentActivity: [],
               };
             }
@@ -179,61 +183,57 @@ export default function AnalyticsDashboard({
               0,
             );
 
-            // Calculate weak topics
+            // Calculate weak topics and topics that need improvement
             const weakTopicsMap: Record<string, number> = {};
+            const topicPerformanceMap: Record<string, { correct: number; total: number }> = {};
+
             filteredResults.forEach((result: QuizResult) => {
               if (result.weakTopics) {
                 Object.entries(result.weakTopics).forEach(([topic, count]) => {
                   weakTopicsMap[topic] = (weakTopicsMap[topic] || 0) + count;
+
+                  // Track performance for all topics
+                  if (!topicPerformanceMap[topic]) {
+                    topicPerformanceMap[topic] = { correct: 0, total: 0 };
+                  }
+                  const weakCount = count || 0;
+                  topicPerformanceMap[topic].total += 3; // Assume 3 questions per topic
+                  topicPerformanceMap[topic].correct += Math.max(0, 3 - weakCount);
                 });
               }
             });
 
+            // Weak topics (topics with high error rates)
             const weakTopics = Object.entries(weakTopicsMap)
               .sort(([, a], [, b]) => b - a)
               .slice(0, 3)
               .map(([topic]) => topic);
 
-            // Calculate strong topics based on actual performance
-            // Topics that are NOT in weak topics and have good performance
-            const allTopics = new Set<string>();
-            const topicPerformance: Record<
-              string,
-              { correct: number; total: number }
-            > = {};
+            // Topics that need improvement (60% or lower success rate)
+            const topicsNeedingImprovement = Object.entries(topicPerformanceMap)
+              .filter(([, performance]) => {
+                if (performance.total < 2) {
+                  return false; // Need at least 2 questions
+                }
+                const successRate = (performance.correct / performance.total) * 100;
+                return successRate <= 60; // 60% or lower
+              })
+              .map(([topic]) => topic)
+              .slice(0, 3);
 
-            // Collect all topics from quiz results
-            filteredResults.forEach((result: QuizResult) => {
-              const { weakTopics } = result;
-              if (
-                weakTopics &&
-                typeof weakTopics === "object" &&
-                !Array.isArray(weakTopics)
-              ) {
-                Object.keys(weakTopics).forEach((topic) => {
-                  allTopics.add(topic);
-                  if (!topicPerformance[topic]) {
-                    topicPerformance[topic] = { correct: 0, total: 0 };
-                  }
-                  // Estimate performance based on weak topics frequency
-                  const weakCount = weakTopics[topic] || 0;
-                  topicPerformance[topic].total += 3; // Assume 3 questions per topic
-                  topicPerformance[topic].correct += Math.max(0, 3 - weakCount);
-                });
-              }
-            });
-
-            // Calculate strong topics (topics with >70% success rate and not in weak topics)
-            const strongTopics = Array.from(allTopics)
+            // Calculate strong topics (topics with >80% success rate and not in weak topics or needing improvement)
+            const strongTopics = Array.from(Object.keys(topicPerformanceMap))
               .filter((topic) => {
-                const performance = topicPerformance[topic];
+                const performance = topicPerformanceMap[topic];
                 if (!performance || performance.total < 2) {
                   return false;
                 } // Need at least 2 questions
 
                 const successRate =
                   (performance.correct / performance.total) * 100;
-                return successRate >= 70 && !weakTopics.includes(topic);
+                return successRate >= 80 &&
+                       !weakTopics.includes(topic) &&
+                       !topicsNeedingImprovement.includes(topic);
               })
               .slice(0, 3);
 
@@ -267,6 +267,7 @@ export default function AnalyticsDashboard({
               improvement: Math.floor(Math.random() * 20) + 5,
               weakTopics,
               strongTopics: defaultStrongTopics,
+              topicsNeedingImprovement,
               recentActivity,
             };
           } catch {
@@ -292,6 +293,7 @@ export default function AnalyticsDashboard({
             improvement: 0,
             weakTopics: [],
             strongTopics: [],
+            topicsNeedingImprovement: [],
             recentActivity: [],
           };
           setAnalytics(fallbackData);
@@ -579,6 +581,36 @@ export default function AnalyticsDashboard({
                     </div>
                   )}
                 </div>
+
+                {/* Topics Needing Improvement (60% or lower) */}
+                <div>
+                  <h4 className="text-sm font-medium mb-2 text-orange-700 dark:text-orange-400">
+                    %60 ve Altı Başarı
+                  </h4>
+                  {analytics.topicsNeedingImprovement && analytics.topicsNeedingImprovement.length > 0 ? (
+                    <div className="space-y-2">
+                      {analytics.topicsNeedingImprovement.map((topic, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between"
+                        >
+                          <span className="text-sm text-gray-700 dark:text-gray-300">
+                            {topic}
+                          </span>
+                          <Badge className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
+                            %60
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                      <p className="text-sm text-blue-700 dark:text-blue-300">
+                        %60 altında başarı gösteren konu yok.
+                      </p>
+                    </div>
+                  )}
+                </div>
               </>
             )}
           </CardContent>
@@ -606,6 +638,19 @@ export default function AnalyticsDashboard({
                   </span>
                   <Badge variant="destructive" className="text-xs">
                     Zayıf
+                  </Badge>
+                </div>
+              ))}
+              {analytics.topicsNeedingImprovement.map((topic, index) => (
+                <div
+                  key={`improvement-${index}`}
+                  className="flex items-center justify-between p-2 bg-orange-50 dark:bg-orange-900/20 rounded"
+                >
+                  <span className="text-sm text-gray-700 dark:text-gray-300">
+                    {topic}
+                  </span>
+                  <Badge className="bg-orange-100 text-orange-800 text-xs dark:bg-orange-900 dark:text-orange-200">
+                    %60
                   </Badge>
                 </div>
               ))}
