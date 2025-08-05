@@ -34,6 +34,10 @@ interface AiChatSession {
   lastMessageAt: string;
   createdAt: string;
   updatedAt: string;
+  lastMessage?: {
+    content: string;
+    image?: string;
+  } | undefined;
 }
 
 interface AiChatHistoryProps {
@@ -81,17 +85,27 @@ export default function AiChatHistory({
 
       // Convert localStorage sessions to the expected format
       const localFormattedSessions: AiChatSession[] = localSessions.map(
-        (session) => ({
-          id: session.id,
-          userId: session.userId,
-          sessionId: session.sessionId,
-          subject: session.subject,
-          title: session.title || undefined,
-          messageCount: session.messages?.length || 0,
-          lastMessageAt: session.lastMessageAt,
-          createdAt: session.createdAt,
-          updatedAt: session.updatedAt,
-        }),
+        (session) => {
+          const lastMessage = session.messages && session.messages.length > 0 
+            ? session.messages[session.messages.length - 1] 
+            : undefined;
+          
+          return {
+            id: session.id,
+            userId: session.userId,
+            sessionId: session.sessionId,
+            subject: session.subject,
+            title: session.title || undefined,
+            messageCount: session.messages?.length || 0,
+            lastMessageAt: session.lastMessageAt,
+            createdAt: session.createdAt,
+            updatedAt: session.updatedAt,
+            lastMessage: lastMessage ? {
+              content: lastMessage.content,
+              ...(lastMessage.image && { image: lastMessage.image }),
+            } : undefined,
+          };
+        },
       );
 
       // Combine Supabase and localStorage sessions
@@ -335,8 +349,29 @@ export default function AiChatHistory({
                         </div>
                       </div>
 
+                      {/* Last message preview */}
+                      {session.lastMessage && (
+                        <div className="mt-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                          <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">
+                            Son mesaj:
+                          </p>
+                          <div className="flex items-start gap-2">
+                            {session.lastMessage.image && (
+                              <img
+                                src={session.lastMessage.image}
+                                alt="Son mesaj resmi"
+                                className="w-12 h-12 object-cover rounded-lg flex-shrink-0"
+                              />
+                            )}
+                            <p className="text-xs text-gray-700 dark:text-gray-300 line-clamp-2 flex-1">
+                              {session.lastMessage.content}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
                       {/* Subject badge */}
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1 mt-2">
                         <Badge
                           variant="secondary"
                           className="text-xs font-medium bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 dark:from-blue-900/30 dark:to-purple-900/30 dark:text-blue-200 border border-blue-200 dark:border-blue-700"

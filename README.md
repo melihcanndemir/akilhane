@@ -11,13 +11,15 @@
   <!-- Project Status Badges -->
   <p>
     <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License">
-    <img src="https://img.shields.io/badge/version-1.0.0-blue.svg" alt="Version">
+    <img src="https://img.shields.io/badge/version-1.2.0-blue.svg" alt="Version">
     <img src="https://img.shields.io/badge/status-production-green.svg" alt="Status">
     <img src="https://deploy-badge.vercel.app/vercel/akilhane?root=landing" alt="Vercel Deploy Status">
     <img src="https://circleci.com/gh/melihcanndemir/akilhane.svg?style=svg" alt="CircleCI">
     <img src="https://img.shields.io/github/languages/top/melihcanndemir/akilhane" alt="Top Language">
     <img src="https://img.shields.io/github/languages/code-size/melihcanndemir/akilhane" alt="Code Size">
     <img src="https://img.shields.io/github/repo-size/melihcanndemir/akilhane" alt="Repo Size">
+    <img src="https://img.shields.io/badge/AI-Powered-orange.svg" alt="AI Powered">
+    <img src="https://img.shields.io/badge/Voice-Assistant-blue.svg" alt="Voice Assistant">
   </p>
   <br>
 </div>
@@ -36,24 +38,35 @@ Bu proje, **BTK Akademi & Google Cloud & Girişimcilik Vakfı Hackathon'25** iç
 
 ## 🚀 Ana Özellikler
 
-### **🤖 AI Destekli Öğrenme Sistemi:**
+### **🤖 Gelişmiş AI Destekli Öğrenme Sistemi:**
 -   **AI Destekli Soru Üretimi:** Google Gemini AI ile otomatik olarak yüksek kaliteli sorular oluşturan, konu ve zorluk seviyesine göre özelleştirilebilen akıllı sistem.
 -   **AI Topic Explainer:** Markdown formatında konu anlatımları üreten, adım adım öğrenme süreci sağlayan AI sistemi.
 -   **AI Görsel Üretimi:** Pollinations.ai ile konuya özel, alakalı görseller üreten AI sistemi.
 -   **AI Tutor ile Anında Yardım:** Anlamadığınız sorularda size ipuçları veren, adım adım çözüm sunan ve konuyu özetleyen yapay zeka öğretmeni.
 -   **Etkileşimli AI Sohbet:** Ders konuları hakkında yapay zeka ile sohbet etme ve derinlemesine bilgi alma imkanı.
+-   **Sesli AI Asistan:** Türkçe konuşma tanıma ve sentez ile sesli etkileşim.
+-   **Akıllı Resim Üretimi:** AI sohbetinde otomatik görsel üretimi ve localStorage'da saklama.
+
+### **🎤 Sesli Asistan Özellikleri:**
+-   **Türkçe Konuşma Tanıma:** Web Speech API ile gerçek zamanlı ses tanıma
+-   **Sesli Komutlar:** "Soru oku", "Şıkları oku", "Açıklama oku", "İpucu oku" komutları
+-   **Text-to-Speech:** AI yanıtlarını Türkçe sesli okuma
+-   **Sesli Navigasyon:** Uygulamayı tamamen sesle kontrol etme
+-   **Gerçek Zamanlı Transcript:** Konuşma sırasında anlık metin dönüşümü
 
 ### **📚 Gelişmiş Öğrenme Araçları:**
 -   **Kişiselleştirilmiş Öğrenme Asistanı:** Performansınıza göre size özel testler ve konular öneren akıllı sistem.
 -   **Akıllı Flashcard'lar:** Spaced Repetition (Aralıklı Tekrar) algoritması ile çalışan, öğrenmenizi optimize eden dijital kartlar.
 -   **Detaylı Performans Analizi:** Gelişiminizi takip edebileceğiniz görsel grafikler ve istatistikler.
 -   **Markdown Destekli İçerik:** Zengin formatlanmış, kod blokları ve görsel elementler içeren eğitim materyalleri.
+-   **Gelişmiş Chat History:** Resim önizlemeleri ile zenginleştirilmiş konuşma geçmişi.
 
 ### **🎨 Modern Kullanıcı Deneyimi:**
 -   **PWA (Progressive Web App):** Çevrimdışı çalışma ve mobil cihazınıza uygulama gibi kurma desteği.
 -   **Sesli Asistan Desteği:** "Soru oku", "cevabı göster" gibi komutlarla uygulamayı sesle kontrol etme.
 -   **Responsive Design:** Tüm cihazlarda mükemmel görünüm ve kullanım deneyimi.
 -   **Dark/Light Mode:** Kullanıcı tercihine göre tema değiştirme.
+-   **Gelişmiş Hata Yönetimi:** Spesifik hata mesajları ve kullanıcı dostu bildirimler.
 
 ### **⚙️ Yönetim ve Güvenlik:**
 -   **Kapsamlı Yönetim Panelleri:** Hem dersleri hem de soruları kolayca yönetebileceğiniz arayüzler.
@@ -61,6 +74,7 @@ Bu proje, **BTK Akademi & Google Cloud & Girişimcilik Vakfı Hackathon'25** iç
 -   **Cloudinary Avatar Sistemi:** Güvenli avatar yükleme ve yönetimi.
 -   **Güvenli Şifre Değiştirme:** Ayrı sayfa üzerinden güvenli şifre güncelleme.
 -   **Veri Yönetimi:** Cloud backup, restore, clear ve hesap silme işlemleri.
+-   **Hybrid Storage:** localStorage + Supabase ile çevrimdışı çalışma desteği.
 
 ## 📋 Kalite Güvencesi (Quality Assurance)
 
@@ -179,10 +193,13 @@ Bu proje, **enterprise-level** bir mimari üzerine kurulmuş olup modern web dev
 -   **Intelligent Question Generation:** Google Gemini ile otomatik soru üretimi
 -   **AI Topic Explainer:** Markdown formatında konu anlatımları üreten AI sistemi
 -   **AI Görsel Üretimi:** Pollinations.ai ile konuya özel görseller üreten AI sistemi
+-   **AI Chat with Image Generation:** Gerçek zamanlı AI sohbeti ve otomatik görsel üretimi
+-   **Voice Assistant Integration:** Türkçe sesli asistan ve komut sistemi
 -   **Quality Validation System:** AI ile kalite skorlama ve doğrulama
 -   **Personalized Learning:** Performans bazlı zorluk seviyesi ayarlama
 -   **Interactive AI Tutor:** Gerçek zamanlı öğrenme desteği
 -   **Spaced Repetition Algorithm:** Bilimsel tekrar optimizasyonu
+-   **Enhanced Error Handling:** Spesifik hata mesajları ve kullanıcı dostu bildirimler
 
 ## 📚 Detaylı Teknik Dokümantasyon
 
@@ -376,8 +393,10 @@ npm run db:studio
 ### **🤖 AI Destekli Özellikler**
 - **`/question-manager`** - AI destekli soru üretimi ve yönetimi
 - **`/topic-explainer`** - AI destekli konu anlatımı ve görsel üretimi
-- **`/ai-chat`** - AI Tutor ile etkileşimli sohbet
+- **`/ai-chat`** - AI Tutor ile etkileşimli sohbet (sesli asistan + resim üretimi)
 - **`/flashcard`** - AI destekli akıllı flashcard sistemi
+- **Sesli Asistan** - Türkçe konuşma tanıma ve komut sistemi
+- **Resim Üretimi** - AI sohbetinde otomatik görsel üretimi
 
 ### **👤 Profil Yönetimi**
 - **`/profile`** - Gelişmiş profil ayarları, avatar yönetimi
@@ -395,6 +414,9 @@ npm run db:studio
 - **Responsive Design** - Tüm cihazlarda mükemmel görünüm
 - **Markdown Destekli İçerik** - Zengin formatlanmış eğitim materyalleri
 - **AI Görsel Entegrasyonu** - Konuya özel görsel üretimi
+- **Sesli Asistan Arayüzü** - Türkçe sesli komutlar ve gerçek zamanlı transcript
+- **Gelişmiş Chat History** - Resim önizlemeleri ile zenginleştirilmiş konuşma geçmişi
+- **Akıllı Hata Yönetimi** - Kullanıcı dostu hata mesajları ve spesifik bildirimler
 
 </details>
 

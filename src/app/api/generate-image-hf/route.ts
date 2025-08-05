@@ -25,7 +25,22 @@ export async function POST(request: NextRequest) {
       success: true,
       confidence: 0.9,
     });
-  } catch {
-    return NextResponse.json({ error: "Hata oluştu" }, { status: 500 });
+  } catch (error) {
+    console.error("Image generation error:", error);
+    
+    let errorMessage = "Resim oluşturulurken bir hata oluştu.";
+    
+    if (error instanceof Error) {
+      if (error.message.includes("network") || error.message.includes("timeout")) {
+        errorMessage = "Resim servisi şu anda erişilebilir değil. Lütfen daha sonra tekrar deneyin.";
+      } else if (error.message.includes("invalid") || error.message.includes("malformed")) {
+        errorMessage = "Resim oluşturma isteği geçersiz. Lütfen farklı bir açıklama deneyin.";
+      }
+    }
+    
+    return NextResponse.json({ 
+      error: errorMessage,
+      success: false 
+    }, { status: 500 });
   }
 }

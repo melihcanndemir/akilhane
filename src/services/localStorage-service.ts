@@ -48,6 +48,7 @@ interface AIChatMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
+  image?: string; // Pollinations AI image URL
   timestamp: string;
 }
 
