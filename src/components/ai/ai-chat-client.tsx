@@ -50,6 +50,7 @@ interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
+  image?: string; // Make image optional to match the actual usage
 }
 
 interface Suggestions {
@@ -232,6 +233,7 @@ export default function AiChatClient() {
     role: "user" | "assistant",
     content: string,
     sessionId?: string,
+    image?: string,
   ) => {
     try {
       const targetSessionId = sessionId || currentSessionId;
@@ -302,10 +304,16 @@ export default function AiChatClient() {
 
       // Fallback to localStorage if Supabase fails or user is guest
       try {
-        localStorageService.addMessageToSession(targetSessionId, {
+        const messageData: any = {
           role,
           content,
-        });
+        };
+        
+        if (image) {
+          messageData.image = image;
+        }
+        
+        localStorageService.addMessageToSession(targetSessionId, messageData);
       } catch {
         //do nothing
       }
@@ -369,6 +377,7 @@ export default function AiChatClient() {
               id: msg.id,
               role: msg.role,
               content: msg.content,
+              ...(msg.image && { image: msg.image }), // Only include image if it exists
             }),
           );
           setMessages(formattedMessages);
@@ -390,10 +399,33 @@ export default function AiChatClient() {
     loadSessionMessages(sessionId);
   };
 
+    // Image generation function
+  const generateImage = async (prompt: string, subject: string = "Genel") => {
+    try {
+      const response = await fetch("/api/generate-image-hf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          prompt, 
+          subject,
+          topic: prompt.substring(0, 50) 
+        }),
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        return data.imageUrl;
+      }
+    } catch (error) {
+      console.error("Image generation failed:", error);
+    }
+    return null;
+  };
+
   const handleSendMessage = async (messageContent: string) => {
     if (!messageContent.trim() || isLoading) {
       return;
-    }
+  }
 
     // Create new session if no current session (for both authenticated and guest users)
     let sessionIdToUse = currentSessionId;
@@ -438,10 +470,31 @@ export default function AiChatClient() {
     try {
       const result = await getAiChatResponse(chatInput);
 
+      // Check if user is asking for an image or if AI response suggests an image
+      const shouldGenerateImage = 
+        messageContent.toLowerCase().includes("resim") ||
+        messageContent.toLowerCase().includes("görsel") ||
+        messageContent.toLowerCase().includes("çiz") ||
+        messageContent.toLowerCase().includes("göster") ||
+        result.response.toLowerCase().includes("görsel") ||
+        result.response.toLowerCase().includes("resim") ||
+        result.response.toLowerCase().includes("diagram") ||
+        result.response.toLowerCase().includes("şekil");
+
+      let imageUrl = null;
+      if (shouldGenerateImage) {
+        // Generate image based on the AI response or user request
+        const imagePrompt = result.response.length > 50 
+          ? result.response.substring(0, 200) 
+          : messageContent;
+        imageUrl = await generateImage(imagePrompt, currentSubject);
+      }
+
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
         content: result.response,
+        image: imageUrl,
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
@@ -452,6 +505,7 @@ export default function AiChatClient() {
           "assistant",
           result.response,
           sessionIdToUse,
+          imageUrl, // Pass the generated image URL
         );
       } else {
       }
@@ -794,6 +848,18 @@ export default function AiChatClient() {
               >
                 {message.role === "assistant" ? (
                   <div className="max-w-none text-white">
+                    {/* Display image if available */}
+                    {message.image && (
+                      <div className="mb-3">
+                        <img 
+                          src={message.image} 
+                          alt="AI generated educational image"
+                          className="rounded-lg max-w-full h-auto shadow-md"
+                          style={{ maxHeight: '300px' }}
+                        />
+                      </div>
+                    )}
+                    
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
                       rehypePlugins={[rehypeHighlight]}
