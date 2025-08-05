@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -304,15 +305,19 @@ export default function AiChatClient() {
 
       // Fallback to localStorage if Supabase fails or user is guest
       try {
-        const messageData: any = {
+        const messageData: {
+          role: "user" | "assistant";
+          content: string;
+          image?: string;
+        } = {
           role,
           content,
         };
-        
+
         if (image) {
           messageData.image = image;
         }
-        
+
         localStorageService.addMessageToSession(targetSessionId, messageData);
       } catch {
         //do nothing
@@ -405,19 +410,19 @@ export default function AiChatClient() {
       const response = await fetch("/api/generate-image-hf", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          prompt, 
+        body: JSON.stringify({
+          prompt,
           subject,
-          topic: prompt.substring(0, 50) 
+          topic: prompt.substring(0, 50),
         }),
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         return data.imageUrl;
       }
-    } catch (error) {
-      console.error("Image generation failed:", error);
+    } catch {
+      // Image generation failed silently
     }
     return null;
   };
@@ -471,7 +476,7 @@ export default function AiChatClient() {
       const result = await getAiChatResponse(chatInput);
 
       // Check if user is asking for an image or if AI response suggests an image
-      const shouldGenerateImage = 
+      const shouldGenerateImage =
         messageContent.toLowerCase().includes("resim") ||
         messageContent.toLowerCase().includes("görsel") ||
         messageContent.toLowerCase().includes("çiz") ||
@@ -484,8 +489,8 @@ export default function AiChatClient() {
       let imageUrl = null;
       if (shouldGenerateImage) {
         // Generate image based on the AI response or user request
-        const imagePrompt = result.response.length > 50 
-          ? result.response.substring(0, 200) 
+        const imagePrompt = result.response.length > 50
+          ? result.response.substring(0, 200)
           : messageContent;
         imageUrl = await generateImage(imagePrompt, currentSubject);
       }
@@ -826,6 +831,16 @@ export default function AiChatClient() {
             </div>
           </CardTitle>
         </CardHeader>
+        
+        {/* API Status Note */}
+        <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-700">
+          <div className="flex items-center gap-2 text-xs text-blue-700 dark:text-blue-300">
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+            <span className="font-medium">Bilgi:</span>
+            <span>Ücretsiz API'lerden dolayı bazen kısa süreli hatalar olabilir. Çalışmaz ise birkaç defa deneyin lütfen.</span>
+          </div>
+        </div>
+        
         <CardContent
           className="flex-1 overflow-y-auto p-3 md:p-6 space-y-6"
           onScroll={handleScroll}
@@ -851,15 +866,17 @@ export default function AiChatClient() {
                     {/* Display image if available */}
                     {message.image && (
                       <div className="mb-3">
-                        <img 
-                          src={message.image} 
+                        <Image
+                          src={message.image}
                           alt="AI generated educational image"
+                          width={768}
+                          height={300}
                           className="rounded-lg max-w-full h-auto shadow-md"
                           style={{ maxHeight: '300px' }}
                         />
                       </div>
                     )}
-                    
+
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
                       rehypePlugins={[rehypeHighlight]}

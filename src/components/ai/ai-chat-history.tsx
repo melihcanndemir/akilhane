@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -86,10 +87,10 @@ export default function AiChatHistory({
       // Convert localStorage sessions to the expected format
       const localFormattedSessions: AiChatSession[] = localSessions.map(
         (session) => {
-          const lastMessage = session.messages && session.messages.length > 0 
-            ? session.messages[session.messages.length - 1] 
+          const lastMessage = session.messages && session.messages.length > 0
+            ? session.messages[session.messages.length - 1]
             : undefined;
-          
+
           return {
             id: session.id,
             userId: session.userId,
@@ -357,9 +358,11 @@ export default function AiChatHistory({
                           </p>
                           <div className="flex items-start gap-2">
                             {session.lastMessage.image && (
-                              <img
+                              <Image
                                 src={session.lastMessage.image}
                                 alt="Son mesaj resmi"
+                                width={48}
+                                height={48}
                                 className="w-12 h-12 object-cover rounded-lg flex-shrink-0"
                               />
                             )}
