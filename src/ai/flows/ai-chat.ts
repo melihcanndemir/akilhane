@@ -38,7 +38,6 @@ export async function getAiChatResponse(
   try {
     // Check if AI is properly configured
     if (!process.env.GEMINI_API_KEY && !process.env.GOOGLE_GENAI_API_KEY && !process.env.GOOGLE_AI_API_KEY) {
-      console.error("AI API key not found");
       return {
         response: "AI servisi yapılandırılmamış. Lütfen sistem yöneticisi ile iletişime geçin.",
         confidence: 0.0,
@@ -51,11 +50,11 @@ export async function getAiChatResponse(
     const response = await aiChatFlow(input);
     return response;
   } catch (error) {
-    console.error("AI Chat Error:", error);
-    
+    // AI Chat Error handled silently
+
     // Provide more specific error messages
     let errorMessage = "Üzgünüm, bir hata oluştu ve isteğinizi işleyemedim. Lütfen daha sonra tekrar deneyin.";
-    
+
     if (error instanceof Error) {
       if (error.message.includes("rate limit") || error.message.includes("quota")) {
         errorMessage = "AI servisi şu anda yoğun. Lütfen birkaç dakika sonra tekrar deneyin.";
@@ -65,7 +64,7 @@ export async function getAiChatResponse(
         errorMessage = "Bağlantı sorunu yaşanıyor. Lütfen internet bağlantınızı kontrol edin.";
       }
     }
-    
+
     return {
       response: errorMessage,
       confidence: 0.1,

@@ -26,10 +26,10 @@ export async function POST(request: NextRequest) {
       confidence: 0.9,
     });
   } catch (error) {
-    console.error("Image generation error:", error);
-    
+    // Image generation error handled silently
+
     let errorMessage = "Resim oluşturulurken bir hata oluştu.";
-    
+
     if (error instanceof Error) {
       if (error.message.includes("network") || error.message.includes("timeout")) {
         errorMessage = "Resim servisi şu anda erişilebilir değil. Lütfen daha sonra tekrar deneyin.";
@@ -37,10 +37,10 @@ export async function POST(request: NextRequest) {
         errorMessage = "Resim oluşturma isteği geçersiz. Lütfen farklı bir açıklama deneyin.";
       }
     }
-    
-    return NextResponse.json({ 
+
+    return NextResponse.json({
       error: errorMessage,
-      success: false 
+      success: false,
     }, { status: 500 });
   }
 }
