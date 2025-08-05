@@ -41,6 +41,10 @@ import {
   Sparkles,
   Smartphone,
   GraduationCap,
+  Target,
+  LightbulbIcon,
+  BookMarked,
+  Settings,
 } from "lucide-react";
 import MobileNav from "@/components/mobile-nav";
 import AIFeaturesShowcase from "@/components/ai-features-showcase";
@@ -311,6 +315,193 @@ export default function LandingPage() {
                     </div>
                   </CardContent>
                 </Card>
+              </div>
+            </div>
+          </section>
+
+          {/* AI Subject Creation Section */}
+          <section id="ai-subject-creation" className="py-16">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                AI Destekli Ders Konusu Oluşturma
+              </h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Yapay zeka ile otomatik olarak ders konuları oluşturun ve öğrenme hedeflerinizi belirleyin
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {/* AI Subject Generation */}
+              <div className="border-gradient-question p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
+                <Card className="h-full w-full rounded-[11px] border-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20">
+                  <CardHeader>
+                    <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center mb-4">
+                      <Sparkles className="h-6 w-6 text-white" />
+                    </div>
+                    <CardTitle className="text-xl font-semibold text-gray-800 dark:text-white">
+                      AI Ders Üretimi
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-600 dark:text-gray-300 mb-4">
+                      Google Gemini AI ile kategori, zorluk seviyesi ve özel yönergeler ile otomatik ders oluşturma
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="secondary">Google Gemini</Badge>
+                      <Badge variant="secondary">Auto Generation</Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Quality Control */}
+              <div className="border-gradient-green p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
+                <Card className="h-full w-full border-0 bg-gradient-to-br from-green-500/10 to-emerald-500/10 dark:from-green-500/20 dark:to-emerald-500/20 rounded-[11px]">
+                  <CardHeader>
+                    <div className="w-12 h-12 bg-gradient-to-br from-green-600 to-emerald-600 rounded-lg flex items-center justify-center mb-4">
+                      <Target className="h-6 w-6 text-white" />
+                    </div>
+                    <CardTitle className="text-xl font-semibold text-foreground">
+                      Kalite Kontrolü
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground mb-4">
+                      AI ile kalite skorlama, doğrulama ve iyileştirme önerileri ile mükemmel ders içeriği
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="secondary">Quality Scoring</Badge>
+                      <Badge variant="secondary">Validation</Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Learning Objectives */}
+              <div className="border-gradient-purple p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
+                <Card className="h-full w-full border-0 bg-gradient-to-br from-purple-500/10 to-violet-500/10 dark:from-purple-500/20 dark:to-violet-500/20 rounded-[11px]">
+                  <CardHeader>
+                    <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-violet-600 rounded-lg flex items-center justify-center mb-4">
+                      <LightbulbIcon className="h-6 w-6 text-white" />
+                    </div>
+                    <CardTitle className="text-xl font-semibold text-foreground">
+                      Öğrenme Hedefleri
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground mb-4">
+                      Her ders için detaylı öğrenme hedefleri, konular ve ön koşullar belirleme
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="secondary">Learning Goals</Badge>
+                      <Badge variant="secondary">Topics</Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Custom Guidelines */}
+              <div className="border-gradient-orange p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
+                <Card className="h-full w-full border-0 bg-gradient-to-br from-orange-500/10 to-red-500/10 dark:from-orange-500/20 dark:to-red-500/20 rounded-[11px]">
+                  <CardHeader>
+                    <div className="w-12 h-12 bg-gradient-to-br from-orange-600 to-red-600 rounded-lg flex items-center justify-center mb-4">
+                      <Settings className="h-6 w-6 text-white" />
+                    </div>
+                    <CardTitle className="text-xl font-semibold text-foreground">
+                      Özel Yönergeler
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground mb-4">
+                                             AI&apos;ya özel talimatlar vererek istediğiniz tarzda ve içerikte dersler oluşturma
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="secondary">Custom Instructions</Badge>
+                      <Badge variant="secondary">Tailored Content</Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Review & Approval */}
+              <div className="border-gradient-yellow p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
+                <Card className="h-full w-full border-0 bg-gradient-to-br from-yellow-500/10 to-amber-500/10 dark:from-yellow-500/20 dark:to-amber-500/20 rounded-[11px]">
+                  <CardHeader>
+                    <div className="w-12 h-12 bg-gradient-to-br from-yellow-600 to-amber-600 rounded-lg flex items-center justify-center mb-4">
+                      <CheckCircle className="h-6 w-6 text-white" />
+                    </div>
+                    <CardTitle className="text-xl font-semibold text-foreground">
+                      İnceleme & Onay
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground mb-4">
+                      Oluşturulan dersleri inceleyin, seçin ve ders listesine ekleyin
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="secondary">Review System</Badge>
+                      <Badge variant="secondary">Selective Addition</Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Smart Organization */}
+              <div className="border-gradient-teal p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
+                <Card className="h-full w-full border-0 bg-gradient-to-br from-teal-500/10 to-cyan-500/10 dark:from-teal-500/20 dark:to-cyan-500/20 rounded-[11px]">
+                  <CardHeader>
+                    <div className="w-12 h-12 bg-gradient-to-br from-teal-600 to-cyan-600 rounded-lg flex items-center justify-center mb-4">
+                      <BookMarked className="h-6 w-6 text-white" />
+                    </div>
+                    <CardTitle className="text-xl font-semibold text-foreground">
+                      Akıllı Organizasyon
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground mb-4">
+                      Kategorilere göre otomatik sınıflandırma ve zorluk seviyesi belirleme
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="secondary">Auto Categorization</Badge>
+                      <Badge variant="secondary">Difficulty Levels</Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+
+            {/* CTA for AI Subject Creation */}
+            <div className="text-center mt-12">
+              <div className="glass-card p-8 rounded-xl max-w-4xl mx-auto">
+                <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  AI ile Ders Oluşturmaya Başlayın
+                </h3>
+                <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
+                  Yapay zeka destekli ders oluşturma özelliğini denemek için demo modunu kullanın
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Button
+                    onClick={() => {
+                      localStorage.setItem("btk_demo_mode", "true");
+                      window.location.href = "/subject-manager";
+                    }}
+                    size="lg"
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                  >
+                    <Sparkles className="h-5 w-5 mr-2" />
+                    AI ile Ders Oluştur
+                  </Button>
+                  <Link href="/demo">
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0 transition-all duration-300 hover:scale-105"
+                    >
+                      <Play className="h-5 w-5 mr-2" />
+                                             Demo&apos;yu Dene
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </div>
           </section>
