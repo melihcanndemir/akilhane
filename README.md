@@ -40,6 +40,7 @@ Bu proje, **BTK Akademi & Google Cloud & Girişimcilik Vakfı Hackathon'25** iç
 
 ### **🤖 Gelişmiş AI Destekli Öğrenme Sistemi:**
 -   **AI Destekli Soru Üretimi:** Google Gemini AI ile otomatik olarak yüksek kaliteli sorular oluşturan, konu ve zorluk seviyesine göre özelleştirilebilen akıllı sistem.
+-   **AI Destekli Ders ve Konu Üretimi:** Kategori, zorluk seviyesi ve özel yönergeler ile otomatik olarak dersler ve konular oluşturan, kalite kontrolü yapan ve öğrenme hedefleri belirleyen AI sistemi.
 -   **AI Topic Explainer:** Markdown formatında konu anlatımları üreten, adım adım öğrenme süreci sağlayan AI sistemi.
 -   **AI Görsel Üretimi:** Pollinations.ai ile konuya özel, alakalı görseller üreten AI sistemi.
 -   **AI Tutor ile Anında Yardım:** Anlamadığınız sorularda size ipuçları veren, adım adım çözüm sunan ve konuyu özetleyen yapay zeka öğretmeni.

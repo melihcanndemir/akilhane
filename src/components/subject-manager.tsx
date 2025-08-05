@@ -143,7 +143,11 @@ class SubjectLocalStorageService {
   }
 }
 
-const SubjectManager = () => {
+interface SubjectManagerProps {
+  onRefresh?: () => void;
+}
+
+const SubjectManager = ({ onRefresh }: SubjectManagerProps) => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -358,6 +362,11 @@ const SubjectManager = () => {
         difficulty: "Orta",
       });
       setIsDialogOpen(false);
+
+      // Call refresh callback if provided
+      if (onRefresh) {
+        onRefresh();
+      }
     } catch {
       //do nothing
       toast({
@@ -429,6 +438,11 @@ const SubjectManager = () => {
       });
       setEditingSubject(null);
       setIsDialogOpen(false);
+
+      // Call refresh callback if provided
+      if (onRefresh) {
+        onRefresh();
+      }
     } catch {
       //do nothing
       toast({
@@ -457,6 +471,11 @@ const SubjectManager = () => {
         title: "Başarılı",
         description: "Ders başarıyla silindi.",
       });
+
+      // Call refresh callback if provided
+      if (onRefresh) {
+        onRefresh();
+      }
     } catch {
       //do nothing
       toast({
@@ -816,4 +835,5 @@ const SubjectManager = () => {
   );
 };
 
+// Export the component and the AI handler function
 export default SubjectManager;

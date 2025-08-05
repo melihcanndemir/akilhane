@@ -1953,12 +1953,12 @@ export default function QuestionManager() {
                   {isGeneratingAI ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                      Sorular Oluşturuluyor...
+                      <span className="text-xs sm:text-sm">Sorular Oluşturuluyor...</span>
                     </>
                   ) : (
                     <>
                       <Sparkles className="w-4 h-4 mr-2" />
-                      AI ile Soru Oluştur
+                      <span className="text-xs sm:text-sm">AI ile Soru Oluştur</span>
                     </>
                   )}
                 </Button>
@@ -1997,12 +1997,12 @@ export default function QuestionManager() {
                           {(aiGenerationResult.qualityScore * 100).toFixed(0)}%
                         </Badge>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-col sm:flex-row items-center gap-2">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => setShowAnswers(!showAnswers)}
-                          className="h-8 text-xs"
+                          className="h-8 text-xs w-full sm:w-auto"
                         >
                           {showAnswers ? "Cevapları Gizle" : "Cevapları Göster"}
                         </Button>
@@ -2010,7 +2010,7 @@ export default function QuestionManager() {
                           variant="outline"
                           size="sm"
                           onClick={selectAllAIQuestions}
-                          className="h-8 text-xs"
+                          className="h-8 text-xs w-full sm:w-auto"
                         >
                           {selectedAIQuestions.size ===
                           aiGeneratedQuestions.length
@@ -2051,7 +2051,7 @@ export default function QuestionManager() {
                           key={idx}
                           className={`cursor-pointer transition-all ${
                             selectedAIQuestions.has(idx)
-                              ? "ring-2 ring-purple-600 bg-purple-50 dark:bg-purple-950/20"
+                              ? "ring-2 ring-purple-600 bg-purple-50/50 dark:bg-purple-950/20"
                               : ""
                           }`}
                           onClick={() => toggleAIQuestionSelection(idx)}

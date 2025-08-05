@@ -10,6 +10,8 @@ import Link from "next/link";
 import MobileNav from "@/components/mobile-nav";
 import LoadingSpinner from "@/components/loading-spinner";
 import { shouldUseDemoData, demoSubjects } from "@/data/demo-data";
+import AISubjectGenerator from "@/components/ai-subject-generator";
+import { handleAIGeneratedSubjects } from "@/lib/subject-ai-handler";
 
 interface Subject {
   id: string;
@@ -37,6 +39,7 @@ export default function SubjectManagerPage() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isDemoMode, setIsDemoMode] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     loadStats();
@@ -161,14 +164,32 @@ export default function SubjectManagerPage() {
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Link href="/question-manager">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                  <AISubjectGenerator
+                    onSubjectsGenerated={(subjects) => {
+                      void (async () => {
+                        try {
+                          await handleAIGeneratedSubjects(subjects);
+                          // Refresh stats and subjects after adding AI subjects
+                          await loadStats();
+                          // Force refresh of SubjectManager component
+                          setRefreshKey(prev => prev + 1);
+                        } catch {
+                          // Handle error silently or with proper error handling
+                          // You can add toast notification here if needed
+                        }
+                      })();
+                    }}
+                    className="w-full sm:w-auto sm:mr-2"
+                  />
+                  <Link href="/question-manager" className="w-full sm:w-auto">
                     <Button
                       variant="outline"
-                      className="flex items-center gap-2 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
+                      className="flex items-center gap-2 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0 w-full sm:w-auto"
                     >
                       <Database className="w-4 h-4" />
-                      Soru Yöneticisi
+                      <span className="hidden sm:inline">Soru Yöneticisi</span>
+                      <span className="sm:hidden">Sorular</span>
                     </Button>
                   </Link>
                 </div>
@@ -207,7 +228,7 @@ export default function SubjectManagerPage() {
           </Card>
 
           {/* Subject Manager Component */}
-          <SubjectManager />
+          <SubjectManager key={refreshKey} onRefresh={() => void loadStats()} />
         </div>
       </div>
     </div>
