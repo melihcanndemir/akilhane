@@ -831,16 +831,16 @@ export default function AiChatClient() {
             </div>
           </CardTitle>
         </CardHeader>
-        
+
         {/* API Status Note */}
         <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-700">
           <div className="flex items-center gap-2 text-xs text-blue-700 dark:text-blue-300">
             <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
             <span className="font-medium">Bilgi:</span>
-            <span>Ücretsiz API'lerden dolayı bazen kısa süreli hatalar olabilir. Çalışmaz ise birkaç defa deneyin lütfen.</span>
+            <span>Ücretsiz API&apos;lerden dolayı bazen kısa süreli hatalar olabilir. Çalışmaz ise birkaç defa deneyin lütfen.</span>
           </div>
         </div>
-        
+
         <CardContent
           className="flex-1 overflow-y-auto p-3 md:p-6 space-y-6"
           onScroll={handleScroll}
