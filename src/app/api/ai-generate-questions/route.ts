@@ -7,6 +7,9 @@ import {
 import { supabase } from "@/lib/supabase";
 import { shouldUseDemoData } from "@/data/demo-data";
 
+// Increase timeout for AI generation
+export const maxDuration = 120; // 2 minutes
+
 export const runtime = "nodejs";
 
 // Mock question generation for demo/development when API key is not available

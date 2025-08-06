@@ -16,5 +16,9 @@ if (!hasApiKey) {
 
 export const ai = genkit({
   plugins: hasApiKey ? [googleAI()] : [],
-  ...(hasApiKey && { model: "googleai/gemini-2.0-flash" }),
+  ...(hasApiKey && {
+    model: "googleai/gemini-2.0-flash",
+    // Increase timeout for AI operations
+    timeout: 120000, // 2 minutes timeout
+  }),
 });
