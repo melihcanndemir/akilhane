@@ -12,7 +12,7 @@ const QuestionGenerationInputSchema = z.object({
   type: z
     .enum(["multiple-choice", "true-false", "calculation", "case-study"])
     .describe("The type of questions to generate"),
-  count: z.number().min(1).max(10).describe("Number of questions to generate"),
+  count: z.number().min(1).max(25).describe("Number of questions to generate"),
   language: z
     .enum(["tr", "en"])
     .default("tr")

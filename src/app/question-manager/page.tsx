@@ -939,7 +939,7 @@ export default function QuestionManager() {
       const existingQuestions = questions
         .filter((q) => q.topic === aiFormData.topic)
         .map((q) => q.text)
-        .slice(0, 10); // Send max 10 for context
+        .slice(0, 20); // Increased from 10 to 20 for better context
 
       const response = await fetch("/api/ai-generate-questions", {
         method: "POST",
@@ -1901,15 +1901,19 @@ export default function QuestionManager() {
                       id="ai-count"
                       type="number"
                       min="1"
-                      max="10"
+                      max="25"
                       value={aiFormData.count}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value) || 1;
                         setAIFormData({
                           ...aiFormData,
-                          count: parseInt(e.target.value) || 1,
-                        })
-                      }
+                          count: Math.min(Math.max(value, 1), 25),
+                        });
+                      }}
                     />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Token limiti nedeniyle maksimum 25 soru üretilebilir.
+                    </p>
                   </div>
                 </div>
 
