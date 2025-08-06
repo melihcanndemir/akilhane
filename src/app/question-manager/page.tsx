@@ -1903,12 +1903,13 @@ export default function QuestionManager() {
                       min="1"
                       max="25"
                       value={aiFormData.count}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value) || 1;
                         setAIFormData({
                           ...aiFormData,
-                          count: parseInt(e.target.value) || 1,
-                        })
-                      }
+                          count: Math.min(Math.max(value, 1), 25),
+                        });
+                      }}
                     />
                     <p className="text-xs text-muted-foreground mt-1">
                       Token limiti nedeniyle maksimum 25 soru üretilebilir.
