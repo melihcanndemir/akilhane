@@ -34,7 +34,7 @@
 
 AkılHane, standart eğitim platformlarının ötesine geçerek her öğrencinin bireysel ihtiyaçlarına odaklanır. Sadece soru çözmekle kalmaz, **zayıf yönlerinizi tespit eder, size özel çalışma stratejileri sunar ve öğrenme sürecinizi akıllı bir asistanla destekler.** Amacımız, eğitimi daha verimli, erişilebilir ve kişisel hale getirmektir.
 
-Bu proje, **BTK Akademi & Google Cloud & Girişimcilik Vakfı Hackathon'25** için geliştirilmiştir.
+Bu proje, **BTK Akademi & Google & Girişimcilik Vakfı Hackathon'25** için geliştirilmiştir.
 
 ## 🚀 Ana Özellikler
 
