@@ -1,0 +1,72 @@
+# AkılHane - Dependabot version updates configuration
+version: 2
+updates:
+  # NPM paketleri için (Next.js, React, TypeScript, Tailwind CSS)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/Istanbul"
+    open-pull-requests-limit: 15
+    reviewers:
+      - "melihcanndemir"
+    assignees:
+      - "melihcanndemir"
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(dev-deps)"
+      include: "scope"
+    # Kritik güvenlik güncellemelerini önceliklendir
+    allow:
+      - dependency-type: "direct"
+        update-types: ["security"]
+      - dependency-type: "indirect"
+        update-types: ["security"]
+    # Next.js major güncellemelerini dikkatli yönet
+    ignore:
+      - dependency-name: "next"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      # AI kütüphanelerinde major güncellemeleri manuel kontrol et
+      - dependency-name: "@google/generative-ai"
+        update-types: ["version-update:semver-major"]
+    # Labels for better organization
+    labels:
+      - "dependencies"
+      - "automated-pr"
+
+  # GitHub Actions için (CI/CD workflows)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "1"
+      time: "09:00"
+      timezone: "Europe/Istanbul"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(ci)"
+      include: "scope"
+    labels:
+      - "ci/cd"
+      - "github-actions"
+
+  # Docker için (eğer Dockerfile kullanıyorsanız)
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "15"
+      time: "10:00"
+      timezone: "Europe/Istanbul"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(docker)"
+    labels:
+      - "docker"
+      - "infrastructure"
