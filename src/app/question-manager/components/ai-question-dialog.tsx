@@ -29,17 +29,27 @@ import {
   CheckCircle,
   AlertCircle,
 } from "lucide-react";
-import type { 
-  Subject, 
-  AIGeneratedQuestion, 
-  AIGenerationResult 
+import type {
+  Subject,
+  AIGeneratedQuestion,
+  AIGenerationResult,
 } from "@/types/question-manager";
+
+// Define proper interface for AI form data
+interface AIFormData {
+  subject: string;
+  topic: string;
+  type: "multiple-choice" | "true-false" | "calculation" | "case-study";
+  difficulty: "Easy" | "Medium" | "Hard";
+  count: number;
+  guidelines: string;
+}
 
 interface AIQuestionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   subjects: Subject[];
-  onGenerate: (formData: any) => Promise<void>;
+  onGenerate: (formData: AIFormData) => Promise<void>;
   onApprove: (questions: AIGeneratedQuestion[]) => Promise<void>;
   isGenerating: boolean;
   isCreating: boolean;
@@ -86,6 +96,19 @@ export default function AIQuestionDialog({
       selectedAIQuestions.has(idx),
     );
     await onApprove(questionsToAdd);
+  };
+
+  // Wrapper functions to handle async operations
+  const handleGenerateClick = () => {
+    handleAIGenerate().catch(() => {
+      // Silent fail for better UX
+    });
+  };
+
+  const handleApproveClick = () => {
+    handleApproveAIQuestions().catch(() => {
+      // Silent fail for better UX
+    });
   };
 
   const toggleAIQuestionSelection = (index: number) => {
@@ -289,7 +312,7 @@ export default function AIQuestionDialog({
               </Alert>
 
               <Button
-                onClick={handleAIGenerate}
+                onClick={handleGenerateClick}
                 disabled={
                   isGenerating || !aiFormData.subject || !aiFormData.topic
                 }
@@ -492,7 +515,7 @@ export default function AIQuestionDialog({
                       İptal
                     </Button>
                     <Button
-                      onClick={handleApproveAIQuestions}
+                      onClick={handleApproveClick}
                       disabled={selectedAIQuestions.size === 0 || isCreating}
                       className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 w-full sm:w-auto h-8 sm:h-10 text-xs sm:text-sm shadow-lg"
                     >

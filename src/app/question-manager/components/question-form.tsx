@@ -9,7 +9,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-
 import { Plus } from "lucide-react";
 import type { Subject, QuestionFormData } from "@/types/question-manager";
 import { QUESTION_TYPES, DIFFICULTIES } from "@/types/question-manager";
@@ -20,7 +19,7 @@ import FormActions from "./form-actions";
 interface QuestionFormProps {
   subjects: Subject[];
   formData: QuestionFormData;
-  onFormDataChange: (field: string, value: any) => void;
+  onFormDataChange: (field: keyof QuestionFormData, value: string | number) => void;
   onOptionChange: (index: number, field: "text" | "isCorrect", value: string | boolean) => void;
   onAddOption: () => void;
   onRemoveOption: (index: number) => void;

@@ -26,7 +26,7 @@ interface EditQuestionDialogProps {
   onOptionChange: (index: number, field: "text" | "isCorrect", value: string | boolean) => void;
   onAddOption: () => void;
   onRemoveOption: (index: number) => void;
-  onQuestionChange: (field: keyof Question, value: any) => void;
+  onQuestionChange: (field: keyof Question, value: string | boolean) => void;
 }
 
 export default function EditQuestionDialog({
@@ -39,7 +39,14 @@ export default function EditQuestionDialog({
   onRemoveOption,
   onQuestionChange,
 }: EditQuestionDialogProps) {
-  if (!editingQuestion) return null;
+  if (!editingQuestion) {return null;}
+
+  // Wrapper function to handle async update
+  const handleUpdateClick = () => {
+    onUpdate().catch(() => {
+      // Silent fail for better UX
+    });
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -47,7 +54,7 @@ export default function EditQuestionDialog({
         <DialogHeader>
           <DialogTitle>Soruyu Düzenle</DialogTitle>
         </DialogHeader>
-        
+
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="edit-text" className="text-right">
@@ -62,7 +69,7 @@ export default function EditQuestionDialog({
               className="col-span-3"
             />
           </div>
-          
+
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="edit-topic" className="text-right">
               Konu
@@ -76,7 +83,7 @@ export default function EditQuestionDialog({
               className="col-span-3"
             />
           </div>
-          
+
           {editingQuestion.type === "multiple-choice" && (
             <div className="grid grid-cols-4 items-start gap-4">
               <Label className="text-right pt-2">Seçenekler</Label>
@@ -131,7 +138,7 @@ export default function EditQuestionDialog({
               </div>
             </div>
           )}
-          
+
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="edit-explanation" className="text-right">
               Açıklama
@@ -146,12 +153,12 @@ export default function EditQuestionDialog({
             />
           </div>
         </div>
-        
+
         <DialogFooter className="gap-2">
           <DialogClose asChild>
             <Button variant="outline">İptal</Button>
           </DialogClose>
-          <Button onClick={onUpdate}>
+          <Button onClick={handleUpdateClick}>
             Değişiklikleri Kaydet
           </Button>
         </DialogFooter>

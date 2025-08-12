@@ -11,10 +11,10 @@ import {
 import type { Question } from "@/lib/types";
 import LoadingSpinner from "@/components/loading-spinner";
 import type { Subject } from "@/types/question-manager";
-import { 
-  LoadingState, 
-  NoSubjectsState, 
-  NoSubjectSelectedState, 
+import {
+  LoadingState,
+  NoSubjectsState,
+  NoSubjectSelectedState,
   NoQuestionsState,
 } from "./empty-states";
 import QuestionCard from "./question-card";
@@ -58,9 +58,7 @@ export default function QuestionsList({
       (question.topic || "").toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDifficulty =
       filterDifficulty === "all" || mapDifficulty(question.difficulty) === filterDifficulty;
-    
 
-    
     return matchesSearch && matchesDifficulty;
   });
 
@@ -94,7 +92,7 @@ export default function QuestionsList({
         ) : isLoading ? (
           <LoadingSpinner />
         ) : !selectedSubject ? (
-          <NoSubjectSelectedState 
+          <NoSubjectSelectedState
             subjects={subjects}
             onSubjectChange={onSubjectChange}
             onAIDialogOpenChange={onAIDialogOpenChange}

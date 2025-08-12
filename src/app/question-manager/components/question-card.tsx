@@ -9,8 +9,8 @@ import type { Question } from "@/lib/types";
 export const mapDifficulty = (difficulty: string): string => {
   const mapping: Record<string, string> = {
     "Easy": "Kolay",
-    "Medium": "Orta", 
-    "Hard": "Zor"
+    "Medium": "Orta",
+    "Hard": "Zor",
   };
   return mapping[difficulty] || difficulty;
 };
@@ -20,7 +20,7 @@ export const mapQuestionType = (type: string): string => {
     "multiple-choice": "Çoktan Seçmeli",
     "true-false": "Doğru/Yanlış",
     "calculation": "Hesaplama",
-    "case-study": "Vaka Çalışması"
+    "case-study": "Vaka Çalışması",
   };
   return mapping[type] || type;
 };
@@ -90,10 +90,10 @@ export default function QuestionCard({ question, onEdit, onDelete }: QuestionCar
     <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800/50 w-full hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between mb-2">
         <QuestionTags question={question} />
-        <QuestionActions 
-          question={question} 
-          onEdit={onEdit} 
-          onDelete={onDelete} 
+        <QuestionActions
+          question={question}
+          onEdit={onEdit}
+          onDelete={onDelete}
         />
       </div>
       <p className="text-sm font-medium mb-2 break-words">

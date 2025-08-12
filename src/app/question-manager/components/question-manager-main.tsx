@@ -8,15 +8,28 @@ import QuestionForm from "./question-form";
 import QuestionsList from "./questions-list";
 import AIQuestionDialog from "./ai-question-dialog";
 import EditQuestionDialog from "./edit-question-dialog";
-import type { 
+import type {
   Subject,
-  AIGeneratedQuestion, 
-  AIGenerationResult 
+  AIGeneratedQuestion,
+  AIGenerationResult,
+  QuestionFormData,
 } from "@/types/question-manager";
+import type { Question } from "@/lib/types";
 
+// Define proper interface for AI form data
+interface AIFormData {
+  subject: string;
+  topic: string;
+  type: "multiple-choice" | "true-false" | "calculation" | "case-study";
+  difficulty: "Easy" | "Medium" | "Hard";
+  count: number;
+  guidelines: string;
+}
+
+// Define proper interfaces for the component props
 interface QuestionManagerMainProps {
   subjects: Subject[];
-  questions: any[];
+  questions: Question[];
   selectedSubject: string;
   searchTerm: string;
   filterDifficulty: string;
@@ -24,33 +37,33 @@ interface QuestionManagerMainProps {
   isLoadingSubjects: boolean;
   isCreating: boolean;
   isEditDialogOpen: boolean;
-  editingQuestion: any;
+  editingQuestion: Question | null;
   isAIDialogOpen: boolean;
   isGeneratingAI: boolean;
   aiGeneratedQuestions: AIGeneratedQuestion[];
   aiGenerationResult: AIGenerationResult | null;
   isAuthenticated: boolean | null;
   isHydrated: boolean;
-  formData: any;
+  formData: QuestionFormData;
   onSubjectChange: (subject: string) => void;
   onSearchChange: (term: string) => void;
   onDifficultyFilterChange: (difficulty: string) => void;
-  onFormDataChange: (field: string, value: any) => void;
+  onFormDataChange: (field: keyof QuestionFormData, value: string | number) => void;
   onOptionChange: (index: number, field: "text" | "isCorrect", value: string | boolean) => void;
   onAddOption: () => void;
   onRemoveOption: (index: number) => void;
   onSubmit: () => Promise<void>;
   onReset: () => void;
-  onEditQuestion: (question: any) => void;
+  onEditQuestion: (question: Question) => void;
   onDeleteQuestion: (questionId: string) => Promise<void>;
   onEditDialogOpenChange: (open: boolean) => void;
   onAIDialogOpenChange: (open: boolean) => void;
-  onAIGenerate: (formData: any) => Promise<void>;
+  onAIGenerate: (formData: AIFormData) => Promise<void>;
   onAIApprove: (questions: AIGeneratedQuestion[]) => Promise<void>;
   onEditOptionChange: (index: number, field: "text" | "isCorrect", value: string | boolean) => void;
   onEditAddOption: () => void;
   onEditRemoveOption: (index: number) => void;
-  onEditQuestionChange: (field: string, value: any) => void;
+  onEditQuestionChange: (field: keyof Question, value: string | boolean) => void;
   onUpdateQuestion: () => Promise<void>;
 }
 

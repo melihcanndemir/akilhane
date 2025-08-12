@@ -7,11 +7,21 @@ import { supabase } from "@/lib/supabase";
 import type { Question } from "@/lib/types";
 import type { InsertTables, UpdateTables } from "@/lib/supabase";
 import QuestionManagerMain from "./components/question-manager-main";
-import type { 
-  Subject, 
-  AIGeneratedQuestion, 
-  AIGenerationResult 
+import type {
+  Subject,
+  AIGeneratedQuestion,
+  AIGenerationResult,
 } from "@/types/question-manager";
+
+// Define proper interface for AI form data
+interface AIFormData {
+  subject: string;
+  topic: string;
+  type: "multiple-choice" | "true-false" | "calculation" | "case-study";
+  difficulty: "Easy" | "Medium" | "Hard";
+  count: number;
+  guidelines: string;
+}
 
 // LocalStorage service for questions (fallback)
 class QuestionLocalStorageService {
@@ -35,8 +45,8 @@ class QuestionLocalStorageService {
     }
     try {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(questions));
-    } catch (error) {
-      console.error("Error saving questions to localStorage:", error);
+    } catch {
+      // Silent fail for localStorage errors
     }
   }
 
@@ -49,7 +59,7 @@ class QuestionLocalStorageService {
     const questions = this.getQuestions();
     questions.push(newQuestion);
     this.saveQuestions(questions);
-    
+
     return newQuestion;
   }
 
@@ -108,8 +118,8 @@ class SubjectLocalStorageService {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       const subjects = stored ? JSON.parse(stored) : [];
       return subjects;
-    } catch (error) {
-      console.error("Error getting subjects from localStorage:", error);
+    } catch {
+      // Silent fail for localStorage errors
       return [];
     }
   }
@@ -120,8 +130,8 @@ class SubjectLocalStorageService {
     }
     try {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(subjects));
-    } catch (error) {
-      console.error("Error saving subjects to localStorage:", error);
+    } catch {
+      // Silent fail for localStorage errors
     }
   }
 
@@ -146,9 +156,9 @@ class SubjectLocalStorageService {
 
     const existingSubject = subjects[index];
     if (existingSubject) {
-      subjects[index] = { 
-        ...existingSubject, 
-        ...updates 
+      subjects[index] = {
+        ...existingSubject,
+        ...updates,
       };
       this.saveSubjects(subjects);
       return true;
@@ -191,9 +201,7 @@ export default function QuestionManager() {
   >([]);
   const [aiGenerationResult, setAIGenerationResult] =
     useState<AIGenerationResult | null>(null);
-  const [selectedAIQuestions, setSelectedAIQuestions] = useState<Set<number>>(
-    new Set(),
-  );
+
   const [aiFormData, setAIFormData] = useState({
     subject: "",
     topic: "",
@@ -231,31 +239,30 @@ export default function QuestionManager() {
         const {
           data: { session },
         } = await supabase.auth.getSession();
-        
+
         // Gerçek bir session var mı kontrol et
-        const hasSession = Boolean(session && session.user && session.access_token);
-        
+        const hasSession = Boolean(session?.access_token);
+
         // Eğer session varsa, gerçekten çalışıyor mu test et
         if (hasSession) {
           try {
             // Test: Supabase'den basit bir veri çekmeye çalış
             const testResult = await supabase.from('subjects').select('count').limit(1);
-            
+
             // Eğer hata varsa veya data null ise, gerçek authentication yok
             if (testResult.error || testResult.data === null) {
               setIsAuthenticated(false);
               return;
             }
-            
+
             setIsAuthenticated(true);
-          } catch (testError) {
+          } catch {
             setIsAuthenticated(false);
           }
         } else {
           setIsAuthenticated(false);
         }
-      } catch (error) {
-        console.error("Authentication check error:", error);
+      } catch {
         setIsAuthenticated(false);
       }
     };
@@ -275,7 +282,7 @@ export default function QuestionManager() {
           } else {
             setIsAuthenticated(true);
           }
-        } catch (error) {
+        } catch {
           setIsAuthenticated(false);
         }
       } else if (event === 'SIGNED_OUT' || !session) {
@@ -291,16 +298,23 @@ export default function QuestionManager() {
     setIsHydrated(true);
   }, []);
 
-  // Load subjects and questions
-  useEffect(() => {
-    if (isAuthenticated !== null) { // Sadece authentication durumu belirlendiğinde çağır
-      loadSubjects();
-    } else {
-      // isAuthenticated is null, skipping loadSubjects
-    }
-  }, [isAuthenticated]); // isAuthenticated dependency'si ekle
+  // Function to calculate real question count for subjects
+  const calculateRealQuestionCount = async (subjects: Subject[]): Promise<Subject[]> => {
+    try {
+             // Get all questions from localStorage to calculate real counts
+       const allQuestions = QuestionLocalStorageService.getQuestions();
 
-  const loadSubjects = async () => {
+       return subjects.map(subject => ({
+        ...subject,
+        questionCount: allQuestions.filter(q => q.subject === subject.name).length,
+      }));
+    } catch {
+      // If calculation fails, return subjects with original counts
+      return subjects;
+    }
+  };
+
+  const loadSubjects = useCallback(async () => {
     try {
       setIsLoadingSubjects(true);
       let loadedSubjects: Subject[] = [];
@@ -308,7 +322,7 @@ export default function QuestionManager() {
       if (isAuthenticated) {
         try {
           const dbSubjects = await SubjectService.getSubjects();
-          
+
           // Eğer Supabase'de ders varsa onları kullan, yoksa localStorage'dan yükle
           if (dbSubjects && dbSubjects.length > 0) {
             loadedSubjects = dbSubjects.map(subject => ({
@@ -322,23 +336,24 @@ export default function QuestionManager() {
             }));
           } else {
             loadedSubjects = SubjectLocalStorageService.getSubjects();
-            
+
             // localStorage'daki dersleri Supabase'e senkronize et
             if (loadedSubjects.length > 0) {
               syncLocalStorageSubjectsToSupabase(loadedSubjects);
             }
           }
-        } catch (error) {
-          console.error("Error loading subjects from Supabase:", error);
+        } catch {
+          // Fallback to localStorage on Supabase error
           loadedSubjects = SubjectLocalStorageService.getSubjects();
         }
       } else {
         loadedSubjects = SubjectLocalStorageService.getSubjects();
       }
 
-      setSubjects(loadedSubjects);
-    } catch (error) {
-      console.error("Error loading subjects:", error);
+      // Calculate real question count for all subjects
+      const subjectsWithRealCounts = await calculateRealQuestionCount(loadedSubjects);
+      setSubjects(subjectsWithRealCounts);
+    } catch {
       toast({
         title: "Hata",
         description: "Dersler yüklenirken bir hata oluştu.",
@@ -347,7 +362,16 @@ export default function QuestionManager() {
     } finally {
       setIsLoadingSubjects(false);
     }
-  };
+  }, [isAuthenticated, toast]);
+
+  // Load subjects and questions
+  useEffect(() => {
+    if (isAuthenticated !== null) { // Sadece authentication durumu belirlendiğinde çağır
+      loadSubjects();
+    } else {
+      // isAuthenticated is null, skipping loadSubjects
+    }
+  }, [isAuthenticated, loadSubjects]); // Include loadSubjects in dependencies
 
   // localStorage'daki dersleri Supabase'e senkronize et
   const syncLocalStorageSubjectsToSupabase = async (localSubjects: Subject[]) => {
@@ -362,17 +386,17 @@ export default function QuestionManager() {
             difficulty: subject.difficulty,
             is_active: subject.isActive,
           };
-          
+
           const result = await SubjectService.createSubject(dbSubject);
           if (result) {
             // Subject synced to Supabase
           }
-        } catch (error) {
-          console.error("Error syncing subject to Supabase:", subject.name, error);
+        } catch {
+          // Silent fail for subject sync errors
         }
       }
-    } catch (error) {
-      console.error("Error during sync:", error);
+    } catch {
+      // Silent fail for sync errors
     }
   };
 
@@ -401,8 +425,7 @@ export default function QuestionManager() {
             // Tüm soruları localStorage'dan yükle (Supabase'de getQuestions metodu yok)
             loadedQuestions = QuestionLocalStorageService.getQuestions();
           }
-        } catch (error) {
-          console.error("Error loading questions from Supabase:", error);
+        } catch {
           // Supabase hatası durumunda localStorage'dan yükle
           if (selectedSubject && selectedSubject.trim() !== "") {
             loadedQuestions = QuestionLocalStorageService.getQuestionsBySubject(selectedSubject);
@@ -420,8 +443,7 @@ export default function QuestionManager() {
       }
 
       setQuestions(loadedQuestions);
-    } catch (error) {
-      console.error("Error loading questions:", error);
+    } catch {
       toast({
         title: "Hata",
         description: "Sorular yüklenirken bir hata oluştu.",
@@ -461,7 +483,7 @@ export default function QuestionManager() {
 
       const newQuestion: Omit<Question, "id"> = {
         subject: formData.subject,
-        type: formData.type === "Çoktan Seçmeli" ? "multiple-choice" : 
+        type: formData.type === "Çoktan Seçmeli" ? "multiple-choice" :
               formData.type === "Doğru/Yanlış" ? "true-false" :
               formData.type === "Hesaplama" ? "calculation" : "case-study",
         difficulty: formData.difficulty === "Kolay" ? "Easy" :
@@ -490,9 +512,9 @@ export default function QuestionManager() {
             explanation: newQuestion.explanation,
             formula: newQuestion.formula || "",
           };
-          
+
           const result = await QuestionService.createQuestion(dbQuestion);
-          
+
           if (result) {
             // Convert database result to local Question type
             createdQuestion = {
@@ -509,8 +531,8 @@ export default function QuestionManager() {
           } else {
             createdQuestion = QuestionLocalStorageService.addQuestion(newQuestion);
           }
-        } catch (error) {
-          console.error("Error creating question in Supabase:", error);
+        } catch {
+          // Fallback to localStorage on Supabase error
           createdQuestion = QuestionLocalStorageService.addQuestion(newQuestion);
         }
       } else {
@@ -518,7 +540,11 @@ export default function QuestionManager() {
       }
 
       setQuestions(prev => [...prev, createdQuestion]);
-      
+
+      // Recalculate question count for subjects
+      const updatedSubjects = await calculateRealQuestionCount(subjects);
+      setSubjects(updatedSubjects);
+
       // Reset form
       setFormData({
         subject: "",
@@ -540,8 +566,7 @@ export default function QuestionManager() {
         title: "Başarılı",
         description: "Soru başarıyla oluşturuldu.",
       });
-    } catch (error) {
-      console.error("Error creating question:", error);
+    } catch {
       toast({
         title: "Hata",
         description: "Soru oluşturulurken bir hata oluştu.",
@@ -557,8 +582,8 @@ export default function QuestionManager() {
       if (isAuthenticated) {
         try {
           await QuestionService.deleteQuestion(questionId);
-        } catch (error) {
-          console.error("Error deleting question from Supabase:", error);
+        } catch {
+          // Fallback to localStorage on Supabase error
           QuestionLocalStorageService.deleteQuestion(questionId);
         }
       } else {
@@ -566,13 +591,16 @@ export default function QuestionManager() {
       }
 
       setQuestions(prev => prev.filter(q => q.id !== questionId));
-      
+
+      // Recalculate question count for subjects
+      const updatedSubjects = await calculateRealQuestionCount(subjects);
+      setSubjects(updatedSubjects);
+
       toast({
         title: "Başarılı",
         description: "Soru başarıyla silindi.",
       });
-    } catch (error) {
-      console.error("Error deleting question:", error);
+    } catch {
       toast({
         title: "Hata",
         description: "Soru silinirken bir hata oluştu.",
@@ -582,7 +610,7 @@ export default function QuestionManager() {
   };
 
   const handleUpdateQuestion = async () => {
-    if (!editingQuestion) return;
+    if (!editingQuestion) {return;}
 
     try {
       if (isAuthenticated) {
@@ -600,27 +628,30 @@ export default function QuestionManager() {
             formula: editingQuestion.formula || "",
           };
           await QuestionService.updateQuestion(editingQuestion.id, updateData);
-        } catch (error) {
-          console.error("Error updating question in Supabase:", error);
+        } catch {
+          // Fallback to localStorage on Supabase error
           QuestionLocalStorageService.updateQuestion(editingQuestion.id, editingQuestion);
         }
       } else {
         QuestionLocalStorageService.updateQuestion(editingQuestion.id, editingQuestion);
       }
 
-      setQuestions(prev => 
-        prev.map(q => q.id === editingQuestion.id ? editingQuestion : q)
+      setQuestions(prev =>
+        prev.map(q => q.id === editingQuestion.id ? editingQuestion : q),
       );
-      
+
+      // Recalculate question count for subjects
+      const updatedSubjects = await calculateRealQuestionCount(subjects);
+      setSubjects(updatedSubjects);
+
       setIsEditDialogOpen(false);
       setEditingQuestion(null);
-      
+
       toast({
         title: "Başarılı",
         description: "Soru başarıyla güncellendi.",
       });
-    } catch (error) {
-      console.error("Error updating question:", error);
+    } catch {
       toast({
         title: "Hata",
         description: "Soru güncellenirken bir hata oluştu.",
@@ -629,18 +660,18 @@ export default function QuestionManager() {
     }
   };
 
-  const handleAIGenerate = async (formData: any) => {
+  const handleAIGenerate = async (formData: AIFormData) => {
     try {
       setIsGeneratingAI(true);
       setAIGeneratedQuestions([]);
       setAIGenerationResult(null);
-      
+
       // Update the AI form data state
       setAIFormData(formData);
 
       // Import the AI question generation service
       const { generateQuestions } = await import("@/ai/flows/question-generator");
-      
+
       // Get existing questions to avoid duplicates
       const existingQuestions = questions
         .filter(q => q.subject === formData.subject && q.topic === formData.topic)
@@ -663,12 +694,12 @@ export default function QuestionManager() {
         ...q,
         formula: q.formula || "",
       }));
-      
+
       const compatibleResult: AIGenerationResult = {
         ...result,
         questions: compatibleQuestions,
       };
-      
+
       setAIGeneratedQuestions(compatibleQuestions);
       setAIGenerationResult(compatibleResult);
 
@@ -677,8 +708,6 @@ export default function QuestionManager() {
         description: `${result.questions.length} soru başarıyla oluşturuldu.`,
       });
     } catch (error) {
-      console.error("Error generating AI questions:", error);
-      
       // Check if it's an API key issue
       if (error instanceof Error && error.message.includes("API key")) {
         toast({
@@ -730,8 +759,8 @@ export default function QuestionManager() {
               formula: question.formula || "",
             };
             await QuestionService.createQuestion(dbQuestion);
-          } catch (error) {
-            console.error("Error creating AI question in Supabase:", error);
+          } catch {
+            // Fallback to localStorage on Supabase error
             QuestionLocalStorageService.addQuestion(question);
           }
         } else {
@@ -741,19 +770,21 @@ export default function QuestionManager() {
 
       // Reload questions
       await loadQuestions();
-      
+
+      // Recalculate question count for subjects
+      const updatedSubjects = await calculateRealQuestionCount(subjects);
+      setSubjects(updatedSubjects);
+
       // Reset AI dialog
       setIsAIDialogOpen(false);
       setAIGeneratedQuestions([]);
       setAIGenerationResult(null);
-      setSelectedAIQuestions(new Set());
-      
+
       toast({
         title: "Başarılı",
         description: `${questionsToAdd.length} AI sorusu başarıyla eklendi.`,
       });
-    } catch (error) {
-      console.error("Error approving AI questions:", error);
+    } catch {
       toast({
         title: "Hata",
         description: "AI soruları eklenirken bir hata oluştu.",
@@ -832,7 +863,7 @@ export default function QuestionManager() {
       onAIGenerate={handleAIGenerate}
       onAIApprove={handleApproveAIQuestions}
       onEditOptionChange={(index, field, value) => {
-        if (!editingQuestion) return;
+        if (!editingQuestion) {return;}
         const newOptions = [...editingQuestion.options];
         if (newOptions[index]) {
           newOptions[index] = { ...newOptions[index], [field]: value };
@@ -840,19 +871,19 @@ export default function QuestionManager() {
         }
       }}
       onEditAddOption={() => {
-        if (!editingQuestion) return;
+        if (!editingQuestion) {return;}
         setEditingQuestion({
           ...editingQuestion,
           options: [...editingQuestion.options, { text: "", isCorrect: false }],
         });
       }}
       onEditRemoveOption={(index) => {
-        if (!editingQuestion) return;
+        if (!editingQuestion) {return;}
         const newOptions = editingQuestion.options.filter((_, i) => i !== index);
         setEditingQuestion({ ...editingQuestion, options: newOptions });
       }}
       onEditQuestionChange={(field, value) => {
-        if (!editingQuestion) return;
+        if (!editingQuestion) {return;}
         setEditingQuestion({ ...editingQuestion, [field]: value });
       }}
       onUpdateQuestion={handleUpdateQuestion}

@@ -44,9 +44,9 @@ export function NoSubjectsState({ onAIDialogOpenChange }: NoSubjectsStateProps) 
             Ders Ekle
           </Button>
         </Link>
-        <Button 
-          variant="outline" 
-          className="gap-2" 
+        <Button
+          variant="outline"
+          className="gap-2"
           onClick={() => onAIDialogOpenChange(true)}
         >
           <Sparkles className="w-4 h-4" />
@@ -64,10 +64,10 @@ interface NoSubjectSelectedStateProps {
   onAIDialogOpenChange: (open: boolean) => void;
 }
 
-export function NoSubjectSelectedState({ 
-  subjects, 
-  onSubjectChange, 
-  onAIDialogOpenChange 
+export function NoSubjectSelectedState({
+  subjects,
+  onSubjectChange,
+  onAIDialogOpenChange,
 }: NoSubjectSelectedStateProps) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -107,9 +107,9 @@ export function NoSubjectSelectedState({
             </SelectContent>
           </Select>
         )}
-        <Button 
-          variant="outline" 
-          className="gap-2" 
+        <Button
+          variant="outline"
+          className="gap-2"
           onClick={() => onAIDialogOpenChange(true)}
         >
           <Sparkles className="w-4 h-4" />
@@ -138,7 +138,7 @@ export function NoQuestionsState({ onAIDialogOpenChange }: NoQuestionsStateProps
         Seçili derste henüz soru eklenmemiş. Sol taraftaki formu kullanarak ilk sorunuzu oluşturabilirsiniz.
       </p>
       <div className="flex flex-col sm:flex-row gap-3">
-        <Button 
+        <Button
           onClick={() => document.getElementById('question-form')?.scrollIntoView({ behavior: 'smooth' })}
           className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0"
         >

@@ -15,10 +15,17 @@ export default function FormActions({
   onReset,
   isCreating,
 }: FormActionsProps) {
+  // Wrapper function to handle async submit
+  const handleSubmitClick = () => {
+    onSubmit().catch(() => {
+      // Silent fail for better UX
+    });
+  };
+
   return (
     <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
       <Button
-        onClick={onSubmit}
+        onClick={handleSubmitClick}
         disabled={isCreating}
         className="flex-1 h-11 sm:h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
       >
