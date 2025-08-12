@@ -139,7 +139,7 @@ export default function SettingsPage() {
       // 2. Load subjects from localStorage
       try {
         // LocalStorage'dan dersleri yükle
-        const localSubjects = localStorage.getItem("exam_training_subjects");
+        const localSubjects = localStorage.getItem("akilhane_subjects");
 
         if (localSubjects) {
           const parsedSubjects = JSON.parse(localSubjects);

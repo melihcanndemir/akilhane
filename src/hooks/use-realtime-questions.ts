@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { QuestionService } from '@/services/supabase-service';
 import type { Question } from '@/lib/types';
 import { shouldUseDemoData } from '@/data/demo-data';
-import { questionLocalStorageService } from '@/services/question-localStorage-service';
+import { UnifiedStorageService } from '@/services/unified-storage-service';
 import { logError } from '@/lib/error-logger';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
@@ -196,7 +196,7 @@ export function useRealtimeQuestions({
         const demoQuestions = allDemoQuestions.filter(
           (q) => q.subject === selectedSubject,
         );
-        const localQuestions = await questionLocalStorageService.getQuestionsBySubject(
+        const localQuestions = UnifiedStorageService.getQuestionsBySubject(
           selectedSubject,
         );
 
@@ -210,7 +210,7 @@ export function useRealtimeQuestions({
 
       if (!session) {
         // LocalStorage fallback
-        const localQuestions = await questionLocalStorageService.getQuestionsBySubject(
+        const localQuestions = UnifiedStorageService.getQuestionsBySubject(
           selectedSubject,
         );
         setQuestions(localQuestions);
@@ -227,7 +227,7 @@ export function useRealtimeQuestions({
       setError('Failed to fetch questions');
 
       // Fallback to localStorage
-      const localQuestions = await questionLocalStorageService.getQuestionsBySubject(
+      const localQuestions = UnifiedStorageService.getQuestionsBySubject(
         selectedSubject,
       );
       setQuestions(localQuestions);

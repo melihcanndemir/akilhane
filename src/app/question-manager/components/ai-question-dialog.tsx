@@ -50,7 +50,7 @@ interface AIQuestionDialogProps {
   onOpenChange: (open: boolean) => void;
   subjects: Subject[];
   onGenerate: (formData: AIFormData) => Promise<void>;
-  onApprove: (questions: AIGeneratedQuestion[]) => Promise<void>;
+  onApprove: (questions: AIGeneratedQuestion[], subject: string) => Promise<void>;
   isGenerating: boolean;
   isCreating: boolean;
   aiGeneratedQuestions: AIGeneratedQuestion[];
@@ -92,10 +92,17 @@ export default function AIQuestionDialog({
   };
 
   const handleApproveAIQuestions = async () => {
+    // Validate that subject is selected
+    if (!aiFormData.subject || aiFormData.subject.trim() === '') {
+      return;
+    }
+
     const questionsToAdd = aiGeneratedQuestions.filter((_, idx) =>
       selectedAIQuestions.has(idx),
     );
-    await onApprove(questionsToAdd);
+
+    // Pass both questions and subject information
+    await onApprove(questionsToAdd, aiFormData.subject);
   };
 
   // Wrapper functions to handle async operations
@@ -135,6 +142,20 @@ export default function AIQuestionDialog({
     setSelectedAIQuestions(new Set());
     setActiveAITab("generate");
     setShowAnswers(false);
+
+    // Reset AI form data to ensure clean state
+    setAIFormData({
+      subject: "",
+      topic: "",
+      type: "multiple-choice" as
+        | "multiple-choice"
+        | "true-false"
+        | "calculation"
+        | "case-study",
+      difficulty: "Medium" as "Easy" | "Medium" | "Hard",
+      count: 5,
+      guidelines: "",
+    });
   };
 
   return (
@@ -502,6 +523,15 @@ export default function AIQuestionDialog({
                 </ScrollArea>
 
                 <div className="flex flex-col gap-3 pt-3 sm:pt-4 border-t">
+                  {!aiFormData.subject && (
+                    <Alert className="mb-2">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        ⚠️ Lütfen önce bir ders seçin. Sorular derse eklenemez.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
                   <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
                     {selectedAIQuestions.size} / {aiGeneratedQuestions.length}{" "}
                     soru seçildi
@@ -516,7 +546,7 @@ export default function AIQuestionDialog({
                     </Button>
                     <Button
                       onClick={handleApproveClick}
-                      disabled={selectedAIQuestions.size === 0 || isCreating}
+                      disabled={selectedAIQuestions.size === 0 || isCreating || !aiFormData.subject}
                       className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 w-full sm:w-auto h-8 sm:h-10 text-xs sm:text-sm shadow-lg"
                     >
                       {isCreating ? (

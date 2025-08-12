@@ -77,7 +77,7 @@ export default function SubjectManagerPage() {
             return [];
           }
           try {
-            const stored = localStorage.getItem("exam_training_subjects");
+            const stored = localStorage.getItem("akilhane_subjects");
             return stored ? JSON.parse(stored) : [];
           } catch {
             return [];

@@ -59,7 +59,7 @@ interface QuestionManagerMainProps {
   onEditDialogOpenChange: (open: boolean) => void;
   onAIDialogOpenChange: (open: boolean) => void;
   onAIGenerate: (formData: AIFormData) => Promise<void>;
-  onAIApprove: (questions: AIGeneratedQuestion[]) => Promise<void>;
+  onAIApprove: (questions: AIGeneratedQuestion[], subject: string) => Promise<void>;
   onEditOptionChange: (index: number, field: "text" | "isCorrect", value: string | boolean) => void;
   onEditAddOption: () => void;
   onEditRemoveOption: (index: number) => void;
@@ -134,6 +134,7 @@ export default function QuestionManagerMain({
                 <span className="hidden sm:inline">AI ile Soru Oluştur</span>
                 <span className="sm:hidden">AI Soru</span>
               </Button>
+
               {!isHydrated ? (
                 <div className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium w-full sm:w-auto text-center">
                   Loading...
