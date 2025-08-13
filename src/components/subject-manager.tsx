@@ -45,7 +45,7 @@ interface Subject {
 
 // LocalStorage service for subjects
 class SubjectLocalStorageService {
-  private static readonly STORAGE_KEY = "exam_training_subjects";
+  private static readonly STORAGE_KEY = "akilhane_subjects";
 
   static getSubjects(): Subject[] {
     if (typeof window === "undefined") {
@@ -212,7 +212,7 @@ const SubjectManager = ({ onRefresh }: SubjectManagerProps) => {
             return [];
           }
           try {
-            const stored = localStorage.getItem("exam_training_questions");
+            const stored = localStorage.getItem("akilhane_questions");
             return stored ? JSON.parse(stored) : [];
           } catch {
             return [];
@@ -268,18 +268,18 @@ const SubjectManager = ({ onRefresh }: SubjectManagerProps) => {
         }
       });
 
-      // Calculate real question count
-      const getQuestionsFromStorage = () => {
-        if (typeof window === "undefined") {
-          return [];
-        }
-        try {
-          const stored = localStorage.getItem("exam_training_questions");
-          return stored ? JSON.parse(stored) : [];
-        } catch {
-          return [];
-        }
-      };
+              // Calculate real question count
+        const getQuestionsFromStorage = () => {
+          if (typeof window === "undefined") {
+            return [];
+          }
+          try {
+            const stored = localStorage.getItem("akilhane_questions");
+            return stored ? JSON.parse(stored) : [];
+          } catch {
+            return [];
+          }
+        };
 
       const questions = getQuestionsFromStorage();
 
