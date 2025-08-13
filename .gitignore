@@ -49,3 +49,7 @@ exam-training.db-shm
 
 # Drizzle
 /drizzle
+
+/scripts/node_modules/
+/scripts/package-lock.json
+/scripts/package.json
