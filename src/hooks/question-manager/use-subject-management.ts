@@ -56,18 +56,27 @@ export const useSubjectManagement = (
     }
   };
 
-  // Load subjects
+  // Load subjects - Use same simple logic as Subject Manager
   const loadSubjects = useCallback(async () => {
     try {
+      console.log("🔄 useSubjectManagement: loadSubjects started");
+      console.log("🔄 useSubjectManagement: isAuthenticated:", isAuthenticated);
+      
       setIsLoadingSubjects(true);
-      let loadedSubjects: Subject[] = [];
-
-      if (isAuthenticated) {
+      
+      // Use same simple logic as Subject Manager for consistency
+      let loadedSubjects = UnifiedStorageService.getSubjects();
+      console.log("🔄 useSubjectManagement: loadedSubjects from UnifiedStorageService:", loadedSubjects);
+      console.log("🔄 useSubjectManagement: loadedSubjects length:", loadedSubjects.length);
+      
+      // If authenticated and no local subjects, try to sync from Supabase
+      if (isAuthenticated && loadedSubjects.length === 0) {
+        console.log("🔄 useSubjectManagement: Trying to load from Supabase...");
         try {
           const dbSubjects = await SubjectService.getSubjects();
-
-          // If there are subjects in Supabase, use them, otherwise load from localStorage
+          console.log("🔄 useSubjectManagement: dbSubjects from Supabase:", dbSubjects);
           if (dbSubjects && dbSubjects.length > 0) {
+            // Convert Supabase format to local format
             loadedSubjects = dbSubjects.map(subject => ({
               id: subject.id,
               name: subject.name,
@@ -77,26 +86,23 @@ export const useSubjectManagement = (
               questionCount: subject.question_count,
               isActive: subject.is_active,
             }));
-          } else {
-            loadedSubjects = UnifiedStorageService.getSubjects();
-
-            // Sync localStorage subjects to Supabase
-            if (loadedSubjects.length > 0) {
-              syncLocalStorageSubjectsToSupabase(loadedSubjects);
-            }
+            
+            // Save to localStorage for future use
+            localStorage.setItem("akilhane_subjects", JSON.stringify(loadedSubjects));
+            console.log("🔄 useSubjectManagement: Saved to localStorage:", loadedSubjects);
           }
-        } catch {
-          // Fallback to localStorage on Supabase error
-          loadedSubjects = UnifiedStorageService.getSubjects();
+        } catch (error) {
+          console.error("🔄 useSubjectManagement: Supabase error:", error);
+          // Silent fail - continue with empty subjects
         }
-      } else {
-        loadedSubjects = UnifiedStorageService.getSubjects();
       }
 
       // Calculate real question count for all subjects
       const subjectsWithRealCounts = await calculateRealQuestionCount(loadedSubjects);
+      console.log("🔄 useSubjectManagement: Final subjects to set:", subjectsWithRealCounts);
       setSubjects(subjectsWithRealCounts);
-    } catch {
+    } catch (error) {
+      console.error("🔄 useSubjectManagement: General error:", error);
       toast({
         title: "Hata",
         description: "Dersler yüklenirken bir hata oluştu.",

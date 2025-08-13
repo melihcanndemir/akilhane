@@ -42,29 +42,42 @@ interface QuestionManagerMainProps {
   isGeneratingAI: boolean;
   aiGeneratedQuestions: AIGeneratedQuestion[];
   aiGenerationResult: AIGenerationResult | null;
-  isAuthenticated: boolean | null;
-  isHydrated: boolean;
   formData: QuestionFormData;
-  onSubjectChange: (subject: string) => void;
-  onSearchChange: (term: string) => void;
-  onDifficultyFilterChange: (difficulty: string) => void;
-  onFormDataChange: (field: keyof QuestionFormData, value: string | number) => void;
-  onOptionChange: (index: number, field: "text" | "isCorrect", value: string | boolean) => void;
-  onAddOption: () => void;
-  onRemoveOption: (index: number) => void;
-  onSubmit: () => Promise<void>;
-  onReset: () => void;
-  onEditQuestion: (question: Question) => void;
-  onDeleteQuestion: (questionId: string) => Promise<void>;
-  onEditDialogOpenChange: (open: boolean) => void;
-  onAIDialogOpenChange: (open: boolean) => void;
-  onAIGenerate: (formData: AIFormData) => Promise<void>;
-  onAIApprove: (questions: AIGeneratedQuestion[], subject: string) => Promise<void>;
-  onEditOptionChange: (index: number, field: "text" | "isCorrect", value: string | boolean) => void;
-  onEditAddOption: () => void;
-  onEditRemoveOption: (index: number) => void;
-  onEditQuestionChange: (field: keyof Question, value: string | boolean) => void;
-  onUpdateQuestion: () => Promise<void>;
+  
+  // State setters
+  setQuestions: (questions: Question[] | ((prev: Question[]) => Question[])) => void;
+  setSubjects: (subjects: Subject[]) => void;
+  setIsLoadingSubjects: (loading: boolean) => void;
+  setIsCreating: (creating: boolean) => void;
+  setSelectedSubject: (subject: string) => void;
+  setSearchTerm: (term: string) => void;
+  setFilterDifficulty: (difficulty: string) => void;
+  setIsEditDialogOpen: (open: boolean) => void;
+  setEditingQuestion: (question: Question | null) => void;
+  setIsAIDialogOpen: (open: boolean) => void;
+  setIsGeneratingAI: (generating: boolean) => void;
+  setAIGeneratedQuestions: (questions: AIGeneratedQuestion[]) => void;
+  setAIGenerationResult: (result: AIGenerationResult | null) => void;
+  setFormData: (data: QuestionFormData) => void;
+  
+  // Functions
+  loadQuestions: (subject: string) => Promise<void>;
+  createQuestion: (formData: QuestionFormData) => Promise<boolean>;
+  updateQuestion: (question: Question) => Promise<boolean>;
+  deleteQuestion: (questionId: string) => Promise<void>;
+  generateQuestions: (formData: AIFormData) => Promise<void>;
+  approveAIQuestions: (questions: AIGeneratedQuestion[], subject: string) => Promise<boolean>;
+  
+  // Form handlers
+  handleFormDataChange: (field: keyof QuestionFormData, value: string | number) => void;
+  handleOptionChange: (index: number, field: "text" | "isCorrect", value: string | boolean) => void;
+  handleAddOption: () => void;
+  handleRemoveOption: (index: number) => void;
+  handleResetForm: () => void;
+  handleEditOptionChange: (index: number, field: "text" | "isCorrect", value: string | boolean) => void;
+  handleEditAddOption: () => void;
+  handleEditRemoveOption: (index: number) => void;
+  handleEditQuestionChange: (field: keyof Question, value: string | boolean) => void;
 }
 
 export default function QuestionManagerMain({
@@ -82,128 +95,143 @@ export default function QuestionManagerMain({
   isGeneratingAI,
   aiGeneratedQuestions,
   aiGenerationResult,
-  isHydrated,
   formData,
-  onSubjectChange,
-  onSearchChange,
-  onDifficultyFilterChange,
-  onFormDataChange,
-  onOptionChange,
-  onAddOption,
-  onRemoveOption,
-  onSubmit,
-  onReset,
-  onEditQuestion,
-  onDeleteQuestion,
-  onEditDialogOpenChange,
-  onAIDialogOpenChange,
-  onAIGenerate,
-  onAIApprove,
-  onEditOptionChange,
-  onEditAddOption,
-  onEditRemoveOption,
-  onEditQuestionChange,
-  onUpdateQuestion,
+  setQuestions,
+  setSubjects,
+  setIsLoadingSubjects,
+  setIsCreating,
+  setSelectedSubject,
+  setSearchTerm,
+  setFilterDifficulty,
+  setIsEditDialogOpen,
+  setEditingQuestion,
+  setIsAIDialogOpen,
+  setIsGeneratingAI,
+  setAIGeneratedQuestions,
+  setAIGenerationResult,
+  setFormData,
+  loadQuestions,
+  createQuestion,
+  updateQuestion,
+  deleteQuestion,
+  generateQuestions,
+  approveAIQuestions,
+  handleFormDataChange,
+  handleOptionChange,
+  handleAddOption,
+  handleRemoveOption,
+  handleResetForm,
+  handleEditOptionChange,
+  handleEditAddOption,
+  handleEditRemoveOption,
+  handleEditQuestionChange,
 }: QuestionManagerMainProps) {
   return (
-    <div className="min-h-screen">
-      {/* Responsive Navigation Bar */}
-      <MobileNav />
-
-      <div className="p-1 sm:p-4 md:p-8">
-        <div className="container mx-auto space-y-2 sm:space-y-8">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-headline font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Soru Yöneticisi
-              </h1>
-              <p className="text-muted-foreground">
-                Soru ekle, düzenle ve yönet
-              </p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
-              <Button
-                onClick={() => {
-                  onAIDialogOpenChange(true);
-                }}
-                disabled={!selectedSubject && subjects.length === 0}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 w-full sm:w-auto shadow-lg"
-              >
-                <Sparkles className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">AI ile Soru Oluştur</span>
-                <span className="sm:hidden">AI Soru</span>
-              </Button>
-
-              {!isHydrated ? (
-                <div className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium w-full sm:w-auto text-center">
-                  Loading...
-                </div>
-              ) : (
-                <div className="px-3 py-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full text-xs font-medium w-full sm:w-auto text-center">
-                  💾 LocalStorage
-                </div>
-              )}
-            </div>
+    <div className="space-y-6">
+      {/* Header Section */}
+      <div className="glass-card p-6">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              Soru Yönetimi
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Soru ekle, düzenle ve yapay zeka ile yeni sorular oluştur
+            </p>
           </div>
 
-          <div className="flex flex-col lg:flex-row gap-4 lg:gap-8 lg:items-stretch">
-            {/* Create Question Form */}
-            <div className="lg:flex-1">
-              <QuestionForm
-                subjects={subjects}
-                formData={formData}
-                onFormDataChange={onFormDataChange}
-                onOptionChange={onOptionChange}
-                onAddOption={onAddOption}
-                onRemoveOption={onRemoveOption}
-                onSubmit={onSubmit}
-                onReset={onReset}
-                isCreating={isCreating}
-              />
-            </div>
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <Button
+              onClick={() => {
+                setIsAIDialogOpen(true);
+              }}
+              disabled={!selectedSubject && subjects.length === 0}
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 w-full sm:w-auto shadow-lg"
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              <span className="hidden sm:inline">AI ile Soru Oluştur</span>
+              <span className="sm:hidden">AI Soru</span>
+            </Button>
 
-            {/* Questions List */}
-            <div className="lg:flex-1">
-              <QuestionsList
-                subjects={subjects}
-                questions={questions}
-                selectedSubject={selectedSubject}
-                searchTerm={searchTerm}
-                filterDifficulty={filterDifficulty}
-                isLoading={isLoading}
-                isLoadingSubjects={isLoadingSubjects}
-                onSubjectChange={onSubjectChange}
-                onSearchChange={onSearchChange}
-                onDifficultyFilterChange={onDifficultyFilterChange}
-                onEditQuestion={onEditQuestion}
-                onDeleteQuestion={onDeleteQuestion}
-                onAIDialogOpenChange={onAIDialogOpenChange}
-              />
-            </div>
+            {isLoadingSubjects ? (
+              <div className="px-3 py-1 bg-gray-100 text-gray-800 rounded-md text-xs font-medium w-full sm:w-auto flex justify-center items-center">
+                Yükleniyor...
+              </div>
+            ) : (
+              <div className="px-3 py-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-md text-xs font-medium w-full sm:w-auto flex justify-center items-center">
+                💾 Yerel Depolama
+              </div>
+            )}
           </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-8 lg:items-stretch">
+        {/* Create Question Form */}
+        <div className="lg:flex-1">
+          <QuestionForm
+            subjects={subjects}
+            formData={formData}
+            onFormDataChange={handleFormDataChange}
+            onOptionChange={handleOptionChange}
+            onAddOption={handleAddOption}
+            onRemoveOption={handleRemoveOption}
+            onSubmit={async () => {
+              await createQuestion(formData);
+            }}
+            onReset={handleResetForm}
+            isCreating={isCreating}
+          />
+        </div>
+
+        {/* Questions List */}
+        <div className="lg:flex-1">
+          <QuestionsList
+            subjects={subjects}
+            questions={questions}
+            selectedSubject={selectedSubject}
+            searchTerm={searchTerm}
+            filterDifficulty={filterDifficulty}
+            isLoading={isLoading}
+            isLoadingSubjects={isLoadingSubjects}
+            onSubjectChange={setSelectedSubject}
+            onSearchChange={setSearchTerm}
+            onDifficultyFilterChange={setFilterDifficulty}
+            onEditQuestion={(question) => {
+              setEditingQuestion(question);
+              setIsEditDialogOpen(true);
+            }}
+            onDeleteQuestion={deleteQuestion}
+            onAIDialogOpenChange={setIsAIDialogOpen}
+          />
         </div>
       </div>
 
       {/* Edit Question Dialog */}
       <EditQuestionDialog
         open={isEditDialogOpen}
-        onOpenChange={onEditDialogOpenChange}
+        onOpenChange={setIsEditDialogOpen}
         editingQuestion={editingQuestion}
-        onUpdate={onUpdateQuestion}
-        onOptionChange={onEditOptionChange}
-        onAddOption={onEditAddOption}
-        onRemoveOption={onEditRemoveOption}
-        onQuestionChange={onEditQuestionChange}
+        onUpdate={async () => {
+          if (editingQuestion) {
+            await updateQuestion(editingQuestion);
+          }
+        }}
+        onOptionChange={handleEditOptionChange}
+        onAddOption={handleEditAddOption}
+        onRemoveOption={handleEditRemoveOption}
+        onQuestionChange={handleEditQuestionChange}
       />
 
       {/* AI Question Generation Dialog */}
       <AIQuestionDialog
         open={isAIDialogOpen}
-        onOpenChange={onAIDialogOpenChange}
+        onOpenChange={setIsAIDialogOpen}
         subjects={subjects}
-        onGenerate={onAIGenerate}
-        onApprove={onAIApprove}
+        onGenerate={generateQuestions}
+        onApprove={async (questions, subject) => {
+          await approveAIQuestions(questions, subject);
+        }}
         isGenerating={isGeneratingAI}
         isCreating={isCreating}
         aiGeneratedQuestions={aiGeneratedQuestions}

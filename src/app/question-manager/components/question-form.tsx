@@ -43,7 +43,7 @@ export default function QuestionForm({
   isCreating,
 }: QuestionFormProps) {
   return (
-    <Card id="question-form" className="glass-card h-full">
+    <Card id="question-form" className="glass-card h-full rounded-none">
       <CardHeader className="p-3 sm:p-6">
         <CardTitle className="flex items-center gap-2 text-base sm:text-xl">
           <Plus className="w-4 h-4 sm:w-5 sm:h-5" />

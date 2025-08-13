@@ -32,6 +32,7 @@ export class UserService {
       .single();
 
     if (error) {
+      console.error("🔴 User creation error:", error);
       return null;
     }
 
@@ -45,12 +46,15 @@ export class UserService {
         .select("*")
         .eq("id", id)
         .single();
+      
       if (error) {
+        console.error("🔴 Get user error:", error);
         return null;
       }
 
       return data;
-    } catch {
+    } catch (error) {
+      console.error("🔴 Get user exception:", error);
       return null;
     }
   }
@@ -59,7 +63,6 @@ export class UserService {
 // Subject Service
 export class SubjectService {
   static async getSubjects(): Promise<Subject[]> {
-    // Get current user for filtering
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -72,10 +75,11 @@ export class SubjectService {
       .from("subjects")
       .select("*")
       .eq("is_active", true)
-      .eq("created_by", user.id) // User isolation
+      .eq("created_by", user.id)
       .order("created_at", { ascending: false });
 
     if (error) {
+      console.error("🔴 Get subjects error:", error);
       return [];
     }
 
@@ -85,10 +89,20 @@ export class SubjectService {
   static async createSubject(
     subject: InsertTables<"subjects">,
   ): Promise<Subject | null> {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      console.error("🔴 No authenticated user for subject creation");
+      return null;
+    }
+
     const { data, error } = await supabase
       .from("subjects")
       .insert({
         ...subject,
+        created_by: user.id,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
@@ -96,6 +110,7 @@ export class SubjectService {
       .single();
 
     if (error) {
+      console.error("🔴 Subject creation error:", error);
       return null;
     }
 
@@ -106,12 +121,12 @@ export class SubjectService {
     id: string,
     updates: UpdateTables<"subjects">,
   ): Promise<Subject | null> {
-    // Get current user for verification
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
     if (!user) {
+      console.error("🔴 No authenticated user for subject update");
       return null;
     }
 
@@ -122,11 +137,12 @@ export class SubjectService {
         updated_at: new Date().toISOString(),
       })
       .eq("id", id)
-      .eq("created_by", user.id) // Only update own subjects
+      .eq("created_by", user.id)
       .select()
       .single();
 
     if (error) {
+      console.error("🔴 Subject update error:", error);
       return null;
     }
 
@@ -134,12 +150,12 @@ export class SubjectService {
   }
 
   static async deleteSubject(id: string): Promise<boolean> {
-    // Get current user for verification
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
     if (!user) {
+      console.error("🔴 No authenticated user for subject deletion");
       return false;
     }
 
@@ -147,9 +163,10 @@ export class SubjectService {
       .from("subjects")
       .delete()
       .eq("id", id)
-      .eq("created_by", user.id); // Only delete own subjects
+      .eq("created_by", user.id);
 
     if (error) {
+      console.error("🔴 Subject deletion error:", error);
       return false;
     }
 
@@ -164,15 +181,15 @@ export class SubjectService {
   }
 }
 
-// Question Service
+// Question Service - FIXED VERSION
 export class QuestionService {
   static async getQuestionsBySubject(subject: string): Promise<Question[]> {
-    // Get current user for filtering
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
     if (!user) {
+      console.error("🔴 No authenticated user for questions query");
       return [];
     }
 
@@ -181,10 +198,11 @@ export class QuestionService {
       .select("*")
       .eq("subject", subject)
       .eq("is_active", true)
-      .eq("created_by", user.id) // User isolation
+      .eq("created_by", user.id)
       .order("created_at", { ascending: false });
 
     if (error) {
+      console.error("🔴 Get questions error:", error);
       return [];
     }
 
@@ -194,12 +212,12 @@ export class QuestionService {
   static async createQuestion(
     question: InsertTables<"questions">,
   ): Promise<Question | null> {
-    // Get current user for created_by field
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
     if (!user) {
+      console.error("🔴 No authenticated user for question creation");
       return null;
     }
 
@@ -207,7 +225,7 @@ export class QuestionService {
       .from("questions")
       .insert({
         ...question,
-        created_by: user.id, // Set current user as creator
+        created_by: user.id,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
@@ -215,63 +233,93 @@ export class QuestionService {
       .single();
 
     if (error) {
+      console.error("🔴 Question creation error:", error);
       return null;
     }
 
     return data;
   }
 
+  // 🚀 FIXED UPDATE METHOD
   static async updateQuestion(
     id: string,
     updates: UpdateTables<"questions">,
   ): Promise<Question | null> {
-    // Get current user for verification
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    try {
+      console.log("🔍 QuestionService.updateQuestion started");
+      
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    if (!user) {
+      if (!user) {
+        console.error("🔴 No authenticated user found");
+        return null;
+      }
+
+      console.log("🔍 Updating question:", { id, user: user.id });
+
+      // 🎯 FIX: Remove created_by from updates to avoid RLS conflicts
+      const { created_by, ...cleanUpdates } = updates as any;
+      
+      const { data, error } = await supabase
+        .from("questions")
+        .update({
+          ...cleanUpdates,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", id)
+        .eq("created_by", user.id) // Only update questions owned by current user
+        .select()
+        .single();
+
+      if (error) {
+        console.error("🔴 Update error details:", {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+        });
+        return null;
+      }
+
+      if (!data) {
+        console.error("🔴 No data returned from update - question not found or not owned by user");
+        return null;
+      }
+
+      console.log("✅ Question updated successfully:", data);
+      return data;
+    } catch (error) {
+      console.error("🔴 QuestionService.updateQuestion exception:", error);
       return null;
     }
-
-    const { data, error } = await supabase
-      .from("questions")
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", id)
-      .eq("created_by", user.id) // Only update own questions
-      .select()
-      .single();
-
-    if (error) {
-      return null;
-    }
-
-    return data;
   }
 
+  // 🚀 FIXED DELETE METHOD
   static async deleteQuestion(id: string): Promise<boolean> {
-    // Get current user for verification
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
     if (!user) {
+      console.error("🔴 No authenticated user for question deletion");
       return false;
     }
 
+    // 🎯 FIX: Direct delete without pre-update
     const { error } = await supabase
       .from("questions")
       .delete()
       .eq("id", id)
-      .eq("created_by", user.id); // Only delete own questions
+      .eq("created_by", user.id); // Only delete questions owned by current user
 
     if (error) {
+      console.error("🔴 Delete error:", error);
       return false;
     }
 
+    console.log("✅ Question deleted successfully");
     return true;
   }
 }
@@ -291,6 +339,7 @@ export class QuizResultService {
       .single();
 
     if (error) {
+      console.error("🔴 Quiz result save error:", error);
       return null;
     }
 
@@ -305,6 +354,7 @@ export class QuizResultService {
       .order("created_at", { ascending: false });
 
     if (error) {
+      console.error("🔴 Get quiz results error:", error);
       return [];
     }
 
@@ -319,6 +369,7 @@ export class QuizResultService {
       .order("created_at", { ascending: false });
 
     if (error) {
+      console.error("🔴 Get quiz results by subject error:", error);
       return [];
     }
 
@@ -341,6 +392,7 @@ export class PerformanceAnalyticsService {
       .single();
 
     if (error) {
+      console.error("🔴 Analytics save error:", error);
       return null;
     }
 
@@ -357,6 +409,7 @@ export class PerformanceAnalyticsService {
       .order("last_updated", { ascending: false });
 
     if (error) {
+      console.error("🔴 Get analytics error:", error);
       return [];
     }
 
@@ -379,6 +432,7 @@ export class AIRecommendationService {
       .single();
 
     if (error) {
+      console.error("🔴 Recommendation save error:", error);
       return null;
     }
 
@@ -395,6 +449,7 @@ export class AIRecommendationService {
       .order("created_at", { ascending: false });
 
     if (error) {
+      console.error("🔴 Get recommendations error:", error);
       return [];
     }
 
@@ -418,6 +473,7 @@ export class FlashcardProgressService {
       .single();
 
     if (error) {
+      console.error("🔴 Progress save error:", error);
       return null;
     }
 
@@ -432,6 +488,7 @@ export class FlashcardProgressService {
       .order("updated_at", { ascending: false });
 
     if (error) {
+      console.error("🔴 Get progress error:", error);
       return [];
     }
 
@@ -450,6 +507,7 @@ export class FlashcardProgressService {
       .order("updated_at", { ascending: false });
 
     if (error) {
+      console.error("🔴 Get progress by subject error:", error);
       return [];
     }
 
