@@ -358,7 +358,7 @@ const QuizComponent: React.FC<QuizProps> = ({
             return [];
           }
           try {
-            const stored = localStorage.getItem("exam_training_questions");
+            const stored = localStorage.getItem("akilhane_questions");
             const questions = stored ? JSON.parse(stored) : [];
             return questions.filter(
               (q: unknown) =>
