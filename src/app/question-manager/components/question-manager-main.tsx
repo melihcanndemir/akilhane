@@ -2,12 +2,17 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Sparkles } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Sparkles, BookOpen, Target, Brain, Database, GraduationCap } from "lucide-react";
 import MobileNav from "@/components/mobile-nav";
+import FeatureCards from "@/components/ui/feature-cards";
+import { questionManagerFeatures } from "@/data/feature-cards-data";
 import QuestionForm from "./question-form";
 import QuestionsList from "./questions-list";
 import AIQuestionDialog from "./ai-question-dialog";
 import EditQuestionDialog from "./edit-question-dialog";
+import Link from "next/link";
+import LoadingSpinner from "@/components/loading-spinner";
 import type {
   Subject,
   AIGeneratedQuestion,
@@ -24,6 +29,12 @@ interface AIFormData {
   difficulty: "Easy" | "Medium" | "Hard";
   count: number;
   guidelines: string;
+}
+
+interface Stats {
+  totalQuestions: number;
+  totalSubjects: number;
+  totalCategories: number;
 }
 
 // Define proper interfaces for the component props
@@ -45,6 +56,7 @@ interface QuestionManagerMainProps {
   isAuthenticated: boolean | null;
   isHydrated: boolean;
   formData: QuestionFormData;
+  stats: Stats;
   onSubjectChange: (subject: string) => void;
   onSearchChange: (term: string) => void;
   onDifficultyFilterChange: (difficulty: string) => void;
@@ -82,8 +94,8 @@ export default function QuestionManagerMain({
   isGeneratingAI,
   aiGeneratedQuestions,
   aiGenerationResult,
-  isHydrated,
   formData,
+  stats,
   onSubjectChange,
   onSearchChange,
   onDifficultyFilterChange,
@@ -105,47 +117,103 @@ export default function QuestionManagerMain({
   onEditQuestionChange,
   onUpdateQuestion,
 }: QuestionManagerMainProps) {
+
   return (
     <div className="min-h-screen">
       {/* Responsive Navigation Bar */}
       <MobileNav />
 
-      <div className="p-1 sm:p-4 md:p-8">
-        <div className="container mx-auto space-y-2 sm:space-y-8">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-headline font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Soru Yöneticisi
-              </h1>
-              <p className="text-muted-foreground">
-                Soru ekle, düzenle ve yönet
-              </p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
-              <Button
-                onClick={() => {
-                  onAIDialogOpenChange(true);
-                }}
-                disabled={!selectedSubject && subjects.length === 0}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 w-full sm:w-auto shadow-lg"
-              >
-                <Sparkles className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">AI ile Soru Oluştur</span>
-                <span className="sm:hidden">AI Soru</span>
-              </Button>
-
-              {!isHydrated ? (
-                <div className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium w-full sm:w-auto text-center">
-                  Loading...
+      <div className="p-4">
+        <div className="max-w-7xl mx-auto">
+          {/* Header Info */}
+          <Card className="mb-6 glass-card">
+            <CardHeader>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl sm:text-2xl flex items-center gap-2">
+                      Soru Yöneticisi
+                    </CardTitle>
+                    <p className="text-muted-foreground">
+                      Soruları ekleyin, düzenleyin ve yönetin. Her ders için
+                      sorular ekleyebilirsiniz.
+                    </p>
+                  </div>
                 </div>
-              ) : (
-                <div className="px-3 py-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full text-xs font-medium w-full sm:w-auto text-center">
-                  💾 LocalStorage
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                  <Button
+                    onClick={() => {
+                      onAIDialogOpenChange(true);
+                    }}
+                    disabled={!selectedSubject && subjects.length === 0}
+                    className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 w-full sm:w-auto shadow-lg sm:mr-2"
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    <span className="hidden sm:inline">AI ile Soru Oluştur</span>
+                    <span className="sm:hidden">AI Soru</span>
+                  </Button>
+                  <Link href="/subject-manager" className="w-full sm:w-auto">
+                    <Button
+                      variant="outline"
+                      className="flex items-center gap-2 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0 w-full sm:w-auto"
+                    >
+                      <Database className="w-4 h-4" />
+                      <span className="hidden sm:inline">Ders Yöneticisi</span>
+                      <span className="sm:hidden">Dersler</span>
+                    </Button>
+                  </Link>
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="flex items-center gap-2 p-4 border-2 border-blue-300 dark:border-blue-700 rounded-lg bg-gradient-to-br from-blue-500/10 to-indigo-500/10">
+                  <BookOpen className="w-6 h-6 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Toplam Ders</p>
+                    {isLoadingSubjects ? (
+                      <LoadingSpinner className="p-0 h-6 w-6" />
+                    ) : (
+                      <p className="text-xl font-bold text-blue-600 dark:text-blue-400">{stats.totalSubjects}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 p-4 border-2 border-purple-300 dark:border-purple-700 rounded-lg bg-gradient-to-br from-purple-500/10 to-pink-500/10">
+                  <Brain className="w-6 h-6 text-purple-600 dark:text-purple-400 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      Toplam Kategori
+                    </p>
+                    {isLoadingSubjects ? (
+                      <LoadingSpinner className="p-0 h-6 w-6" />
+                    ) : (
+                      <p className="text-xl font-bold text-purple-600 dark:text-purple-400">
+                        {stats.totalCategories}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 p-4 border-2 border-green-300 dark:border-green-700 rounded-lg bg-gradient-to-br from-green-500/10 to-emerald-500/10 md:col-span-2 lg:col-span-1">
+                  <Target className="w-6 h-6 text-green-600 dark:text-green-400 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      Toplam Soru
+                    </p>
+                    {isLoading ? (
+                      <LoadingSpinner className="p-0 h-6 w-6" />
+                    ) : (
+                      <p className="text-xl font-bold text-green-600 dark:text-green-400">
+                        {stats.totalQuestions}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           <div className="flex flex-col lg:flex-row gap-4 lg:gap-8 lg:items-stretch">
             {/* Create Question Form */}
@@ -209,6 +277,15 @@ export default function QuestionManagerMain({
         aiGeneratedQuestions={aiGeneratedQuestions}
         aiGenerationResult={aiGenerationResult}
       />
+
+      {/* Question Manager Özellikleri */}
+      <div className="px-4 sm:px-0">
+        <FeatureCards
+          title="Soru Yöneticisi Özellikleri"
+          features={questionManagerFeatures}
+          columns={3}
+        />
+      </div>
     </div>
   );
 }

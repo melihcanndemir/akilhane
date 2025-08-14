@@ -259,7 +259,7 @@ export default function AIPerformanceRecommendation({
                     AI Akıllı Önerisi
                   </h3>
                   <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-white/90 leading-relaxed px-2 sm:px-3 md:px-4 lg:px-6 text-center break-words whitespace-normal overflow-visible">
-                    Performans verilerinizi analiz ederek size özel 
+                    Performans verilerinizi analiz ederek size özel
                     <span className="font-semibold text-yellow-300"> kişiselleştirilmiş</span> öneriler sunuyoruz
                   </p>
                   <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 mt-3 sm:mt-4 text-xs text-white/70">
@@ -323,28 +323,28 @@ export default function AIPerformanceRecommendation({
               <CardContent className="space-y-4 sm:space-y-6 px-4 sm:px-6">
                                  {/* Enhanced Performance Summary */}
                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
-                   <motion.div 
+                   <motion.div
                      whileHover={{ scale: 1.05 }}
                      className="text-center p-3 sm:p-4 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl shadow-lg aspect-square flex flex-col justify-center items-center"
                    >
                      <div className="text-lg sm:text-2xl font-bold mb-1">{totalStats.totalTests}</div>
                      <div className="text-xs opacity-90">Toplam Test</div>
                    </motion.div>
-                   <motion.div 
+                   <motion.div
                      whileHover={{ scale: 1.05 }}
                      className="text-center p-3 sm:p-4 bg-gradient-to-br from-green-500 to-green-600 text-white rounded-xl shadow-lg aspect-square flex flex-col justify-center items-center"
                    >
                      <div className="text-lg sm:text-2xl font-bold mb-1">%{totalStats.averageScore}</div>
                      <div className="text-xs opacity-90">Ortalama</div>
                    </motion.div>
-                   <motion.div 
+                   <motion.div
                      whileHover={{ scale: 1.05 }}
                      className="text-center p-3 sm:p-4 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl shadow-lg aspect-square flex flex-col justify-center items-center"
                    >
                      <div className="text-lg sm:text-2xl font-bold mb-1">{totalStats.totalTimeSpent}dk</div>
                      <div className="text-xs opacity-90">Toplam Süre</div>
                    </motion.div>
-                   <motion.div 
+                   <motion.div
                      whileHover={{ scale: 1.05 }}
                      className="text-center p-3 sm:p-4 bg-gradient-to-br from-indigo-500 to-indigo-600 text-white rounded-xl shadow-lg aspect-square flex flex-col justify-center items-center"
                    >

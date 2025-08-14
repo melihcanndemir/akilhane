@@ -87,7 +87,7 @@ interface QuestionCardProps {
 
 export default function QuestionCard({ question, onEdit, onDelete }: QuestionCardProps) {
   return (
-    <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800/50 w-full hover:shadow-md transition-shadow">
+    <div className="p-4 border-gradient-question rounded-lg bg-white dark:bg-gray-800/50 w-full shadow-lg hover:shadow-xl transition-all duration-300">
       <div className="flex items-start justify-between mb-2">
         <QuestionTags question={question} />
         <QuestionActions

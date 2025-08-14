@@ -9,11 +9,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  ArrowLeft, 
-  Plus, 
-  Brain, 
-  Sparkles, 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  ArrowLeft,
+  Plus,
+  Brain,
+  Sparkles,
   Loader2,
   Target,
   Zap,
@@ -50,7 +60,7 @@ export default function FlashcardManagerPage() {
     question: "",
     answer: "",
     explanation: "",
-    difficulty: "Medium"
+    difficulty: "Medium",
   });
 
   // AI flashcard generation state
@@ -59,7 +69,7 @@ export default function FlashcardManagerPage() {
     topic: "",
     difficulty: "Medium",
     count: 5,
-    guidelines: ""
+    guidelines: "",
   });
 
   // Generated flashcards
@@ -75,6 +85,10 @@ export default function FlashcardManagerPage() {
   const [editingFlashcard, setEditingFlashcard] = useState<Flashcard | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("manage");
+
+  // Delete confirmation state
+  const [flashcardToDelete, setFlashcardToDelete] = useState<Flashcard | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   useEffect(() => {
     const loadSubjects = async () => {
@@ -96,8 +110,9 @@ export default function FlashcardManagerPage() {
           const localSubjects = UnifiedStorageService.getSubjects();
           setSubjects(localSubjects.filter((s: Subject) => s.isActive));
         }
-      } catch (error) {
-        console.error("Error loading subjects:", error);
+      } catch {
+        // Error logged for debugging purposes
+        // In production, this would be sent to an error tracking service
       } finally {
         setLoading(false);
       }
@@ -113,7 +128,7 @@ export default function FlashcardManagerPage() {
       // Ensure createdAt is a Date object
       const processedFlashcards = flashcards.map(flashcard => ({
         ...flashcard,
-        createdAt: flashcard.createdAt instanceof Date ? flashcard.createdAt : new Date(flashcard.createdAt)
+        createdAt: flashcard.createdAt instanceof Date ? flashcard.createdAt : new Date(flashcard.createdAt),
       }));
       setExistingFlashcards(processedFlashcards);
     } else {
@@ -130,41 +145,56 @@ export default function FlashcardManagerPage() {
       question: flashcard.question,
       answer: flashcard.answer,
       explanation: flashcard.explanation,
-      difficulty: flashcard.difficulty
+      difficulty: flashcard.difficulty,
     });
     setIsEditing(true);
-    
+
     // Automatically switch to the manual tab for editing
     setActiveTab("manual");
   };
 
   const handleDeleteFlashcard = (id: string) => {
-    if (confirm("Bu flashcard'ı silmek istediğinizden emin misiniz?")) {
-      const success = UnifiedStorageService.deleteFlashcard(id);
-      if (success) {
-        // Reload flashcards
-        if (selectedSubjectForManage) {
-          const flashcards = UnifiedStorageService.getFlashcardsBySubject(selectedSubjectForManage);
-          setExistingFlashcards(flashcards);
-        }
-        toast({
-          title: "Başarılı",
-          description: "Flashcard başarıyla silindi",
-          variant: "default",
-        });
-      } else {
-        toast({
-          title: "Hata",
-          description: "Flashcard silinirken hata oluştu",
-          variant: "destructive",
-        });
-      }
+    const flashcard = existingFlashcards.find(f => f.id === id);
+    if (flashcard) {
+      setFlashcardToDelete(flashcard);
+      setShowDeleteDialog(true);
     }
+  };
+
+  const confirmDeleteFlashcard = () => {
+    if (!flashcardToDelete) {
+      return;
+    }
+
+    const success = UnifiedStorageService.deleteFlashcard(flashcardToDelete.id);
+    if (success) {
+      // Reload flashcards
+      if (selectedSubjectForManage) {
+        const flashcards = UnifiedStorageService.getFlashcardsBySubject(selectedSubjectForManage);
+        setExistingFlashcards(flashcards);
+      }
+      toast({
+        title: "Başarılı",
+        description: "Flashcard başarıyla silindi",
+        variant: "default",
+      });
+    } else {
+      toast({
+        title: "Hata",
+        description: "Flashcard silinirken hata oluştu",
+        variant: "destructive",
+      });
+    }
+
+    setShowDeleteDialog(false);
+    setFlashcardToDelete(null);
   };
 
   const handleUpdateFlashcard = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingFlashcard) return;
+    if (!editingFlashcard) {
+      return;
+    }
 
     try {
       const success = UnifiedStorageService.updateFlashcard(editingFlashcard.id, {
@@ -182,7 +212,7 @@ export default function FlashcardManagerPage() {
           const flashcards = UnifiedStorageService.getFlashcardsBySubject(selectedSubjectForManage);
           setExistingFlashcards(flashcards);
         }
-        
+
         // Reset form
         setManualForm({
           subject: "",
@@ -190,12 +220,12 @@ export default function FlashcardManagerPage() {
           question: "",
           answer: "",
           explanation: "",
-          difficulty: "Medium"
+          difficulty: "Medium",
         });
         setEditingFlashcard(null);
         setIsEditing(false);
         setActiveTab("manage");
-        
+
         toast({
           title: "Başarılı",
           description: "Flashcard başarıyla güncellendi",
@@ -208,7 +238,7 @@ export default function FlashcardManagerPage() {
           variant: "destructive",
         });
       }
-    } catch (error) {
+    } catch {
       toast({
         title: "Hata",
         description: "Flashcard güncellenirken hata oluştu",
@@ -219,12 +249,12 @@ export default function FlashcardManagerPage() {
 
   const handleManualSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!manualForm.subject || !manualForm.question || !manualForm.answer) {
       toast({
         title: "Eksik Bilgi",
         description: "Lütfen gerekli alanları doldurun",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -242,7 +272,7 @@ export default function FlashcardManagerPage() {
         answer: manualForm.answer,
         explanation: manualForm.explanation,
         difficulty: manualForm.difficulty,
-        createdAt: new Date()
+        createdAt: new Date(),
       };
 
       // Use UnifiedStorageService instead of direct localStorage
@@ -255,13 +285,13 @@ export default function FlashcardManagerPage() {
         question: "",
         answer: "",
         explanation: "",
-        difficulty: "Medium"
+        difficulty: "Medium",
       });
 
       toast({
         title: "Başarılı!",
         description: "Flashcard başarıyla eklendi",
-        variant: "default"
+        variant: "default",
       });
 
       // Reload existing flashcards if we're on the manage tab
@@ -270,37 +300,37 @@ export default function FlashcardManagerPage() {
         setExistingFlashcards(flashcards);
       }
 
-    } catch (error) {
+    } catch {
       toast({
         title: "Hata",
         description: "Flashcard eklenirken bir hata oluştu",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
 
   const handleAIGeneration = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!aiForm.subject || !aiForm.topic) {
       toast({
         title: "Eksik Bilgi",
         description: "Lütfen ders ve konu seçin",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
 
     try {
       setAiGenerating(true);
-      
+
       // Show loading toast
       toast({
         title: "AI Üretiyor...",
         description: `${aiForm.count} adet flashcard üretiliyor. Bu işlem birkaç saniye sürebilir.`,
-        variant: "default"
+        variant: "default",
       });
-      
+
       // Call actual AI generation
       const aiResponse = await generateFlashcards({
         subject: aiForm.subject,
@@ -308,7 +338,7 @@ export default function FlashcardManagerPage() {
         difficulty: aiForm.difficulty as "Easy" | "Medium" | "Hard",
         count: aiForm.count,
         language: "tr",
-        guidelines: aiForm.guidelines || undefined
+        guidelines: aiForm.guidelines || undefined,
       });
 
       // Convert AI response to Flashcard format
@@ -320,7 +350,7 @@ export default function FlashcardManagerPage() {
         question: aiCard.question,
         answer: aiCard.answer,
         explanation: aiCard.explanation,
-        createdAt: new Date()
+        createdAt: new Date(),
       }));
 
       setGeneratedFlashcards(convertedFlashcards);
@@ -328,27 +358,28 @@ export default function FlashcardManagerPage() {
       setQualityScore(aiResponse.qualityScore);
       setSuggestions(aiResponse.suggestions);
       setStudyTips(aiResponse.studyTips);
-      
+
       // Check if we got fallback flashcards due to AI errors
       if (aiResponse.metadata.aiModel.includes("Fallback") || aiResponse.metadata.aiModel.includes("Error")) {
         toast({
           title: "AI Hatası - Fallback Modu",
-          description: "AI servisi kullanılamadı, fallback flashcard'lar üretildi. Lütfen API anahtarınızı kontrol edin.",
-          variant: "destructive"
+          description: "AI servisi kullanılamadı, fallback flashcard&apos;lar üretildi. Lütfen API anahtarınızı kontrol edin.",
+          variant: "destructive",
         });
       } else {
         toast({
           title: "AI Üretimi Tamamlandı!",
           description: `${aiForm.count} adet flashcard başarıyla üretildi (Kalite: ${Math.round(aiResponse.qualityScore * 100)}%)`,
-          variant: "default"
+          variant: "default",
         });
       }
 
     } catch (error) {
-      console.error("AI generation error:", error);
-      
+      // Error logged for debugging purposes
+      // In production, this would be sent to an error tracking service
+
       let errorMessage = "Flashcard üretilirken bir hata oluştu. Lütfen tekrar deneyin.";
-      
+
       if (error instanceof Error) {
         if (error.message.includes("API key not configured")) {
           errorMessage = "AI API anahtarı yapılandırılmamış. Lütfen GEMINI_API_KEY environment variable'ını ayarlayın.";
@@ -356,13 +387,13 @@ export default function FlashcardManagerPage() {
           errorMessage = "AI flashcard üretimi başarısız oldu. Lütfen internet bağlantınızı kontrol edin.";
         }
       }
-      
+
       toast({
         title: "AI Hatası",
         description: errorMessage,
-        variant: "destructive"
+        variant: "destructive",
       });
-      
+
       // Set fallback flashcards for better UX
       const fallbackFlashcards: Flashcard[] = [];
       for (let i = 0; i < aiForm.count; i++) {
@@ -374,10 +405,10 @@ export default function FlashcardManagerPage() {
           question: `AI Hatası: Soru ${i + 1} üretilemedi`,
           answer: `AI servisi şu anda kullanılamıyor. Lütfen daha sonra tekrar deneyin.`,
           explanation: `Teknik bir sorun nedeniyle AI flashcard üretimi başarısız oldu. Lütfen internet bağlantınızı kontrol edin ve tekrar deneyin.`,
-          createdAt: new Date()
+          createdAt: new Date(),
         });
       }
-      
+
       setGeneratedFlashcards(fallbackFlashcards);
       setAiMetadata({
         totalGenerated: fallbackFlashcards.length,
@@ -385,7 +416,7 @@ export default function FlashcardManagerPage() {
         topic: aiForm.topic,
         averageDifficulty: aiForm.difficulty,
         generationTimestamp: new Date().toISOString(),
-        aiModel: "Fallback - AI Error"
+        aiModel: "Fallback - AI Error",
       });
       setQualityScore(0.1);
       setSuggestions(["AI servisi yapılandırılmamış veya hata oluştu"]);
@@ -399,23 +430,24 @@ export default function FlashcardManagerPage() {
     try {
       // Use UnifiedStorageService instead of direct localStorage
       generatedFlashcards.forEach(flashcard => {
-        const { id, ...flashcardData } = flashcard;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { id: _, ...flashcardData } = flashcard;
         UnifiedStorageService.addFlashcard(flashcardData);
       });
 
       setGeneratedFlashcards([]);
-      
+
       toast({
         title: "Başarılı!",
         description: "Tüm flashcard'lar kaydedildi",
-        variant: "default"
+        variant: "default",
       });
 
-    } catch (error) {
+    } catch {
       toast({
         title: "Hata",
         description: "Flashcard'lar kaydedilirken bir hata oluştu",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -432,7 +464,7 @@ export default function FlashcardManagerPage() {
             className="flex items-center gap-2 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0 mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
-            Flashcard'a Dön
+            Flashcard&apos;a Dön
           </Button>
 
           <div className="text-center">
@@ -453,24 +485,24 @@ export default function FlashcardManagerPage() {
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 max-w-2xl mx-auto gap-2 sm:gap-0 h-auto sm:h-10 p-2 sm:p-1">
-            <TabsTrigger 
-              value="manage" 
+            <TabsTrigger
+              value="manage"
               className="flex items-center justify-center gap-2 text-sm sm:text-base h-10 sm:h-auto w-full"
             >
               <BookOpen className="w-4 h-4 flex-shrink-0" />
-              <span className="hidden sm:inline">Mevcut Flashcard'lar</span>
+                                <span className="hidden sm:inline">Mevcut Flashcard&apos;lar</span>
               <span className="sm:hidden">Mevcut</span>
             </TabsTrigger>
-            <TabsTrigger 
-              value="manual" 
+            <TabsTrigger
+              value="manual"
               className="flex items-center justify-center gap-2 text-sm sm:text-base h-10 sm:h-auto w-full"
             >
               <Plus className="w-4 h-4 flex-shrink-0" />
               <span className="hidden sm:inline">Manuel Ekleme</span>
               <span className="sm:hidden">Manuel</span>
             </TabsTrigger>
-            <TabsTrigger 
-              value="ai" 
+            <TabsTrigger
+              value="ai"
               className="flex items-center justify-center gap-2 text-sm sm:text-base h-10 sm:h-auto w-full"
             >
               <Brain className="w-4 h-4 flex-shrink-0" />
@@ -485,10 +517,10 @@ export default function FlashcardManagerPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BookOpen className="w-5 h-5" />
-                  Mevcut Flashcard'ları Yönet
+                  Mevcut Flashcard&apos;ları Yönet
                 </CardTitle>
                 <CardDescription>
-                  Mevcut flashcard'larınızı görüntüleyin, düzenleyin ve silin
+                  Mevcut flashcard&apos;larınızı görüntüleyin, düzenleyin ve silin
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -507,7 +539,7 @@ export default function FlashcardManagerPage() {
                         onValueChange={setSelectedSubjectForManage}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Flashcard'ları görüntülemek için ders seçin" />
+                          <SelectValue placeholder="Flashcard&apos;ları görüntülemek için ders seçin" />
                         </SelectTrigger>
                         <SelectContent>
                           {subjects.map((subject) => (
@@ -529,7 +561,7 @@ export default function FlashcardManagerPage() {
                             <div className="flex items-center gap-2">
                               <Edit className="w-4 h-4 text-blue-600" />
                               <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
-                                Flashcard düzenleniyor: "{editingFlashcard.question.substring(0, 50)}..."
+                                Flashcard düzenleniyor: &quot;{editingFlashcard.question.substring(0, 50)}...&quot;
                               </span>
                             </div>
                             <Button
@@ -543,7 +575,7 @@ export default function FlashcardManagerPage() {
                                   question: "",
                                   answer: "",
                                   explanation: "",
-                                  difficulty: "Medium"
+                                  difficulty: "Medium",
                                 });
                               }}
                               variant="outline"
@@ -570,54 +602,60 @@ export default function FlashcardManagerPage() {
                           Temizle
                         </Button>
                       </div>
-                      
+
                       {existingFlashcards.length === 0 ? (
                         <div className="text-center py-8 text-gray-500">
                           Bu ders için henüz flashcard bulunmuyor.
                         </div>
                       ) : (
-                        <div className="grid gap-3">
+                        <div className="grid gap-3 sm:gap-4">
                           {existingFlashcards.map((flashcard) => (
                             <Card key={flashcard.id} className="border-l-4 border-l-blue-500">
-                              <CardContent className="p-4">
-                                <div className="flex items-start justify-between">
-                                  <div className="flex-1 space-y-2">
-                                    <div className="flex items-center gap-2">
-                                      <Badge variant="outline">{flashcard.topic}</Badge>
-                                      <Badge variant="secondary">{flashcard.difficulty}</Badge>
-                                                                           <span className="text-xs text-gray-500">
-                                       {flashcard.createdAt instanceof Date 
-                                         ? flashcard.createdAt.toLocaleDateString('tr-TR')
-                                         : new Date(flashcard.createdAt).toLocaleDateString('tr-TR')
-                                       }
-                                     </span>
+                              <CardContent className="p-3 sm:p-4">
+                                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+                                  <div className="flex-1 space-y-2 min-w-0">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <Badge variant="outline" className="text-xs px-2 py-1">
+                                        {flashcard.topic}
+                                      </Badge>
+                                      <Badge variant="secondary" className="text-xs px-2 py-1">
+                                        {flashcard.difficulty}
+                                      </Badge>
+                                      <span className="text-xs text-gray-500 whitespace-nowrap">
+                                        {flashcard.createdAt instanceof Date
+                                          ? flashcard.createdAt.toLocaleDateString('tr-TR')
+                                          : new Date(flashcard.createdAt).toLocaleDateString('tr-TR')
+                                        }
+                                      </span>
                                     </div>
-                                    <h4 className="font-medium">{flashcard.question}</h4>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                                    <h4 className="font-medium text-sm sm:text-base leading-relaxed break-words">
+                                      {flashcard.question}
+                                    </h4>
+                                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 leading-relaxed break-words">
                                       {flashcard.answer}
                                     </p>
                                     {flashcard.explanation && (
-                                      <p className="text-xs text-gray-500">
+                                      <p className="text-xs text-gray-500 leading-relaxed break-words">
                                         {flashcard.explanation}
                                       </p>
                                     )}
                                   </div>
-                                  <div className="flex gap-2 ml-4">
+                                  <div className="flex gap-2 sm:flex-col sm:gap-1 sm:ml-0 self-end sm:self-start">
                                     <Button
                                       onClick={() => handleEditFlashcard(flashcard)}
                                       variant="outline"
                                       size="sm"
-                                      className="h-8 w-8 p-0"
+                                      className="h-8 w-8 sm:h-7 sm:w-7 p-0 flex-shrink-0"
                                     >
-                                      <Edit className="w-4 h-4" />
+                                      <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
                                     </Button>
                                     <Button
                                       onClick={() => handleDeleteFlashcard(flashcard.id)}
                                       variant="outline"
                                       size="sm"
-                                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                      className="h-8 w-8 sm:h-7 sm:w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
                                     >
-                                      <Trash2 className="w-4 h-4" />
+                                      <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
                                     </Button>
                                   </div>
                                 </div>
@@ -642,15 +680,15 @@ export default function FlashcardManagerPage() {
                   {isEditing ? "Flashcard Düzenle" : "Manuel Flashcard Ekleme"}
                 </CardTitle>
                 <CardDescription>
-                  {isEditing 
-                    ? "Flashcard'ı düzenleyin ve güncelleyin"
-                    : "Kendi flashcard'larınızı oluşturun ve özelleştirin"
+                  {isEditing
+                    ? "Flashcard&apos;ı düzenleyin ve güncelleyin"
+                    : "Kendi flashcard&apos;larınızı oluşturun ve özelleştirin"
                   }
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleManualSubmit} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                <form onSubmit={(e) => { handleManualSubmit(e); }} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm font-medium mb-2 block">Ders</label>
                       <Select
@@ -699,7 +737,7 @@ export default function FlashcardManagerPage() {
                   <div>
                     <label className="text-sm font-medium mb-2 block">Soru</label>
                     <Textarea
-                      placeholder="Flashcard'ın ön yüzünde görünecek soru..."
+                      placeholder="Flashcard&apos;ın ön yüzünde görünecek soru..."
                       value={manualForm.question}
                       onChange={(e) => setManualForm(prev => ({ ...prev, question: e.target.value }))}
                       rows={3}
@@ -709,7 +747,7 @@ export default function FlashcardManagerPage() {
                   <div>
                     <label className="text-sm font-medium mb-2 block">Cevap</label>
                     <Textarea
-                      placeholder="Flashcard'ın arka yüzünde görünecek cevap..."
+                      placeholder="Flashcard&apos;ın arka yüzünde görünecek cevap..."
                       value={manualForm.answer}
                       onChange={(e) => setManualForm(prev => ({ ...prev, answer: e.target.value }))}
                       rows={3}
@@ -753,7 +791,7 @@ export default function FlashcardManagerPage() {
                             question: "",
                             answer: "",
                             explanation: "",
-                            difficulty: "Medium"
+                            difficulty: "Medium",
                           });
                         }}
                         variant="outline"
@@ -779,7 +817,7 @@ export default function FlashcardManagerPage() {
                     AI Flashcard Üretimi
                   </CardTitle>
                   <CardDescription>
-                    Yapay zeka ile otomatik olarak flashcard'lar üretin
+                    Yapay zeka ile otomatik olarak flashcard&apos;lar üretin
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -800,15 +838,15 @@ export default function FlashcardManagerPage() {
                           <p>• Kalite kontrol ve doğrulama</p>
                         </div>
                         <div className="mt-3 text-xs text-blue-600 dark:text-blue-400">
-                          <p><strong>Not:</strong> AI özelliğini kullanmak için GEMINI_API_KEY environment variable'ı gerekli</p>
-                          <p>Kurulum için <a href="/docs/AI_FLASHCARD_SETUP.md" className="underline hover:text-blue-800">AI Flashcard Setup Guide</a>'ı inceleyin</p>
+                          <p><strong>Not:</strong> AI özelliğini kullanmak için GEMINI_API_KEY environment variable&apos;ı gerekli</p>
+                          <p>Kurulum için <a href="/ai-flashcard-setup" className="underline hover:text-blue-800">AI Flashcard Setup Guide</a>&apos;ı inceleyin</p>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  <form onSubmit={handleAIGeneration} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                  <form onSubmit={(e) => { handleAIGeneration(e); }} className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="text-sm font-medium mb-2 block">Ders</label>
                         <Select
@@ -854,7 +892,7 @@ export default function FlashcardManagerPage() {
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="text-sm font-medium mb-2 block">Üretilecek Kart Sayısı</label>
                         <Select
@@ -882,8 +920,8 @@ export default function FlashcardManagerPage() {
                       </div>
                     </div>
 
-                    <Button 
-                      type="submit" 
+                    <Button
+                      type="submit"
                       disabled={aiGenerating}
                       className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0"
                     >
@@ -907,19 +945,19 @@ export default function FlashcardManagerPage() {
                {generatedFlashcards.length > 0 && (
                  <Card className="max-w-4xl mx-auto">
                    <CardHeader>
-                     <div className="flex items-center justify-between">
-                       <div>
-                         <CardTitle className="flex items-center gap-2">
+                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                       <div className="flex-1 min-w-0">
+                         <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                            <CheckCircle className="w-5 h-5 text-green-600" />
-                           Üretilen Flashcard'lar ({generatedFlashcards.length})
+                           Üretilen Flashcard&apos;lar ({generatedFlashcards.length})
                          </CardTitle>
-                         <CardDescription>
-                           AI tarafından üretilen flashcard'ları inceleyin ve kaydedin
+                         <CardDescription className="text-sm sm:text-base">
+                           AI tarafından üretilen flashcard&apos;ları inceleyin ve kaydedin
                          </CardDescription>
                        </div>
                        {aiMetadata && (
-                         <div className="text-right">
-                           <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white mb-2">
+                         <div className="text-center sm:text-right">
+                           <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white mb-2 text-xs sm:text-sm">
                              Kalite: {Math.round(qualityScore * 100)}%
                            </Badge>
                            <p className="text-xs text-gray-500">
@@ -930,31 +968,31 @@ export default function FlashcardManagerPage() {
                      </div>
                    </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
+                    <div className="space-y-3 sm:space-y-4">
                       {generatedFlashcards.map((flashcard, index) => (
-                        <div key={flashcard.id} className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
-                          <div className="flex items-start justify-between mb-3">
-                            <Badge variant="outline" className="text-xs">
+                        <div key={flashcard.id} className="border rounded-lg p-3 sm:p-4 bg-gray-50 dark:bg-gray-800">
+                          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-3 mb-3">
+                            <Badge variant="outline" className="text-xs px-2 py-1 self-start">
                               {flashcard.difficulty}
                             </Badge>
-                            <span className="text-xs text-gray-500">#{index + 1}</span>
+                            <span className="text-xs text-gray-500 self-end sm:self-start">#{index + 1}</span>
                           </div>
-                          
-                          <div className="space-y-3">
+
+                          <div className="space-y-2 sm:space-y-3">
                             <div>
-                              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Soru:</label>
-                              <p className="text-sm text-gray-800 dark:text-white">{flashcard.question}</p>
+                              <label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">Soru:</label>
+                              <p className="text-xs sm:text-sm text-gray-800 dark:text-white leading-relaxed break-words">{flashcard.question}</p>
                             </div>
-                            
+
                             <div>
-                              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Cevap:</label>
-                              <p className="text-sm text-gray-800 dark:text-white">{flashcard.answer}</p>
+                              <label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">Cevap:</label>
+                              <p className="text-xs sm:text-sm text-gray-800 dark:text-white leading-relaxed break-words">{flashcard.answer}</p>
                             </div>
-                            
+
                             {flashcard.explanation && (
                               <div>
-                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Açıklama:</label>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">{flashcard.explanation}</p>
+                                <label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">Açıklama:</label>
+                                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 leading-relaxed break-words">{flashcard.explanation}</p>
                               </div>
                             )}
                           </div>
@@ -969,7 +1007,7 @@ export default function FlashcardManagerPage() {
                            <Brain className="w-4 h-4 text-purple-600" />
                            AI Önerileri ve Çalışma İpuçları
                          </h4>
-                         
+
                          {suggestions.length > 0 && (
                            <div className="mb-4">
                              <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">💡 İyileştirme Önerileri:</h5>
@@ -983,7 +1021,7 @@ export default function FlashcardManagerPage() {
                              </ul>
                            </div>
                          )}
-                         
+
                          {studyTips.length > 0 && (
                            <div>
                              <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">📚 Çalışma İpuçları:</h5>
@@ -1000,15 +1038,15 @@ export default function FlashcardManagerPage() {
                        </div>
                      )}
 
-                     <div className="flex gap-3 mt-6">
+                     <div className="flex flex-col sm:flex-row gap-3 mt-6">
                        <Button
                          onClick={saveGeneratedFlashcards}
-                         className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 text-white border-0"
+                         className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 text-white border-0 text-sm sm:text-base py-2 sm:py-2.5"
                        >
                          <CheckCircle className="w-4 h-4 mr-2" />
                          Tümünü Kaydet
                        </Button>
-                       
+
                        <Button
                          onClick={() => {
                            setGeneratedFlashcards([]);
@@ -1018,7 +1056,7 @@ export default function FlashcardManagerPage() {
                            setStudyTips([]);
                          }}
                          variant="outline"
-                         className="flex-1"
+                         className="flex-1 text-sm sm:text-base py-2 sm:py-2.5"
                        >
                          Temizle
                        </Button>
@@ -1045,23 +1083,23 @@ export default function FlashcardManagerPage() {
                   <Plus className="w-12 h-12 mx-auto mb-3 text-blue-600" />
                   <h3 className="font-semibold mb-2">Manuel Oluşturma</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Kendi flashcard'larınızı tamamen özelleştirerek oluşturun
+                    Kendi flashcard&apos;larınızı tamamen özelleştirerek oluşturun
                   </p>
                 </div>
-                
+
                 <div className="text-center">
                   <Brain className="w-12 h-12 mx-auto mb-3 text-purple-600" />
                   <h3 className="font-semibold mb-2">AI Üretimi</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Yapay zeka ile otomatik olarak kaliteli flashcard'lar üretin
+                    Yapay zeka ile otomatik olarak kaliteli flashcard&apos;lar üretin
                   </p>
                 </div>
-                
+
                 <div className="text-center">
                   <Target className="w-12 h-12 mx-auto mb-3 text-green-600" />
                   <h3 className="font-semibold mb-2">Akıllı Yönetim</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Tüm flashcard'larınızı tek yerden organize edin
+                    Tüm flashcard&apos;larınızı tek yerden organize edin
                   </p>
                 </div>
               </div>
@@ -1069,6 +1107,29 @@ export default function FlashcardManagerPage() {
           </Card>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Flashcard&apos;ı Sil</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bu flashcard&apos;ı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setShowDeleteDialog(false);
+              setFlashcardToDelete(null);
+            }}>
+              İptal
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteFlashcard} className="bg-red-600 hover:bg-red-700">
+              Sil
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

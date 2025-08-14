@@ -1,10 +1,13 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from "react";
-import { ArrowLeft, BookOpen, Brain, RotateCcw, TrendingUp, Target, BarChart3, Calculator, Atom, FlaskConical, Landmark, Dna, BookOpenCheck, Languages, Plus } from "lucide-react";
+import { ArrowLeft, BookOpen, Calculator, Atom, FlaskConical, Landmark, Dna, BookOpenCheck, Languages, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import FlashcardComponent from "../../components/flashcard";
+import FeatureCards from "@/components/ui/feature-cards";
+import { flashcardFeatures } from "@/data/feature-cards-data";
 import { useSearchParams, useRouter } from "next/navigation";
 import { shouldUseDemoData } from "@/data/demo-data";
 import { UnifiedStorageService } from "@/services/unified-storage-service";
@@ -73,29 +76,25 @@ const FlashcardPageContent = () => {
         // Directly use UnifiedStorageService instead of SubjectLocalStorageService
         const localSubjects = UnifiedStorageService.getSubjects();
 
-        // Calculate question count for each subject
+        // Calculate question count for each subject - sadece flashcard'lar sayılıyor
         const subjectsWithQuestionCount = localSubjects.map((subject) => {
-          const questions = UnifiedStorageService.getQuestionsBySubject(
-            subject.name,
-          );
-          
-          // Also check for flashcards using UnifiedStorageService
+          // Quiz soruları flashcard sayısına dahil edilmiyor
           const flashcards = UnifiedStorageService.getFlashcardsBySubject(
             subject.name,
           );
-          
+
           return {
             ...subject,
-            questionCount: questions.length + flashcards.length,
+            questionCount: flashcards.length, // Sadece flashcard sayısı
           };
         });
 
-        // Filter subjects with questions OR flashcards
-        const subjectsWithQuestions = subjectsWithQuestionCount.filter(
+        // Filter subjects with flashcards only
+        const subjectsWithFlashcards = subjectsWithQuestionCount.filter(
           (subject) => subject.questionCount > 0,
         );
 
-        setSubjects(subjectsWithQuestions);
+        setSubjects(subjectsWithFlashcards);
       } catch {
       } finally {
         setIsLoading(false);
@@ -146,7 +145,7 @@ const FlashcardPageContent = () => {
                 </Badge>
               )}
             </div>
-            
+
             {/* Flashcard Manager Access Button */}
             <div className="mb-6">
               <Button
@@ -160,12 +159,13 @@ const FlashcardPageContent = () => {
               </Button>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-8 mb-8">
-              <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-6">
-                {isDemoMode
-                  ? "Demo derslerinden birini seçin:"
-                  : "Hangi konuyu çalışmak istiyorsunuz?"}
-              </h2>
+            <Card className="border-gradient-question shadow-lg p-8 mb-8">
+              <CardContent className="p-0">
+                <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-6">
+                  {isDemoMode
+                    ? "Demo derslerinden birini seçin:"
+                    : "Hangi konuyu çalışmak istiyorsunuz?"}
+                </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                  {subjects.length === 0 ? (
@@ -176,7 +176,7 @@ const FlashcardPageContent = () => {
                      <p className="text-gray-600 dark:text-gray-300 mb-4">
                        {isDemoMode
                          ? "Demo verileri yükleniyor..."
-                         : "Henüz soru içeren ders bulunmuyor."}
+                         : "Henüz flashcard içeren ders bulunmuyor."}
                      </p>
                     {!isDemoMode && (
                                           <button
@@ -191,71 +191,64 @@ const FlashcardPageContent = () => {
                   </div>
                 ) : (
                   subjects.map((subject) => (
-                    <button
+                                        <Card
                       key={subject.id}
+                      className="cursor-pointer border-gradient-question shadow-lg hover:shadow-xl transition-all duration-300"
                       onClick={() => setSelectedSubject(subject.name)}
-                      className="p-6 border-gradient-question bg-white dark:bg-gray-800 text-gray-800 dark:text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                     >
-                                             <div className="text-2xl mb-3 flex justify-center items-center">
-                        {subject.name === "Matematik" && <Calculator className="w-8 h-8 text-blue-600" />}
-                        {subject.name === "Fizik" && <Atom className="w-8 h-8 text-purple-600" />}
-                        {subject.name === "Kimya" && <FlaskConical className="w-8 h-8 text-green-600" />}
-                        {subject.name === "Tarih" && <Landmark className="w-8 h-8 text-orange-600" />}
-                        {subject.name === "Biyoloji" && <Dna className="w-8 h-8 text-pink-600" />}
-                        {subject.name === "Türk Dili ve Edebiyatı" && <BookOpenCheck className="w-8 h-8 text-indigo-600" />}
-                        {subject.name === "İngilizce" && <Languages className="w-8 h-8 text-red-600" />}
-                        {![
-                          "Matematik",
-                          "Fizik",
-                          "Kimya",
-                          "Tarih",
-                          "Biyoloji",
-                          "Türk Dili ve Edebiyatı",
-                          "İngilizce",
-                        ].includes(subject.name) && <BookOpen className="w-8 h-8 text-gray-600" />}
-                      </div>
-                      <h3 className="text-lg font-semibold mb-2">
-                        {subject.name}
-                      </h3>
-                      <p className="text-gray-600 dark:text-gray-300 text-sm mb-2">
-                        {subject.questionCount} {isDemoMode ? "demo " : ""}kart
-                        mevcut
-                      </p>
-                      <p className="text-gray-500 dark:text-gray-400 text-xs">
-                        {isDemoMode
-                          ? "BTK Demo içeriği"
-                          : "Akıllı öğrenme sistemi ile çalışın"}
-                      </p>
-                    </button>
+                      <CardContent className="p-6">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg">
+                            {subject.name === "Matematik" && <Calculator className="w-6 h-6 text-white" />}
+                            {subject.name === "Fizik" && <Atom className="w-6 h-6 text-white" />}
+                            {subject.name === "Kimya" && <FlaskConical className="w-6 h-6 text-white" />}
+                            {subject.name === "Tarih" && <Landmark className="w-6 h-6 text-white" />}
+                            {subject.name === "Biyoloji" && <Dna className="w-6 h-6 text-white" />}
+                            {subject.name === "Türk Dili ve Edebiyatı" && <BookOpenCheck className="w-6 h-6 text-white" />}
+                            {subject.name === "İngilizce" && <Languages className="w-6 h-6 text-white" />}
+                            {![
+                              "Matematik",
+                              "Fizik",
+                              "Kimya",
+                              "Tarih",
+                              "Biyoloji",
+                              "Türk Dili ve Edebiyatı",
+                              "İngilizce",
+                            ].includes(subject.name) && <BookOpen className="w-6 h-6 text-white" />}
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                              {subject.name}
+                            </h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              {isDemoMode ? "BTK Demo" : "Akıllı Öğrenme"}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <Badge className="bg-blue-500 text-white">
+                            {subject.questionCount} {isDemoMode ? "demo " : ""}flashcard
+                          </Badge>
+                          <span className="text-sm text-gray-500 dark:text-gray-400">
+                            {isDemoMode
+                              ? "Demo içeriği"
+                              : "Öğrenme sistemi"}
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
                   ))
                 )}
               </div>
-            </div>
+              </CardContent>
+            </Card>
 
-            <div className="border-gradient-question bg-white dark:bg-gray-800 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-3">
-                <Brain className="w-5 h-5 inline mr-2 text-purple-600" />
-                Akıllı Öğrenme Özellikleri
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 dark:text-gray-300">
-                <div className="flex items-center">
-                  <RotateCcw className="w-4 h-4 mr-2 text-blue-600" />
-                  <span>Aralıklı tekrar algoritması</span>
-                </div>
-                <div className="flex items-center">
-                  <TrendingUp className="w-4 h-4 mr-2 text-green-600" />
-                  <span>Kişiselleştirilmiş zorluk seviyesi</span>
-                </div>
-                <div className="flex items-center">
-                  <Target className="w-4 h-4 mr-2 text-purple-600" />
-                  <span>Odaklanmış çalışma modları</span>
-                </div>
-                <div className="flex items-center">
-                  <BarChart3 className="w-4 h-4 mr-2 text-indigo-600" />
-                  <span>Detaylı ilerleme takibi</span>
-                </div>
-              </div>
-            </div>
+            {/* Flashcard Özellikleri */}
+            <FeatureCards
+              title="Flashcard Özellikleri"
+              features={flashcardFeatures}
+              columns={2}
+            />
           </div>
         </div>
       </div>

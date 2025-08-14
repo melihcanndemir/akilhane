@@ -197,7 +197,7 @@ const QuizComponent: React.FC<QuizProps> = ({
                     subject: "Fizik",
                     type: "multiple-choice",
                     difficulty: "Medium",
-                    text: "Yerçekimi ivmesi kaç m/s²'dir?",
+                    text: "Yerçekimi ivmesi kaç m/s²&apos;dir?",
                     topic: "Kuvvet ve Hareket",
                     options: [
                       { text: "9.8 m/s²", isCorrect: true },
@@ -206,14 +206,14 @@ const QuizComponent: React.FC<QuizProps> = ({
                       { text: "9 m/s²", isCorrect: false },
                     ],
                     explanation:
-                      "Dünya'da yerçekimi ivmesi yaklaşık 9.8 m/s²'dir.",
+                      "Dünya&apos;da yerçekimi ivmesi yaklaşık 9.8 m/s²&apos;dir.",
                   },
                   {
                     id: "demo_physics_3",
                     subject: "Fizik",
                     type: "multiple-choice",
                     difficulty: "Hard",
-                    text: "Bir cismin kinetik enerjisi 100 J ise, kütlesi 2 kg olan cismin hızı kaç m/s'dir?",
+                    text: "Bir cismin kinetik enerjisi 100 J ise, kütlesi 2 kg olan cismin hızı kaç m/s&apos;dir?",
                     topic: "Enerji",
                     options: [
                       { text: "10 m/s", isCorrect: true },

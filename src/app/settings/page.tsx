@@ -31,6 +31,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import FeatureCards from "@/components/ui/feature-cards";
+import { settingsFeatures } from "@/data/feature-cards-data";
 import {
   Settings,
   Bell,
@@ -875,6 +877,13 @@ export default function SettingsPage() {
               Ayarları Kaydet
             </Button>
           </div>
+
+          {/* Feature Cards */}
+          <FeatureCards
+            title="Platform Özellikleri"
+            features={settingsFeatures}
+            columns={3}
+          />
         </div>
       </div>
     </div>

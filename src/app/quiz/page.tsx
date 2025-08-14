@@ -3,6 +3,8 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import QuizComponent from "@/components/quiz";
+import FeatureCards from "@/components/ui/feature-cards";
+import { quizFeatures } from "@/data/feature-cards-data";
 import {
   Card,
   CardContent,
@@ -223,8 +225,7 @@ function QuizPageContent() {
 
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <h1 className="text-4xl font-bold text-gray-800 dark:text-white flex items-center gap-3">
-              <BookOpen className="w-8 h-8 text-blue-600" />
+            <h1 className="text-4xl font-bold text-gray-800 dark:text-white">
               Quiz Sayfası
             </h1>
             {isDemoMode && (
@@ -239,10 +240,12 @@ function QuizPageContent() {
           </p>
         </div>
 
-        <Card className="max-w-2xl mx-auto">
+        <Card className="max-w-2xl mx-auto border-gradient-question shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <GraduationCap className="w-5 h-5" />
+              <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg">
+                <GraduationCap className="w-5 h-5 text-white" />
+              </div>
               Ders Seçimi
             </CardTitle>
             <CardDescription>
@@ -327,7 +330,7 @@ function QuizPageContent() {
               {subjects.map((subject) => (
                 <Card
                   key={subject.id}
-                  className="cursor-pointer hover:shadow-lg transition-shadow border-gradient-question"
+                  className="cursor-pointer border-gradient-question shadow-lg hover:shadow-xl transition-all duration-300"
                   onClick={() => {
                     setSelectedSubject(subject.name);
 
@@ -351,19 +354,34 @@ function QuizPageContent() {
                   }}
                 >
                   <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      <BookOpen className="w-5 h-5 text-blue-600" />
-                      <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg">
+                        <BookOpen className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
                         <h3 className="font-semibold text-gray-800 dark:text-white">
                           {subject.name}
                         </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {subject.category} • {subject.difficulty}
-                        </p>
-                        <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                          {subject.questionCount} soru mevcut
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {subject.category}
                         </p>
                       </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Badge
+                        className={
+                          subject.difficulty === "Kolay"
+                            ? "bg-green-500"
+                            : subject.difficulty === "Orta"
+                              ? "bg-yellow-500"
+                              : "bg-red-500"
+                        }
+                      >
+                        {subject.difficulty}
+                      </Badge>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                        {subject.questionCount} soru
+                      </span>
                     </div>
                   </CardContent>
                 </Card>
@@ -371,6 +389,13 @@ function QuizPageContent() {
             </div>
           </div>
         )}
+
+        {/* Quiz Özellikleri */}
+        <FeatureCards
+          title="Quiz Özellikleri"
+          features={quizFeatures}
+          columns={3}
+        />
       </div>
     </div>
   );

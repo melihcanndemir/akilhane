@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import QuestionManagerMain from "./components/question-manager-main";
 import { useQuestionManagerState } from "@/hooks/question-manager/use-question-manager-state";
 import { useQuestionManagerAuth } from "@/hooks/question-manager/use-question-manager-auth";
@@ -19,6 +19,12 @@ interface AIFormData {
   difficulty: "Easy" | "Medium" | "Hard";
   count: number;
   guidelines: string;
+}
+
+interface Stats {
+  totalQuestions: number;
+  totalSubjects: number;
+  totalCategories: number;
 }
 
 export default function QuestionManager() {
@@ -57,6 +63,27 @@ export default function QuestionManager() {
     setIsAuthenticated,
     setFormData,
   } = useQuestionManagerState();
+
+  // Add stats state
+  const [stats, setStats] = useState<Stats>({
+    totalQuestions: 0,
+    totalSubjects: 0,
+    totalCategories: 0,
+  });
+
+  // Calculate stats when subjects or questions change
+  useEffect(() => {
+    const totalSubjects = subjects.length;
+    const totalQuestions = questions.length;
+    const categories = new Set(subjects.map(subject => subject.category));
+    const totalCategories = categories.size;
+
+    setStats({
+      totalQuestions,
+      totalSubjects,
+      totalCategories,
+    });
+  }, [subjects, questions]);
 
   // Use custom hook for authentication
   useQuestionManagerAuth(isAuthenticated, setIsAuthenticated);
@@ -177,6 +204,7 @@ export default function QuestionManager() {
       isAuthenticated={isAuthenticated}
       isHydrated={isHydrated}
       formData={formData}
+      stats={stats}
       onSubjectChange={setSelectedSubject}
       onSearchChange={setSearchTerm}
       onDifficultyFilterChange={setFilterDifficulty}
