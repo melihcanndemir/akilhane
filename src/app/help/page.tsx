@@ -86,7 +86,7 @@ export default function HelpPage() {
 
   const tutorialData: TutorialItem[] = [
     {
-      title: "AkılHane&apos;ye Başlangıç",
+      title: "AkılHane'ye Başlangıç",
       description: "Platformun temel özelliklerini öğrenin ve ilk adımlarınızı atın.",
       duration: "5 dakika",
       videoUrl: "https://www.youtube.com/watch?v=example1",

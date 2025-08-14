@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import type { User } from "@supabase/supabase-js";
-import { supabase, signOut } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
@@ -84,8 +84,51 @@ export function useAuth() {
   }, []);
 
   const logout = async () => {
-    await signOut();
-    setUser(null);
+    try {
+      // Check if we're in browser environment
+      if (typeof window === "undefined") {
+        return;
+      }
+
+      // Check if supabase is available
+      if (!supabase) {
+        //console.error("Supabase client not available");
+        return;
+      }
+
+      // Try to get current session first
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        // No active session, just clear local state
+        setUser(null);
+        window.location.href = "/landing";
+        return;
+      }
+
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        //console.error("Logout error:", error);
+        // Even if there's an error, clear local state
+        setUser(null);
+        window.location.href = "/landing";
+        return;
+      }
+
+      // Logout successful
+      setUser(null);
+      window.location.href = "/landing";
+
+    } catch /* (error) */ {
+      //console.error("Logout exception:", error);
+      // Even if there's an exception, try to clear state and redirect
+      setUser(null);
+      if (typeof window !== "undefined") {
+        window.location.href = "/landing";
+      }
+    }
   };
   return {
     user,

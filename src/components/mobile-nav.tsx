@@ -113,16 +113,16 @@ export default function MobileNav() {
                         alt={user?.user_metadata?.full_name || user?.email}
                       />
                       <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-medium">
-                        {user?.email?.charAt(0).toUpperCase() ||
-                          user?.user_metadata?.full_name
+                        {user?.user_metadata?.full_name
                             ?.charAt(0)
                             .toUpperCase() ||
+                          user?.email?.charAt(0).toUpperCase() ||
                           "U"}
                       </AvatarFallback>
                     </Avatar>
                     <span className="truncate">
-                      {user?.email?.split("@")[0] ||
-                        user?.user_metadata?.full_name ||
+                      {user?.user_metadata?.full_name ||
+                        user?.email?.split("@")[0] ||
                         "Kullanıcı"}
                     </span>
                   </Button>
@@ -235,10 +235,10 @@ export default function MobileNav() {
                                 }
                               />
                               <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-medium">
-                                {user?.email?.charAt(0).toUpperCase() ||
-                                  user?.user_metadata?.full_name
+                                {user?.user_metadata?.full_name
                                     ?.charAt(0)
                                     .toUpperCase() ||
+                                  user?.email?.charAt(0).toUpperCase() ||
                                   "U"}
                               </AvatarFallback>
                             </Avatar>
@@ -263,19 +263,6 @@ export default function MobileNav() {
                             Profilim
                           </span>
                         </Link>
-
-                        {/* Logout button */}
-                        <Button
-                          onClick={() => {
-                            logout();
-                            setIsOpen(false);
-                          }}
-                          variant="ghost"
-                          className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-red-50/20 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 justify-start transition-all duration-300 hover:scale-105 border border-red-200/30 dark:border-red-800/30"
-                        >
-                          <LogOut className="w-5 h-5" />
-                          <span className="font-medium">Çıkış Yap</span>
-                        </Button>
                       </div>
                     )}
 
@@ -297,6 +284,23 @@ export default function MobileNav() {
 
                       {/* Settings is now in navLinks, so no need for separate link */}
                     </div>
+
+                    {/* Logout Button - Large and Prominent at the end */}
+                    {isAuthenticated && user && (
+                      <div className="pt-4">
+                        <Button
+                          onClick={() => {
+                            logout();
+                            setIsOpen(false);
+                          }}
+                          variant="outline"
+                          className="w-full flex items-center justify-center gap-3 p-4 rounded-lg bg-red-50/20 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-2 border-red-200/50 dark:border-red-800/50 hover:bg-red-100/30 dark:hover:bg-red-800/30 hover:border-red-300 dark:hover:border-red-700 transition-all duration-300 hover:scale-105 font-semibold text-base"
+                        >
+                          <LogOut className="w-6 h-6" />
+                          <span>Çıkış Yap</span>
+                        </Button>
+                      </div>
+                    )}
 
                     {/* Extra spacing for scroll */}
                     <div className="h-4"></div>

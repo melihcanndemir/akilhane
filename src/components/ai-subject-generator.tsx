@@ -215,17 +215,17 @@ export default function AISubjectGenerator({
           }
         }}
       >
-        <DialogContent className="w-[95vw] max-w-4xl h-[95vh] max-h-[95vh] flex flex-col p-0">
-          <DialogHeader className="p-6 pb-4 border-b">
-            <DialogTitle className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-blue-600" />
+        <DialogContent className="w-[90vw] sm:w-[95vw] max-w-4xl h-[90vh] sm:h-[95vh] max-h-[90vh] sm:max-h-[95vh] flex flex-col p-0">
+          <DialogHeader className="p-4 sm:p-5 pb-3 border-b">
+            <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
               AI ile Ders Oluştur
             </DialogTitle>
           </DialogHeader>
 
-          <div className="flex-1 overflow-hidden px-6">
+          <div className="flex-1 overflow-y-auto px-4 sm:px-5">
             {activeTab === "generate" ? (
-              <div className="space-y-6 py-4">
+              <div className="space-y-4 sm:space-y-5 py-3">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="category">Kategori</Label>
@@ -293,7 +293,7 @@ export default function AISubjectGenerator({
                         guidelines: e.target.value,
                       })
                     }
-                    placeholder="AI'ya ek talimatlar verebilirsiniz. Örn: Pratik uygulamalar içersin, güncel konulara odaklansın..."
+                    placeholder="AI&apos;ya ek talimatlar verebilirsiniz. Örn: Pratik uygulamalar içersin, güncel konulara odaklansın..."
                     rows={4}
                     className="min-h-[100px] resize-none"
                   />
@@ -309,11 +309,11 @@ export default function AISubjectGenerator({
                 </Alert>
               </div>
             ) : (
-              <div className="flex flex-col h-full py-4">
+              <div className="flex flex-col h-full py-3">
                 {aiGenerationResult && aiGeneratedSubjects.length > 0 ? (
                   <>
                     {/* Header Section */}
-                    <div className="space-y-4 mb-6">
+                    <div className="space-y-4 mb-5">
                       <div>
                         <h3 className="text-lg font-semibold">
                           Oluşturulan Dersler
@@ -378,8 +378,8 @@ export default function AISubjectGenerator({
 
                     {/* Subjects List */}
                     <div className="flex-1 min-h-0">
-                      <ScrollArea className="h-full max-h-[400px] pr-4">
-                        <div className="space-y-4">
+                      <ScrollArea className="h-full max-h-[350px] pr-4">
+                        <div className="space-y-3">
                           {aiGeneratedSubjects.map((subject, idx) => (
                             <Card
                               key={idx}
@@ -390,7 +390,7 @@ export default function AISubjectGenerator({
                               }`}
                               onClick={() => toggleAISubjectSelection(idx)}
                             >
-                              <CardContent className="p-6">
+                              <CardContent className="p-5">
                                 <div className="flex items-start justify-between mb-4">
                                   <div className="flex items-center gap-3">
                                     <input
@@ -517,7 +517,7 @@ export default function AISubjectGenerator({
           </div>
 
           {/* Footer Actions */}
-          <div className="border-t p-6 pt-4">
+          <div className="border-t p-4 sm:p-5 pt-3">
             {activeTab === "generate" ? (
               <Button
                 onClick={() => {
@@ -543,7 +543,7 @@ export default function AISubjectGenerator({
                 <p className="text-sm text-muted-foreground text-center">
                   {selectedAISubjects.size} / {aiGeneratedSubjects.length} ders seçildi
                 </p>
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <Button
                     variant="outline"
                     onClick={() => setIsDialogOpen(false)}

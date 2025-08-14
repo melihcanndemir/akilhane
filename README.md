@@ -219,6 +219,34 @@ Bu proje, **enterprise-level** bir mimari üzerine kurulmuş olup modern web dev
 
 > **💡 Pro Tip:** Bu dokümantasyonlar, projenin **enterprise-ready** seviyede olduğunu ve **production deployment** için hazır olduğunu gösterir.
 
+## 🚀 Hızlı Başlangıç - AI Servisi
+
+### **AI Destekli Soru Üretimi için Hızlı Kurulum:**
+
+1. **Google AI API Anahtarı Alın:**
+   - [Google AI Studio](https://aistudio.google.com/) adresine gidin
+   - API anahtarı oluşturun
+
+2. **Environment Variable Ekleyin:**
+   ```bash
+   # .env.local dosyasına ekleyin
+   GEMINI_API_KEY=your_api_key_here
+   ```
+
+3. **Projeyi Çalıştırın:**
+   ```bash
+   npm install
+   npm run dev
+   ```
+
+4. **AI Soru Üretimini Test Edin:**
+   - Soru Yöneticisi → "AI ile Soru Oluştur"
+   - Ders ve konu seçin
+   - AI'ya özel yönergeler verin
+   - Soruları oluşturun ve onaylayın
+
+> **📖 Detaylı Kurulum:** Kapsamlı AI setup ve deployment bilgileri için **[AI Deployment Guide](docs/AI_DEPLOYMENT_GUIDE.md)** ve **[AI Setup](docs/AI_SETUP.md)** dosyalarını inceleyin.
+
 <details>
 <summary><b>🗺️ Proje Genel Mimarisi (Mermaid Şeması)</b></summary>
 <br>

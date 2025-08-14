@@ -11,6 +11,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import FeatureCards from "@/components/ui/feature-cards";
+import { dashboardFeatures } from "@/data/feature-cards-data";
 import {
   BookOpen,
   Brain,
@@ -178,7 +180,7 @@ export default function EnhancedDashboard() {
               : results.filter((result: QuizResult) => !result.isDemo);
 
             // Get subject information from Subjects
-            const subjects = localStorage.getItem("exam_training_subjects");
+            const subjects = localStorage.getItem("akilhane_subjects");
             const subjectsData = subjects ? JSON.parse(subjects) : [];
 
             if (filteredResults.length === 0) {
@@ -1044,6 +1046,13 @@ export default function EnhancedDashboard() {
                 </div>
               </div>
             </div>
+
+            {/* Feature Cards */}
+            <FeatureCards
+              title="Dashboard Özellikleri"
+              features={dashboardFeatures}
+              columns={3}
+            />
           </>
         )}
       </div>
