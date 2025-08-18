@@ -2,7 +2,7 @@
   <img src="public/favicon.svg" alt="AkılHane Logo" width="150">
   <h1>AkılHane - AI Destekli Eğitim Platformu</h1>
   <p>
-    <strong>Öğrenme deneyiminizi kişiselleştiren, yapay zeka destekli yeni nesil eğitim platformu.</strong>
+    <strong>Öğrenme deneyiminizi kişiselleştiren, yapay zeka destekli yeni nesil eğitim platformu... Ama bu sadece başlangıç. Gerçek soru: Eğitim nedir? Bilinç nedir? Öğrenmek nedir?</strong>
   </p>
   <p>
     <a href="https://akilhane.vercel.app/"><strong>Canlı Demoyu Ziyaret Et »</strong></a>
