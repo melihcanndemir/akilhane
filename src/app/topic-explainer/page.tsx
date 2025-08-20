@@ -39,7 +39,7 @@ interface Subject {
 
 // LocalStorage service for subjects
 class SubjectLocalStorageService {
-  private static readonly STORAGE_KEY = "exam_training_subjects";
+  private static readonly STORAGE_KEY = "akilhane_subjects";
 
   static getSubjects(): Subject[] {
     if (typeof window === "undefined") {

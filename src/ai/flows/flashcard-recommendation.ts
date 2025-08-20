@@ -84,15 +84,44 @@ export type FlashcardRecommendationOutput = z.infer<
 export async function getFlashcardRecommendation(
   input: FlashcardRecommendationInput,
 ): Promise<FlashcardRecommendationOutput> {
-  // Store the performance data in our mock "service" so the tool can access it.
-  const performanceHistory = JSON.parse(input.performanceData);
-  (
-    getPerformanceHistoryForSubject as unknown as {
-      __setData: (data: unknown) => void;
-    }
-  ).__setData(performanceHistory);
+  try {
+    // Parse the combined data from localStorage
+    const combinedData = JSON.parse(input.performanceData);
+    
+    // Extract different types of data
+    const performanceHistory = combinedData.performanceData || {};
+    const quizResults = combinedData.quizResults || [];
+    const studyHistory = combinedData.studyHistory || [];
+    const flashcardProgress = combinedData.flashcardProgress || [];
+    const currentSubject = combinedData.currentSubject || input.subject;
+    
+    // Set mock data for the performance service tool
+    (
+      getPerformanceHistoryForSubject as unknown as {
+        __setData: (data: unknown) => void;
+      }
+    ).__setData({
+      subject: currentSubject,
+      quizResults: quizResults,
+      studyHistory: studyHistory,
+      flashcardProgress: flashcardProgress,
+      performanceData: performanceHistory
+    });
 
-  return flashcardRecommendationFlow(input);
+    return flashcardRecommendationFlow(input);
+  } catch (error) {
+    console.error("Error parsing performance data:", error);
+    
+    // Fallback to basic recommendation if data parsing fails
+    return {
+      recommendedStudyMode: input.studyMode,
+      recommendedTopics: ["Genel Tekrar"],
+      studyStrategy: "Veri analizi yapılamadığı için genel bir çalışma stratejisi öneriyorum. Mevcut flashcard'larınızı tekrar edin ve zorlandığınız konulara odaklanın.",
+      estimatedTime: input.targetStudyTime || 30,
+      confidence: 0.5,
+      reasoning: "Veri analizi sırasında bir hata oluştu. Genel öneriler sunuluyor."
+    };
+  }
 }
 
 const prompt = ai.definePrompt({
@@ -107,12 +136,19 @@ MUTLAKA 'getPerformanceHistoryForSubject' aracını kullanarak öğrencinin geç
 Öğrencinin performans verilerini ve mevcut flashcard ilerlemesini analiz ederek akıllı öneriler ver.
 
 ## ANALİZ ETMEN GEREKEN FAKTÖRLER:
-1. **Son quiz performansı** (son 5 test)
-2. **Zayıf konular** (quiz sonuçlarından tespit edilen)
-3. **Mevcut flashcard ilerlemesi** ve güven seviyeleri
-4. **Çalışma modu tercihleri**
-5. **Mevcut çalışma süresi**
-6. **Veritabanındaki gerçek sorular** - Artık mock data yok, gerçek sorular var
+1. **localStorage'dan gelen veriler**:
+   - Quiz sonuçları (quizResults)
+   - Çalışma geçmişi (studyHistory) 
+   - Performans verileri (performanceData)
+   - Flashcard ilerlemesi (flashcardProgress)
+
+2. **Mevcut durum analizi**:
+   - Toplam flashcard sayısı
+   - İncelenen kart sayısı
+   - Öğrenilen kart sayısı (güven seviyesi 4+)
+   - Tekrar gereken kart sayısı
+
+3. **Çalışma modu tercihleri** ve hedef süre
 
 ## ÇALIŞMA MODU ÖNERİLERİ:
 - **'review' (Tekrar)**: Yeni öğrenilen kavramları pekiştirmesi gereken öğrenciler için
@@ -120,7 +156,7 @@ MUTLAKA 'getPerformanceHistoryForSubject' aracını kullanarak öğrencinin geç
 - **'difficult' (Zor)**: Belirli konularda zorlanan veya düşük güven seviyesine sahip öğrenciler için
 
 ## KONU ÖNERİLERİ:
-- Quiz performansından zayıf konulara odaklan
+- localStorage'daki quiz sonuçlarından zayıf konulara odaklan
 - Flashcard verilerinde düşük güven seviyesine sahip konuları önceliklendir
 - Konu zorluk ilerlemesini göz önünde bulundur
 - **Dersin konusuna uygun konulara odaklan** - Öğrencinin çalıştığı derse göre konular öner
@@ -130,7 +166,7 @@ MUTLAKA 'getPerformanceHistoryForSubject' aracını kullanarak öğrencinin geç
 - Zaman kısıtlamalarını göz önünde bulundur
 - Aralıklı tekrar prensiplerini dahil et
 - **Türkçe açıklamalar yap**
-- **Gerçek sorulara dayalı öneriler ver** - Mock data yok, veritabanındaki gerçek sorular var
+- **localStorage verilerine dayalı öneriler ver**
 - **Günlük hayattan örnekler ver**
 - **Motivasyon ver**
 
@@ -140,7 +176,7 @@ MUTLAKA 'getPerformanceHistoryForSubject' aracını kullanarak öğrencinin geç
 - **Öğrenciyi cesaretlendir**
 - **Pratik öneriler ver**
 - **Humor kullan** (ama abartma)
-- **Dersin konusuna uygun öneriler ver** - Öğrencinin çalıştığı derse göre konular öner
+- **Dersin konusuna uygun öneriler ver**
 
 ## ÖĞRENCİ BİLGİLERİ:
 Kullanıcı ID: {{{userId}}}
@@ -148,7 +184,7 @@ Ders: {{{subject}}}
 Mevcut Çalışma Modu: {{{studyMode}}}
 Hedef Çalışma Süresi: {{{targetStudyTime}}} dakika
 
-Performans verilerini analiz et ve kapsamlı bir öneri ver. Öğrenciye sanki gerçek bir öğretmenle konuşuyormuş gibi hitap et!`,
+localStorage'dan gelen tüm verileri analiz et ve kapsamlı bir öneri ver. Öğrenciye sanki gerçek bir öğretmenle konuşuyormuş gibi hitap et!`,
 });
 
 const flashcardRecommendationFlow = ai.defineFlow(

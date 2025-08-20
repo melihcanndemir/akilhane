@@ -129,48 +129,63 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
       return;
     }
 
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.lang = "tr-TR";
+         recognition.continuous = false; // Start with non-continuous for better control
+     recognition.interimResults = true;
+     recognition.lang = "tr-TR";
 
-    recognition.onstart = () => {
-      setRecognitionState("active");
-      onListeningChange?.(true);
-    };
+         recognition.onstart = () => {
+       setRecognitionState("active");
+       onListeningChange?.(true);
+       
+       // Enable continuous mode only when actively listening
+       if (recognitionRef.current) {
+         recognitionRef.current.continuous = true;
+       }
+     };
 
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
-      let finalTranscript = "";
+         recognition.onresult = (event: SpeechRecognitionEvent) => {
+       let finalTranscript = "";
+       let interimTranscript = "";
 
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const result = event.results[i];
-        const firstAlternative = result?.[0];
-        if (result && firstAlternative && result.isFinal) {
-          finalTranscript += firstAlternative.transcript;
-        }
-      }
+       for (let i = event.resultIndex; i < event.results.length; i++) {
+         const result = event.results[i];
+         const firstAlternative = result?.[0];
+         if (result && firstAlternative) {
+           if (result.isFinal) {
+             finalTranscript += firstAlternative.transcript;
+           } else {
+             interimTranscript += firstAlternative.transcript;
+           }
+         }
+       }
 
-      if (finalTranscript) {
-        const cleanTranscript = finalTranscript.trim().toLowerCase();
+       // Show interim results for better user feedback
+       if (interimTranscript) {
+         setTranscript(interimTranscript);
+       }
 
-        if (cleanTranscript === lastProcessedTranscript.current) {
-          return;
-        }
+       if (finalTranscript) {
+         const cleanTranscript = finalTranscript.trim().toLowerCase();
 
-        if (transcriptProcessingTimeout.current) {
-          clearTimeout(transcriptProcessingTimeout.current);
-        }
+         if (cleanTranscript === lastProcessedTranscript.current) {
+           return;
+         }
 
-        setTranscript(cleanTranscript);
+         if (transcriptProcessingTimeout.current) {
+           clearTimeout(transcriptProcessingTimeout.current);
+         }
 
-        transcriptProcessingTimeout.current = setTimeout(() => {
-          // Double-check to prevent duplicates
-          if (cleanTranscript !== lastProcessedTranscript.current) {
-            lastProcessedTranscript.current = cleanTranscript;
-            handleCommand(cleanTranscript);
-          }
-        }, 500);
-      }
-    };
+         setTranscript(cleanTranscript);
+
+                   transcriptProcessingTimeout.current = setTimeout(() => {
+            // Double-check to prevent duplicates
+            if (cleanTranscript !== lastProcessedTranscript.current) {
+              lastProcessedTranscript.current = cleanTranscript;
+              handleCommand(cleanTranscript);
+            }
+          }, 2000); // 2 seconds timeout for comfortable speaking time
+       }
+     };
 
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       // Log errors only in development
@@ -225,30 +240,49 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
       setTranscript("");
     };
 
-    recognition.onend = () => {
-      // ✅ In non-continuous mode, restart if still supposed to be listening
-      if (recognitionState === "active" || isListening) {
-        try {
-          // Small delay to prevent rapid restart issues
-          setTimeout(() => {
-            if (
-              recognitionRef.current &&
-              (isListening || recognitionState === "active")
-            ) {
-              recognitionRef.current.start();
-            }
-          }, 100);
-        } catch {
-          // If restart fails, go to idle state
-          setRecognitionState("idle");
-          onListeningChange?.(false);
-        }
-      } else {
-        setRecognitionState("idle");
-        onListeningChange?.(false);
-        setTranscript("");
-      }
-    };
+         recognition.onend = () => {
+       // ✅ Only restart if explicitly supposed to be listening and not stopping
+       // Check if we're in stopping state or if user manually stopped
+       if (recognitionState === "stopping" || !isListening) {
+         // User stopped or we're stopping - don't restart
+         if (recognitionRef.current) {
+           recognitionRef.current.continuous = false;
+         }
+         setRecognitionState("idle");
+         onListeningChange?.(false);
+         setTranscript("");
+         return;
+       }
+       
+       // Only restart if we're actively listening and not in stopping state
+       if (recognitionState === "active" && isListening) {
+         try {
+           // Longer delay for better stability in continuous mode
+           setTimeout(() => {
+             // Double-check state before restarting
+             if (
+               recognitionRef.current &&
+               recognitionState === "active" &&
+               isListening
+             ) {
+               recognitionRef.current.start();
+             }
+           }, 500); // Increased delay for better stability
+         } catch {
+           // If restart fails, go to idle state
+           setRecognitionState("idle");
+           onListeningChange?.(false);
+         }
+       } else {
+         // Reset to idle state and disable continuous mode
+         if (recognitionRef.current) {
+           recognitionRef.current.continuous = false;
+         }
+         setRecognitionState("idle");
+         onListeningChange?.(false);
+         setTranscript("");
+       }
+     };
 
     return () => {
       if (transcriptProcessingTimeout.current) {
@@ -327,6 +361,17 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
     } else if (command.includes("soru") || command.includes("oku")) {
       if (currentQuestion) {
         speakText(currentQuestion, "question");
+      }
+    } else if (command.includes("arka yüz") || command.includes("arkayüz") || command.includes("cevap ve açıklama")) {
+      if (currentAnswer && currentExplanation) {
+        const backSideText = `Cevap: ${currentAnswer}. Açıklama: ${currentExplanation}`;
+        speakText(backSideText, "explanation");
+      } else if (currentAnswer) {
+        speakText(`Cevap: ${currentAnswer}`, "answer");
+      } else if (currentExplanation) {
+        speakText(currentExplanation, "explanation");
+      } else {
+        speakText("Bu soru için henüz cevap veya açıklama mevcut değil.", "help");
       }
     } else if (command.includes("açıklama") || command.includes("açıkla")) {
       if (currentExplanation) {
@@ -453,49 +498,70 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
     }
   };
 
-  const toggleListening = () => {
-    if (!recognitionRef.current) {
-      return;
-    }
+     const toggleListening = () => {
+     if (!recognitionRef.current) {
+       return;
+     }
 
-    // Prevent rapid toggling that can cause race conditions
-    if (recognitionState === "starting" || recognitionState === "stopping") {
-      return;
-    }
+     // Prevent rapid toggling that can cause race conditions
+     if (recognitionState === "starting" || recognitionState === "stopping") {
+       return;
+     }
 
-    try {
-      if (recognitionState === "active" || isListening) {
-        setRecognitionState("stopping");
-        recognitionRef.current.stop();
-      } else if (recognitionState === "idle") {
-        setRecognitionState("starting");
-        recognitionRef.current.start();
-      }
-    } catch (error) {
-      // Handle case where recognition state is inconsistent
-      if (error instanceof Error && error.message.includes("already started")) {
-        // If already started but we thought it was idle, just stop it
-        setRecognitionState("stopping");
-        try {
-          recognitionRef.current.stop();
-        } catch {
-          setRecognitionState("idle");
+           try {
+        if (recognitionState === "active" || isListening) {
+          // Stop listening
+          setRecognitionState("stopping");
           onListeningChange?.(false);
-        }
-      } else if (
-        error instanceof Error &&
-        error.message.includes("not started")
-      ) {
-        // If not started but we thought it was active, reset to idle
-        setRecognitionState("idle");
-        onListeningChange?.(false);
-      } else {
-        // Reset to idle state on any other error
-        setRecognitionState("idle");
-        onListeningChange?.(false);
-      }
-    }
-  };
+          setTranscript(""); // Clear transcript immediately
+          
+          try {
+            recognitionRef.current.stop();
+          } catch (stopError) {
+            // If stop fails, force reset
+            setRecognitionState("idle");
+            onListeningChange?.(false);
+            setTranscript("");
+          }
+        } else if (recognitionState === "idle") {
+         // Start listening
+         setRecognitionState("starting");
+         onListeningChange?.(true);
+         
+         try {
+           recognitionRef.current.start();
+         } catch (startError) {
+           // If start fails, reset to idle
+           setRecognitionState("idle");
+           onListeningChange?.(false);
+         }
+       }
+     } catch (error) {
+       // Handle case where recognition state is inconsistent
+       if (error instanceof Error && error.message.includes("already started")) {
+         // If already started but we thought it was idle, just stop it
+         setRecognitionState("stopping");
+         onListeningChange?.(false);
+         try {
+           recognitionRef.current.stop();
+         } catch {
+           setRecognitionState("idle");
+           onListeningChange?.(false);
+         }
+       } else if (
+         error instanceof Error &&
+         error.message.includes("not started")
+       ) {
+         // If not started but we thought it was active, reset to idle
+         setRecognitionState("idle");
+         onListeningChange?.(false);
+       } else {
+         // Reset to idle state on any other error
+         setRecognitionState("idle");
+         onListeningChange?.(false);
+       }
+     }
+   };
 
   if (!isSupported) {
     return show ? (
@@ -589,8 +655,8 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
               </Button>
             )}
 
-            {/* Speak answer button */}
-            {(currentAnswer || currentOptions) && (
+            {/* Speak answer button - hidden in flashcard mode */}
+            {(currentAnswer || currentOptions) && mode !== "flashcard" && (
               <Button
                 key="speak-answer"
                 onClick={() => {
@@ -609,12 +675,36 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
                   isReadingAnswer ? "bg-green-100 border-green-300" : ""
                 }`}
                 disabled={isSpeaking && !isReadingAnswer}
-                title="Şıkları Oku"
+                title="Cevabı Oku"
               >
                 {isReadingAnswer ? (
                   <Pause className="w-4 h-4" />
                 ) : (
                   <Volume2 className="w-4 h-4" />
+                )}
+              </Button>
+            )}
+
+            {/* Speak back side button for flashcards */}
+            {mode === "flashcard" && currentAnswer && currentExplanation && (
+              <Button
+                key="speak-back-side"
+                onClick={() => {
+                  const backSideText = `Cevap: ${currentAnswer}. Açıklama: ${currentExplanation}`;
+                  speakText(backSideText, "explanation");
+                }}
+                size="sm"
+                variant="outline"
+                className={`rounded-full w-12 h-12 shadow-lg ${
+                  isReadingExplanation ? "bg-blue-100 border-blue-300" : ""
+                }`}
+                disabled={isSpeaking && !isReadingExplanation}
+                title="Arka Yüzü Oku (Cevap + Açıklama)"
+              >
+                {isReadingExplanation ? (
+                  <Pause className="w-4 h-4" />
+                ) : (
+                  <BookOpen className="w-4 h-4" />
                 )}
               </Button>
             )}
@@ -830,6 +920,7 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
                           </span>
                         </span>
                       </div>
+                      
                       <div
                         key="flip"
                         className="flex items-center gap-3 p-2 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 rounded-xl transition-colors group"
@@ -875,21 +966,21 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
                           </span>
                         </span>
                       </div>
-                      <div
-                        key="shuffle"
-                        className="flex items-center gap-3 p-2 hover:bg-pink-50 dark:hover:bg-pink-900/10 rounded-xl transition-colors group"
-                      >
-                        <div className="w-2 h-2 bg-pink-500 rounded-full group-hover:scale-125 transition-transform"></div>
-                        <span className="text-sm text-gray-700 dark:text-gray-200">
-                          <span className="font-semibold text-pink-600 dark:text-pink-400">
-                            &quot;Başa dön&quot;
-                          </span>
-                          <span className="text-gray-500 dark:text-gray-400">
-                            {" "}
-                            - İlk karta dön
-                          </span>
-                        </span>
-                      </div>
+                                             <div
+                         key="shuffle"
+                         className="flex items-center gap-3 p-2 hover:bg-pink-50 dark:hover:bg-pink-900/10 rounded-xl transition-colors group"
+                       >
+                         <div className="w-2 h-2 bg-pink-500 rounded-full group-hover:scale-125 transition-transform"></div>
+                         <span className="text-sm text-gray-700 dark:text-gray-200">
+                           <span className="font-semibold text-pink-600 dark:text-pink-400">
+                             &quot;Karıştır&quot;
+                           </span>
+                           <span className="text-gray-500 dark:text-gray-400">
+                             {" "}
+                             - Kartları karıştır
+                           </span>
+                         </span>
+                       </div>
                     </>
                   ) : (
                     <>
@@ -1067,26 +1158,35 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
         )}
       </div>
 
-      {/* Transcript display - independent fixed position on right */}
-      {transcript && (
-        <motion.div
-          key="transcript-display"
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 20, opacity: 0 }}
-          className="fixed bottom-6 right-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 shadow-lg max-w-xs z-50"
-        >
-          <div className="flex items-center gap-2 mb-2">
-            <Mic className="w-4 h-4 text-blue-500" />
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Algılanan Komut
-            </span>
-          </div>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            {transcript}
-          </p>
-        </motion.div>
-      )}
+             {/* Transcript display - independent fixed position on right */}
+       {transcript && (
+         <motion.div
+           key="transcript-display"
+           initial={{ y: 20, opacity: 0 }}
+           animate={{ y: 0, opacity: 1 }}
+           exit={{ y: 20, opacity: 0 }}
+           className="fixed bottom-6 right-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 shadow-lg max-w-xs z-50"
+         >
+           <div className="flex items-center gap-2 mb-2">
+             <Mic className="w-4 h-4 text-blue-500" />
+             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+               Algılanan Komut
+             </span>
+             {/* Listening indicator */}
+             {(isListening || recognitionState === "active") && (
+               <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse ml-auto"></div>
+             )}
+           </div>
+           <p className="text-sm text-gray-600 dark:text-gray-400">
+             {transcript}
+           </p>
+           {/* Status indicator */}
+           <div className="text-xs text-gray-500 dark:text-gray-400 mt-2 flex items-center gap-2">
+             <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+             <span>Dinleniyor...</span>
+           </div>
+         </motion.div>
+       )}
     </>
   );
 };

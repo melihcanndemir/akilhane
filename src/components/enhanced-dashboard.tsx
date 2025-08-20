@@ -178,7 +178,7 @@ export default function EnhancedDashboard() {
               : results.filter((result: QuizResult) => !result.isDemo);
 
             // Get subject information from Subjects
-            const subjects = localStorage.getItem("exam_training_subjects");
+            const subjects = localStorage.getItem("akilhane_subjects");
             const subjectsData = subjects ? JSON.parse(subjects) : [];
 
             if (filteredResults.length === 0) {
