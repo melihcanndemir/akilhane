@@ -50,13 +50,13 @@ import MobileNav from "@/components/mobile-nav";
 import AIFeaturesShowcase from "@/components/ai-features-showcase";
 import PerformanceMetrics from "@/components/performance-metrics";
 import MobileDemo from "@/components/mobile-demo";
-import QuantumTunnelBackground from "@/components/quantum-tunnel-background";
+import ParticlesBackground from "@/components/particles-background";
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background relative">
-      {/* Quantum Tunnel Background */}
-      <QuantumTunnelBackground />
+      {/* Particles Background */}
+      <ParticlesBackground />
 
       {/* Navigation Header - Consistent with all pages */}
       <MobileNav />
@@ -845,14 +845,14 @@ export default function LandingPage() {
 
               <div className="border-gradient-question p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
                 <Card className="h-full w-full rounded-[11px] border-0 bg-gradient-to-br from-indigo-500/10 to-blue-500/10 dark:from-indigo-500/20 dark:to-blue-500/20 cursor-pointer">
-                  <Link href="/subject-manager">
+                  <Link href="/question-manager">
                     <CardContent className="p-6 text-center">
                       <Database className="h-8 w-8 mx-auto mb-3 text-indigo-600 dark:text-indigo-400" />
                       <h3 className="font-semibold mb-2 text-foreground">
-                        Konu Yönetimi
+                        Soru Yönetimi
                       </h3>
                       <p className="text-sm text-muted-foreground">
-                        Konuları düzenleyin
+                        Soruları düzenleyin
                       </p>
                     </CardContent>
                   </Link>

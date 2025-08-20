@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import QuestionManagerMain from "./components/question-manager-main";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,8 +31,7 @@ interface AIFormData {
 interface Stats {
   totalQuestions: number;
   totalSubjects: number;
-  totalTopics: number;
-  aiGeneratedCount: number;
+  totalCategories: number;
 }
 
 export default function QuestionManager() {
@@ -71,6 +70,27 @@ export default function QuestionManager() {
     setIsAuthenticated,
     setFormData,
   } = useQuestionManagerState();
+
+  // Add stats state
+  const [stats, setStats] = useState<Stats>({
+    totalQuestions: 0,
+    totalSubjects: 0,
+    totalCategories: 0,
+  });
+
+  // Calculate stats when subjects or questions change
+  useEffect(() => {
+    const totalSubjects = subjects.length;
+    const totalQuestions = questions.length;
+    const categories = new Set(subjects.map(subject => subject.category));
+    const totalCategories = categories.size;
+
+    setStats({
+      totalQuestions,
+      totalSubjects,
+      totalCategories,
+    });
+  }, [subjects, questions]);
 
   // Use custom hook for authentication
   useQuestionManagerAuth(isAuthenticated, setIsAuthenticated);
@@ -118,14 +138,6 @@ export default function QuestionManager() {
     handleEditQuestionChange,
   } = useFormManagement(formData, setFormData, editingQuestion, setEditingQuestion);
 
-  // Calculate stats
-  const stats: Stats = {
-    totalQuestions: questions.length,
-    totalSubjects: subjects.length,
-    totalTopics: new Set(questions.map(q => q.topic)).size,
-    aiGeneratedCount: aiGeneratedQuestions.length,
-  };
-
   useEffect(() => {
     if (isHydrated) {
       console.log("🔄 Question Manager: useEffect triggered, isHydrated:", isHydrated);
@@ -140,6 +152,41 @@ export default function QuestionManager() {
     console.log("📚 Question Manager: subjects length:", subjects.length);
   }, [subjects]);
 
+  // Handler functions for the component
+  const handleCreateQuestion = async () => {
+    const success = await createQuestion(formData);
+    if (success) {
+      handleResetForm();
+    }
+  };
+
+  const handleEditQuestion = (question: Question) => {
+    setEditingQuestion(question);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDeleteQuestion = async (questionId: string) => {
+    await deleteQuestion(questionId);
+  };
+
+  const handleAIGenerate = async (formData: AIFormData) => {
+    await generateQuestions(formData);
+  };
+
+  const handleApproveAIQuestions = async (questions: AIGeneratedQuestion[], subject: string) => {
+    await approveAIQuestions(questions, subject);
+  };
+
+  const handleUpdateQuestion = async () => {
+    if (editingQuestion) {
+      const success = await updateQuestion(editingQuestion);
+      if (success) {
+        setIsEditDialogOpen(false);
+        setEditingQuestion(null);
+      }
+    }
+  };
+
   if (!isHydrated || isLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -152,127 +199,43 @@ export default function QuestionManager() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <MobileNav />
-      
-      <div className="container mx-auto px-4 py-8">
-        {/* Header Section */}
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            Soru Yönetimi
-          </h1>
-          <p className="text-muted-foreground">
-            Soru ekle, düzenle ve yapay zeka ile yeni sorular oluştur
-          </p>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <Card className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 border-2 border-blue-300 dark:border-blue-700">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                <Database className="h-4 w-4" />
-                Toplam Soru
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                {stats.totalQuestions}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-2 border-green-300 dark:border-green-700">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-green-600 dark:text-green-400 flex items-center gap-2">
-                <BookOpen className="h-4 w-4" />
-                Toplam Ders
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                {stats.totalSubjects}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-orange-500/10 to-red-500/10 border-2 border-orange-400 dark:border-orange-600">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-orange-600 dark:text-orange-400 flex items-center gap-2">
-                <GraduationCap className="h-4 w-4" />
-                Toplam Konu
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                {stats.totalTopics}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-2 border-purple-300 dark:border-purple-700">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-purple-600 dark:text-purple-400 flex items-center gap-2">
-                <Brain className="h-4 w-4" />
-                AI Sorular
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                {stats.aiGeneratedCount}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Main Content */}
-        <QuestionManagerMain
-          questions={questions}
-          subjects={subjects}
-          isLoading={isLoading}
-          isLoadingSubjects={isLoadingSubjects}
-          isCreating={isCreating}
-          selectedSubject={selectedSubject}
-          searchTerm={searchTerm}
-          filterDifficulty={filterDifficulty}
-          isEditDialogOpen={isEditDialogOpen}
-          editingQuestion={editingQuestion}
-          isAIDialogOpen={isAIDialogOpen}
-          isGeneratingAI={isGeneratingAI}
-          aiGeneratedQuestions={aiGeneratedQuestions}
-          aiGenerationResult={aiGenerationResult}
-          formData={formData}
-          setQuestions={setQuestions}
-          setSubjects={setSubjects}
-          setIsLoadingSubjects={setIsLoadingSubjects}
-          setIsCreating={setIsCreating}
-          setSelectedSubject={setSelectedSubject}
-          setSearchTerm={setSearchTerm}
-          setFilterDifficulty={setFilterDifficulty}
-          setIsEditDialogOpen={setIsEditDialogOpen}
-          setEditingQuestion={setEditingQuestion}
-          setIsAIDialogOpen={setIsAIDialogOpen}
-          setIsGeneratingAI={setIsGeneratingAI}
-          setAIGeneratedQuestions={setAIGeneratedQuestions}
-          setAIGenerationResult={setAIGenerationResult}
-          setFormData={setFormData}
-          loadQuestions={loadQuestions}
-          createQuestion={createQuestion}
-          updateQuestion={updateQuestion}
-          deleteQuestion={deleteQuestion}
-          generateQuestions={generateQuestions}
-          approveAIQuestions={approveAIQuestions}
-          handleFormDataChange={handleFormDataChange}
-          handleOptionChange={handleOptionChange}
-          handleAddOption={handleAddOption}
-          handleRemoveOption={handleRemoveOption}
-          handleResetForm={handleResetForm}
-          handleEditOptionChange={handleEditOptionChange}
-          handleEditAddOption={handleEditAddOption}
-          handleEditRemoveOption={handleEditRemoveOption}
-          handleEditQuestionChange={handleEditQuestionChange}
-        />
-      </div>
-    </div>
+    <QuestionManagerMain
+      subjects={subjects}
+      questions={questions}
+      selectedSubject={selectedSubject}
+      searchTerm={searchTerm}
+      filterDifficulty={filterDifficulty}
+      isLoading={isLoading}
+      isLoadingSubjects={isLoadingSubjects}
+      isCreating={isCreating}
+      isEditDialogOpen={isEditDialogOpen}
+      editingQuestion={editingQuestion}
+      isAIDialogOpen={isAIDialogOpen}
+      isGeneratingAI={isGeneratingAI}
+      aiGeneratedQuestions={aiGeneratedQuestions}
+      aiGenerationResult={aiGenerationResult}
+      formData={formData}
+      stats={stats}
+      onSubjectChange={setSelectedSubject}
+      onSearchChange={setSearchTerm}
+      onDifficultyFilterChange={setFilterDifficulty}
+      onFormDataChange={handleFormDataChange}
+      onOptionChange={handleOptionChange}
+      onAddOption={handleAddOption}
+      onRemoveOption={handleRemoveOption}
+      onSubmit={handleCreateQuestion}
+      onReset={handleResetForm}
+      onEditQuestion={handleEditQuestion}
+      onDeleteQuestion={handleDeleteQuestion}
+      onEditDialogOpenChange={setIsEditDialogOpen}
+      onAIDialogOpenChange={setIsAIDialogOpen}
+      onAIGenerate={handleAIGenerate}
+      onAIApprove={handleApproveAIQuestions}
+      onEditOptionChange={handleEditOptionChange}
+      onEditAddOption={handleEditAddOption}
+      onEditRemoveOption={handleEditRemoveOption}
+      onEditQuestionChange={handleEditQuestionChange}
+      onUpdateQuestion={handleUpdateQuestion}
+    />
   );
 }

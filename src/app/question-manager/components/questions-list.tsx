@@ -63,7 +63,7 @@ export default function QuestionsList({
   });
 
   return (
-    <Card className="glass-card w-full h-full rounded-none">
+    <Card className="border-gradient-question shadow-lg w-full h-full">
       <CardHeader>
         <CardTitle>Sorular</CardTitle>
         <CardDescription>

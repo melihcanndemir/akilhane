@@ -5,25 +5,17 @@ import SubjectManager from "@/components/subject-manager";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Database, BookOpen, Brain, GraduationCap } from "lucide-react";
+import { Database, BookOpen, Brain, GraduationCap, Target, Zap, Users, BarChart3 } from "lucide-react";
 import Link from "next/link";
 import MobileNav from "@/components/mobile-nav";
 import LoadingSpinner from "@/components/loading-spinner";
 import { shouldUseDemoData, demoSubjects } from "@/data/demo-data";
 import AISubjectGenerator from "@/components/ai-subject-generator";
 import { handleAIGeneratedSubjects } from "@/lib/subject-ai-handler";
-
-interface Subject {
-  id: string;
-  name: string;
-  description: string;
-  category: string;
-  difficulty: "Başlangıç" | "Orta" | "İleri";
-  questionCount: number;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+import { UnifiedStorageService } from "@/services/unified-storage-service";
+import type { FeatureCard } from "@/components/ui/feature-cards";
+import FeatureCards from "@/components/ui/feature-cards";
+import type { Subject } from "@/types/question-manager";
 
 interface Stats {
   totalSubjects: number;
@@ -71,20 +63,8 @@ export default function SubjectManagerPage() {
           totalCategories,
         });
       } else {
-        // Try to get data from localStorage first
-        const getSubjectsFromStorage = () => {
-          if (typeof window === "undefined") {
-            return [];
-          }
-          try {
-            const stored = localStorage.getItem("akilhane_subjects");
-            return stored ? JSON.parse(stored) : [];
-          } catch {
-            return [];
-          }
-        };
-
-        const localSubjects = getSubjectsFromStorage();
+                 // Use UnifiedStorageService for consistency with Question Manager
+         const localSubjects = UnifiedStorageService.getSubjects();
 
         if (localSubjects.length > 0) {
           // Use localStorage data
@@ -134,6 +114,46 @@ export default function SubjectManagerPage() {
       setIsLoading(false);
     }
   };
+
+  // Subject Manager özellikleri
+  const subjectManagerFeatures: FeatureCard[] = [
+    {
+      icon: BookOpen,
+      title: "Kolay Ders Yönetimi",
+      description: "Ders ekleme, düzenleme ve silme işlemlerini kolayca yapın",
+      iconBgColor: "bg-gradient-to-r from-blue-600 to-indigo-600",
+    },
+    {
+      icon: Target,
+      title: "Kategori Organizasyonu",
+      description: "Dersleri kategorilere göre organize edin ve filtreleyin",
+      iconBgColor: "bg-gradient-to-r from-purple-600 to-pink-600",
+    },
+    {
+      icon: Brain,
+      title: "AI Destekli Üretim",
+      description: "Yapay zeka ile otomatik ders ve konu oluşturun",
+      iconBgColor: "bg-gradient-to-r from-green-600 to-emerald-600",
+    },
+    {
+      icon: Zap,
+      title: "Hızlı İşlemler",
+      description: "Toplu ders işlemleri ve hızlı düzenleme",
+      iconBgColor: "bg-gradient-to-r from-orange-600 to-red-600",
+    },
+    {
+      icon: Users,
+      title: "Aktif/Pasif Durum",
+      description: "Dersleri aktif veya pasif olarak yönetin",
+      iconBgColor: "bg-gradient-to-r from-indigo-600 to-purple-600",
+    },
+    {
+      icon: BarChart3,
+      title: "Detaylı İstatistikler",
+      description: "Ders ve soru sayısı istatistikleri",
+      iconBgColor: "bg-gradient-to-r from-teal-600 to-cyan-600",
+    },
+  ];
   return (
     <div className="min-h-screen">
       {/* Responsive Navigation Bar */}
@@ -197,19 +217,19 @@ export default function SubjectManagerPage() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center gap-2 p-4 border-gradient-question">
-                  <BookOpen className="w-6 h-6 text-blue-500 flex-shrink-0" />
+                <div className="flex items-center gap-2 p-4 border-2 border-blue-300 dark:border-blue-700 rounded-lg bg-gradient-to-br from-blue-500/10 to-indigo-500/10">
+                  <BookOpen className="w-6 h-6 text-blue-600 dark:text-blue-400 flex-shrink-0" />
                   <div>
                     <p className="text-sm text-muted-foreground">Toplam Ders</p>
                     {isLoading ? (
                       <LoadingSpinner className="p-0 h-6 w-6" />
                     ) : (
-                      <p className="text-xl font-bold">{stats.totalSubjects}</p>
+                      <p className="text-xl font-bold text-blue-600 dark:text-blue-400">{stats.totalSubjects}</p>
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-2 p-4 border-gradient-question">
-                  <Brain className="w-6 h-6 text-purple-500 flex-shrink-0" />
+                <div className="flex items-center gap-2 p-4 border-2 border-purple-300 dark:border-purple-700 rounded-lg bg-gradient-to-br from-purple-500/10 to-pink-500/10">
+                  <Brain className="w-6 h-6 text-purple-600 dark:text-purple-400 flex-shrink-0" />
                   <div>
                     <p className="text-sm text-muted-foreground">
                       Toplam Kategori
@@ -217,7 +237,7 @@ export default function SubjectManagerPage() {
                     {isLoading ? (
                       <LoadingSpinner className="p-0 h-6 w-6" />
                     ) : (
-                      <p className="text-xl font-bold">
+                      <p className="text-xl font-bold text-purple-600 dark:text-purple-400">
                         {stats.totalCategories}
                       </p>
                     )}
@@ -229,6 +249,13 @@ export default function SubjectManagerPage() {
 
           {/* Subject Manager Component */}
           <SubjectManager key={refreshKey} onRefresh={() => void loadStats()} />
+
+          {/* Subject Manager Özellikleri */}
+          <FeatureCards
+            title="Ders Yöneticisi Özellikleri"
+            features={subjectManagerFeatures}
+            columns={3}
+          />
         </div>
       </div>
     </div>

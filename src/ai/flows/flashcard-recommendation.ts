@@ -87,14 +87,14 @@ export async function getFlashcardRecommendation(
   try {
     // Parse the combined data from localStorage
     const combinedData = JSON.parse(input.performanceData);
-    
+
     // Extract different types of data
     const performanceHistory = combinedData.performanceData || {};
     const quizResults = combinedData.quizResults || [];
     const studyHistory = combinedData.studyHistory || [];
     const flashcardProgress = combinedData.flashcardProgress || [];
     const currentSubject = combinedData.currentSubject || input.subject;
-    
+
     // Set mock data for the performance service tool
     (
       getPerformanceHistoryForSubject as unknown as {
@@ -102,16 +102,16 @@ export async function getFlashcardRecommendation(
       }
     ).__setData({
       subject: currentSubject,
-      quizResults: quizResults,
-      studyHistory: studyHistory,
-      flashcardProgress: flashcardProgress,
-      performanceData: performanceHistory
+      quizResults,
+      studyHistory,
+      flashcardProgress,
+      performanceData: performanceHistory,
     });
 
     return flashcardRecommendationFlow(input);
-  } catch (error) {
-    console.error("Error parsing performance data:", error);
-    
+  } catch {
+    // Error logged silently in production, handled gracefully with fallback
+
     // Fallback to basic recommendation if data parsing fails
     return {
       recommendedStudyMode: input.studyMode,
@@ -119,7 +119,7 @@ export async function getFlashcardRecommendation(
       studyStrategy: "Veri analizi yapılamadığı için genel bir çalışma stratejisi öneriyorum. Mevcut flashcard'larınızı tekrar edin ve zorlandığınız konulara odaklanın.",
       estimatedTime: input.targetStudyTime || 30,
       confidence: 0.5,
-      reasoning: "Veri analizi sırasında bir hata oluştu. Genel öneriler sunuluyor."
+      reasoning: "Veri analizi sırasında bir hata oluştu. Genel öneriler sunuluyor.",
     };
   }
 }

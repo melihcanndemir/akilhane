@@ -32,6 +32,7 @@ import {
 import { shouldUseDemoData, demoSubjects } from "@/data/demo-data";
 import { SubjectService } from "@/services/supabase-service";
 import { supabase } from "@/lib/supabase";
+import { UnifiedStorageService } from "@/services/unified-storage-service";
 
 interface Subject {
   id: string;
@@ -41,106 +42,6 @@ interface Subject {
   difficulty: string;
   questionCount: number;
   isActive: boolean;
-}
-
-// LocalStorage service for subjects
-class SubjectLocalStorageService {
-  private static readonly STORAGE_KEY = "akilhane_subjects";
-
-  static getSubjects(): Subject[] {
-    if (typeof window === "undefined") {
-      return [];
-    }
-    try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  }
-
-  static saveSubjects(subjects: Subject[]): void {
-    if (typeof window === "undefined") {
-      return;
-    }
-    try {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(subjects));
-    } catch {
-      //do nothing
-    }
-  }
-
-  static addSubject(subject: Omit<Subject, "id">): Subject {
-    const newSubject: Subject = {
-      ...subject,
-      id: `subj_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-    };
-
-    const subjects = this.getSubjects();
-    subjects.push(newSubject);
-    this.saveSubjects(subjects);
-    return newSubject;
-  }
-
-  static updateSubject(id: string, updates: Partial<Subject>): Subject | null {
-    const subjects = this.getSubjects();
-    const index = subjects.findIndex((s) => s.id === id);
-    if (index === -1) {
-      return null;
-    }
-
-    const existingSubject = subjects[index];
-    if (existingSubject) {
-      subjects[index] = {
-        id: existingSubject.id,
-        name: existingSubject.name,
-        description: existingSubject.description,
-        category: existingSubject.category,
-        difficulty: existingSubject.difficulty,
-        questionCount: existingSubject.questionCount,
-        isActive: existingSubject.isActive,
-        ...updates,
-      };
-      this.saveSubjects(subjects);
-      return subjects[index];
-    }
-    return null;
-  }
-
-  static deleteSubject(id: string): boolean {
-    const subjects = this.getSubjects();
-    const filtered = subjects.filter((s) => s.id !== id);
-    if (filtered.length === subjects.length) {
-      return false;
-    }
-
-    this.saveSubjects(filtered);
-    return true;
-  }
-
-  static toggleActive(id: string): Subject | null {
-    const subjects = this.getSubjects();
-    const index = subjects.findIndex((s) => s.id === id);
-    if (index === -1) {
-      return null;
-    }
-
-    const existingSubject = subjects[index];
-    if (existingSubject) {
-      subjects[index] = {
-        id: existingSubject.id,
-        name: existingSubject.name,
-        description: existingSubject.description,
-        category: existingSubject.category,
-        difficulty: existingSubject.difficulty,
-        questionCount: existingSubject.questionCount,
-        isActive: !existingSubject.isActive,
-      };
-      this.saveSubjects(subjects);
-      return subjects[index];
-    }
-    return null;
-  }
 }
 
 interface SubjectManagerProps {
@@ -169,6 +70,9 @@ const SubjectManager = ({ onRefresh }: SubjectManagerProps) => {
       if (shouldUseDemoData()) {
         setSubjects(demoSubjects);
         setUseSupabase(false);
+
+        // Save demo subjects to localStorage for Question Manager to use
+        UnifiedStorageService.saveSubjects(demoSubjects);
         return;
       }
 
@@ -194,6 +98,9 @@ const SubjectManager = ({ onRefresh }: SubjectManagerProps) => {
       ) {
         setSubjects(apiSubjects);
         setUseSupabase(true);
+
+        // Save API subjects to localStorage for Question Manager to use
+        UnifiedStorageService.saveSubjects(apiSubjects);
         return;
       }
 
@@ -204,7 +111,7 @@ const SubjectManager = ({ onRefresh }: SubjectManagerProps) => {
 
       if (!session) {
         setUseSupabase(false);
-        const localSubjects = SubjectLocalStorageService.getSubjects();
+        const localSubjects = UnifiedStorageService.getSubjects();
 
         // Calculate real question count
         const getQuestionsFromStorage = () => {
@@ -251,7 +158,7 @@ const SubjectManager = ({ onRefresh }: SubjectManagerProps) => {
       }));
 
       // Merge localStorage and Supabase data
-      const localSubjects = SubjectLocalStorageService.getSubjects();
+      const localSubjects = UnifiedStorageService.getSubjects();
       const mergedSubjects = [...localSubjects];
 
       // Check each subject in Supabase
@@ -295,6 +202,12 @@ const SubjectManager = ({ onRefresh }: SubjectManagerProps) => {
       });
 
       setSubjects(updatedMergedSubjects);
+
+      // Save merged subjects to localStorage for Question Manager to use
+      if (updatedMergedSubjects.length > 0) {
+        UnifiedStorageService.saveSubjects(updatedMergedSubjects);
+
+      }
     } catch {
       //do nothing
       setSubjects([]);
@@ -346,7 +259,7 @@ const SubjectManager = ({ onRefresh }: SubjectManagerProps) => {
           setSubjects((prev) => [mappedSubject, ...prev]);
         }
       } else {
-        const result = SubjectLocalStorageService.addSubject(newSubject);
+        const result = UnifiedStorageService.addSubject(newSubject);
         setSubjects((prev) => [result, ...prev]);
       }
 
@@ -411,7 +324,7 @@ const SubjectManager = ({ onRefresh }: SubjectManagerProps) => {
           );
         }
       } else {
-        const result = SubjectLocalStorageService.updateSubject(subject.id, {
+        const result = UnifiedStorageService.updateSubject(subject.id, {
           name: formData.name,
           description: formData.description,
           category: formData.category,
@@ -420,7 +333,7 @@ const SubjectManager = ({ onRefresh }: SubjectManagerProps) => {
 
         if (result) {
           setSubjects((prev) =>
-            prev.map((s) => (s.id === subject.id ? result : s)),
+            prev.map((s) => (s.id === subject.id ? { ...s, ...formData } : s)),
           );
         }
       }
@@ -461,7 +374,7 @@ const SubjectManager = ({ onRefresh }: SubjectManagerProps) => {
           setSubjects((prev) => prev.filter((s) => s.id !== id));
         }
       } else {
-        const success = SubjectLocalStorageService.deleteSubject(id);
+        const success = UnifiedStorageService.deleteSubject(id);
         if (success) {
           setSubjects((prev) => prev.filter((s) => s.id !== id));
         }
@@ -511,9 +424,12 @@ const SubjectManager = ({ onRefresh }: SubjectManagerProps) => {
           }
         }
       } else {
-        const result = SubjectLocalStorageService.toggleActive(id);
-        if (result) {
-          setSubjects((prev) => prev.map((s) => (s.id === id ? result : s)));
+        const subject = subjects.find((s) => s.id === id);
+        if (subject) {
+          const result = UnifiedStorageService.updateSubject(id, { isActive: !subject.isActive });
+          if (result) {
+            setSubjects((prev) => prev.map((s) => (s.id === id ? { ...s, isActive: !s.isActive } : s)));
+          }
         }
       }
 
@@ -582,11 +498,6 @@ const SubjectManager = ({ onRefresh }: SubjectManagerProps) => {
               <BookOpen className="w-8 h-8 text-blue-600" />
               Ders Yöneticisi
             </h1>
-            <div className="flex flex-wrap justify-center gap-2">
-              <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-                💾 LocalStorage
-              </Badge>
-            </div>
           </div>
           <p className="text-gray-600 dark:text-gray-300 text-base sm:text-lg">
             Dersleri yönetin ve organize edin

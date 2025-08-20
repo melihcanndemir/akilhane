@@ -107,7 +107,7 @@ export default function FilterBar({
   onDifficultyFilterChange,
 }: FilterBarProps) {
   return (
-    <div className="flex flex-col sm:flex-row gap-3 mb-4 p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+    <div className="flex flex-col sm:flex-row gap-3 mb-4 p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg border-gradient-question shadow-sm">
       <SubjectFilter
         value={selectedSubject}
         onChange={onSubjectChange}

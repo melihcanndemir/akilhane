@@ -356,23 +356,88 @@ const TopicExplainerPageContent = () => {
               ))}
             </div>
           ) : (
-            <div className="text-center py-12">
-              <div className="mb-4 flex justify-center">
-                <GraduationCap className="w-16 h-16 text-gray-400" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                Henüz konu anlatımı yok
-              </h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-6">
-                Ders Yöneticisi&apos;nden ders ekleyerek konu anlatımlarını
-                başlatın!
-              </p>
-              <Link href="/subject-manager">
-                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-                  <Plus className="w-5 h-5 mr-2" />
-                  Ders Yöneticisi&apos;ne Git
-                </Button>
-              </Link>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <Card className="border-gradient-question shadow-lg border-dashed border-2 border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300">
+                <CardContent className="p-8 text-center">
+                  <div className="mb-4 flex justify-center">
+                    <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 rounded-full flex items-center justify-center">
+                      <Plus className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    İlk Konu Anlatımını Başlat
+                  </h3>
+                  <p className="text-gray-500 dark:text-gray-400 mb-6">
+                    Ders Yöneticisi&apos;nden ders ekleyerek konu anlatımlarını başlatın!
+                  </p>
+                  <Link href="/subject-manager">
+                    <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white w-full">
+                      <Plus className="w-5 h-5 mr-2" />
+                      Ders Yöneticisi&apos;ne Git
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+
+              <Card className="border-gradient-question shadow-lg border-dashed border-2 border-gray-300 dark:border-gray-600 hover:border-green-400 dark:hover:border-green-500 transition-all duration-300">
+                <CardContent className="p-8 text-center">
+                  <div className="mb-4 flex justify-center">
+                    <div className="w-16 h-16 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900 dark:to-emerald-900 rounded-full flex items-center justify-center">
+                      <BookOpen className="w-8 h-8 text-green-600 dark:text-green-400" />
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Konu Anlatımı Nasıl Çalışır?
+                  </h3>
+                  <p className="text-gray-500 dark:text-gray-400 mb-6">
+                    AI destekli, görsel ve interaktif konu anlatımları ile öğrenmeyi kolaylaştırın.
+                  </p>
+                  <div className="text-sm text-gray-400 dark:text-gray-500">
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <Brain className="w-4 h-4" />
+                      <span>AI Destekli</span>
+                    </div>
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <Target className="w-4 h-4" />
+                      <span>Adım Adım</span>
+                    </div>
+                    <div className="flex items-center justify-center gap-2">
+                      <Lightbulb className="w-4 h-4" />
+                      <span>İnteraktif</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-gradient-question shadow-lg border-dashed border-2 border-gray-300 dark:border-gray-600 hover:border-purple-400 dark:hover:border-purple-500 transition-all duration-300">
+                <CardContent className="p-8 text-center">
+                  <div className="mb-4 flex justify-center">
+                    <div className="w-16 h-16 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 rounded-full flex items-center justify-center">
+                      <GraduationCap className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Öğrenme Süreci
+                  </h3>
+                  <p className="text-gray-500 dark:text-gray-400 mb-6">
+                    Her konu için özelleştirilmiş öğrenme yolları ve ilerleme takibi.
+                  </p>
+                  <div className="text-sm text-gray-400 dark:text-gray-500">
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <span className="w-4 h-4 bg-blue-500 rounded-full"></span>
+                      <span>Ders Ekle</span>
+                    </div>
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <span className="w-4 h-4 bg-green-500 rounded-full"></span>
+                      <span>Konu Seç</span>
+                    </div>
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="w-4 h-4 bg-purple-500 rounded-full"></span>
+                      <span>AI Öğren</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           )}
         </div>

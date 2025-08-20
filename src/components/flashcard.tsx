@@ -7,6 +7,16 @@ import {
   type FlashcardRecommendationOutput,
 } from "../ai/flows/flashcard-recommendation";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ArrowLeft, Frown, Meh, Smile, Star, Target, Shuffle, Brain, BookOpen, Zap, MousePointer2, BarChart3, CheckCircle, Lightbulb, Eye, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import VoiceAssistant from "./voice-assistant";
@@ -65,6 +75,9 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
   const [isLoadingRecommendation, setIsLoadingRecommendation] = useState(false);
   const [isListening, setIsListening] = useState(false);
 
+  // Reset confirmation state
+  const [showResetDialog, setShowResetDialog] = useState(false);
+
   // Load flashcards from localStorage or demo data
   useEffect(() => {
     const loadFlashcards = async () => {
@@ -85,83 +98,44 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
 
         // USE UNIFIED STORAGE SERVICE INSTEAD OF DIRECT LOCALSTORAGE
 
-        // Get questions from UnifiedStorageService
-        const questions = UnifiedStorageService.getQuestionsBySubject(subject);
+        // Sadece flashcard'ları yükle - quiz soruları kaldırıldı
+        const flashcards = UnifiedStorageService.getFlashcardsBySubject(subject);
 
-        if (questions.length === 0) {
-          // Also check for flashcards
-          const flashcards = UnifiedStorageService.getFlashcardsBySubject(subject);
-          
-          if (flashcards.length === 0) {
-            throw new Error("Bu ders için henüz soru veya flashcard bulunmuyor");
-          }
-          
-          // Convert flashcards to flashcard format
-          const flashcardData: Flashcard[] = flashcards.map((f) => {
-            const card: Flashcard = {
-              id: f.id,
-              question: f.question,
-              answer: f.answer,
-              explanation: f.explanation,
-              topic: f.topic,
-              difficulty: f.difficulty,
-              reviewCount: f.reviewCount || 0,
-              confidence: f.confidence || 3, // Default confidence
-              options: undefined, // Flashcards don't have options
-            };
-            
-            // Only add optional properties if they exist
-            if (f.lastReviewed) {
-              card.lastReviewed = f.lastReviewed instanceof Date ? f.lastReviewed : new Date(f.lastReviewed);
-            }
-            if (f.nextReview) {
-              card.nextReview = f.nextReview instanceof Date ? f.nextReview : new Date(f.nextReview);
-            }
-            
-            return card;
-          });
-          
-          setFlashcards(flashcardData);
-          setStats({
-            total: flashcardData.length,
-            reviewed: flashcardData.filter((f) => f.reviewCount > 0).length,
-            mastered: flashcardData.filter((f) => f.confidence >= 4).length,
-            needsReview: flashcardData.filter((f) => f.confidence < 4).length,
-          });
-          return;
+        if (flashcards.length === 0) {
+          throw new Error("Bu ders için henüz flashcard bulunamadı. Flashcard Yöneticisi&apos;nden flashcard ekleyebilirsiniz.");
         }
 
-        const flashcardData: Flashcard[] = questions.map(
-          (q: {
-            id: string;
-            text: string;
-            options?: Array<{ text: string; isCorrect: boolean }>;
-            explanation: string;
-            topic?: string;
-            difficulty: string;
-          }) => ({
-            id: q.id,
-            question: q.text,
-            answer: q.options
-              ? q.options.find(
-                  (opt: { isCorrect: boolean; text: string }) => opt.isCorrect,
-                )?.text || "Cevap bulunamadı"
-              : q.explanation,
-            explanation: q.explanation,
-            topic: q.topic || "Genel",
-            difficulty: q.difficulty,
-            reviewCount: 0,
-            confidence: 3, // Default confidence
-            options: q.options,
-          }),
-        );
+        // Flashcard'ları component interface'ine uygun hale getir
+        const convertedFlashcards: Flashcard[] = flashcards.map((f) => {
+          const card: Flashcard = {
+            id: f.id,
+            question: f.question,
+            answer: f.answer,
+            explanation: f.explanation,
+            topic: f.topic,
+            difficulty: f.difficulty,
+            reviewCount: f.reviewCount || 0,
+            confidence: f.confidence || 3,
+            options: undefined,
+          };
 
-        setFlashcards(flashcardData);
+          // Only add optional properties if they exist
+          if (f.lastReviewed) {
+            card.lastReviewed = f.lastReviewed instanceof Date ? f.lastReviewed : new Date(f.lastReviewed);
+          }
+          if (f.nextReview) {
+            card.nextReview = f.nextReview instanceof Date ? f.nextReview : new Date(f.nextReview);
+          }
+
+          return card;
+        });
+
+        setFlashcards(convertedFlashcards);
         setStats({
-          total: flashcardData.length,
-          reviewed: flashcardData.filter((f) => f.reviewCount > 0).length,
-          mastered: flashcardData.filter((f) => f.confidence >= 4).length,
-          needsReview: flashcardData.filter((f) => f.confidence < 4).length,
+          total: convertedFlashcards.length,
+          reviewed: convertedFlashcards.filter((f) => f.reviewCount > 0).length,
+          mastered: convertedFlashcards.filter((f) => f.confidence >= 4).length,
+          needsReview: convertedFlashcards.filter((f) => f.confidence < 4).length,
         });
       } catch (error) {
         // Show user-friendly error message
@@ -230,7 +204,7 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
   ): number => {
     // Optimized spaced repetition algorithm with realistic limits
     let daysUntilNextReview: number;
-    
+
     if (confidence >= 4) {
       // High confidence: gradual increase with cap
       daysUntilNextReview = Math.min(Math.pow(1.5, reviewCount), 30);
@@ -244,7 +218,7 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
       // Very low confidence: review soon
       daysUntilNextReview = 1;
     }
-    
+
     // Ensure minimum 1 day and maximum 30 days
     return Math.max(1, Math.min(Math.round(daysUntilNextReview), 30));
   };
@@ -256,7 +230,7 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
       (c) => c.confidence >= 4 && c.reviewCount >= 3,
     ).length;
     const needsReview = cards.filter((c) => {
-      if (!c.nextReview) return true;
+      if (!c.nextReview) {return true;}
       const nextReviewDate = c.nextReview instanceof Date ? c.nextReview : new Date(c.nextReview);
       return nextReviewDate <= now;
     }).length;
@@ -272,7 +246,7 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
   const resetAllCards = () => {
     // Reset all flashcards to initial state
     const resetFlashcards = flashcards.map(card => {
-      const { lastReviewed, nextReview, ...cardWithoutDates } = card;
+      const { ...cardWithoutDates } = card;
       return {
         ...cardWithoutDates,
         reviewCount: 0,
@@ -317,13 +291,13 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
           : "{}";
 
       // Get quiz results from localStorage
-      const quizResults = 
+      const quizResults =
         typeof window !== "undefined"
           ? localStorage.getItem("quizResults") || "[]"
           : "[]";
 
       // Get study history from localStorage
-      const studyHistory = 
+      const studyHistory =
         typeof window !== "undefined"
           ? localStorage.getItem("studyHistory") || "[]"
           : "[]";
@@ -344,17 +318,17 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
         performanceData: JSON.parse(performanceData),
         quizResults: JSON.parse(quizResults),
         studyHistory: JSON.parse(studyHistory),
-        flashcardProgress: flashcardProgress,
+        flashcardProgress,
         currentSubject: subject,
         currentStudyMode: studyMode,
         totalFlashcards: flashcards.length,
         reviewedCount: flashcards.filter(card => card.lastReviewed).length,
         masteredCount: flashcards.filter(card => card.confidence >= 4).length,
         needsReviewCount: flashcards.filter(card => {
-          if (!card.nextReview) return true;
+          if (!card.nextReview) {return true;}
           const nextReviewDate = card.nextReview instanceof Date ? card.nextReview : new Date(card.nextReview);
           return nextReviewDate <= new Date();
-        }).length
+        }).length,
       };
 
       const flashcardData = JSON.stringify(combinedData);
@@ -369,8 +343,10 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
       });
 
       setAiRecommendation(recommendation);
-    } catch (error) {
-      console.error("AI recommendation error:", error);
+    } catch /* (error) */ {
+      if (process.env.NODE_ENV === 'development') {
+        //console.error("AI recommendation error:", error);
+      }
       // Show user-friendly error message
       toast({
         title: "AI Önerisi Alınamadı",
@@ -403,7 +379,7 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
   const shuffleCards = () => {
     // Get current card before shuffling
     const currentCard = filteredCards[currentIndex];
-    
+
     // Create a shuffled copy of the filtered cards
     const shuffled = [...filteredCards].sort(() => Math.random() - 0.5);
 
@@ -421,7 +397,7 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
     });
 
     setFlashcards(updatedFlashcards);
-    
+
     // Find the new position of the current card in shuffled array
     if (currentCard) {
       const newIndex = shuffled.findIndex(card => card.id === currentCard.id);
@@ -429,7 +405,7 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
     } else {
       setCurrentIndex(0);
     }
-    
+
     setIsFlipped(false);
     setShowAnswer(false);
     setConfidence(null);
@@ -438,11 +414,11 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
   const getCardsForStudyMode = () => {
     switch (studyMode) {
       case "review":
-        return flashcards.filter(() => {
+        return flashcards.filter(() =>
           // Show all cards in review mode
           // This includes: new cards, cards due for review, and completed cards
-          return true;
-        });
+           true,
+        );
       case "new":
         return flashcards.filter((c) => !c.lastReviewed);
       case "difficult":
@@ -484,45 +460,49 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
 
   // Filter cards based on study mode
   let filteredCards = getCardsForStudyMode();
-  
+
   // Debug filtering
-  console.log('Filtering Debug:', {
-    studyMode,
-    totalCards: flashcards.length,
-    filteredCards: filteredCards.length,
-    cards: flashcards.map(c => ({
-      id: c.id,
-      confidence: c.confidence,
-      lastReviewed: c.lastReviewed,
-      nextReview: c.nextReview
-    }))
-  });
-  
+  /* if (process.env.NODE_ENV === 'development') {
+    console.log('Filtering Debug:', {
+      studyMode,
+      totalCards: flashcards.length,
+      filteredCards: filteredCards.length,
+      cards: flashcards.map(c => ({
+        id: c.id,
+        confidence: c.confidence,
+        lastReviewed: c.lastReviewed,
+        nextReview: c.nextReview,
+      })),
+    });
+  } */
+
   // If no cards found in current mode, fallback to showing all cards
   if (filteredCards.length === 0 && flashcards.length > 0) {
     filteredCards = flashcards;
   }
-  
+
   const currentCard = filteredCards[currentIndex];
 
   // Check if all cards are completed (confidence >= 4) - show congratulations
   const allCardsCompleted = flashcards.length > 0 && flashcards.every(card => card.confidence >= 4);
-  
+
   if (!currentCard || allCardsCompleted) {
     // Check if current study mode has no cards
     const currentModeCompleted = filteredCards.length === 0 && flashcards.length > 0;
-    
+
     // Debug info
-    console.log('Debug Info:', {
-      totalCards: flashcards.length,
-      completedCards: flashcards.filter(c => c.confidence >= 4).length,
-      allCardsCompleted,
-      currentModeCompleted,
-      studyMode,
-      filteredCardsLength: filteredCards.length,
-      confidenceDistribution: flashcards.map(c => c.confidence)
-    });
-    
+    /* if (process.env.NODE_ENV === 'development') {
+      console.log('Debug Info:', {
+        totalCards: flashcards.length,
+        completedCards: flashcards.filter(c => c.confidence >= 4).length,
+        allCardsCompleted,
+        currentModeCompleted,
+        studyMode,
+        filteredCardsLength: filteredCards.length,
+        confidenceDistribution: flashcards.map(c => c.confidence),
+      });
+    } */
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-8">
         <div className="max-w-4xl mx-auto">
@@ -530,10 +510,10 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
               Flashcard Sistemi - {subject}
             </h1>
-            
+
             {(allCardsCompleted || currentModeCompleted) ? (
               // 🎉 MODERN CONGRATULATIONS SCREEN 🎉
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, scale: 0.8, y: 50 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ duration: 0.8, type: "spring", stiffness: 100 }}
@@ -542,7 +522,7 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
                 {/* Modern Celebration Animation */}
                 <div className="text-center mb-8">
                   <div className="flex justify-center mb-6 sm:mb-8">
-                    <motion.div 
+                    <motion.div
                       initial={{ opacity: 0, scale: 0 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.8, type: "spring", stiffness: 100 }}
@@ -554,17 +534,17 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
                           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                         </svg>
                       </div>
-                      
+
                       {/* Floating success indicators */}
-                      <motion.div 
-                        animate={{ 
+                      <motion.div
+                        animate={{
                           y: [0, -8, 0],
-                          rotate: [0, 5, 0]
+                          rotate: [0, 5, 0],
                         }}
-                        transition={{ 
-                          duration: 2, 
-                          repeat: Infinity, 
-                          repeatType: "reverse" 
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          repeatType: "reverse",
                         }}
                         className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg"
                       >
@@ -572,17 +552,17 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
                           <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                         </svg>
                       </motion.div>
-                      
-                      <motion.div 
-                        animate={{ 
+
+                      <motion.div
+                        animate={{
                           y: [0, -6, 0],
-                          rotate: [0, -5, 0]
+                          rotate: [0, -5, 0],
                         }}
-                        transition={{ 
-                          duration: 2.5, 
-                          repeat: Infinity, 
+                        transition={{
+                          duration: 2.5,
+                          repeat: Infinity,
                           repeatType: "reverse",
-                          delay: 0.5
+                          delay: 0.5,
                         }}
                         className="absolute -bottom-1 -left-1 sm:-bottom-2 sm:-left-2 w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center shadow-lg"
                       >
@@ -592,8 +572,8 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
                       </motion.div>
                     </motion.div>
                   </div>
-                  
-                  <motion.h2 
+
+                  <motion.h2
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
@@ -602,21 +582,21 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
                   >
                     Başarıyla Tamamlandı!
                   </motion.h2>
-                  
-                  <motion.p 
+
+                  <motion.p
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
                     className="text-lg sm:text-xl md:text-2xl text-gray-700 dark:text-gray-300 mb-6 sm:mb-8 font-medium px-4"
                   >
-                    {allCardsCompleted 
-                      ? "Matematik konusundaki tüm flashcard'ları başarıyla öğrendiniz!"
+                    {allCardsCompleted
+                      ? "Matematik konusundaki tüm flashcard&apos;ları başarıyla öğrendiniz!"
                       : "Harika bir iş çıkardınız!"}
                   </motion.p>
                 </div>
-                
+
                 {/* Modern Stats Grid */}
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.7 }}
@@ -635,7 +615,7 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
                       <div className="text-xs sm:text-sm font-semibold text-blue-600 dark:text-blue-400">Toplam Kart</div>
                     </div>
                   </div>
-                  
+
                   <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-green-200/50 dark:border-green-600/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                     <div className="text-center">
                       <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
@@ -649,7 +629,7 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
                       <div className="text-xs sm:text-sm font-semibold text-emerald-600 dark:text-green-400">Başarı Oranı</div>
                     </div>
                   </div>
-                  
+
                   <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-purple-200/50 dark:border-purple-600/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                     <div className="text-center">
                       <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
@@ -664,9 +644,9 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
                     </div>
                   </div>
                 </motion.div>
-                
+
                 {/* Modern Action Buttons */}
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.9 }}
@@ -685,7 +665,7 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
                     </svg>
                     <span>Yeni Baştan Başla</span>
                   </motion.button>
-                  
+
                   <Link href="/dashboard" className="w-full sm:w-auto">
                     <motion.button
                       whileHover={{ scale: 1.05, y: -3 }}
@@ -695,14 +675,14 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
                       <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                       </svg>
-                      <span>Dashboard'a Dön</span>
+                      <span>Dashboard&apos;a Dön</span>
                     </motion.button>
                   </Link>
                 </motion.div>
               </motion.div>
             ) : (
               // Modern "no cards" message with better debugging
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
@@ -716,9 +696,9 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
                       : "Bu konu için flashcard bulunamadı"}
                   </h3>
                 </div>
-                
+
                 {filteredCards.length === 0 && flashcards.length > 0 && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.2 }}
@@ -733,9 +713,9 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
                     </p>
                   </motion.div>
                 )}
-                
+
                 {/* Modern Debug Information */}
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
@@ -769,9 +749,9 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
                     <div><strong>Filtrelenmiş Kartlar:</strong> {filteredCards.length}</div>
                   </div>
                 </motion.div>
-                
+
                 {filteredCards.length === 0 && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.6 }}
@@ -782,7 +762,7 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
                       {studyMode === "new" && "🆕 Yeni modu: Henüz incelenmemiş kartları gösterir"}
                       {studyMode === "difficult" && "⚠️ Zor modu: Güven seviyesi düşük kartları gösterir"}
                     </p>
-                    
+
                     <div className="flex flex-wrap gap-3 justify-center">
                       <motion.button
                         whileHover={{ scale: 1.05, y: -2 }}
@@ -795,7 +775,7 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
                       >
                         🔄 Tüm Kartları Göster
                       </motion.button>
-                      
+
                       <motion.button
                         whileHover={{ scale: 1.05, y: -2 }}
                         whileTap={{ scale: 0.95 }}
@@ -807,7 +787,7 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
                       >
                         🆕 Yeni Kartlar
                       </motion.button>
-                      
+
                       <motion.button
                         whileHover={{ scale: 1.05, y: -2 }}
                         whileTap={{ scale: 0.95 }}
@@ -907,11 +887,7 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
           {/* Reset All Cards Button */}
           <div className="flex justify-center mb-6">
             <button
-              onClick={() => {
-                if (confirm("Tüm kartların ilerleme durumunu sıfırlamak istediğinizden emin misiniz? Bu işlem geri alınamaz.")) {
-                  resetAllCards();
-                }
-              }}
+              onClick={() => setShowResetDialog(true)}
               className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2 shadow-md hover:shadow-lg"
               title="Tüm kartların spaced repetition verilerini sıfırla"
             >
@@ -1095,11 +1071,11 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
             <motion.div
               className="relative w-full h-auto min-h-[31rem] sm:min-h-[35rem]"
               animate={{ rotateY: isFlipped ? 180 : 0 }}
-              transition={{ 
-                duration: 0.8, 
-                type: "spring", 
-                stiffness: 100, 
-                damping: 15 
+              transition={{
+                duration: 0.8,
+                type: "spring",
+                stiffness: 100,
+                damping: 15,
               }}
               style={{ transformStyle: "preserve-3d" }}
             >
@@ -1313,9 +1289,9 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
                     <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-2">
                       Bu seviye ile kartınız {(() => {
                         const days = calculateNextReview(confidence, (currentCard?.reviewCount || 0) + 1);
-                        if (days === 1) return "yarın";
-                        if (days < 7) return `${days} gün sonra`;
-                        if (days < 30) return `${days} gün sonra`;
+                        if (days === 1) {return "yarın";}
+                        if (days < 7) {return `${days} gün sonra`;}
+                        if (days < 30) {return `${days} gün sonra`;}
                         return "1 ay sonra";
                       })()} tekrar gösterilecek
                     </p>
@@ -1367,8 +1343,8 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
             <motion.div
               className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500 rounded-2xl shadow-lg"
               initial={{ width: 0 }}
-              animate={{ 
-                width: `${((currentIndex + 1) / filteredCards.length) * 100}%` 
+              animate={{
+                width: `${((currentIndex + 1) / filteredCards.length) * 100}%`,
               }}
               transition={{ duration: 0.8, ease: "easeOut" }}
             />
@@ -1402,6 +1378,29 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
         onListeningChange={setIsListening}
         mode="flashcard"
       />
+
+      {/* Reset Confirmation Dialog */}
+      <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tüm Kartları Sıfırla</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tüm kartların ilerleme durumunu sıfırlamak istediğinizden emin misiniz? Bu işlem geri alınamaz.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowResetDialog(false)}>
+              İptal
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              resetAllCards();
+              setShowResetDialog(false);
+            }} className="bg-red-600 hover:bg-red-700">
+              Sıfırla
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

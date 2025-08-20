@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import FeatureCards from "@/components/ui/feature-cards";
+import { aiChatFeatures } from "@/data/feature-cards-data";
 import type { AiChatInput } from "@/ai/flows/ai-chat";
 import { getAiChatResponse } from "@/ai/flows/ai-chat";
 import {
@@ -170,7 +172,7 @@ export default function AiChatClient() {
       {
         id: "init",
         role: "assistant",
-        content: `Merhaba! Ben AkılHane AI Tutor'ınız. ${currentSubject} dersiyle ilgili aklınıza takılan her şeyi sorabilirsiniz. Hadi başlayalım!`,
+        content: `Merhaba! Ben AkılHane AI Tutor&apos;ınız. ${currentSubject} dersiyle ilgili aklınıza takılan her şeyi sorabilirsiniz. Hadi başlayalım!`,
       },
     ]);
   }, [currentSubject]);
@@ -694,8 +696,8 @@ export default function AiChatClient() {
   };
 
   return (
-    <div className="flex justify-center items-start min-h-screen bg-gray-50 dark:bg-gray-900 p-2 sm:p-4 pt-0">
-      <Card className="w-full max-w-5xl h-[calc(100vh-4rem)] flex flex-col shadow-2xl mt-2 border-gradient-question p-0">
+    <div className="flex flex-col justify-center items-center min-h-screen bg-gray-50 dark:bg-gray-900 p-2 sm:p-4 pt-0">
+      <Card className="w-full max-w-[87.5rem] h-[calc(100vh-6rem)] flex flex-col shadow-2xl mt-2 border-gradient-question p-0">
         <CardHeader className="border-b">
           <CardTitle className="flex items-center justify-between text-lg md:text-xl">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
@@ -741,7 +743,7 @@ export default function AiChatClient() {
                                 id: "init",
                                 role: "assistant",
                                 content:
-                                  "Merhaba! Ben AkılHane AI Tutor'ınız. Genel konularda aklınıza takılan her şeyi sorabilirsiniz. Hadi başlayalım!",
+                                  "Merhaba! Ben AkılHane AI Tutor&apos;ınız. Genel konularda aklınıza takılan her şeyi sorabilirsiniz. Hadi başlayalım!",
                               },
                             ]);
                           }}
@@ -762,7 +764,7 @@ export default function AiChatClient() {
                                 {
                                   id: "init",
                                   role: "assistant",
-                                  content: `Merhaba! Ben AkılHane AI Tutor'ınız. ${subject.name} dersiyle ilgili aklınıza takılan her şeyi sorabilirsiniz. Hadi başlayalım!`,
+                                  content: `Merhaba! Ben AkılHane AI Tutor&apos;ınız. ${subject.name} dersiyle ilgili aklınıza takılan her şeyi sorabilirsiniz. Hadi başlayalım!`,
                                 },
                               ]);
                             }}
@@ -817,7 +819,7 @@ export default function AiChatClient() {
                         {
                           id: "init",
                           role: "assistant",
-                          content: `Merhaba! Ben AkılHane AI Tutor'ınız. ${currentSubject} dersiyle ilgili aklınıza takılan her şeyi sorabilirsiniz. Hadi başlayalım!`,
+                          content: `Merhaba! Ben AkılHane AI Tutor&apos;ınız. ${currentSubject} dersiyle ilgili aklınıza takılan her şeyi sorabilirsiniz. Hadi başlayalım!`,
                         },
                       ]);
                     }}
@@ -1064,7 +1066,7 @@ export default function AiChatClient() {
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="AI Tutor'a bir soru sor..."
+              placeholder="AI Tutor&apos;a bir soru sor..."
               className="flex-1"
               disabled={isLoading}
             />
@@ -1082,6 +1084,15 @@ export default function AiChatClient() {
           </form>
         </div>
       </Card>
+
+      {/* FeatureCards - Added BELOW the main chat container */}
+      <div className="w-full max-w-[87.5rem] mt-8">
+        <FeatureCards
+          title="AI Chat Özellikleri"
+          features={aiChatFeatures}
+          columns={3}
+        />
+      </div>
 
       {/* Voice Assistant */}
       <VoiceAssistant

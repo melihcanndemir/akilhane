@@ -2,6 +2,7 @@
 
 import { ai } from "@/ai/genkit";
 import { z } from "genkit";
+import { logError } from "@/lib/error-logger";
 
 const FlashcardGenerationInputSchema = z.object({
   subject: z.string().describe("The subject for which to generate flashcards"),
@@ -86,7 +87,7 @@ export async function generateFlashcards(
     const response = await flashcardGenerationFlow(input);
     return response;
   } catch (error) {
-    console.error("Flashcard generation error:", error);
+    logError("Flashcard generation error", error, { function: "generateFlashcards" });
     throw new Error("Failed to generate flashcards");
   }
 }
@@ -145,14 +146,14 @@ const flashcardGenerationFlow = ai.defineFlow(
     try {
       // Use the AI flow to generate flashcards
       const aiResponse = await ai.generate(prompt);
-      
+
       if (!aiResponse.text) {
         throw new Error("AI response is empty");
       }
 
       // Parse the AI response
       let parsedFlashcards: z.infer<typeof GeneratedFlashcardSchema>[];
-      
+
       try {
         // Try to extract JSON from the response
         const jsonMatch = aiResponse.text.match(/\[[\s\S]*\]/);
@@ -163,18 +164,20 @@ const flashcardGenerationFlow = ai.defineFlow(
           parsedFlashcards = JSON.parse(aiResponse.text);
         }
       } catch (parseError) {
-        console.error("Failed to parse AI response:", parseError);
-        console.log("Raw AI response:", aiResponse.text);
-        
+        logError("Failed to parse AI response", parseError, {
+          rawResponse: aiResponse.text,
+          function: "flashcardGenerationFlow",
+        });
+
         // Fallback: create flashcards from the raw text
         const fallbackFlashcards: z.infer<typeof GeneratedFlashcardSchema>[] = [];
         const lines = aiResponse.text.split('\n').filter((line: string) => line.trim());
-        
+
         for (let i = 0; i < Math.min(count, Math.floor(lines.length / 3)); i++) {
           const question = lines[i * 3] || `Soru ${i + 1}`;
           const answer = lines[i * 3 + 1] || `Cevap ${i + 1}`;
           const explanation = lines[i * 3 + 2] || `Açıklama ${i + 1}`;
-          
+
           fallbackFlashcards.push({
             question: question.replace(/^[0-9\-\.\s]+/, '').trim(),
             answer: answer.replace(/^[0-9\-\.\s]+/, '').trim(),
@@ -186,19 +189,19 @@ const flashcardGenerationFlow = ai.defineFlow(
             relatedConcepts: [],
           });
         }
-        
+
         parsedFlashcards = fallbackFlashcards;
       }
 
       // Validate and process the flashcards
       const validatedFlashcards: z.infer<typeof GeneratedFlashcardSchema>[] = [];
-      
+
       for (const card of parsedFlashcards) {
         try {
           // Validate each flashcard against the schema
           const validatedCard = GeneratedFlashcardSchema.parse({
             question: card.question || "Soru metni bulunamadı",
-            answer: card.answer || "Cevap metni bulunamadı", 
+            answer: card.answer || "Cevap metni bulunamadı",
             explanation: card.explanation || "Açıklama bulunamadı",
             topic: card.topic || "Genel Konu",
             difficulty: card.difficulty || "Medium",
@@ -206,12 +209,15 @@ const flashcardGenerationFlow = ai.defineFlow(
             learningObjective: card.learningObjective || "AI tarafından üretilen flashcard",
             relatedConcepts: Array.isArray(card.relatedConcepts) ? card.relatedConcepts : [],
           });
-          
+
           validatedFlashcards.push(validatedCard);
-          
-          if (validatedFlashcards.length >= count) break;
+
+          if (validatedFlashcards.length >= count) { break; }
         } catch (validationError) {
-          console.warn("Invalid flashcard format:", card, validationError);
+          logError("Invalid flashcard format", validationError, {
+            card,
+            function: "flashcardGenerationFlow",
+          });
           // Skip invalid cards
         }
       }
@@ -255,11 +261,17 @@ const flashcardGenerationFlow = ai.defineFlow(
       };
 
     } catch (error) {
-      console.error("AI generation error:", error);
-      
+      logError("AI generation error", error, {
+        function: "flashcardGenerationFlow",
+        subject,
+        topic,
+        difficulty,
+        count,
+      });
+
       // Return fallback flashcards if AI fails
       const fallbackFlashcards: z.infer<typeof GeneratedFlashcardSchema>[] = [];
-      
+
       for (let i = 0; i < count; i++) {
         fallbackFlashcards.push({
           question: `AI Hatası: Soru ${i + 1} üretilemedi`,
@@ -294,13 +306,13 @@ const flashcardGenerationFlow = ai.defineFlow(
 function calculateQualityScore(
   flashcards: z.infer<typeof GeneratedFlashcardSchema>[],
 ): number {
-  if (flashcards.length === 0) return 0;
+  if (flashcards.length === 0) { return 0; }
 
   let totalScore = 0;
-  
+
   flashcards.forEach((flashcard) => {
     let cardScore = 0;
-    
+
     // Question quality (0-25 points)
     if (flashcard.question.length > 10 && flashcard.question.length < 200) {
       cardScore += 25;
@@ -309,7 +321,7 @@ function calculateQualityScore(
     } else {
       cardScore += 10;
     }
-    
+
     // Answer quality (0-25 points)
     if (flashcard.answer.length > 15 && flashcard.answer.length < 300) {
       cardScore += 25;
@@ -318,7 +330,7 @@ function calculateQualityScore(
     } else {
       cardScore += 10;
     }
-    
+
     // Explanation quality (0-25 points)
     if (flashcard.explanation.length > 20) {
       cardScore += 25;
@@ -327,7 +339,7 @@ function calculateQualityScore(
     } else {
       cardScore += 10;
     }
-    
+
     // Keywords and learning objectives (0-25 points)
     if (flashcard.keywords.length >= 3 && flashcard.learningObjective.length > 10) {
       cardScore += 25;
@@ -336,10 +348,10 @@ function calculateQualityScore(
     } else {
       cardScore += 10;
     }
-    
+
     totalScore += cardScore;
   });
-  
+
   // Convert to 0-1 scale
   return Math.min(1, totalScore / (flashcards.length * 100));
 }
@@ -348,23 +360,23 @@ function generateSuggestions(
   qualityScore: number,
 ): string[] {
   const suggestions: string[] = [];
-  
+
   if (qualityScore < 0.7) {
     suggestions.push("Flashcard'ların açıklama kısımlarını daha detaylı hale getirin");
     suggestions.push("Her flashcard için en az 3 anahtar kelime ekleyin");
     suggestions.push("Öğrenme hedeflerini daha spesifik hale getirin");
   }
-  
+
   if (qualityScore < 0.8) {
     suggestions.push("Soru ve cevap uzunluklarını optimize edin");
     suggestions.push("İlgili kavramları bağlantılandırın");
   }
-  
+
   if (qualityScore >= 0.9) {
     suggestions.push("Mükemmel! Flashcard'larınız çok kaliteli");
     suggestions.push("Bu seti diğer öğrencilerle paylaşmayı düşünün");
   }
-  
+
   return suggestions;
 }
 
@@ -382,11 +394,11 @@ function generateStudyTips(
     "Yanlış yanıtladığınız kartları ayrı bir gruba alın",
     `${subject} dersinde konu ile ilgili pratik yapın, sadece teorik çalışmayın`,
   ];
-  
+
   if (difficulty === "Hard") {
     tips.push("Zor kartları günde birkaç kez tekrarlayın");
     tips.push("İlgili konuları da gözden geçirin");
   }
-  
+
   return tips;
 }

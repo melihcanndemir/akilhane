@@ -136,7 +136,7 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
          recognition.onstart = () => {
        setRecognitionState("active");
        onListeningChange?.(true);
-       
+
        // Enable continuous mode only when actively listening
        if (recognitionRef.current) {
          recognitionRef.current.continuous = true;
@@ -196,7 +196,7 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
       // Handle different error types appropriately
       switch (event.error) {
         case "no-speech":
-          // User didn't speak - this is normal, just reset quietly
+          // User didn&apos;t speak - this is normal, just reset quietly
           setRecognitionState("idle");
           onListeningChange?.(false);
           break;
@@ -242,9 +242,9 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
 
          recognition.onend = () => {
        // ✅ Only restart if explicitly supposed to be listening and not stopping
-       // Check if we're in stopping state or if user manually stopped
+               // Check if we&apos;re in stopping state or if user manually stopped
        if (recognitionState === "stopping" || !isListening) {
-         // User stopped or we're stopping - don't restart
+         // User stopped or we&apos;re stopping - don&apos;t restart
          if (recognitionRef.current) {
            recognitionRef.current.continuous = false;
          }
@@ -253,8 +253,8 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
          setTranscript("");
          return;
        }
-       
-       // Only restart if we're actively listening and not in stopping state
+
+               // Only restart if we&apos;re actively listening and not in stopping state
        if (recognitionState === "active" && isListening) {
          try {
            // Longer delay for better stability in continuous mode
@@ -318,10 +318,10 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
       }
     };
 
-    window.addEventListener('readExplanation', handleReadExplanation as EventListener);
+          window.addEventListener('readExplanation', handleReadExplanation as EventListener);
 
     return () => {
-      window.removeEventListener('readExplanation', handleReadExplanation as EventListener);
+              window.removeEventListener('readExplanation', handleReadExplanation as EventListener);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -514,10 +514,10 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
           setRecognitionState("stopping");
           onListeningChange?.(false);
           setTranscript(""); // Clear transcript immediately
-          
+
           try {
             recognitionRef.current.stop();
-          } catch (stopError) {
+          } catch {
             // If stop fails, force reset
             setRecognitionState("idle");
             onListeningChange?.(false);
@@ -527,10 +527,10 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
          // Start listening
          setRecognitionState("starting");
          onListeningChange?.(true);
-         
+
          try {
            recognitionRef.current.start();
-         } catch (startError) {
+         } catch {
            // If start fails, reset to idle
            setRecognitionState("idle");
            onListeningChange?.(false);
@@ -920,7 +920,7 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
                           </span>
                         </span>
                       </div>
-                      
+
                       <div
                         key="flip"
                         className="flex items-center gap-3 p-2 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 rounded-xl transition-colors group"
