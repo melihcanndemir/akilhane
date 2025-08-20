@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧠 AkılHane Web Lint Checker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .status.success {
+            background: rgba(34, 197, 94, 0.1);
+            color: #166534;
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+
+        .status.error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #991b1b;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .status.warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: #92400e;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .status.info {
+            background: rgba(59, 130, 246, 0.1);
+            color: #1e40af;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-left: 4px solid #667eea;
+        }
+
+        .result-card.success {
+            border-left-color: #10b981;
+        }
+
+        .result-card.error {
+            border-left-color: #ef4444;
+        }
+
+        .result-card.warning {
+            border-left-color: #f59e0b;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .result-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .result-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .result-status.success {
+            background: rgba(34, 197, 94, 0.1);
+            color: #166534;
+        }
+
+        .result-status.error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #991b1b;
+        }
+
+        .result-status.warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: #92400e;
+        }
+
+        .result-details {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .result-time {
+            font-size: 12px;
+            color: #999;
+            margin-top: 10px;
+        }
+
+        .log-container {
+            background: #1a1a1a;
+            color: #e5e5e5;
+            border-radius: 10px;
+            padding: 20px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 8px;
+            border-radius: 5px;
+        }
+
+        .log-entry.success {
+            background: rgba(34, 197, 94, 0.1);
+            border-left: 3px solid #10b981;
+        }
+
+        .log-entry.error {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 3px solid #ef4444;
+        }
+
+        .log-entry.warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 3px solid #f59e0b;
+        }
+
+        .log-entry.info {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 3px solid #3b82f6;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            font-size: 20px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🧠 AkılHane Web Lint Checker</h1>
+            <p>Modern web tabanlı lint kontrol aracı</p>
+        </div>
+
+        <div class="card">
+            <div class="controls">
+                <button class="btn btn-info" onclick="runLint()">
+                    🔍 Lint Test
+                </button>
+                <button class="btn btn-info" onclick="runTypeScript()">
+                    📝 TypeScript Test
+                </button>
+                <button class="btn btn-info" onclick="runBuild()">
+                    🏗️ Build Test
+                </button>
+                <button class="btn btn-success" onclick="runAllTests()">
+                    🚀 Tüm Testler
+                </button>
+                <button class="btn btn-warning" onclick="runSecurityCheck()">
+                    🔒 Güvenlik Kontrolü
+                </button>
+                <button class="btn btn-warning" onclick="clearResults()">
+                    🗑️ Temizle
+                </button>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+
+            <div class="status info" id="status">
+                <span>📊 Hazır - Testleri başlatmak için butonlara tıklayın</span>
+            </div>
+        </div>
+
+        <div class="stats" id="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalTests">0</div>
+                <div class="stat-label">Toplam Test</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="successTests">0</div>
+                <div class="stat-label">Başarılı</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="errorTests">0</div>
+                <div class="stat-label">Hata</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalTime">0s</div>
+                <div class="stat-label">Toplam Süre</div>
+            </div>
+        </div>
+
+        <div class="results" id="results"></div>
+
+        <div class="card">
+            <h3>📝 Detaylı Log</h3>
+            <div class="log-container" id="logContainer"></div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Test çalışıyor...</p>
+        </div>
+    </div>
+
+    <script>
+        let testResults = [];
+        let isDarkMode = false;
+        let currentTest = null;
+
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            document.body.style.background = isDarkMode 
+                ? 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)'
+                : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            
+            document.querySelector('.theme-toggle').textContent = isDarkMode ? '☀️' : '🌙';
+            
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(card => {
+                card.style.background = isDarkMode 
+                    ? 'rgba(255, 255, 255, 0.1)' 
+                    : 'rgba(255, 255, 255, 0.95)';
+                card.style.color = isDarkMode ? '#e5e5e5' : '#333';
+            });
+        }
+
+        function updateStats() {
+            const total = testResults.length;
+            const success = testResults.filter(r => r.status === 'success').length;
+            const error = testResults.filter(r => r.status === 'error').length;
+            const totalTime = testResults.reduce((sum, r) => sum + r.duration, 0);
+
+            document.getElementById('totalTests').textContent = total;
+            document.getElementById('successTests').textContent = success;
+            document.getElementById('errorTests').textContent = error;
+            document.getElementById('totalTime').textContent = totalTime.toFixed(1) + 's';
+        }
+
+        function updateProgress(progress) {
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function showStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.className = `status ${type}`;
+            status.innerHTML = `<span>${message}</span>`;
+        }
+
+        function addLogEntry(message, type = 'info') {
+            const container = document.getElementById('logContainer');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            container.appendChild(entry);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function createResultCard(result) {
+            const card = document.createElement('div');
+            card.className = `result-card ${result.status}`;
+            
+            const statusText = result.status === 'success' ? '✅ Başarılı' : 
+                              result.status === 'error' ? '❌ Hata' : '⚠️ Uyarı';
+            
+            card.innerHTML = `
+                <div class="result-header">
+                    <div class="result-title">${result.name}</div>
+                    <div class="result-status ${result.status}">${statusText}</div>
+                </div>
+                <div class="result-details">
+                    <strong>Süre:</strong> ${result.duration.toFixed(2)}s<br>
+                    <strong>Durum:</strong> ${result.status}<br>
+                    ${result.output ? `<strong>Çıktı:</strong> ${result.output.substring(0, 100)}...` : ''}
+                </div>
+                <div class="result-time">${result.timestamp}</div>
+            `;
+            
+            return card;
+        }
+
+        function updateResults() {
+            const container = document.getElementById('results');
+            container.innerHTML = '';
+            
+            testResults.forEach(result => {
+                container.appendChild(createResultCard(result));
+            });
+        }
+
+        async function runLint() {
+            showStatus('🔍 Lint testi çalışıyor...', 'info');
+            addLogEntry('Lint testi başlatıldı', 'info');
+            
+            try {
+                const response = await fetch('/api/run-lint', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                testResults.push(result);
+                
+                updateResults();
+                updateStats();
+                addLogEntry(`${result.name}: ${result.status === 'success' ? 'Başarılı' : 'Hata'} (${result.duration.toFixed(2)}s)`, result.status);
+                
+                showStatus(`✅ Lint testi tamamlandı - ${result.duration.toFixed(2)}s`, result.status);
+            } catch (error) {
+                addLogEntry(`Lint testi hatası: ${error.message}`, 'error');
+                showStatus('❌ Lint testi başarısız', 'error');
+            }
+        }
+
+        async function runTypeScript() {
+            showStatus('📝 TypeScript testi çalışıyor...', 'info');
+            addLogEntry('TypeScript testi başlatıldı', 'info');
+            
+            try {
+                const response = await fetch('/api/run-typescript', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                testResults.push(result);
+                
+                updateResults();
+                updateStats();
+                addLogEntry(`${result.name}: ${result.status === 'success' ? 'Başarılı' : 'Hata'} (${result.duration.toFixed(2)}s)`, result.status);
+                
+                showStatus(`✅ TypeScript testi tamamlandı - ${result.duration.toFixed(2)}s`, result.status);
+            } catch (error) {
+                addLogEntry(`TypeScript testi hatası: ${error.message}`, 'error');
+                showStatus('❌ TypeScript testi başarısız', 'error');
+            }
+        }
+
+        async function runBuild() {
+            showStatus('🏗️ Build testi çalışıyor...', 'info');
+            addLogEntry('Build testi başlatıldı', 'info');
+            
+            try {
+                const response = await fetch('/api/run-build', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                testResults.push(result);
+                
+                updateResults();
+                updateStats();
+                addLogEntry(`${result.name}: ${result.status === 'success' ? 'Başarılı' : 'Hata'} (${result.duration.toFixed(2)}s)`, result.status);
+                
+                showStatus(`✅ Build testi tamamlandı - ${result.duration.toFixed(2)}s`, result.status);
+            } catch (error) {
+                addLogEntry(`Build testi hatası: ${error.message}`, 'error');
+                showStatus('❌ Build testi başarısız', 'error');
+            }
+        }
+
+        async function runAllTests() {
+            showStatus('🚀 Tüm testler çalışıyor...', 'info');
+            addLogEntry('Tüm testler başlatıldı', 'info');
+            
+            try {
+                const response = await fetch('/api/run-all-tests', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.results) {
+                    data.results.forEach(result => {
+                        testResults.push(result);
+                        addLogEntry(`${result.name}: ${result.status === 'success' ? 'Başarılı' : 'Hata'} (${result.duration.toFixed(2)}s)`, result.status);
+                    });
+                    
+                    updateResults();
+                    updateStats();
+                    
+                    const summary = data.summary;
+                    showStatus(`✅ Tüm testler tamamlandı - ${summary.totalTime.toFixed(2)}s (${summary.success}/${summary.total} başarılı)`, 'success');
+                } else {
+                    throw new Error('API yanıtı geçersiz');
+                }
+            } catch (error) {
+                addLogEntry(`Tüm testler hatası: ${error.message}`, 'error');
+                showStatus('❌ Testler başarısız', 'error');
+            }
+        }
+
+        async function runSecurityCheck() {
+            showStatus('🔒 Güvenlik kontrolü çalışıyor...', 'info');
+            addLogEntry('Güvenlik kontrolü başlatıldı', 'info');
+
+            try {
+                const response = await fetch('/api/run-security-check', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+                testResults.push(result);
+
+                updateResults();
+                updateStats();
+                addLogEntry(`Güvenlik Kontrolü: ${result.status === 'success' ? 'Başarılı' : 'Hata'}`, result.status);
+
+                showStatus(`✅ Güvenlik kontrolü tamamlandı - ${result.duration.toFixed(2)}s`, result.status);
+            } catch (error) {
+                addLogEntry(`Güvenlik kontrolü hatası: ${error.message}`, 'error');
+                showStatus('❌ Güvenlik kontrolü başarısız', 'error');
+            }
+        }
+
+        function clearResults() {
+            testResults = [];
+            updateResults();
+            updateStats();
+            document.getElementById('logContainer').innerHTML = '';
+            document.getElementById('progressFill').style.width = '0%';
+            showStatus('📊 Sonuçlar temizlendi', 'info');
+        }
+
+        // Sayfa yüklendiğinde başlangıç durumu
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStats();
+            showStatus('📊 Hazır - Testleri başlatmak için butonlara tıklayın', 'info');
+        });
+    </script>
+</body>
+</html>
