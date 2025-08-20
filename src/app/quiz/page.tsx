@@ -26,6 +26,13 @@ import {
   GraduationCap,
   Loader2,
   ArrowLeft,
+  Target,
+  Clock,
+  Bot,
+  BarChart3,
+  Palette,
+  Search,
+  Brain,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { shouldUseDemoData } from "@/data/demo-data";
@@ -100,34 +107,33 @@ function QuizPageContent() {
         setIsDemoMode(demoMode);
 
         if (demoMode) {
-          // Demo subjects
-          const demoSubjects: Subject[] = [
-            {
-              id: "subj_matematik_001",
-              name: "Matematik",
-              category: "Fen Bilimleri",
-              difficulty: "Orta",
-              isActive: true,
-              questionCount: 245,
-            },
-            {
-              id: "subj_fizik_002",
-              name: "Fizik",
-              category: "Fen Bilimleri",
-              difficulty: "Orta",
-              isActive: true,
-              questionCount: 198,
-            },
-            {
-              id: "subj_kimya_003",
-              name: "Kimya",
-              category: "Fen Bilimleri",
-              difficulty: "İleri",
-              isActive: true,
-              questionCount: 167,
-            },
-          ];
-          setSubjects(demoSubjects);
+          // Import demo data to get real question counts
+          const { demoSubjects } = await import("@/data/demo-data");
+          
+          // Calculate real question counts for each subject based on available demo questions
+          const subjectsWithRealCounts = demoSubjects.map(subject => {
+            let questionCount = 0;
+            
+            // Count demo questions for each subject (based on quiz component logic)
+            switch (subject.name) {
+              case "Fizik":
+                questionCount = 3; // 3 demo physics questions
+                break;
+              case "Kimya":
+                questionCount = 3; // 3 demo chemistry questions
+                break;
+              default: // Matematik
+                questionCount = 3; // 3 demo math questions
+                break;
+            }
+            
+            return {
+              ...subject,
+              questionCount: questionCount
+            };
+          });
+          
+          setSubjects(subjectsWithRealCounts);
           return;
         }
 
@@ -239,7 +245,6 @@ function QuizPageContent() {
             başlayın.
           </p>
         </div>
-
         <Card className="max-w-2xl mx-auto border-gradient-question shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -260,7 +265,9 @@ function QuizPageContent() {
               </div>
             ) : subjects.length === 0 ? (
               <div className="text-center py-8">
-                <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <div className="mx-auto w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 rounded-full flex items-center justify-center mb-6">
+                  <BookOpen className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+                </div>
                 <p className="text-gray-600 dark:text-gray-400 mb-4">
                   Henüz soru içeren aktif ders bulunmuyor
                 </p>
@@ -320,6 +327,42 @@ function QuizPageContent() {
             )}
           </CardContent>
         </Card>
+
+        {/* Akıllı Öğrenme Özellikleri */}
+        <div className="mt-8">
+          <div className="border-gradient-question bg-white dark:bg-gray-800 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-3">
+              <Brain className="w-5 h-5 inline mr-2 text-purple-600" />
+              Akıllı Öğrenme Özellikleri
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 dark:text-gray-300">
+              <div className="flex items-center">
+                <Target className="w-4 h-4 mr-2 text-blue-600" />
+                <span>Kişiselleştirilmiş zorluk seviyesi</span>
+              </div>
+              <div className="flex items-center">
+                <Clock className="w-4 h-4 mr-2 text-green-600" />
+                <span>Zaman sınırlı quiz modları</span>
+              </div>
+              <div className="flex items-center">
+                <Bot className="w-4 h-4 mr-2 text-purple-600" />
+                <span>AI Tutor yardımı ve ipuçları</span>
+              </div>
+              <div className="flex items-center">
+                <BarChart3 className="w-4 h-4 mr-2 text-indigo-600" />
+                <span>Detaylı performans analizi</span>
+              </div>
+              <div className="flex items-center">
+                <Palette className="w-4 h-4 mr-2 text-pink-600" />
+                <span>Adaptif öğrenme algoritması</span>
+              </div>
+              <div className="flex items-center">
+                <Search className="w-4 h-4 mr-2 text-orange-600" />
+                <span>Zayıf konuları tespit etme</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {subjects.length > 0 && (
           <div className="mt-8">

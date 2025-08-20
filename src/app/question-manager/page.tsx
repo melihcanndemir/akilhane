@@ -2,6 +2,13 @@
 
 import React, { useEffect, useState } from "react";
 import QuestionManagerMain from "./components/question-manager-main";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Database, BookOpen, Brain, GraduationCap, Plus, Sparkles } from "lucide-react";
+import Link from "next/link";
+import MobileNav from "@/components/mobile-nav";
+import LoadingSpinner from "@/components/loading-spinner";
 import { useQuestionManagerState } from "@/hooks/question-manager/use-question-manager-state";
 import { useQuestionManagerAuth } from "@/hooks/question-manager/use-question-manager-auth";
 import { useSubjectManagement } from "@/hooks/question-manager/use-subject-management";
@@ -131,19 +138,21 @@ export default function QuestionManager() {
     handleEditQuestionChange,
   } = useFormManagement(formData, setFormData, editingQuestion, setEditingQuestion);
 
-  // Load subjects when authentication status changes
   useEffect(() => {
-    if (isAuthenticated !== null) {
+    if (isHydrated) {
+      console.log("🔄 Question Manager: useEffect triggered, isHydrated:", isHydrated);
       loadSubjects();
+      loadQuestions(selectedSubject);
     }
-  }, [isAuthenticated, loadSubjects]);
+  }, [isHydrated, selectedSubject]);
 
-  // Load questions when selected subject changes
+  // Debug: subjects değiştiğinde log
   useEffect(() => {
-    loadQuestions(selectedSubject);
-  }, [selectedSubject, loadQuestions]);
+    console.log("📚 Question Manager: subjects changed:", subjects);
+    console.log("📚 Question Manager: subjects length:", subjects.length);
+  }, [subjects]);
 
-  // Handler functions that wrap the hook functions
+  // Handler functions for the component
   const handleCreateQuestion = async () => {
     const success = await createQuestion(formData);
     if (success) {
@@ -151,16 +160,9 @@ export default function QuestionManager() {
     }
   };
 
-  const handleUpdateQuestion = async () => {
-    if (!editingQuestion) {
-      return;
-    }
-
-    const success = await updateQuestion(editingQuestion);
-    if (success) {
-      setIsEditDialogOpen(false);
-      setEditingQuestion(null);
-    }
+  const handleEditQuestion = (question: Question) => {
+    setEditingQuestion(question);
+    setIsEditDialogOpen(true);
   };
 
   const handleDeleteQuestion = async (questionId: string) => {
@@ -171,19 +173,30 @@ export default function QuestionManager() {
     await generateQuestions(formData);
   };
 
-  const handleApproveAIQuestions = async (questionsToAdd: AIGeneratedQuestion[], subject: string) => {
-    const success = await approveAIQuestions(questionsToAdd, subject);
-    if (success) {
-      setIsAIDialogOpen(false);
-      setAIGeneratedQuestions([]);
-      setAIGenerationResult(null);
+  const handleApproveAIQuestions = async (questions: AIGeneratedQuestion[], subject: string) => {
+    await approveAIQuestions(questions, subject);
+  };
+
+  const handleUpdateQuestion = async () => {
+    if (editingQuestion) {
+      const success = await updateQuestion(editingQuestion);
+      if (success) {
+        setIsEditDialogOpen(false);
+        setEditingQuestion(null);
+      }
     }
   };
 
-  const handleEditQuestion = (question: Question) => {
-    setEditingQuestion(question);
-    setIsEditDialogOpen(true);
-  };
+  if (!isHydrated || isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <MobileNav />
+        <div className="container mx-auto px-4 py-8">
+          <LoadingSpinner />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <QuestionManagerMain
@@ -201,8 +214,6 @@ export default function QuestionManager() {
       isGeneratingAI={isGeneratingAI}
       aiGeneratedQuestions={aiGeneratedQuestions}
       aiGenerationResult={aiGenerationResult}
-      isAuthenticated={isAuthenticated}
-      isHydrated={isHydrated}
       formData={formData}
       stats={stats}
       onSubjectChange={setSelectedSubject}

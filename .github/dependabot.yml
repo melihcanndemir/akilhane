@@ -1,0 +1,41 @@
+# AkılHane - Dependabot version updates configuration
+version: 2
+updates:
+  # NPM paketleri için (Next.js, React, TypeScript, Tailwind CSS)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/Istanbul"
+    open-pull-requests-limit: 15
+    reviewers:
+      - "melihcanndemir"
+    assignees:
+      - "melihcanndemir"
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(dev-deps)"
+      include: "scope"
+    # Kritik güvenlik güncellemelerini önceliklendir
+    allow:
+      - dependency-type: "direct"
+        update-types: ["security"]
+      - dependency-type: "indirect"
+        update-types: ["security"]
+    # Next.js major güncellemelerini dikkatli yönet
+    ignore:
+      - dependency-name: "next"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      # AI kütüphanelerinde major güncellemeleri manuel kontrol et
+      - dependency-name: "@google/generative-ai"
+        update-types: ["version-update:semver-major"]
+    # Labels for better organization
+    labels:
+      - "dependencies"
+      - "automated-pr"

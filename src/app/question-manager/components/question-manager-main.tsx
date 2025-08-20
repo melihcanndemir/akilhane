@@ -53,8 +53,6 @@ interface QuestionManagerMainProps {
   isGeneratingAI: boolean;
   aiGeneratedQuestions: AIGeneratedQuestion[];
   aiGenerationResult: AIGenerationResult | null;
-  isAuthenticated: boolean | null;
-  isHydrated: boolean;
   formData: QuestionFormData;
   stats: Stats;
   onSubjectChange: (subject: string) => void;
@@ -119,10 +117,7 @@ export default function QuestionManagerMain({
 }: QuestionManagerMainProps) {
 
   return (
-    <div className="min-h-screen">
-      {/* Responsive Navigation Bar */}
-      <MobileNav />
-
+    <div className="space-y-6">
       <div className="p-4">
         <div className="max-w-7xl mx-auto">
           {/* Header Info */}
@@ -250,41 +245,41 @@ export default function QuestionManagerMain({
               />
             </div>
           </div>
+
+          {/* Edit Question Dialog */}
+          <EditQuestionDialog
+            open={isEditDialogOpen}
+            onOpenChange={onEditDialogOpenChange}
+            editingQuestion={editingQuestion}
+            onUpdate={onUpdateQuestion}
+            onOptionChange={onEditOptionChange}
+            onAddOption={onEditAddOption}
+            onRemoveOption={onEditRemoveOption}
+            onQuestionChange={onEditQuestionChange}
+          />
+
+          {/* AI Question Generation Dialog */}
+          <AIQuestionDialog
+            open={isAIDialogOpen}
+            onOpenChange={onAIDialogOpenChange}
+            subjects={subjects}
+            onGenerate={onAIGenerate}
+            onApprove={onAIApprove}
+            isGenerating={isGeneratingAI}
+            isCreating={isCreating}
+            aiGeneratedQuestions={aiGeneratedQuestions}
+            aiGenerationResult={aiGenerationResult}
+          />
+
+          {/* Question Manager Features */}
+          <div className="px-4 sm:px-0">
+            <FeatureCards
+              title="Soru Yöneticisi Özellikleri"
+              features={questionManagerFeatures}
+              columns={3}
+            />
+          </div>
         </div>
-      </div>
-
-      {/* Edit Question Dialog */}
-      <EditQuestionDialog
-        open={isEditDialogOpen}
-        onOpenChange={onEditDialogOpenChange}
-        editingQuestion={editingQuestion}
-        onUpdate={onUpdateQuestion}
-        onOptionChange={onEditOptionChange}
-        onAddOption={onEditAddOption}
-        onRemoveOption={onEditRemoveOption}
-        onQuestionChange={onEditQuestionChange}
-      />
-
-      {/* AI Question Generation Dialog */}
-      <AIQuestionDialog
-        open={isAIDialogOpen}
-        onOpenChange={onAIDialogOpenChange}
-        subjects={subjects}
-        onGenerate={onAIGenerate}
-        onApprove={onAIApprove}
-        isGenerating={isGeneratingAI}
-        isCreating={isCreating}
-        aiGeneratedQuestions={aiGeneratedQuestions}
-        aiGenerationResult={aiGenerationResult}
-      />
-
-      {/* Question Manager Özellikleri */}
-      <div className="px-4 sm:px-0">
-        <FeatureCards
-          title="Soru Yöneticisi Özellikleri"
-          features={questionManagerFeatures}
-          columns={3}
-        />
       </div>
     </div>
   );

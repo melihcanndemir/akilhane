@@ -146,12 +146,12 @@ export const useQuestionCRUD = (
         createdQuestion = UnifiedStorageService.addQuestion(newQuestion);
       }
 
-      setQuestions((prev: Question[]) => [...prev, createdQuestion]);
+            setQuestions((prev: Question[]) => [...prev, createdQuestion]);
 
       // Recalculate question count for subjects
       const updatedSubjects = await calculateRealQuestionCount(subjects);
       setSubjects(updatedSubjects);
-
+        
       toast({
         title: "Başarılı",
         description: "Soru başarıyla oluşturuldu.",
@@ -171,10 +171,15 @@ export const useQuestionCRUD = (
   // Update question
   const updateQuestion = useCallback(async (editingQuestion: Question) => {
     if (!editingQuestion) {
+      console.error("🔴 No question provided for update");
       return false;
     }
 
+    console.log("🔍 Starting question update:", editingQuestion.id);
+
     try {
+      let updateSuccess = false;
+
       if (isAuthenticated) {
         try {
           const updateData: UpdateTables<"questions"> = {
@@ -189,30 +194,69 @@ export const useQuestionCRUD = (
             explanation: editingQuestion.explanation,
             formula: editingQuestion.formula || "",
           };
-          await QuestionService.updateQuestion(editingQuestion.id, updateData);
-        } catch {
+          
+                    console.log("🔍 Attempting to update question in Supabase:", {
+            id: editingQuestion.id,
+            updateData
+          });
+          
+          console.log("🔍 Calling QuestionService.updateQuestion...");
+          const result = await QuestionService.updateQuestion(editingQuestion.id, updateData);
+          console.log("🔍 QuestionService.updateQuestion returned:", result);
+          
+          if (result) {
+            console.log("✅ Supabase update successful");
+            updateSuccess = true;
+          } else {
+            console.warn("⚠️ Supabase update returned null, falling back to localStorage");
+            const localUpdateSuccess = UnifiedStorageService.updateQuestion(editingQuestion.id, editingQuestion);
+            console.log("🔍 localStorage update result:", localUpdateSuccess);
+            updateSuccess = localUpdateSuccess;
+          }
+        } catch (error) {
+          console.error("🔴 Supabase update error:", error);
           // Fallback to unified storage on Supabase error
-          UnifiedStorageService.updateQuestion(editingQuestion.id, editingQuestion);
+          const localUpdateSuccess = UnifiedStorageService.updateQuestion(editingQuestion.id, editingQuestion);
+          updateSuccess = localUpdateSuccess;
         }
       } else {
-        UnifiedStorageService.updateQuestion(editingQuestion.id, editingQuestion);
+        // Not authenticated, use localStorage only
+        const localUpdateSuccess = UnifiedStorageService.updateQuestion(editingQuestion.id, editingQuestion);
+        updateSuccess = localUpdateSuccess;
       }
 
-      setQuestions((prev: Question[]) =>
-        prev.map((q: Question) => q.id === editingQuestion.id ? editingQuestion : q),
-      );
+      // Always update state if any storage method succeeded
+      if (updateSuccess) {
+        console.log("🔄 Updating local state");
+        setQuestions((prev: Question[]) =>
+          prev.map((q: Question) => q.id === editingQuestion.id ? editingQuestion : q)
+        );
 
-      // Recalculate question count for subjects
-      const updatedSubjects = await calculateRealQuestionCount(subjects);
-      setSubjects(updatedSubjects);
+        // Recalculate question count for subjects
+        try {
+          const updatedSubjects = await calculateRealQuestionCount(subjects);
+          setSubjects(updatedSubjects);
+        } catch (subjectError) {
+          console.warn("⚠️ Failed to recalculate subject counts:", subjectError);
+        }
 
-      toast({
-        title: "Başarılı",
-        description: "Soru başarıyla güncellendi.",
-      });
+        toast({
+          title: "Başarılı",
+          description: "Soru başarıyla güncellendi.",
+        });
 
-      return true;
-    } catch {
+        return true;
+      } else {
+        console.error("🔴 All update methods failed");
+        toast({
+          title: "Hata",
+          description: "Soru güncellenirken bir hata oluştu. Lütfen tekrar deneyin.",
+          variant: "destructive",
+        });
+        return false;
+      }
+    } catch (error) {
+      console.error("🔴 Update question error:", error);
       toast({
         title: "Hata",
         description: "Soru güncellenirken bir hata oluştu.",

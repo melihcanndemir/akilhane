@@ -275,7 +275,7 @@ const QuizComponent: React.FC<QuizProps> = ({
                       "pH < 7 asidik, pH = 7 nötr, pH > 7 bazik çözeltilerdir.",
                   },
                 ];
-              default: // Matematik
+              case "Matematik":
                 return [
                   {
                     id: "demo_math_1",
@@ -324,20 +324,234 @@ const QuizComponent: React.FC<QuizProps> = ({
                     explanation: "x² - 4x + 4 = (x-2)² = 0 → x = 2",
                   },
                 ];
+              case "Tarih":
+                return [
+                  {
+                    id: "demo_history_1",
+                    subject: "Tarih",
+                    type: "multiple-choice",
+                    difficulty: "Easy",
+                    text: "Osmanlı İmparatorluğu'nun kurucusu kimdir?",
+                    topic: "Osmanlı Tarihi",
+                    options: [
+                      { text: "Osman Bey", isCorrect: true },
+                      { text: "Fatih Sultan Mehmet", isCorrect: false },
+                      { text: "Yavuz Sultan Selim", isCorrect: false },
+                      { text: "Kanuni Sultan Süleyman", isCorrect: false },
+                    ],
+                    explanation: "Osmanlı İmparatorluğu 1299 yılında Osman Bey tarafından kurulmuştur.",
+                  },
+                  {
+                    id: "demo_history_2",
+                    subject: "Tarih",
+                    type: "multiple-choice",
+                    difficulty: "Easy",
+                    text: "İstanbul'un fethi hangi yılda gerçekleşmiştir?",
+                    topic: "Osmanlı Tarihi",
+                    options: [
+                      { text: "1453", isCorrect: true },
+                      { text: "1454", isCorrect: false },
+                      { text: "1452", isCorrect: false },
+                      { text: "1455", isCorrect: false },
+                    ],
+                    explanation: "İstanbul, Fatih Sultan Mehmet tarafından 29 Mayıs 1453'te fethedilmiştir.",
+                  },
+                  {
+                    id: "demo_history_3",
+                    subject: "Tarih",
+                    type: "multiple-choice",
+                    difficulty: "Medium",
+                    text: "Türkiye Cumhuriyeti hangi yılda kurulmuştur?",
+                    topic: "Çağdaş Tarih",
+                    options: [
+                      { text: "1923", isCorrect: true },
+                      { text: "1922", isCorrect: false },
+                      { text: "1924", isCorrect: false },
+                      { text: "1925", isCorrect: false },
+                    ],
+                    explanation: "Türkiye Cumhuriyeti 29 Ekim 1923'te Mustafa Kemal Atatürk önderliğinde kurulmuştur.",
+                  },
+                ];
+              case "Biyoloji":
+                return [
+                  {
+                    id: "demo_biology_1",
+                    subject: "Biyoloji",
+                    type: "multiple-choice",
+                    difficulty: "Medium",
+                    text: "İnsan vücudunda kaç kemik bulunur?",
+                    topic: "İnsan Anatomisi",
+                    options: [
+                      { text: "206", isCorrect: true },
+                      { text: "200", isCorrect: false },
+                      { text: "210", isCorrect: false },
+                      { text: "195", isCorrect: false },
+                    ],
+                    explanation: "Yetişkin bir insan vücudunda 206 kemik bulunur.",
+                  },
+                  {
+                    id: "demo_biology_2",
+                    subject: "Biyoloji",
+                    type: "multiple-choice",
+                    difficulty: "Medium",
+                    text: "DNA'nın açılımı nedir?",
+                    topic: "Genetik",
+                    options: [
+                      { text: "Deoksiribo Nükleik Asit", isCorrect: true },
+                      { text: "Deoksiribo Nitrik Asit", isCorrect: false },
+                      { text: "Deoksiribo Nüklear Asit", isCorrect: false },
+                      { text: "Deoksiribo Nitro Asit", isCorrect: false },
+                    ],
+                    explanation: "DNA, Deoksiribo Nükleik Asit'in kısaltmasıdır.",
+                  },
+                  {
+                    id: "demo_biology_3",
+                    subject: "Biyoloji",
+                    type: "multiple-choice",
+                    difficulty: "Hard",
+                    text: "Mitokondri organelinin ana görevi nedir?",
+                    topic: "Hücre Biyolojisi",
+                    options: [
+                      { text: "Enerji üretimi", isCorrect: true },
+                      { text: "Protein sentezi", isCorrect: false },
+                      { text: "Hücre bölünmesi", isCorrect: false },
+                      { text: "Atık temizleme", isCorrect: false },
+                    ],
+                    explanation: "Mitokondri, hücrenin enerji santrali olarak bilinir ve ATP üretir.",
+                  },
+                ];
+              case "Türk Dili ve Edebiyatı":
+                return [
+                  {
+                    id: "demo_literature_1",
+                    subject: "Türk Dili ve Edebiyatı",
+                    type: "multiple-choice",
+                    difficulty: "Medium",
+                    text: "Türkçe hangi dil ailesine aittir?",
+                    topic: "Dil Bilgisi",
+                    options: [
+                      { text: "Ural-Altay", isCorrect: true },
+                      { text: "Hint-Avrupa", isCorrect: false },
+                      { text: "Sami", isCorrect: false },
+                      { text: "Çin-Tibet", isCorrect: false },
+                    ],
+                    explanation: "Türkçe, Ural-Altay dil ailesinin Altay koluna aittir.",
+                  },
+                  {
+                    id: "demo_literature_2",
+                    subject: "Türk Dili ve Edebiyatı",
+                    type: "multiple-choice",
+                    difficulty: "Medium",
+                    text: "Divan edebiyatının en ünlü şairi kimdir?",
+                    topic: "Klasik Edebiyat",
+                    options: [
+                      { text: "Fuzuli", isCorrect: true },
+                      { text: "Baki", isCorrect: false },
+                      { text: "Nefi", isCorrect: false },
+                      { text: "Nabi", isCorrect: false },
+                    ],
+                    explanation: "Fuzuli, Divan edebiyatının en önemli şairlerinden biridir.",
+                  },
+                  {
+                    id: "demo_literature_3",
+                    subject: "Türk Dili ve Edebiyatı",
+                    type: "multiple-choice",
+                    difficulty: "Hard",
+                    text: "Türkçede kaç ünlü harf vardır?",
+                    topic: "Dil Bilgisi",
+                    options: [
+                      { text: "8", isCorrect: true },
+                      { text: "7", isCorrect: false },
+                      { text: "9", isCorrect: false },
+                      { text: "6", isCorrect: false },
+                    ],
+                    explanation: "Türkçede 8 ünlü harf bulunur: a, e, ı, i, o, ö, u, ü",
+                  },
+                ];
+              case "İngilizce":
+                return [
+                  {
+                    id: "demo_english_1",
+                    subject: "İngilizce",
+                    type: "multiple-choice",
+                    difficulty: "Medium",
+                    text: "Present Perfect tense hangi durumlarda kullanılır?",
+                    topic: "Grammar",
+                    options: [
+                      { text: "Geçmişte başlayıp şimdi devam eden eylemler", isCorrect: true },
+                      { text: "Sadece gelecekteki eylemler", isCorrect: false },
+                      { text: "Sadece geçmişteki eylemler", isCorrect: false },
+                      { text: "Sadece şimdiki eylemler", isCorrect: false },
+                    ],
+                    explanation: "Present Perfect, geçmişte başlayıp şimdi devam eden veya etkisi devam eden eylemler için kullanılır.",
+                  },
+                  {
+                    id: "demo_english_2",
+                    subject: "İngilizce",
+                    type: "multiple-choice",
+                    difficulty: "Medium",
+                    text: "İngilizce'de 'book' kelimesinin çoğulu nedir?",
+                    topic: "Vocabulary",
+                    options: [
+                      { text: "books", isCorrect: true },
+                      { text: "bookes", isCorrect: false },
+                      { text: "bookies", isCorrect: false },
+                      { text: "booken", isCorrect: false },
+                    ],
+                    explanation: "İngilizce'de çoğul yapmak için genellikle kelimenin sonuna 's' eklenir.",
+                  },
+                  {
+                    id: "demo_english_3",
+                    subject: "İngilizce",
+                    type: "multiple-choice",
+                    difficulty: "Hard",
+                    text: "Which sentence is grammatically correct?",
+                    topic: "Grammar",
+                    options: [
+                      { text: "I have been to Paris twice.", isCorrect: true },
+                      { text: "I have been in Paris twice.", isCorrect: false },
+                      { text: "I have been at Paris twice.", isCorrect: false },
+                      { text: "I have been on Paris twice.", isCorrect: false },
+                    ],
+                    explanation: "Present Perfect tense ile 'have been to' yapısı kullanılır.",
+                  },
+                ];
+              default:
+                return [
+                  {
+                    id: "demo_general_1",
+                    subject: "Genel",
+                    type: "multiple-choice",
+                    difficulty: "Medium",
+                    text: "Genel bilgi sorusu",
+                    topic: "Genel",
+                    options: [
+                      { text: "Genel cevap", isCorrect: true },
+                      { text: "Yanlış cevap 1", isCorrect: false },
+                      { text: "Yanlış cevap 2", isCorrect: false },
+                      { text: "Yanlış cevap 3", isCorrect: false },
+                    ],
+                    explanation: "Bu bir genel bilgi sorusudur.",
+                  },
+                ];
             }
           };
 
           const demoQuestions = getDemoQuestions(subject);
 
-          // Apply user settings for question count
+          // Get real question count from actual demo questions
+          const realQuestionCount = demoQuestions.length; // Real count from actual demo questions
+
+          // Apply user settings for question count, but respect demo data limit
           const questionCount = Math.min(
             userSettings.studyPreferences.questionsPerQuiz,
-            demoQuestions.length,
+            realQuestionCount,
+            demoQuestions.length // Don't exceed available demo questions
           );
           const selectedQuestions = demoQuestions.slice(0, questionCount);
 
           setQuestions(selectedQuestions);
-          setTotalQuestions(selectedQuestions.length);
+          setTotalQuestions(realQuestionCount); // Show real count from demo data
           setStartTime(new Date());
 
           // Set time limit if configured
