@@ -9,7 +9,7 @@ const TopicExplainerInputSchema = z.object({
     .string()
     .describe("The subject area (e.g., mathematics, physics, chemistry)."),
   step: z
-    .enum(["intro", "core", "advanced", "practice", "mastery"])
+    .enum(["tanitim", "ogrenme", "pekistirme", "uygulama", "degerlendirme"])
     .describe("The learning step to generate content for."),
   difficulty: z
     .enum(["easy", "medium", "hard"])
@@ -45,15 +45,15 @@ export async function generateTopicStepContent(
     // Return fallback content
     return {
       title: `${input.topic} ${
-        input.step === "intro"
-          ? "Giriş"
-          : input.step === "core"
-            ? "Ana Kavramlar"
-            : input.step === "advanced"
-              ? "İleri Seviye"
-              : input.step === "practice"
-                ? "Pratik Uygulamalar"
-                : "Uzmanlık Seviyesi"
+        input.step === "tanitim"
+          ? "Tanıtım"
+          : input.step === "ogrenme"
+            ? "Öğrenme"
+            : input.step === "pekistirme"
+              ? "Pekiştirme"
+              : input.step === "uygulama"
+                ? "Uygulama"
+                : "Değerlendirme"
       }`,
       content: `${input.topic} konusunun ${input.step} aşamasında öğrenilmesi gereken temel kavramlar ve uygulamalar.`,
       examples: [
@@ -87,11 +87,11 @@ TAHMINİ SÜRE: {{{estimatedTime}}} dakika
 ## GÖREVİN:
 
 ### ADIM TÜRLERİ:
-- **intro**: Konuya giriş, temel kavramlar, motivasyon
-- **core**: Ana kavramlar, formüller, teoriler
-- **advanced**: İleri seviye uygulamalar, karmaşık problemler
-- **practice**: Pratik uygulamalar, problem çözme
-- **mastery**: Uzmanlık seviyesi, yaratıcı problem çözme
+- **tanitim**: Konuya giriş ve motivasyon - "Bu konuyu neden öğreniyoruz?"
+- **ogrenme**: Ana kavramları öğrenme - "Temel bilgileri öğrenelim"
+- **pekistirme**: Kavramları pekiştirme - "Öğrendiklerimizi sağlamlaştıralım"
+- **uygulama**: Basit uygulamalar - "Öğrendiklerimizi kullanalım"
+- **degerlendirme**: Öğrendiklerini test etme - "Ne kadar öğrendik?"
 
 ### ZORLUK SEVİYELERİ:
 - **easy**: Temel kavramlar, basit örnekler
@@ -102,7 +102,7 @@ TAHMINİ SÜRE: {{{estimatedTime}}} dakika
 
 ### BAŞLIK:
 - Adım türüne uygun, açıklayıcı başlık
-- Örnek: "Türev Konusuna Giriş", "İntegral Ana Kavramları"
+- Örnek: "Matematik Temel Kavramları Tanıtım", "Geometri Öğrenme"
 
 ### İÇERİK (MARKDOWN FORMATINDA):
 - Konuya özel, detaylı açıklama

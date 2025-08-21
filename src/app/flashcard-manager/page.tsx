@@ -36,8 +36,11 @@ import { useToast } from "@/hooks/use-toast";
 import { shouldUseDemoData } from "@/data/demo-data";
 import { generateFlashcards, type FlashcardGenerationOutput } from "@/ai/flows/flashcard-generation";
 import { UnifiedStorageService, type Flashcard } from "@/services/unified-storage-service";
-
-interface Subject {
+import { SubjectService } from "@/services/supabase-service";
+import { supabase } from "@/lib/supabase";
+import { errorLogger } from "@/lib/error-logger";
+// Local interface for the data structure actually used in this component
+interface LocalSubject {
   id: string;
   name: string;
   category: string;
@@ -49,7 +52,8 @@ export default function FlashcardManagerPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isDemoMode, setIsDemoMode] = useState(false);
-  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [subjects, setSubjects] = useState<LocalSubject[]>([]);
   const [loading, setLoading] = useState(false);
   const [aiGenerating, setAiGenerating] = useState(false);
 
@@ -90,6 +94,15 @@ export default function FlashcardManagerPage() {
   const [flashcardToDelete, setFlashcardToDelete] = useState<Flashcard | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsAuthenticated(Boolean(session?.user));
+    };
+    checkAuth();
+  }, []);
+
   useEffect(() => {
     const loadSubjects = async () => {
       try {
@@ -99,41 +112,87 @@ export default function FlashcardManagerPage() {
 
         if (demoMode) {
           // Demo subjects
-          const demoSubjects: Subject[] = [
+          const demoSubjects: LocalSubject[] = [
             { id: "1", name: "Matematik", category: "Fen Bilimleri", difficulty: "Orta", isActive: true },
             { id: "2", name: "Fizik", category: "Fen Bilimleri", difficulty: "Orta", isActive: true },
             { id: "3", name: "Kimya", category: "Fen Bilimleri", difficulty: "İleri", isActive: true },
           ];
           setSubjects(demoSubjects);
         } else {
-          // Load from UnifiedStorageService instead of direct localStorage
-          const localSubjects = UnifiedStorageService.getSubjects();
-          setSubjects(localSubjects.filter((s: Subject) => s.isActive));
+          let loadedSubjects: LocalSubject[] = [];
+
+          if (isAuthenticated) {
+            try {
+              // Try loading from Supabase first
+              const dbSubjects = await SubjectService.getSubjects();
+
+              if (dbSubjects && dbSubjects.length > 0) {
+                loadedSubjects = dbSubjects.map(subject => ({
+                  id: subject.id,
+                  name: subject.name,
+                  category: subject.category,
+                  difficulty: subject.difficulty,
+                  isActive: subject.is_active,
+                }));
+                // Successfully loaded from Supabase
+              } else {
+                // Fallback to localStorage
+                loadedSubjects = UnifiedStorageService.getSubjects();
+                // Silent fallback - no need to log as error
+              }
+            } catch {
+              // Fallback to localStorage on error
+              loadedSubjects = UnifiedStorageService.getSubjects();
+              // Supabase failed, using localStorage fallback
+            }
+          } else {
+            // Not authenticated, use localStorage
+            loadedSubjects = UnifiedStorageService.getSubjects();
+            // Silent fallback - no need to log as error
+          }
+
+          // Only show active subjects
+          const activeSubjects = loadedSubjects.filter((s: LocalSubject) => s.isActive);
+          setSubjects(activeSubjects);
         }
       } catch {
-        // Error logged for debugging purposes
-        // In production, this would be sent to an error tracking service
+        //do nothing
       } finally {
         setLoading(false);
       }
     };
 
     loadSubjects();
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   // Load existing flashcards when subject changes
   useEffect(() => {
-    if (selectedSubjectForManage) {
-      const flashcards = UnifiedStorageService.getFlashcardsBySubject(selectedSubjectForManage);
-      // Ensure createdAt is a Date object
-      const processedFlashcards = flashcards.map(flashcard => ({
-        ...flashcard,
-        createdAt: flashcard.createdAt instanceof Date ? flashcard.createdAt : new Date(flashcard.createdAt),
-      }));
-      setExistingFlashcards(processedFlashcards);
-    } else {
-      setExistingFlashcards([]);
-    }
+    const loadFlashcards = async () => {
+      if (selectedSubjectForManage) {
+        setLoading(true);
+        try {
+          // Small delay to show loading state
+          await new Promise(resolve => setTimeout(resolve, 100));
+
+          const flashcards = UnifiedStorageService.getFlashcardsBySubject(selectedSubjectForManage);
+          // Ensure createdAt is a Date object
+          const processedFlashcards = flashcards.map(flashcard => ({
+            ...flashcard,
+            createdAt: flashcard.createdAt instanceof Date ? flashcard.createdAt : new Date(flashcard.createdAt),
+          }));
+          setExistingFlashcards(processedFlashcards);
+        } catch (error) {
+          errorLogger.logError('Error loading flashcards', error, { subject: selectedSubjectForManage });
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setExistingFlashcards([]);
+      }
+    };
+
+    loadFlashcards();
   }, [selectedSubjectForManage]);
 
   // Flashcard management functions
@@ -161,24 +220,37 @@ export default function FlashcardManagerPage() {
     }
   };
 
-  const confirmDeleteFlashcard = () => {
+  const confirmDeleteFlashcard = async () => {
     if (!flashcardToDelete) {
       return;
     }
 
-    const success = UnifiedStorageService.deleteFlashcard(flashcardToDelete.id);
-    if (success) {
-      // Reload flashcards
-      if (selectedSubjectForManage) {
-        const flashcards = UnifiedStorageService.getFlashcardsBySubject(selectedSubjectForManage);
-        setExistingFlashcards(flashcards);
+    try {
+      const success = UnifiedStorageService.deleteFlashcard(flashcardToDelete.id);
+      if (success) {
+        // Reload flashcards efficiently
+        if (selectedSubjectForManage) {
+          const flashcards = UnifiedStorageService.getFlashcardsBySubject(selectedSubjectForManage);
+          const processedFlashcards = flashcards.map(flashcard => ({
+            ...flashcard,
+            createdAt: flashcard.createdAt instanceof Date ? flashcard.createdAt : new Date(flashcard.createdAt),
+          }));
+          setExistingFlashcards(processedFlashcards);
+        }
+        toast({
+          title: "Başarılı",
+          description: "Flashcard başarıyla silindi",
+          variant: "default",
+        });
+      } else {
+        toast({
+          title: "Hata",
+          description: "Flashcard silinirken hata oluştu",
+          variant: "destructive",
+        });
       }
-      toast({
-        title: "Başarılı",
-        description: "Flashcard başarıyla silindi",
-        variant: "default",
-      });
-    } else {
+    } catch (error) {
+      errorLogger.logError('Error confirming flashcard deletion', error, { flashcardId: flashcardToDelete?.id });
       toast({
         title: "Hata",
         description: "Flashcard silinirken hata oluştu",
@@ -207,10 +279,14 @@ export default function FlashcardManagerPage() {
       });
 
       if (success) {
-        // Reload flashcards
+        // Reload flashcards efficiently
         if (selectedSubjectForManage) {
           const flashcards = UnifiedStorageService.getFlashcardsBySubject(selectedSubjectForManage);
-          setExistingFlashcards(flashcards);
+          const processedFlashcards = flashcards.map(flashcard => ({
+            ...flashcard,
+            createdAt: flashcard.createdAt instanceof Date ? flashcard.createdAt : new Date(flashcard.createdAt),
+          }));
+          setExistingFlashcards(processedFlashcards);
         }
 
         // Reset form
@@ -238,7 +314,8 @@ export default function FlashcardManagerPage() {
           variant: "destructive",
         });
       }
-    } catch {
+    } catch (error) {
+      errorLogger.logError('Error updating flashcard', error, { flashcardId: editingFlashcard?.id });
       toast({
         title: "Hata",
         description: "Flashcard güncellenirken hata oluştu",
@@ -250,22 +327,23 @@ export default function FlashcardManagerPage() {
   const handleManualSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!manualForm.subject || !manualForm.question || !manualForm.answer) {
+    if (!manualForm.subject || !manualForm.topic || !manualForm.question || !manualForm.answer) {
       toast({
         title: "Eksik Bilgi",
-        description: "Lütfen gerekli alanları doldurun",
+        description: "Lütfen tüm gerekli alanları doldurun",
         variant: "destructive",
       });
       return;
     }
 
-    if (isEditing) {
+    // Handle editing existing flashcard
+    if (isEditing && editingFlashcard) {
       await handleUpdateFlashcard(e);
       return;
     }
 
     try {
-      const newFlashcard = {
+      const newFlashcard: Omit<Flashcard, "id"> = {
         subject: manualForm.subject,
         topic: manualForm.topic,
         question: manualForm.question,
@@ -275,8 +353,11 @@ export default function FlashcardManagerPage() {
         createdAt: new Date(),
       };
 
-      // Use UnifiedStorageService instead of direct localStorage
-      UnifiedStorageService.addFlashcard(newFlashcard);
+      errorLogger.logError("Creating flashcard", undefined, { flashcard: newFlashcard });
+
+      // Use UnifiedStorageService which handles both localStorage and Supabase sync
+      const createdFlashcard = await UnifiedStorageService.addFlashcard(newFlashcard);
+      errorLogger.logError("Flashcard created successfully", undefined, { id: createdFlashcard.id });
 
       // Reset form
       setManualForm({
@@ -288,22 +369,39 @@ export default function FlashcardManagerPage() {
         difficulty: "Medium",
       });
 
-      toast({
-        title: "Başarılı!",
-        description: "Flashcard başarıyla eklendi",
-        variant: "default",
-      });
+      // Show success message with authentication context
+      if (isAuthenticated) {
+        toast({
+          title: "Başarılı!",
+          description: "Flashcard başarıyla eklendi ve buluta senkronize edildi",
+          variant: "default",
+        });
+      } else {
+        toast({
+          title: "Başarılı!",
+          description: "Flashcard yerel olarak kaydedildi (bulut sync için giriş yapın)",
+          variant: "default",
+        });
+      }
 
       // Reload existing flashcards if we're on the manage tab
       if (selectedSubjectForManage === manualForm.subject) {
         const flashcards = UnifiedStorageService.getFlashcardsBySubject(manualForm.subject);
-        setExistingFlashcards(flashcards);
+        const processedFlashcards = flashcards.map(flashcard => ({
+          ...flashcard,
+          createdAt: flashcard.createdAt instanceof Date ? flashcard.createdAt : new Date(flashcard.createdAt),
+        }));
+        setExistingFlashcards(processedFlashcards);
       }
 
-    } catch {
+    } catch (error) {
+      errorLogger.logError("Error creating flashcard", error);
+
+      // Show specific error message
+      const errorMessage = error instanceof Error ? error.message : "Bilinmeyen hata";
       toast({
         title: "Hata",
-        description: "Flashcard eklenirken bir hata oluştu",
+        description: `Flashcard eklenirken hata oluştu: ${errorMessage}`,
         variant: "destructive",
       });
     }
@@ -426,27 +524,68 @@ export default function FlashcardManagerPage() {
     }
   };
 
-  const saveGeneratedFlashcards = () => {
+  const saveGeneratedFlashcards = async () => {
     try {
-      // Use UnifiedStorageService instead of direct localStorage
-      generatedFlashcards.forEach(flashcard => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { id: _, ...flashcardData } = flashcard;
-        UnifiedStorageService.addFlashcard(flashcardData);
-      });
+      errorLogger.logError("Saving AI generated flashcards", undefined, { count: generatedFlashcards.length });
 
+      // Save all generated flashcards with proper error handling
+      const results = await Promise.allSettled(
+        generatedFlashcards.map(async (flashcard) => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { id: _, ...flashcardData } = flashcard;
+          return UnifiedStorageService.addFlashcard(flashcardData);
+        }),
+      );
+
+      // Count successful and failed saves
+      const successful = results.filter(r => r.status === 'fulfilled').length;
+      const failed = results.filter(r => r.status === 'rejected').length;
+
+      errorLogger.logError("Save results", undefined, { successful, failed, total: generatedFlashcards.length });
+
+      // Clear generated flashcards after saving
       setGeneratedFlashcards([]);
 
-      toast({
-        title: "Başarılı!",
-        description: "Tüm flashcard'lar kaydedildi",
-        variant: "default",
-      });
+      // Show appropriate success message
+      if (failed === 0) {
+        if (isAuthenticated) {
+          toast({
+            title: "Başarılı!",
+            description: `Tüm ${successful} flashcard başarıyla kaydedildi ve buluta senkronize edildi`,
+            variant: "default",
+          });
+        } else {
+          toast({
+            title: "Başarılı!",
+            description: `Tüm ${successful} flashcard yerel olarak kaydedildi (bulut sync için giriş yapın)`,
+            variant: "default",
+          });
+        }
+      } else {
+        toast({
+          title: "Kısmi Başarı",
+          description: `${successful} flashcard kaydedildi, ${failed} adet başarısız oldu`,
+          variant: "destructive",
+        });
+      }
 
-    } catch {
+      // Reload existing flashcards for the current subject
+      if (selectedSubjectForManage) {
+        const flashcards = UnifiedStorageService.getFlashcardsBySubject(selectedSubjectForManage);
+        const processedFlashcards = flashcards.map(flashcard => ({
+          ...flashcard,
+          createdAt: flashcard.createdAt instanceof Date ? flashcard.createdAt : new Date(flashcard.createdAt),
+        }));
+        setExistingFlashcards(processedFlashcards);
+      }
+
+    } catch (error) {
+      errorLogger.logError("Error saving generated flashcards", error);
+
+      const errorMessage = error instanceof Error ? error.message : "Bilinmeyen hata";
       toast({
         title: "Hata",
-        description: "Flashcard'lar kaydedilirken bir hata oluştu",
+        description: `Flashcard'lar kaydedilirken hata oluştu: ${errorMessage}`,
         variant: "destructive",
       });
     }
@@ -476,7 +615,7 @@ export default function FlashcardManagerPage() {
             </p>
             {isDemoMode && (
               <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white mt-2">
-                BTK Demo Modu
+                Demo Modu
               </Badge>
             )}
           </div>
@@ -603,7 +742,12 @@ export default function FlashcardManagerPage() {
                         </Button>
                       </div>
 
-                      {existingFlashcards.length === 0 ? (
+                      {loading ? (
+                        <div className="text-center py-8 text-gray-500">
+                          <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
+                          <p>Flashcard&apos;lar yükleniyoror...</p>
+                        </div>
+                      ) : existingFlashcards.length === 0 ? (
                         <div className="text-center py-8 text-gray-500">
                           Bu ders için henüz flashcard bulunmuyor.
                         </div>
@@ -681,8 +825,8 @@ export default function FlashcardManagerPage() {
                 </CardTitle>
                 <CardDescription>
                   {isEditing
-                    ? "Flashcard&apos;ı düzenleyin ve güncelleyin"
-                    : "Kendi flashcard&apos;larınızı oluşturun ve özelleştirin"
+                    ? "Flashcard'ı düzenleyin ve güncelleyin"
+                    : "Kendi flashcard'larınızı oluşturun ve özelleştirin"
                   }
                 </CardDescription>
               </CardHeader>
@@ -1040,7 +1184,9 @@ export default function FlashcardManagerPage() {
 
                      <div className="flex flex-col sm:flex-row gap-3 mt-6">
                        <Button
-                         onClick={saveGeneratedFlashcards}
+                         onClick={() => {
+                           void saveGeneratedFlashcards();
+                         }}
                          className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 text-white border-0 text-sm sm:text-base py-2 sm:py-2.5"
                        >
                          <CheckCircle className="w-4 h-4 mr-2" />
@@ -1124,7 +1270,12 @@ export default function FlashcardManagerPage() {
             }}>
               İptal
             </AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteFlashcard} className="bg-red-600 hover:bg-red-700">
+            <AlertDialogAction
+              onClick={() => {
+                void confirmDeleteFlashcard();
+              }}
+              className="bg-red-600 hover:bg-red-700"
+            >
               Sil
             </AlertDialogAction>
           </AlertDialogFooter>

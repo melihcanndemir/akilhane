@@ -21,6 +21,7 @@ import {
   Globe,
   MessageSquare,
 } from "lucide-react";
+import { FaFacebook, FaInstagram, FaYoutube, FaGithub, FaTiktok, FaLinkedin, FaXTwitter } from "react-icons/fa6";
 import MobileNav from "@/components/mobile-nav";
 
 export default function ContactPage() {
@@ -232,19 +233,19 @@ export default function ContactPage() {
               <CardContent className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm">Teknik Destek</span>
-                  <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                  <Badge variant="info">
                     Hızlı
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm">Satış</span>
-                  <Badge variant="outline" className="bg-green-50 text-green-700">
+                  <Badge variant="success">
                     Aktif
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm">İşbirliği</span>
-                  <Badge variant="outline" className="bg-purple-50 text-purple-700">
+                  <Badge variant="purple">
                     Açık
                   </Badge>
                 </div>
@@ -260,21 +261,54 @@ export default function ContactPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button variant="outline" className="w-full justify-start">
-                  <span className="mr-2">📘</span>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-colors"
+                >
+                  <FaFacebook className="h-4 w-4 mr-2 text-blue-600" />
                   Facebook
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <span className="mr-2">📷</span>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start hover:bg-pink-50 hover:border-pink-300 hover:text-pink-700 transition-colors"
+                >
+                  <FaInstagram className="h-4 w-4 mr-2 text-pink-600" />
                   Instagram
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <span className="mr-2">🐦</span>
-                  Twitter
+                <Button
+                  variant="outline"
+                  className="w-full justify-start hover:bg-black hover:border-black hover:text-white transition-colors"
+                >
+                  <FaXTwitter className="h-4 w-4 mr-2 text-black" />
+                  X
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <span className="mr-2">💼</span>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-colors"
+                >
+                  <FaLinkedin className="h-4 w-4 mr-2 text-blue-600" />
                   LinkedIn
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start hover:bg-red-50 hover:border-red-300 hover:text-red-700 transition-colors"
+                >
+                  <FaYoutube className="h-4 w-4 mr-2 text-red-600" />
+                  YouTube
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 transition-colors"
+                >
+                  <FaGithub className="h-4 w-4 mr-2 text-gray-600" />
+                  GitHub
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start hover:bg-black hover:border-black hover:text-white transition-colors"
+                >
+                  <FaTiktok className="h-4 w-4 mr-2 text-black" />
+                  TikTok
                 </Button>
               </CardContent>
             </Card>

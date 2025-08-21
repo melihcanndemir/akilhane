@@ -226,18 +226,17 @@ export default function AIFeaturesShowcase() {
                     <Globe className="h-6 w-6 text-white" />
                   </div>
                   <CardTitle className="text-xl font-semibold text-foreground">
-                    BTK Hackathon 2025
+                    AI-Powered Platform
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground mb-4">
-                    AI Eğitim Kategorisi için özel olarak tasarlanmış,
-                    production-ready eğitim platformu
+                    Yapay zeka destekli, production-ready eğitim platformu
                   </p>
                   <div className="flex flex-wrap gap-2 mb-4">
-                    <Badge variant="secondary">AI Education</Badge>
+                    <Badge variant="secondary">AI-Powered</Badge>
                     <Badge variant="secondary">Production Ready</Badge>
-                    <Badge variant="secondary">Hackathon Ready</Badge>
+                    <Badge variant="secondary">Modern Tech</Badge>
                   </div>
                   <div className="text-xs text-muted-foreground">
                     <div className="flex items-center gap-1 mb-1">

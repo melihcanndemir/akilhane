@@ -66,11 +66,11 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto">
           {/* Hero Section */}
           <section className="text-center py-8 lg:py-12">
-            {/* Hackathon Badge */}
+            {/* Project Achievement Badge */}
             <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-200 dark:border-orange-800 rounded-full px-4 py-2 mb-6">
               <Award className="h-4 w-4 text-orange-600 dark:text-orange-400" />
               <span className="text-sm font-medium text-orange-600 dark:text-orange-400">
-                BTK Hackathon 2025 Project
+                AI Destekli Eğitim Platformu
               </span>
             </div>
 
@@ -94,7 +94,6 @@ export default function LandingPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
               <Button
                 onClick={() => {
-                  localStorage.setItem("btk_demo_mode", "true");
                   window.location.href = "/demo";
                 }}
                 size="lg"
@@ -309,10 +308,10 @@ export default function LandingPage() {
                       Verileriniz güvenli bir şekilde saklanır, gizlilik
                       politikalarımız şeffaftır
                     </p>
-                    <div className="flex flex-wrap gap-2">
-                      <Badge variant="secondary">Data Privacy</Badge>
-                      <Badge variant="secondary">Secure Storage</Badge>
-                    </div>
+                                         <div className="flex flex-wrap gap-2">
+                       <Badge variant="secondary">Client-Side Processing</Badge>
+                       <Badge variant="secondary">Modern Web Standards</Badge>
+                     </div>
                   </CardContent>
                 </Card>
               </div>
@@ -482,7 +481,6 @@ export default function LandingPage() {
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Button
                     onClick={() => {
-                      localStorage.setItem("btk_demo_mode", "true");
                       window.location.href = "/subject-manager";
                     }}
                     size="lg"
@@ -720,10 +718,10 @@ export default function LandingPage() {
               <h2 className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Hemen Demo&apos;yu Deneyin
               </h2>
-              <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-                BTK Hackathon için özel hazırlanmış demo veriler ile platformun
-                tüm özelliklerini keşfedin
-              </p>
+                             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+                 Özel hazırlanmış demo veriler ile platformun
+                 tüm özelliklerini keşfedin
+               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 max-w-4xl mx-auto">
                 <div className="border-gradient-question p-[1px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 rounded-xl">
@@ -754,16 +752,15 @@ export default function LandingPage() {
                     <h3 className="font-semibold mb-2 text-foreground">
                       Gerçek Veriler
                     </h3>
-                    <p className="text-muted-foreground text-sm">
-                      Hackathon demo verileri ile test edin
-                    </p>
+                                         <p className="text-muted-foreground text-sm">
+                       Özel demo verileri ile test edin
+                     </p>
                   </div>
                 </div>
               </div>
 
               <Button
                 onClick={() => {
-                  localStorage.setItem("btk_demo_mode", "true");
                   window.location.href = "/demo";
                 }}
                 size="lg"
@@ -793,7 +790,6 @@ export default function LandingPage() {
                 <Card className="h-full w-full rounded-[11px] border-0 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 dark:from-blue-500/20 dark:to-indigo-500/20 cursor-pointer">
                   <div
                     onClick={() => {
-                      localStorage.setItem("btk_demo_mode", "true");
                       window.location.href = "/quiz";
                     }}
                     className="cursor-pointer"
@@ -905,7 +901,6 @@ export default function LandingPage() {
               </Link>
               <Button
                 onClick={() => {
-                  localStorage.setItem("btk_demo_mode", "true");
                   window.location.href = "/demo";
                 }}
                 variant="outline"

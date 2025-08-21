@@ -8,6 +8,7 @@ import { useSubjectManagement } from "@/hooks/question-manager/use-subject-manag
 import { useQuestionCRUD } from "@/hooks/question-manager/use-question-crud";
 import { useAIGeneration } from "@/hooks/question-manager/use-ai-generation";
 import { useFormManagement } from "@/hooks/question-manager/use-form-management";
+import { shouldUseDemoData } from "@/data/demo-data";
 import type { Question } from "@/lib/types";
 import type { AIGeneratedQuestion } from "@/types/question-manager";
 
@@ -71,6 +72,14 @@ export default function QuestionManager() {
     totalCategories: 0,
   });
 
+  // Demo mode state
+  const [isDemoMode, setIsDemoMode] = useState(false);
+
+  // Check demo mode on mount
+  useEffect(() => {
+    setIsDemoMode(shouldUseDemoData());
+  }, []);
+
   // Calculate stats when subjects or questions change
   useEffect(() => {
     const totalSubjects = subjects.length;
@@ -115,6 +124,7 @@ export default function QuestionManager() {
     () => loadQuestions(selectedSubject),
     subjects,
     setSubjects,
+    setQuestions,
     calculateRealQuestionCount,
   );
 
@@ -142,6 +152,15 @@ export default function QuestionManager() {
   useEffect(() => {
     loadQuestions(selectedSubject);
   }, [selectedSubject, loadQuestions]);
+
+  // Critical fix: Re-load questions when authentication status changes from null to true
+  // This ensures data loads from cloud database on direct page access
+  useEffect(() => {
+    if (isAuthenticated === true) {
+
+      loadQuestions(selectedSubject);
+    }
+  }, [isAuthenticated, selectedSubject, loadQuestions]);
 
   // Handler functions that wrap the hook functions
   const handleCreateQuestion = async () => {
@@ -205,6 +224,7 @@ export default function QuestionManager() {
       isHydrated={isHydrated}
       formData={formData}
       stats={stats}
+      isDemoMode={isDemoMode}
       onSubjectChange={setSelectedSubject}
       onSearchChange={setSearchTerm}
       onDifficultyFilterChange={setFilterDifficulty}

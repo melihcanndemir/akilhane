@@ -21,6 +21,7 @@ import {
   Clock,
 } from "lucide-react";
 import MobileNav from "@/components/mobile-nav";
+import Link from "next/link";
 
 interface FAQItem {
   question: string;
@@ -335,10 +336,12 @@ export default function HelpPage() {
                   <Clock className="h-4 w-4 text-purple-600" />
                   <span className="text-sm">7/24 Destek</span>
                 </div>
-                <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600">
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Canlı Destek
-                </Button>
+                                 <Link href="/contact">
+                   <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 mt-4">
+                     <MessageSquare className="h-4 w-4 mr-2" />
+                     Canlı Destek
+                   </Button>
+                 </Link>
               </CardContent>
             </Card>
           </div>

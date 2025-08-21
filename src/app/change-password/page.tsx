@@ -80,16 +80,34 @@ function ChangePasswordContent() {
     try {
       setIsChangingPassword(true);
 
-      const { error } = await supabase.auth.updateUser({
+      // First verify current password
+      if (!authUser?.email) {
+        setPasswordError("Kullanıcı bilgisi bulunamadı.");
+        return;
+      }
+      
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: authUser.email,
+        password: passwordForm.currentPassword,
+      });
+
+      if (signInError) {
+        setPasswordError("Mevcut şifre yanlış. Lütfen tekrar deneyin.");
+        return;
+      }
+
+      // If current password is correct, update to new password
+      const { error: updateError } = await supabase.auth.updateUser({
         password: passwordForm.newPassword,
       });
 
-      if (error) {
+      if (updateError) {
         setPasswordError(
           "Şifre değiştirilirken bir hata oluştu. Lütfen tekrar deneyin.",
         );
         return;
       }
+
       setPasswordSuccess("Şifreniz başarıyla değiştirildi!");
 
       // Reset form

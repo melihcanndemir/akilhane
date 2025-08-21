@@ -11,7 +11,7 @@
   <!-- Project Status Badges -->
   <p>
     <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License">
-    <img src="https://img.shields.io/badge/version-1.2.0-blue.svg" alt="Version">
+    <img src="https://img.shields.io/badge/version-2.0.0-blue.svg" alt="Version">
     <img src="https://img.shields.io/badge/status-production-green.svg" alt="Status">
     <img src="https://deploy-badge.vercel.app/vercel/akilhane?root=landing" alt="Vercel Deploy Status">
     <img src="https://circleci.com/gh/melihcanndemir/akilhane.svg?style=svg" alt="CircleCI">
@@ -34,7 +34,7 @@
 
 AkılHane, standart eğitim platformlarının ötesine geçerek her öğrencinin bireysel ihtiyaçlarına odaklanır. Sadece soru çözmekle kalmaz, **zayıf yönlerinizi tespit eder, size özel çalışma stratejileri sunar ve öğrenme sürecinizi akıllı bir asistanla destekler.** Amacımız, eğitimi daha verimli, erişilebilir ve kişisel hale getirmektir.
 
-Bu proje, **BTK Akademi & Google & Girişimcilik Vakfı Hackathon'25** için geliştirilmiştir.
+Bu proje, modern eğitim teknolojileri ve yapay zeka kullanarak öğrenme deneyimini dönüştürmek amacıyla geliştirilmiştir.
 
 ## 🚀 Ana Özellikler
 

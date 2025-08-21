@@ -85,10 +85,20 @@ export class SubjectService {
   static async createSubject(
     subject: InsertTables<"subjects">,
   ): Promise<Subject | null> {
+    // Get current user for created_by field
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return null;
+    }
+
     const { data, error } = await supabase
       .from("subjects")
       .insert({
         ...subject,
+        created_by: user.id, // Set current user as creator
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
@@ -166,6 +176,30 @@ export class SubjectService {
 
 // Question Service
 export class QuestionService {
+  static async getQuestions(): Promise<Question[]> {
+    // Get current user for filtering
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return [];
+    }
+
+    const { data, error } = await supabase
+      .from("questions")
+      .select("*")
+      .eq("is_active", true)
+      .eq("created_by", user.id) // User isolation
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      return [];
+    }
+
+    return data || [];
+  }
+
   static async getQuestionsBySubject(subject: string): Promise<Question[]> {
     // Get current user for filtering
     const {

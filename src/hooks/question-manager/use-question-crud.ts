@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { QuestionService } from "@/services/supabase-service";
 import { UnifiedStorageService } from "@/services/unified-storage-service";
+import { shouldUseDemoData, getDemoQuestions } from "@/data/demo-data";
 import type { Question } from "@/lib/types";
 import type { InsertTables, UpdateTables } from "@/lib/supabase";
 import type { Subject, QuestionFormData } from "@/types/question-manager";
@@ -20,12 +21,72 @@ export const useQuestionCRUD = (
     try {
       let loadedQuestions: Question[] = [];
 
-      if (isAuthenticated) {
+      // Check if demo mode is active
+      const isDemoMode = shouldUseDemoData();
+
+      if (isDemoMode) {
+        // Load demo questions
+
+        if (selectedSubject && selectedSubject.trim() !== "") {
+          const demoQuestions = getDemoQuestions(selectedSubject);
+          
+          // Convert demo questions to Question format
+          loadedQuestions = demoQuestions.map(demoQ => ({
+            id: demoQ.id,
+            subject: selectedSubject,
+            type: "multiple-choice" as const,
+            difficulty: demoQ.difficulty === "Başlangıç" ? "Easy" as const : 
+                       demoQ.difficulty === "İleri" ? "Hard" as const : "Medium" as const,
+            text: demoQ.question,
+            options: demoQ.options.map((opt, index) => ({
+              text: opt,
+              isCorrect: index === demoQ.correctAnswer
+            })),
+            explanation: demoQ.explanation,
+            topic: demoQ.tags?.[0] || "",
+            formula: "",
+          }));
+        } else {
+          // Load all demo questions
+          const allDemoQuestions = Object.values({
+            "Matematik": getDemoQuestions("Matematik"),
+            "Fizik": getDemoQuestions("Fizik"), 
+            "Kimya": getDemoQuestions("Kimya"),
+            "Tarih": getDemoQuestions("Tarih"),
+            "Biyoloji": getDemoQuestions("Biyoloji"),
+            "Türk Dili ve Edebiyatı": getDemoQuestions("Türk Dili ve Edebiyatı"),
+            "İngilizce": getDemoQuestions("İngilizce"),
+          }).flat();
+          
+          loadedQuestions = allDemoQuestions.map(demoQ => ({
+            id: demoQ.id,
+            subject: demoQ.subjectId.includes("matematik") ? "Matematik" :
+                    demoQ.subjectId.includes("fizik") ? "Fizik" :
+                    demoQ.subjectId.includes("kimya") ? "Kimya" :
+                    demoQ.subjectId.includes("tarih") ? "Tarih" :
+                    demoQ.subjectId.includes("biyoloji") ? "Biyoloji" :
+                    demoQ.subjectId.includes("edebiyat") ? "Türk Dili ve Edebiyatı" :
+                    demoQ.subjectId.includes("ingilizce") ? "İngilizce" : "Genel",
+            type: "multiple-choice" as const,
+            difficulty: demoQ.difficulty === "Başlangıç" ? "Easy" as const : 
+                       demoQ.difficulty === "İleri" ? "Hard" as const : "Medium" as const,
+            text: demoQ.question,
+            options: demoQ.options.map((opt, index) => ({
+              text: opt,
+              isCorrect: index === demoQ.correctAnswer
+            })),
+            explanation: demoQ.explanation,
+            topic: demoQ.tags?.[0] || "",
+            formula: "",
+          }));
+        }
+      } else if (isAuthenticated) {
         try {
           if (selectedSubject && selectedSubject.trim() !== "") {
-            // Load questions for specific subject from Supabase
+            // Load questions for specific subject from both Supabase and local storage
+
             const dbQuestions = await QuestionService.getQuestionsBySubject(selectedSubject);
-            loadedQuestions = dbQuestions.map(question => ({
+            const cloudQuestions = dbQuestions.map(question => ({
               id: question.id,
               subject: question.subject,
               type: question.type as "multiple-choice" | "true-false" | "calculation" | "case-study",
@@ -36,9 +97,53 @@ export const useQuestionCRUD = (
               topic: question.topic || "",
               formula: question.formula || "",
             }));
+
+            // Also get local questions for the same subject
+            const localQuestions = UnifiedStorageService.getQuestionsBySubject(selectedSubject);
+
+            // Merge both lists, avoiding duplicates by ID (prioritize cloud data)
+            const allQuestions = [...cloudQuestions];
+            localQuestions.forEach(localQ => {
+              if (!allQuestions.find(cloudQ => cloudQ.id === localQ.id)) {
+                allQuestions.push({
+                  ...localQ,
+                  topic: localQ.topic || "",
+                  formula: localQ.formula || "",
+                });
+              }
+            });
+
+            loadedQuestions = allQuestions;
           } else {
-            // Load all questions from unified storage (no getQuestions method in Supabase)
-            loadedQuestions = UnifiedStorageService.getQuestions();
+            // Load all questions from Supabase when authenticated
+            const dbQuestions = await QuestionService.getQuestions();
+            const cloudQuestions = dbQuestions.map(question => ({
+              id: question.id,
+              subject: question.subject,
+              type: question.type as "multiple-choice" | "true-false" | "calculation" | "case-study",
+              difficulty: question.difficulty as "Easy" | "Medium" | "Hard",
+              text: question.text,
+              options: JSON.parse(question.options || "[]"),
+              explanation: question.explanation,
+              topic: question.topic || "",
+              formula: question.formula || "",
+            }));
+
+            // Also get local questions
+            const localQuestions = UnifiedStorageService.getQuestions();
+
+            // Merge both lists, avoiding duplicates by ID (prioritize cloud data)
+            const allQuestions = [...cloudQuestions];
+            localQuestions.forEach(localQ => {
+              if (!allQuestions.find(cloudQ => cloudQ.id === localQ.id)) {
+                allQuestions.push({
+                  ...localQ,
+                  topic: localQ.topic || "",
+                  formula: localQ.formula || "",
+                });
+              }
+            });
+            loadedQuestions = allQuestions;
           }
         } catch {
           // Fallback to unified storage on Supabase error
@@ -56,7 +161,6 @@ export const useQuestionCRUD = (
           loadedQuestions = UnifiedStorageService.getQuestions();
         }
       }
-
       setQuestions(loadedQuestions);
     } catch {
       toast({
@@ -65,7 +169,8 @@ export const useQuestionCRUD = (
         variant: "destructive",
       });
     }
-  }, [isAuthenticated, setQuestions, toast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, toast]); // Removed setQuestions as it's stable
 
   // Create question
   const createQuestion = useCallback(async (formData: QuestionFormData) => {
@@ -106,16 +211,20 @@ export const useQuestionCRUD = (
 
       if (isAuthenticated) {
         try {
+          // Find the subject ID from the subjects list
+          const subject = subjects.find(s => s.name === formData.subject);
+          const subjectId = subject?.id || `subject_${formData.subject.toLowerCase().replace(/[^a-z0-9]/g, "_")}_${Date.now()}`;
+
           // Convert to database format
           const dbQuestion: InsertTables<"questions"> = {
-            subject_id: formData.subject,
+            subject_id: subjectId,
             subject: formData.subject,
             topic: formData.topic || "",
             type: newQuestion.type,
             difficulty: newQuestion.difficulty,
             text: newQuestion.text,
             options: JSON.stringify(newQuestion.options),
-            correct_answer: newQuestion.options.find(opt => opt.isCorrect)?.text || "",
+            correct_answer: newQuestion.options.find(opt => opt.isCorrect)?.text || newQuestion.options[0]?.text || "",
             explanation: newQuestion.explanation,
             formula: newQuestion.formula || "",
           };
@@ -166,7 +275,8 @@ export const useQuestionCRUD = (
       });
       return false;
     }
-  }, [isAuthenticated, setQuestions, subjects, setSubjects, calculateRealQuestionCount, toast]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, subjects, calculateRealQuestionCount, toast]); // Removed stable setters
 
   // Update question
   const updateQuestion = useCallback(async (editingQuestion: Question) => {
@@ -177,15 +287,19 @@ export const useQuestionCRUD = (
     try {
       if (isAuthenticated) {
         try {
+          // Find the subject ID from the subjects list
+          const subject = subjects.find(s => s.name === editingQuestion.subject);
+          const subjectId = subject?.id || `subject_${editingQuestion.subject.toLowerCase().replace(/[^a-z0-9]/g, "_")}_${Date.now()}`;
+
           const updateData: UpdateTables<"questions"> = {
-            subject_id: editingQuestion.subject,
+            subject_id: subjectId,
             subject: editingQuestion.subject,
             topic: editingQuestion.topic || "",
             type: editingQuestion.type,
             difficulty: editingQuestion.difficulty,
             text: editingQuestion.text,
             options: JSON.stringify(editingQuestion.options),
-            correct_answer: editingQuestion.options.find(opt => opt.isCorrect)?.text || "",
+            correct_answer: editingQuestion.options.find(opt => opt.isCorrect)?.text || editingQuestion.options[0]?.text || "",
             explanation: editingQuestion.explanation,
             formula: editingQuestion.formula || "",
           };
@@ -220,7 +334,8 @@ export const useQuestionCRUD = (
       });
       return false;
     }
-  }, [isAuthenticated, setQuestions, subjects, setSubjects, calculateRealQuestionCount, toast]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, subjects, calculateRealQuestionCount, toast]); // Removed stable setters
 
   // Delete question
   const deleteQuestion = useCallback(async (questionId: string) => {
@@ -256,7 +371,8 @@ export const useQuestionCRUD = (
       });
       return false;
     }
-  }, [isAuthenticated, setQuestions, subjects, setSubjects, calculateRealQuestionCount, toast]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, subjects, calculateRealQuestionCount, toast]); // Removed stable setters
 
   return {
     loadQuestions,

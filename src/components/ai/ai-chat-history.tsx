@@ -82,10 +82,12 @@ export default function AiChatHistory({
       }
 
       // Get sessions from localStorage
-      const localSessions = localStorageService.getAIChatSessions();
+      const localSessions = user
+        ? localStorageService.getAIChatSessionsByUser(user.id)
+        : localStorageService.getAIChatSessions();
 
       // Convert localStorage sessions to the expected format
-      const localFormattedSessions: AiChatSession[] = localSessions.map(
+      let localFormattedSessions: AiChatSession[] = localSessions.map(
         (session) => {
           const lastMessage = session.messages && session.messages.length > 0
             ? session.messages[session.messages.length - 1]
@@ -108,6 +110,37 @@ export default function AiChatHistory({
           };
         },
       );
+
+      // Filter localStorage sessions by search term if provided
+      if (search?.trim()) {
+        const searchLower = search.toLowerCase().trim();
+        localFormattedSessions = localFormattedSessions.filter((session) => {
+          // Search in title
+          if (session.title?.toLowerCase().includes(searchLower)) {
+            return true;
+          }
+
+          // Search in subject
+          if (session.subject.toLowerCase().includes(searchLower)) {
+            return true;
+          }
+
+          // Search in last message content
+          if (session.lastMessage?.content?.toLowerCase().includes(searchLower)) {
+            return true;
+          }
+
+          // Search in all messages
+          const originalSession = localSessions.find(s => s.sessionId === session.sessionId);
+          if (originalSession?.messages) {
+            return originalSession.messages.some(msg =>
+              msg.content.toLowerCase().includes(searchLower),
+            );
+          }
+
+          return false;
+        });
+      }
 
       // Combine Supabase and localStorage sessions
       const combinedSessions = [...allSessions, ...localFormattedSessions];
@@ -224,25 +257,25 @@ export default function AiChatHistory({
           <span className="hidden sm:inline">Geçmiş</span>
         </Button>
       </DialogTrigger>
-      <DialogContent
-        className="
-  max-w-6xl
-  max-h-[98vh]
-  overflow-hidden
-  flex
-  flex-col
-  w-[94vw] ml-[3vw] mr-[3vw] mx-auto
-  lg:w-auto lg:mx-auto
-  p-3 sm:p-4 lg:p-6
-"
-      >
+                                                       <DialogContent
+           className="
+     max-w-7xl
+     max-h-[128vh]
+     overflow-hidden
+     flex
+     flex-col
+     w-[94vw] mx-auto
+     lg:w-[90vw] lg:max-w-[90vw] lg:mx-auto
+     p-3 sm:p-4 lg:p-6
+   "
+         >
         <DialogHeader className="border-b border-gray-200 dark:border-gray-700 pb-4">
           <DialogTitle className="flex items-center gap-3 lg:gap-4">
             <div className="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
               <History className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
             </div>
             <div>
-              <span className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-gray-100">
+              <span className="text-xl lg:text-2xl font-semibold text-gray-900 dark:text-gray-100">
                 AI Tutor Geçmişi
               </span>
               <p className="text-sm lg:text-base text-gray-500 dark:text-gray-400 mt-1">
@@ -273,7 +306,7 @@ export default function AiChatHistory({
           </Button>
         </div>
 
-        <div className="flex-1 overflow-y-auto space-y-2">
+                 <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-4">
           {isLoading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600 mx-auto mb-4"></div>
@@ -304,7 +337,7 @@ export default function AiChatHistory({
             sessions.map((session) => (
               <Card
                 key={session.sessionId}
-                className={`group cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.02] border-2 ${
+                className={`group cursor-pointer transition-all duration-300 hover:shadow-lg border-2 ${
                   currentSessionId === session.sessionId
                     ? "ring-2 ring-blue-500 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-blue-200 dark:border-blue-700"
                     : "border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
@@ -314,41 +347,41 @@ export default function AiChatHistory({
                   setIsDialogOpen(false);
                 }}
               >
-                <CardContent className="p-3 lg:p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      {/* Header with icon and title */}
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="flex-shrink-0 w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-md">
-                          <BookOpen className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-sm lg:text-base truncate text-gray-900 dark:text-gray-100">
-                            {session.title || `AI Tutor - ${session.subject}`}
-                          </h3>
-                          <p className="text-xs lg:text-sm text-gray-500 dark:text-gray-400 truncate">
-                            {session.subject} konusunda sohbet
-                          </p>
-                        </div>
-                      </div>
+                                 <CardContent className="p-4 lg:p-6">
+                   <div className="flex items-start justify-between">
+                     <div className="flex-1 min-w-0">
+                       {/* Header with icon and title */}
+                       <div className="flex items-center gap-3 mb-3">
+                         <div className="flex-shrink-0 w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-md">
+                           <BookOpen className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
+                         </div>
+                         <div className="flex-1 min-w-0">
+                           <h3 className="font-semibold text-base lg:text-lg truncate text-gray-900 dark:text-gray-100">
+                             {session.title || `AI Tutor - ${session.subject}`}
+                           </h3>
+                           <p className="text-sm lg:text-base text-gray-500 dark:text-gray-400 truncate">
+                             {session.subject} konusunda sohbet
+                           </p>
+                         </div>
+                       </div>
 
-                      {/* Stats row */}
-                      <div className="flex items-center gap-4 mb-2">
-                        <div className="flex items-center gap-1 text-xs lg:text-sm text-gray-600 dark:text-gray-300">
-                          <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                          <MessageSquare className="w-3 h-3 lg:w-4 lg:h-4" />
-                          <span className="font-medium">
-                            {session.messageCount} mesaj
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1 text-xs lg:text-sm text-gray-600 dark:text-gray-300">
-                          <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-                          <Calendar className="w-3 h-3 lg:w-4 lg:h-4" />
-                          <span className="font-medium">
-                            {formatDate(session.lastMessageAt)}
-                          </span>
-                        </div>
-                      </div>
+                                             {/* Stats row */}
+                       <div className="flex items-center gap-6 mb-3">
+                         <div className="flex items-center gap-2 text-sm lg:text-base text-gray-600 dark:text-gray-300">
+                           <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                           <MessageSquare className="w-4 h-4 lg:w-5 lg:h-5" />
+                           <span className="font-medium">
+                             {session.messageCount} mesaj
+                           </span>
+                         </div>
+                         <div className="flex items-center gap-2 text-sm lg:text-base text-gray-600 dark:text-gray-300">
+                           <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                           <Calendar className="w-4 h-4 lg:w-5 lg:h-5" />
+                           <span className="font-medium">
+                             {formatDate(session.lastMessageAt)}
+                           </span>
+                         </div>
+                       </div>
 
                       {/* Last message preview */}
                       {session.lastMessage && (

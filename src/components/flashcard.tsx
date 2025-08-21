@@ -18,7 +18,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ArrowLeft, Frown, Meh, Smile, Star, Target, Shuffle, Brain, BookOpen, Zap, MousePointer2, BarChart3, CheckCircle, Lightbulb, Eye, RotateCcw } from "lucide-react";
-import Link from "next/link";
 import VoiceAssistant from "./voice-assistant";
 import { getDemoFlashcards } from "@/data/demo-data";
 import MobileNav from "@/components/mobile-nav";
@@ -42,14 +41,15 @@ interface Flashcard {
 interface FlashcardProps {
   subject: string;
   isDemoMode?: boolean;
+  onBack?: () => void;
 }
 
 const FlashcardComponent: React.FC<FlashcardProps> = ({
   subject,
   isDemoMode = false,
+  onBack,
 }) => {
   const { toast } = useToast();
-
   // Check demo mode from localStorage
   const demoModeActive =
     isDemoMode ||
@@ -96,9 +96,6 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
           return;
         }
 
-        // USE UNIFIED STORAGE SERVICE INSTEAD OF DIRECT LOCALSTORAGE
-
-        // Sadece flashcard'ları yükle - quiz soruları kaldırıldı
         const flashcards = UnifiedStorageService.getFlashcardsBySubject(subject);
 
         if (flashcards.length === 0) {
@@ -484,7 +481,9 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
   const currentCard = filteredCards[currentIndex];
 
   // Check if all cards are completed (confidence >= 4) - show congratulations
-  const allCardsCompleted = flashcards.length > 0 && flashcards.every(card => card.confidence >= 4);
+  // More realistic completion condition - all cards must be reviewed multiple times and have max confidence
+  const allCardsCompleted = flashcards.length > 0 && 
+    flashcards.every(card => card.confidence === 5 && card.reviewCount >= 3);
 
   if (!currentCard || allCardsCompleted) {
     // Check if current study mode has no cards
@@ -590,7 +589,7 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
                     className="text-lg sm:text-xl md:text-2xl text-gray-700 dark:text-gray-300 mb-6 sm:mb-8 font-medium px-4"
                   >
                     {allCardsCompleted
-                      ? "Matematik konusundaki tüm flashcard&apos;ları başarıyla öğrendiniz!"
+                      ? `${subject} konusundaki tüm flashcard'ları başarıyla öğrendiniz!`
                       : "Harika bir iş çıkardınız!"}
                   </motion.p>
                 </div>
@@ -666,18 +665,17 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
                     <span>Yeni Baştan Başla</span>
                   </motion.button>
 
-                  <Link href="/dashboard" className="w-full sm:w-auto">
-                    <motion.button
-                      whileHover={{ scale: 1.05, y: -3 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="w-full px-6 sm:px-8 md:px-10 py-3 sm:py-4 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white rounded-xl sm:rounded-2xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 sm:gap-3 text-sm sm:text-base"
-                    >
-                      <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                      </svg>
-                      <span>Dashboard&apos;a Dön</span>
-                    </motion.button>
-                  </Link>
+                  <motion.button
+                    onClick={onBack}
+                    whileHover={{ scale: 1.05, y: -3 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="w-full px-6 sm:px-8 md:px-10 py-3 sm:py-4 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white rounded-xl sm:rounded-2xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 sm:gap-3 text-sm sm:text-base"
+                  >
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span>Ders Seçimine Dön</span>
+                  </motion.button>
                 </motion.div>
               </motion.div>
             ) : (
@@ -820,16 +818,15 @@ const FlashcardComponent: React.FC<FlashcardProps> = ({
           {/* Header */}
           <div className="mb-8">
             <div className="flex flex-wrap items-center gap-4 mb-4">
-              <Link href="/dashboard">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-2 min-h-[44px] px-4 text-base hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  Dashboard&apos;a Dön
-                </Button>
-              </Link>
+              <Button
+                onClick={onBack}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2 min-h-[44px] px-4 text-base hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Ders Seçimine Dön
+              </Button>
               <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Flashcard Sistemi - {subject}
               </h1>

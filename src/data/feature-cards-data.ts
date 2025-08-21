@@ -54,7 +54,7 @@ export const aiChatFeatures: FeatureCard[] = [
     icon: Target,
     title: "Hedef Odaklı",
     description: "Kişisel hedeflerinize göre öğrenme planı",
-    iconBgColor: "bg-gradient-to-r from-indigo-500 to-blue-500",
+    iconBgColor: "bg-indigo-500",
   },
 ];
 
@@ -94,7 +94,7 @@ export const dashboardFeatures: FeatureCard[] = [
     icon: Star,
     title: "Başarı Rozetleri",
     description: "Hedeflerinize ulaştıkça rozetler kazanın",
-    iconBgColor: "bg-gradient-to-r from-indigo-500 to-blue-500",
+    iconBgColor: "bg-indigo-500",
   },
 ];
 
@@ -134,7 +134,7 @@ export const settingsFeatures: FeatureCard[] = [
     icon: Star,
     title: "Premium Özellikler",
     description: "Gelişmiş analitik ve özel özellikler",
-    iconBgColor: "bg-gradient-to-r from-indigo-500 to-blue-500",
+    iconBgColor: "bg-indigo-500",
   },
 ];
 
@@ -282,6 +282,6 @@ export const landingFeatures: FeatureCard[] = [
     icon: Star,
     title: "Premium Özellikler",
     description: "Gelişmiş analitik ve özel özellikler",
-    iconBgColor: "bg-gradient-to-r from-indigo-500 to-blue-500",
+    iconBgColor: "bg-indigo-500",
   },
 ];

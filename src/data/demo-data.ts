@@ -35,7 +35,7 @@ export const demoSubjects = [
     description: "Temel matematik konuları: Cebir, Geometri, Analiz",
     category: "Fen Bilimleri",
     difficulty: "Orta",
-    questionCount: 245,
+    questionCount: 3, // Actual demo questions count
     isActive: true,
   },
   {
@@ -44,7 +44,7 @@ export const demoSubjects = [
     description: "Mekanik, Termodinamik, Elektrik ve Manyetizma",
     category: "Fen Bilimleri",
     difficulty: "Orta",
-    questionCount: 198,
+    questionCount: 3, // Actual demo questions count
     isActive: true,
   },
   {
@@ -53,7 +53,7 @@ export const demoSubjects = [
     description: "Genel Kimya, Organik ve Anorganik Kimya",
     category: "Fen Bilimleri",
     difficulty: "Zor",
-    questionCount: 167,
+    questionCount: 2, // Actual demo questions count
     isActive: true,
   },
   {
@@ -62,7 +62,7 @@ export const demoSubjects = [
     description: "Hücre Biyolojisi, Genetik, Ekoloji",
     category: "Fen Bilimleri",
     difficulty: "Orta",
-    questionCount: 189,
+    questionCount: 2, // Actual demo questions count
     isActive: true,
   },
   {
@@ -71,7 +71,7 @@ export const demoSubjects = [
     description: "Türk Tarihi, Dünya Tarihi, Çağdaş Tarih",
     category: "Sosyal Bilimler",
     difficulty: "Kolay",
-    questionCount: 312,
+    questionCount: 2, // Actual demo questions count
     isActive: true,
   },
   {
@@ -80,7 +80,7 @@ export const demoSubjects = [
     description: "Dil Bilgisi, Klasik Edebiyat, Çağdaş Edebiyat",
     category: "Dil ve Edebiyat",
     difficulty: "Orta",
-    questionCount: 234,
+    questionCount: 2, // Actual demo questions count
     isActive: true,
   },
   {
@@ -89,7 +89,7 @@ export const demoSubjects = [
     description: "Grammar, Vocabulary, Reading Comprehension",
     category: "Yabancı Dil",
     difficulty: "Orta",
-    questionCount: 156,
+    questionCount: 2, // Actual demo questions count
     isActive: true,
   },
 ];
@@ -268,7 +268,7 @@ export const demoFlashcardProgress = {
     subject: "Matematik",
     cardId: "turev_temel",
     isKnown: true,
-    reviewCount: 5,
+    reviewCount: 2,
     lastReviewed: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
     nextReview: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
   },
@@ -286,7 +286,7 @@ export const demoFlashcardProgress = {
     subject: "Kimya",
     cardId: "organik_baglanti",
     isKnown: true,
-    reviewCount: 8,
+    reviewCount: 2,
     lastReviewed: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
     nextReview: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
   },
@@ -295,7 +295,7 @@ export const demoFlashcardProgress = {
 // Demo user profile
 export const demoUser = {
   id: "demo_user_btk_2025",
-  name: "BTK Hackathon Demo",
+  name: "Demo",
   email: "demo@akilhane.com",
   isGuest: true,
   createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days ago
@@ -607,10 +607,10 @@ export const demoQuestions = {
       createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
     },
   ],
-  subj_tarih_004: [
+  subj_tarih_005: [
     {
       id: "q_tar_001",
-      subjectId: "subj_tarih_004",
+      subjectId: "subj_tarih_005",
       question: "Osmanlı İmparatorluğu hangi yılda kurulmuştur?",
       options: ["1299", "1326", "1354", "1389"],
       correctAnswer: 0, // 1299
@@ -622,7 +622,7 @@ export const demoQuestions = {
     },
     {
       id: "q_tar_002",
-      subjectId: "subj_tarih_004",
+      subjectId: "subj_tarih_005",
       question: "Türkiye Cumhuriyeti hangi tarihte ilan edilmiştir?",
       options: [
         "19 Mayıs 1919",
@@ -638,10 +638,10 @@ export const demoQuestions = {
       createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
     },
   ],
-  subj_biyoloji_005: [
+  subj_biyoloji_004: [
     {
       id: "q_bio_001",
-      subjectId: "subj_biyoloji_005",
+      subjectId: "subj_biyoloji_004",
       question: "Fotosentez hangi organellerde gerçekleşir?",
       options: ["Mitokondri", "Kloroplast", "Ribozom", "Golgi cisimciği"],
       correctAnswer: 1, // Chloroplast
@@ -653,7 +653,7 @@ export const demoQuestions = {
     },
     {
       id: "q_bio_002",
-      subjectId: "subj_biyoloji_005",
+      subjectId: "subj_biyoloji_004",
       question: "DNA'nın yapısını ilk kez kim keşfetmiştir?",
       options: ["Darwin", "Mendel", "Watson ve Crick", "Pasteur"],
       correctAnswer: 2, // Watson ve Crick
@@ -722,9 +722,29 @@ export const demoQuestions = {
   ],
 };
 
-// Get demo questions for a specific subject
-export const getDemoQuestions = (subjectId: string) =>
-  demoQuestions[subjectId as keyof typeof demoQuestions] || [];
+// Map subject names to IDs
+const subjectNameToId: Record<string, string> = {
+  "Matematik": "subj_matematik_001",
+  "Fizik": "subj_fizik_002", 
+  "Kimya": "subj_kimya_003",
+  "Biyoloji": "subj_biyoloji_004",
+  "Tarih": "subj_tarih_005",
+  "Türk Dili ve Edebiyatı": "subj_edebiyat_006",
+  "İngilizce": "subj_ingilizce_007"
+};
+
+// Get demo questions for a specific subject (by name or ID)
+export const getDemoQuestions = (subjectNameOrId: string) => {
+  // If it's already an ID, use it directly
+  let subjectId = subjectNameOrId;
+  
+  // If it's a name, convert to ID
+  if (subjectNameToId[subjectNameOrId]) {
+    subjectId = subjectNameToId[subjectNameOrId];
+  }
+  
+  return demoQuestions[subjectId as keyof typeof demoQuestions] || [];
+};
 
 // Get all demo questions
 export const getAllDemoQuestions = () => Object.values(demoQuestions).flat();
@@ -758,8 +778,8 @@ export const demoFlashcards = {
         "Dik üçgenlerde, hipotenüsün uzunluğunun karesi, diğer iki kenarın uzunluklarının karelerinin toplamına eşittir.",
       topic: "Geometri",
       difficulty: "Başlangıç",
-      reviewCount: 5,
-      confidence: 5,
+      reviewCount: 2,
+      confidence: 3,
       options: [
         { text: "a² + b² = c²", isCorrect: true },
         { text: "a + b = c", isCorrect: false },
@@ -833,8 +853,8 @@ export const demoFlashcards = {
         "Atom, proton, nötron ve elektronlardan oluşur. Kimyasal reaksiyonlarda bölünmez.",
       topic: "Atom Yapısı",
       difficulty: "Başlangıç",
-      reviewCount: 4,
-      confidence: 5,
+      reviewCount: 1,
+      confidence: 2,
       options: [
         { text: "Maddenin en küçük parçacığı", isCorrect: true },
         { text: "Molekülün yarısı", isCorrect: false },
@@ -852,8 +872,8 @@ export const demoFlashcards = {
         "29 Mayıs 1453'te Konstantinopolis'i fethederek Bizans İmparatorluğu'na son verdi.",
       topic: "Osmanlı Tarihi",
       difficulty: "Başlangıç",
-      reviewCount: 6,
-      confidence: 5,
+      reviewCount: 1,
+      confidence: 2,
       options: [
         { text: "İstanbul", isCorrect: true },
         { text: "Ankara", isCorrect: false },

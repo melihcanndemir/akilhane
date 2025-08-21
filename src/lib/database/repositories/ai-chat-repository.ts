@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { supabaseServiceRole } from "@/lib/supabase-service";
 
 export interface AiChatMessage {
   id: string;
@@ -65,7 +65,7 @@ export class AiChatRepository {
       last_message_at: new Date().toISOString(),
     };
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseServiceRole
       .from("ai_chat_sessions")
       .insert(insertData)
       .select()
@@ -81,7 +81,7 @@ export class AiChatRepository {
 
   // Get all sessions for a user
   static async getSessionsByUser(userId: string): Promise<AiChatSession[]> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseServiceRole
       .from("ai_chat_sessions")
       .select("*")
       .eq("user_id", userId)
@@ -97,7 +97,7 @@ export class AiChatRepository {
   static async getSessionBySessionId(
     sessionId: string,
   ): Promise<AiChatSession | null> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseServiceRole
       .from("ai_chat_sessions")
       .select("*")
       .eq("session_id", sessionId)
@@ -117,7 +117,7 @@ export class AiChatRepository {
     sessionId: string,
     userId: string,
   ): Promise<AiChatMessage[]> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseServiceRole
       .from("ai_chat_history")
       .select("*")
       .eq("session_id", sessionId)
@@ -138,7 +138,7 @@ export class AiChatRepository {
     role: "user" | "assistant",
     content: string,
   ): Promise<AiChatMessage> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseServiceRole
       .from("ai_chat_history")
       .insert({
         user_id: userId,
@@ -158,7 +158,7 @@ export class AiChatRepository {
     // Update session message count and last message time
     const currentSession = await this.getSessionBySessionId(sessionId);
     if (currentSession) {
-      await supabase
+      await supabaseServiceRole
         .from("ai_chat_sessions")
         .update({
           message_count: currentSession.messageCount + 1,
@@ -177,7 +177,7 @@ export class AiChatRepository {
     title: string,
     userId: string,
   ): Promise<void> {
-    const { error } = await supabase
+    const { error } = await supabaseServiceRole
       .from("ai_chat_sessions")
       .update({
         title,
@@ -198,7 +198,7 @@ export class AiChatRepository {
   ): Promise<boolean> {
     try {
       // Delete all messages in the session
-      const { error: messagesError } = await supabase
+      const { error: messagesError } = await supabaseServiceRole
         .from("ai_chat_history")
         .delete()
         .eq("session_id", sessionId)
@@ -209,7 +209,7 @@ export class AiChatRepository {
       }
 
       // Delete the session
-      const { error: sessionError } = await supabase
+      const { error: sessionError } = await supabaseServiceRole
         .from("ai_chat_sessions")
         .delete()
         .eq("session_id", sessionId)
@@ -230,7 +230,7 @@ export class AiChatRepository {
     userId: string,
     searchTerm: string,
   ): Promise<AiChatSession[]> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseServiceRole
       .from("ai_chat_sessions")
       .select("*")
       .eq("user_id", userId)
@@ -268,7 +268,7 @@ export class AiChatRepository {
     userId: string,
     limit: number = 10,
   ): Promise<AiChatSession[]> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseServiceRole
       .from("ai_chat_sessions")
       .select("*")
       .eq("user_id", userId)

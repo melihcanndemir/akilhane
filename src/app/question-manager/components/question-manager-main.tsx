@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sparkles, BookOpen, Target, Brain, Database, GraduationCap } from "lucide-react";
 import MobileNav from "@/components/mobile-nav";
@@ -57,6 +58,7 @@ interface QuestionManagerMainProps {
   isHydrated: boolean;
   formData: QuestionFormData;
   stats: Stats;
+  isDemoMode?: boolean;
   onSubjectChange: (subject: string) => void;
   onSearchChange: (term: string) => void;
   onDifficultyFilterChange: (difficulty: string) => void;
@@ -96,6 +98,7 @@ export default function QuestionManagerMain({
   aiGenerationResult,
   formData,
   stats,
+  isDemoMode = false,
   onSubjectChange,
   onSearchChange,
   onDifficultyFilterChange,
@@ -136,6 +139,11 @@ export default function QuestionManagerMain({
                   <div>
                     <CardTitle className="text-xl sm:text-2xl flex items-center gap-2">
                       Soru Yöneticisi
+                      {isDemoMode && (
+                        <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+                          Demo
+                        </Badge>
+                      )}
                     </CardTitle>
                     <p className="text-muted-foreground">
                       Soruları ekleyin, düzenleyin ve yönetin. Her ders için

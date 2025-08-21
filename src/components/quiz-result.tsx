@@ -262,14 +262,14 @@ export const QuizResult: React.FC<QuizResultProps> = ({
                 <span>Testi Tekrar Çöz</span>
               </motion.button>
 
-              <Link href="/dashboard" className="w-full sm:w-auto">
+              <Link href="/quiz" className="w-full sm:w-auto">
                 <motion.button
                   whileHover={{ scale: 1.05, y: -3 }}
                   whileTap={{ scale: 0.95 }}
                   className="w-full px-6 sm:px-8 md:px-10 py-3 sm:py-4 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white rounded-xl sm:rounded-2xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 sm:gap-3 text-sm sm:text-base"
                 >
                   <Home className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span>Dashboard&apos;a Dön</span>
+                  <span>Test Sayfasına Dön</span>
                 </motion.button>
               </Link>
             </motion.div>

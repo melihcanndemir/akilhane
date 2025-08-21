@@ -61,6 +61,7 @@ const TopicExplainerPageContent = () => {
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentSubject, setCurrentSubject] = useState<string | null>(null);
 
   useEffect(() => {
     const demoMode = shouldUseDemoData();
@@ -77,11 +78,20 @@ const TopicExplainerPageContent = () => {
     loadRealData();
   }, []);
 
+  // 🔄 SUBJECT CHANGE DETECTION (NO CLEARING)
+  useEffect(() => {
+    if (subject && subject !== currentSubject) {
+      // Update current subject (NO CLEARING - keep all data separate)
+      setCurrentSubject(subject);
+    }
+  }, [subject, currentSubject]);
+
   // If topic and subject are provided, show the explainer
   if (topic && subject) {
-    // Check if content exists in localStorage
+    // Check if content exists in localStorage for THIS SPECIFIC TOPIC + SUBJECT COMBINATION
     const savedTopics = TopicExplainerLocalStorageService.getTopicsByTopic(topic);
-    const hasSavedContent = savedTopics.length > 0;
+    const savedTopicForThisSubject = savedTopics.find(t => t.subject === subject);
+    const hasSavedContent = Boolean(savedTopicForThisSubject);
 
     return (
       <TopicExplainer
@@ -89,7 +99,7 @@ const TopicExplainerPageContent = () => {
         subject={subject}
         isDemoMode={isDemoMode}
         hasSavedContent={hasSavedContent}
-        savedTopicId={hasSavedContent && savedTopics[0] ? savedTopics[0].id : null}
+        savedTopicId={hasSavedContent ? savedTopicForThisSubject?.id || null : null}
       />
     );
   }
@@ -174,9 +184,7 @@ const TopicExplainerPageContent = () => {
             <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Akıllı Konu Anlatımı
             </h1>
-            <Badge className="px-3 py-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full text-xs font-medium w-full sm:w-auto text-center">
-              💾 LocalStorage
-            </Badge>
+
             <Button
               onClick={handleClearAllContent}
               size="sm"

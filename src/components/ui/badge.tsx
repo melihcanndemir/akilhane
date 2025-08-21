@@ -15,6 +15,11 @@ const badgeVariants = cva(
         destructive:
           "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
         outline: "text-foreground",
+        // New variants for support channels with dark theme support
+        success: "border-transparent bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800/50",
+        info: "border-transparent bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800/50",
+        warning: "border-transparent bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800/50",
+        purple: "border-transparent bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800/50",
       },
     },
     defaultVariants: {

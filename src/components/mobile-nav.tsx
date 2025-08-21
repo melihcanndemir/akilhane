@@ -47,6 +47,7 @@ export default function MobileNav() {
     { href: "/flashcard", label: "Flashcard", icon: Brain },
     { href: "/topic-explainer", label: "Konu Anlatımı", icon: Lightbulb },
     { href: "/ai-chat", label: "AI Asistan", icon: Users },
+    { href: "/ai-3d-education", label: "AI 3D Eğitim", icon: Brain },
     { href: "/question-manager", label: "Soru Yöneticisi", icon: Database },
     { href: "/subject-manager", label: "Ders Yöneticisi", icon: GraduationCap },
     { href: "/settings", label: "Ayarlar", icon: Settings },
@@ -61,6 +62,7 @@ export default function MobileNav() {
     { href: "/flashcard", label: "Flashcard", icon: Brain },
     { href: "/topic-explainer", label: "Konular", icon: Lightbulb },
     { href: "/ai-chat", label: "AI Tutor", icon: Users },
+    { href: "/ai-3d-education", label: "AI 3D", icon: Brain },
     { href: "/question-manager", label: "Sorular", icon: Database },
     { href: "/subject-manager", label: "Dersler", icon: GraduationCap },
   ];

@@ -81,7 +81,7 @@ interface TotalStats {
 }
 
 export default function EnhancedDashboard() {
-  const { user, loading, isGuest, isAuthenticated } = useLocalAuth();
+  const { user, loading, isGuest, isAuthenticated, clearGuestData, initializeGuestUser } = useLocalAuth();
   const { toast } = useToast();
 
   const [performanceData, setPerformanceData] = useState<PerformanceData[]>([]);
@@ -486,21 +486,31 @@ export default function EnhancedDashboard() {
     if (newDemoMode) {
       loadDemoDataToLocalStorage();
       toast({
-        title: "🎯 BTK Hackathon Demo Modu Aktif",
+        title: "Demo Modu Aktif",
         description: "Demo veriler yüklendi. Sayfa yenileniyor...",
       });
       setTimeout(() => window.location.reload(), 1000);
     } else {
-      // Clear demo quiz results when exiting demo mode
+      // Clear demo data when exiting demo mode
       if (typeof window !== "undefined") {
         localStorage.removeItem("exam_training_demo_quiz_results");
+        localStorage.removeItem("guestUser");
+        localStorage.removeItem("guestQuizResults");
+        localStorage.removeItem("guestFlashcardProgress");
+        localStorage.removeItem("guestPerformanceData");
+        localStorage.removeItem("guestAIRecommendations");
+        
+        // Clear guest data and reinitialize with default guest user
+        clearGuestData();
+        initializeGuestUser();
       }
       toast({
         title: "Demo modu kapatıldı",
         description:
-          "Demo testler temizlendi. Gerçek veriler kullanılacak. Sayfa yenileniyor...",
+          "Demo veriler temizlendi. Misafir kullanıcı moduna geçildi. Sayfa yenileniyor...",
       });
-      setTimeout(() => window.location.reload(), 1000);
+      // Reload immediately to ensure user data is updated
+      window.location.reload();
     }
   };
 
@@ -584,7 +594,7 @@ export default function EnhancedDashboard() {
                     htmlFor="demo-mode"
                     className="text-sm font-medium bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent hover:text-indigo-600 transition-colors"
                   >
-                    BTK Demo
+                    Demo
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -620,20 +630,18 @@ export default function EnhancedDashboard() {
           </div>
           {/* UPDATED SECTION END */}
 
-          {/* BTK Hackathon Demo Mode Alert */}
+          {/* Demo Mode Alert */}
           {useDemoData && (
-            <Alert className="mb-6 border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20">
-              <Trophy className="h-4 w-4" />
-              <AlertDescription>
-                <strong>🎯 BTK Hackathon Demo Modu Aktif!</strong> Bu veriler
-                jüri sunumu için hazırlanmış demo verileridir. Gerçek kullanım
-                deneyimini görmek için demo modunu kapatabilirsiniz.
-                <div className="mt-2 text-xs text-orange-700 dark:text-orange-300">
-                  ✨ 157 test • %84.2 başarı oranı • 7 farklı konu • 78 saat
-                  çalışma
-                </div>
-              </AlertDescription>
-            </Alert>
+            <div className="mb-6 border-gradient-question p-[1px] rounded-xl">
+              <Alert className="border-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20 rounded-[11px] backdrop-blur-sm">
+                <Trophy className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <AlertDescription className="text-gray-700 dark:text-gray-300">
+                  <strong className="text-gray-800 dark:text-white">Demo Modu Aktif!</strong> Bu veriler
+                  örnek kullanım için hazırlanmış demo verileridir. Gerçek kullanım
+                  deneyimini görmek için demo modunu kapatabilirsiniz.
+                </AlertDescription>
+              </Alert>
+            </div>
           )}
 
           {/* Guest User Alert */}
@@ -904,13 +912,82 @@ export default function EnhancedDashboard() {
                         ))}
                       </div>
                     ) : (
-                      <div className="text-center py-8 text-gray-500">
-                        <Trophy className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>Henüz test çözmediniz.</p>
-                        <p className="text-sm">
-                          İlk testinizi çözerek performansınızı takip etmeye
-                          başlayın!
-                        </p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="shadow-lg border-dashed border-2 border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 rounded-lg p-8 text-center">
+                          <div className="mb-4 flex justify-center">
+                            <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 rounded-full flex items-center justify-center">
+                              <Trophy className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                            </div>
+                          </div>
+                          <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                            İlk Testinizi Çözün
+                          </h3>
+                          <p className="text-gray-500 dark:text-gray-400 mb-6">
+                            Test çözerek performansınızı takip etmeye başlayın!
+                          </p>
+                          <Link href="/quiz">
+                            <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0">
+                              <Zap className="w-4 h-4 mr-2" />
+                              Test Çöz
+                            </Button>
+                          </Link>
+                        </div>
+
+                        <div className="shadow-lg border-dashed border-2 border-gray-300 dark:border-gray-600 hover:border-green-400 dark:hover:border-green-500 transition-all duration-300 rounded-lg p-8 text-center">
+                          <div className="mb-4 flex justify-center">
+                            <div className="w-16 h-16 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900 dark:to-emerald-900 rounded-full flex items-center justify-center">
+                              <Target className="w-8 h-8 text-green-600 dark:text-green-400" />
+                            </div>
+                          </div>
+                          <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                            Performans Takibi
+                          </h3>
+                          <p className="text-gray-500 dark:text-gray-400 mb-6">
+                            Test sonuçlarınızı analiz edin ve gelişiminizi görün.
+                          </p>
+                          <div className="text-sm text-gray-400 dark:text-gray-500">
+                            <div className="flex items-center justify-center gap-2 mb-2">
+                              <span className="w-4 h-4 bg-blue-500 rounded-full"></span>
+                              <span>Test Çöz</span>
+                            </div>
+                            <div className="flex items-center justify-center gap-2 mb-2">
+                              <span className="w-4 h-4 bg-green-500 rounded-full"></span>
+                              <span>Sonuçları Gör</span>
+                            </div>
+                            <div className="flex items-center justify-center gap-2">
+                              <span className="w-4 h-4 bg-purple-500 rounded-full"></span>
+                              <span>Gelişimi Takip Et</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="shadow-lg border-dashed border-2 border-gray-300 dark:border-gray-600 hover:border-purple-400 dark:hover:border-purple-500 transition-all duration-300 rounded-lg p-8 text-center">
+                          <div className="mb-4 flex justify-center">
+                            <div className="w-16 h-16 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 rounded-full flex items-center justify-center">
+                              <TrendingUp className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+                            </div>
+                          </div>
+                          <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                            Gelişim Süreci
+                          </h3>
+                          <p className="text-gray-500 dark:text-gray-400 mb-6">
+                            Her test ile kendinizi geliştirin ve başarıya ulaşın.
+                          </p>
+                          <div className="text-sm text-gray-400 dark:text-gray-500">
+                            <div className="flex items-center justify-center gap-2 mb-2">
+                              <span className="w-4 h-4 bg-blue-500 rounded-full"></span>
+                              <span>Konu Seç</span>
+                            </div>
+                            <div className="flex items-center justify-center gap-2 mb-2">
+                              <span className="w-4 h-4 bg-green-500 rounded-full"></span>
+                              <span>Test Çöz</span>
+                            </div>
+                            <div className="flex items-center justify-center gap-2">
+                              <span className="w-4 h-4 bg-purple-500 rounded-full"></span>
+                              <span>Gelişimi İzle</span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     )}
                   </CardContent>
@@ -969,12 +1046,29 @@ export default function EnhancedDashboard() {
                           </div>
                         ))}
                       </div>
-                    ) : (
-                      <div className="text-center py-8 text-gray-500">
-                        <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>Henüz test sonucunuz yok.</p>
-                      </div>
-                    )}
+                                         ) : (
+                       <div className="flex flex-col items-center justify-center py-4 text-center">
+                         <div className="shadow-lg border-dashed border-2 border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 rounded-lg p-8 text-center max-w-md">
+                           <div className="mb-4 flex justify-center">
+                             <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 rounded-full flex items-center justify-center">
+                               <FileText className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                             </div>
+                           </div>
+                           <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                             Test Sonuçları
+                           </h3>
+                           <p className="text-gray-500 dark:text-gray-400 mb-6">
+                             Test çözerek sonuçlarınızı görün ve gelişiminizi takip edin!
+                           </p>
+                           <Link href="/quiz">
+                             <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0">
+                               <Zap className="w-4 h-4 mr-2" />
+                               Test Çöz
+                             </Button>
+                           </Link>
+                         </div>
+                       </div>
+                     )}
                   </CardContent>
                 </Card>
               </div>

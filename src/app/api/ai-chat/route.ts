@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { AiChatRepository } from "@/lib/database/repositories/ai-chat-repository";
+import { logError } from "@/lib/error-logger";
 
 // GET /api/ai-chat - Get all chat sessions for the user
 export async function GET(request: NextRequest) {
@@ -58,10 +59,19 @@ export async function POST(request: NextRequest) {
         subject,
         title,
       );
-      return NextResponse.json(session);
+
+      // Ensure sessionId is returned for compatibility
+      const response = {
+        ...session,
+        sessionId: session.sessionId,
+      };
+
+      // Session created successfully - no need to log success in production
+      return NextResponse.json(response);
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
+      logError("Session creation failed", error, { userId, subject, title });
       return NextResponse.json(
         { error: "Failed to create session", details: errorMessage },
         { status: 500 },

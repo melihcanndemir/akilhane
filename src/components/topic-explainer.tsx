@@ -87,6 +87,15 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({
   const [aiGenerating, setAiGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [currentSubject, setCurrentSubject] = useState<string>(subject);
+
+  // 🔄 SUBJECT CHANGE DETECTION (NO CLEARING)
+  useEffect(() => {
+    if (subject !== currentSubject) {
+      // Update current subject (NO CLEARING - keep all data separate)
+      setCurrentSubject(subject);
+    }
+  }, [subject, currentSubject]);
 
   // Load topic data - first check localStorage, then generate if needed
   useEffect(() => {
@@ -98,21 +107,26 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({
         if (hasSavedContent && savedTopicId) {
           const savedTopic = TopicExplainerLocalStorageService.getTopicById(savedTopicId);
           if (savedTopic) {
-                        const parsedData = JSON.parse(savedTopic.content);
-            setTopicData(parsedData);
-            setNotesKey(savedTopicId);
+            // Double-check that this topic belongs to the current subject
+            if (savedTopic.subject === subject) {
+              const parsedData = JSON.parse(savedTopic.content);
+              setTopicData(parsedData);
+              setNotesKey(savedTopicId);
 
-            // Load saved notes
-            const savedNotes = localStorage.getItem(`akilhane_notes_${savedTopicId}`);
-            if (savedNotes) {
-              setUserNotes(savedNotes);
+              // Load saved notes
+              const savedNotes = localStorage.getItem(`akilhane_notes_${savedTopicId}`);
+              if (savedNotes) {
+                setUserNotes(savedNotes);
+              }
+
+              toast({
+                title: "Kaydedilen İçerik Yüklendi",
+                description: `${topic} konusu için ${subject} dersinde kaydedilen içerik kullanılıyor.`,
+              });
+              return;
+            } else {
+              //do nothing
             }
-
-            toast({
-              title: "Kaydedilen İçerik Yüklendi",
-              description: `${topic} konusu için kaydedilen içerik kullanılıyor.`,
-            });
-            return;
           }
         }
 
@@ -169,11 +183,11 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({
     subjectName: string,
   ): Promise<TopicData> => {
     const stepConfigs = [
-      { id: "intro", difficulty: "easy" as const, estimatedTime: 8 },
-      { id: "core", difficulty: "medium" as const, estimatedTime: 12 },
-      { id: "advanced", difficulty: "hard" as const, estimatedTime: 15 },
-      { id: "practice", difficulty: "medium" as const, estimatedTime: 18 },
-      { id: "mastery", difficulty: "hard" as const, estimatedTime: 20 },
+      { id: "tanitim", difficulty: "easy" as const, estimatedTime: 8 },
+      { id: "ogrenme", difficulty: "easy" as const, estimatedTime: 12 },
+      { id: "pekistirme", difficulty: "easy" as const, estimatedTime: 15 },
+      { id: "uygulama", difficulty: "medium" as const, estimatedTime: 18 },
+      { id: "degerlendirme", difficulty: "medium" as const, estimatedTime: 20 },
     ];
 
     const steps = [];
@@ -185,11 +199,11 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({
           topic: topicName,
           subject: subjectName,
           step: config.id as
-            | "intro"
-            | "core"
-            | "advanced"
-            | "practice"
-            | "mastery",
+            | "tanitim"
+            | "ogrenme"
+            | "pekistirme"
+            | "uygulama"
+            | "degerlendirme",
           difficulty: config.difficulty,
           estimatedTime: config.estimatedTime,
         };
@@ -212,15 +226,15 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({
         steps.push({
           id: config.id,
           title: `${topicName} ${
-            config.id === "intro"
-              ? "Giriş"
-              : config.id === "core"
-                ? "Ana Kavramlar"
-                : config.id === "advanced"
-                  ? "İleri Seviye"
-                  : config.id === "practice"
-                    ? "Pratik Uygulamalar"
-                    : "Uzmanlık Seviyesi"
+            config.id === "tanitim"
+              ? "Tanıtım"
+              : config.id === "ogrenme"
+                ? "Öğrenme"
+                : config.id === "pekistirme"
+                  ? "Pekiştirme"
+                  : config.id === "uygulama"
+                    ? "Uygulama"
+                    : "Değerlendirme"
           }`,
           content: `${topicName} konusunun ${config.id} aşamasında öğrenilmesi gereken temel kavramlar ve uygulamalar.`,
           examples: [
@@ -467,14 +481,14 @@ const TopicExplainer: React.FC<TopicExplainerProps> = ({
         {/* Header */}
         <div className="mb-8">
           <div className="flex flex-wrap items-center gap-4 mb-4">
-            <Link href="/dashboard">
+            <Link href="/topic-explainer">
               <Button
                 variant="outline"
                 size="sm"
                 className="flex items-center gap-2 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Dashboard&apos;a Dön
+                Konulara Dön
               </Button>
             </Link>
             <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">

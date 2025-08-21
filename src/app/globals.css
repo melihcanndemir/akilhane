@@ -64,6 +64,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    overflow-x: hidden;
   }
 }
 
@@ -323,21 +324,27 @@
   background: rgba(255, 255, 255, 0.9) !important;
   backdrop-filter: blur(16px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border: 2px solid transparent !important;
+  background:
+    linear-gradient(white, white) padding-box,
+    linear-gradient(to right, #3b82f6, #8b5cf6) border-box !important;
   box-shadow:
     0 8px 32px 0 rgba(31, 38, 135, 0.15),
     0 0 16px 0 rgba(59, 130, 246, 0.2) !important;
-  border-radius: 0px !important;
+  border-radius: 12px !important;
 }
 
 .dark .glass-card {
   /* Dark theme: More transparent and prominent glass effect */
   background: rgba(40, 48, 64, 0.75) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border: 2px solid transparent !important;
+  background:
+    linear-gradient(#1f2937, #1f2937) padding-box,
+    linear-gradient(to right, #3b82f6, #8b5cf6) border-box !important;
   box-shadow:
     0 8px 32px 0 rgba(0, 0, 0, 0.3),
     0 0 16px 0 rgba(59, 130, 246, 0.1) !important;
-  border-radius: 0px !important;
+  border-radius: 12px !important;
 }
 
 .glass-card-inner {
@@ -388,6 +395,20 @@
   background:
     linear-gradient(#1f2937, #1f2937) padding-box,
     linear-gradient(to right, #10b981, #059669) border-box !important;
+}
+
+/* BORDER GRADIENT FOR BLUE CARDS */
+.border-gradient-blue {
+  border: 2px solid transparent !important;
+  background:
+    linear-gradient(white, white) padding-box,
+    linear-gradient(to right, #3b82f6, #1d4ed8) border-box !important;
+}
+
+.dark .border-gradient-blue {
+  background:
+    linear-gradient(#1f2937, #1f2937) padding-box,
+    linear-gradient(to right, #3b82f6, #1d4ed8) border-box !important;
 }
 
 /* BORDER GRADIENT FOR PURPLE CARDS */
@@ -444,6 +465,20 @@
   background:
     linear-gradient(#1f2937, #1f2937) padding-box,
     linear-gradient(to right, #14b8a6, #0891b2) border-box !important;
+}
+
+/* BORDER GRADIENT FOR PINK CARDS */
+.border-gradient-pink {
+  border: 2px solid transparent !important;
+  background:
+    linear-gradient(white, white) padding-box,
+    linear-gradient(to right, #ec4899, #9333ea) border-box !important;
+}
+
+.dark .border-gradient-pink {
+  background:
+    linear-gradient(#1f2937, #1f2937) padding-box,
+    linear-gradient(to right, #ec4899, #9333ea) border-box !important;
 }
 
 .glass-sheet {
