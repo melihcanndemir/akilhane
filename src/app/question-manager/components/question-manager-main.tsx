@@ -13,6 +13,7 @@ import AIQuestionDialog from "./ai-question-dialog";
 import EditQuestionDialog from "./edit-question-dialog";
 import Link from "next/link";
 import LoadingSpinner from "@/components/loading-spinner";
+import MobileNav from "@/components/mobile-nav";
 import type {
   Subject,
   AIGeneratedQuestion,
@@ -120,6 +121,9 @@ export default function QuestionManagerMain({
 
   return (
     <div className="space-y-6">
+      {/* Mobile Navigation */}
+      <MobileNav />
+      
       <div className="p-4">
         <div className="max-w-7xl mx-auto">
           {/* Header Info */}
