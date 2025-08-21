@@ -139,7 +139,7 @@ function QuizPageContent() {
             
             return {
               ...subject,
-              questionCount: questionCount
+              questionCount
             };
           });
           
