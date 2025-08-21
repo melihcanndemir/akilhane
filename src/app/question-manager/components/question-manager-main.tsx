@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sparkles, BookOpen, Target, Brain, Database, GraduationCap } from "lucide-react";
-import MobileNav from "@/components/mobile-nav";
 import FeatureCards from "@/components/ui/feature-cards";
 import { questionManagerFeatures } from "@/data/feature-cards-data";
 import QuestionForm from "./question-form";
