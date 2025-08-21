@@ -23,15 +23,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   Cloud,
-  Download,
-  Upload,
   Trash2,
   UserX,
   ArrowLeft,
   Loader2,
   CheckCircle,
   AlertTriangle,
-  Calendar,
   HardDrive,
   Shield,
 } from "lucide-react";
@@ -44,82 +41,17 @@ import { DataBackupService } from "@/services/data-backup-service";
 function DataManagementContent() {
   const { user: authUser, loading: authLoading } = useAuth();
   const { toast } = useToast();
-  const [isBackingUp, setIsBackingUp] = useState(false);
-  const [isRestoring, setIsRestoring] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [lastBackup, setLastBackup] = useState<string | null>(null);
-  const [backupSuccess, setBackupSuccess] = useState("");
-  const [restoreSuccess, setRestoreSuccess] = useState("");
   const [clearSuccess, setClearSuccess] = useState("");
   const [deleteError, setDeleteError] = useState("");
 
-  // Redirect if not authenticated and load last backup timestamp
+  // Redirect if not authenticated
   useEffect(() => {
     if (!authLoading && !authUser) {
       window.location.href = "/login";
     }
-
-    // Load last backup timestamp
-    const loadLastBackup = async () => {
-      if (authUser) {
-        const timestamp = await DataBackupService.getLastBackupTimestamp(
-          authUser.id,
-        );
-        setLastBackup(timestamp);
-      }
-    };
-
-    if (authUser) {
-      loadLastBackup();
-    }
   }, [authLoading, authUser]);
-
-  const handleBackup = async () => {
-    try {
-      setIsBackingUp(true);
-      setBackupSuccess("");
-
-      // Create real backup
-      const backupData = await DataBackupService.createBackup();
-
-      if (backupData) {
-        // Update last backup time
-        setLastBackup(backupData.timestamp);
-        setBackupSuccess("Verileriniz başarıyla yedeklendi!");
-      } else {
-        throw new Error("Yedekleme işlemi başarısız oldu");
-      }
-    } catch {
-      setBackupSuccess(""); // Clear success message
-      setDeleteError("Yedekleme işlemi başarısız oldu. Lütfen tekrar deneyin.");
-    } finally {
-      setIsBackingUp(false);
-    }
-  };
-
-  const handleRestore = async () => {
-    try {
-      setIsRestoring(true);
-      setRestoreSuccess("");
-
-      // Restore from real backup
-      const success = await DataBackupService.restoreFromBackup();
-
-      if (success) {
-        setRestoreSuccess("Verileriniz başarıyla geri yüklendi!");
-      } else {
-        throw new Error("Geri yükleme işlemi başarısız oldu");
-      }
-    } catch {
-      setRestoreSuccess(""); // Clear success message
-      setDeleteError(
-        "Geri yükleme işlemi başarısız oldu. Lütfen tekrar deneyin.",
-      );
-    } finally {
-      setIsRestoring(false);
-    }
-  };
 
   const handleClearData = async () => {
     try {
@@ -131,7 +63,6 @@ function DataManagementContent() {
 
       if (success) {
         setClearSuccess("Bulut verileriniz başarıyla silindi!");
-        setLastBackup(null); // Reset backup timestamp
       } else {
         throw new Error("Veri silme işlemi başarısız oldu");
       }
@@ -250,157 +181,18 @@ function DataManagementContent() {
               Veri Yönetimi
             </h1>
             <p className="text-muted-foreground mt-2">
-              Verilerinizi güvenle yedekleyin, geri yükleyin veya hesabınızı
-              yönetin
+              Verilerinizi güvenle yönetin veya hesabınızı silin
             </p>
           </div>
 
           {/* Data Management Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Cloud Backup */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <Card className="border-gradient-question">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Cloud className="w-5 h-5 text-blue-600" />
-                    Bulut Yedekleme
-                  </CardTitle>
-                  <CardDescription>
-                    Tüm ders verilerinizi ve test sonuçlarınızı güvenle buluta
-                    yedekleyin
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <div className="flex items-center">
-                      <Calendar className="w-4 h-4 text-gray-500 mr-2" />
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Son yedekleme:
-                      </span>
-                    </div>
-                    <span className="text-sm font-medium text-gray-800 dark:text-white">
-                      {lastBackup
-                        ? new Date(lastBackup).toLocaleDateString("tr-TR")
-                        : "Henüz yedekleme yapılmamış"}
-                    </span>
-                  </div>
-
-                  {backupSuccess && (
-                    <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
-                      <div className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-                        <p className="text-sm text-green-600 dark:text-green-400">
-                          {backupSuccess}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  <Button
-                    onClick={() => {
-                      void handleBackup();
-                    }}
-                    disabled={isBackingUp}
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 w-full"
-                  >
-                    {isBackingUp ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Upload className="w-4 h-4 mr-2" />
-                    )}
-                    {isBackingUp ? "Yedekleniyor..." : "Şimdi Yedekle"}
-                  </Button>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* Restore Data */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-            >
-              <Card className="border-gradient-question">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Download className="w-5 h-5 text-green-600" />
-                    Veri Geri Yükleme
-                  </CardTitle>
-                  <CardDescription>
-                    Önceki yedekten tüm verilerinizi geri yükleyin
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md">
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-                      <p className="text-sm text-yellow-600 dark:text-yellow-400">
-                        Bu işlem mevcut verilerinizi değiştirebilir
-                      </p>
-                    </div>
-                  </div>
-
-                  {restoreSuccess && (
-                    <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
-                      <div className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-                        <p className="text-sm text-green-600 dark:text-green-400">
-                          {restoreSuccess}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        disabled={isRestoring}
-                        className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white border-0 w-full"
-                      >
-                        {isRestoring ? (
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        ) : (
-                          <Download className="w-4 h-4 mr-2" />
-                        )}
-                        {isRestoring
-                          ? "Geri Yükleniyor..."
-                          : "Yedekten Geri Yükle"}
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Yedekten Geri Yükle</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Mevcut verilerinizi yedekten geri yüklemek
-                          istediğinizden emin misiniz? Bu işlem mevcut
-                          verilerinizi değiştirebilir.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>İptal</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => {
-                            void handleRestore();
-                          }}
-                        >
-                          Geri Yükle
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </CardContent>
-              </Card>
-            </motion.div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
             {/* Clear Cloud Data */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
             >
               <Card className="border-gradient-question">
                 <CardHeader>
@@ -479,7 +271,7 @@ function DataManagementContent() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
             >
               <Card className="border-gradient-question">
                 <CardHeader>
@@ -554,7 +346,7 @@ function DataManagementContent() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
             className="mt-8"
           >
             <Card className="border-gradient-question">

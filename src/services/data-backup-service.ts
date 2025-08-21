@@ -263,7 +263,10 @@ export class DataBackupService {
     try {
       // Delete in reverse dependency order
       await Promise.all([
-        // Delete AI chat messages first
+        // Delete AI generation logs first
+        supabase.from("ai_generation_logs").delete().eq("user_id", userId),
+
+        // Delete AI chat messages
         supabase.from("ai_chat_history").delete().eq("user_id", userId),
 
         // Delete AI chat sessions
@@ -271,6 +274,9 @@ export class DataBackupService {
 
         // Delete flashcard progress
         supabase.from("flashcard_progress").delete().eq("user_id", userId),
+
+        // Delete main flashcards
+        supabase.from("flashcards").delete().eq("user_id", userId),
 
         // Delete AI recommendations
         supabase.from("ai_recommendations").delete().eq("user_id", userId),
@@ -284,8 +290,8 @@ export class DataBackupService {
         // Delete questions
         supabase.from("questions").delete().eq("created_by", userId),
 
-        // Delete subjects
-        supabase.from("subjects").delete().eq("created_by", userId),
+        // Delete subjects - handle both field types safely
+        supabase.from("subjects").delete().or(`created_by.eq.${userId},user_id.eq.${userId}`),
       ]);
     } catch (_error) {
       throw _error;
@@ -451,6 +457,24 @@ export class DataBackupService {
         .from("user_backup_metadata")
         .delete()
         .eq("user_id", user.id);
+
+      // Clear AI generation logs
+      await supabase
+        .from("ai_generation_logs")
+        .delete()
+        .eq("user_id", user.id);
+
+      // Clear main flashcards table
+      await supabase
+        .from("flashcards")
+        .delete()
+        .eq("user_id", user.id);
+
+      // Clear subjects table - handle both field types safely
+      await supabase
+        .from("subjects")
+        .delete()
+        .or(`created_by.eq.${user.id},user_id.eq.${user.id}`);
 
       // For authenticated users, we only clear Supabase data
       // LocalStorage data remains untouched (user might have guest data they want to keep)

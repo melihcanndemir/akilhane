@@ -31,23 +31,8 @@ import { supabase } from "@/lib/supabase";
 import AiChatHistory from "./ai-chat-history";
 import localStorageService from "@/services/localStorage-service";
 import VoiceAssistant from "../voice-assistant";
-
-// LocalStorage service for subjects
-class SubjectLocalStorageService {
-  private static readonly STORAGE_KEY = "akilhane_subjects";
-
-  static getSubjects(): unknown[] {
-    if (typeof window === "undefined") {
-      return [];
-    }
-    try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  }
-}
+import { UnifiedStorageService } from "@/services/unified-storage-service";
+import { SubjectService } from "@/services/supabase-service";
 
 interface Message {
   id: string;
@@ -80,6 +65,8 @@ export default function AiChatClient() {
   const [showSubjectSelector, setShowSubjectSelector] = useState(false);
   const [suggestions, setSuggestions] = useState<Suggestions | null>(null);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const sessionIdRef = useRef<string | null>(null);
+  const currentSubjectRef = useRef<string>("Genel");
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -113,14 +100,45 @@ export default function AiChatClient() {
   // Fetch subjects
   const fetchSubjects = async () => {
     try {
-      // Get user's custom subjects from localStorage
-      const customSubjects =
-        SubjectLocalStorageService.getSubjects() as Subject[];
+      // Check authentication
+      const guestUser = localStorage.getItem("guestUser");
+      const supabaseToken = localStorage.getItem("sb-gjdjjwvhxlhlftjwykcj-auth-token");
+      const isAuth = Boolean(guestUser || supabaseToken);
 
-      // Only show custom subjects, no demo subjects
-      setSubjects(customSubjects);
+      let loadedSubjects: Subject[] = [];
+
+      if (isAuth) {
+        try {
+          // Try loading from Supabase first
+          const dbSubjects = await SubjectService.getSubjects();
+
+          if (dbSubjects && dbSubjects.length > 0) {
+            loadedSubjects = dbSubjects.map(subject => ({
+              id: subject.id,
+              name: subject.name,
+              description: subject.description,
+              category: subject.category,
+              difficulty: subject.difficulty,
+              questionCount: subject.question_count,
+              isActive: subject.is_active,
+            }));
+          } else {
+            // Fallback to localStorage
+            loadedSubjects = UnifiedStorageService.getSubjects();
+          }
+        } catch {
+          // Fallback to localStorage on error
+          loadedSubjects = UnifiedStorageService.getSubjects();
+        }
+      } else {
+        // Not authenticated, use localStorage
+        loadedSubjects = UnifiedStorageService.getSubjects();
+      }
+
+      // Only show active subjects
+      const activeSubjects = loadedSubjects.filter(subject => subject.isActive);
+      setSubjects(activeSubjects);
     } catch {
-      // Fallback to empty array on error
       setSubjects([]);
     }
   };
@@ -175,7 +193,29 @@ export default function AiChatClient() {
         content: `Merhaba! Ben AkılHane AI Tutor&apos;ınız. ${currentSubject} dersiyle ilgili aklınıza takılan her şeyi sorabilirsiniz. Hadi başlayalım!`,
       },
     ]);
+    // DON'T reset session when subject changes - keep the conversation going
+    // setCurrentSessionId(null); // This was causing the issue!
   }, [currentSubject]);
+
+  // Debug useEffect to track currentSessionId changes
+  useEffect(() => {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentSessionId]);
+
+  // Debug useEffect to track currentSubject changes
+  useEffect(() => {
+    currentSubjectRef.current = currentSubject; // Keep ref in sync
+  }, [currentSubject]);
+
+  // Load sessionId from localStorage on mount
+  useEffect(() => {
+    const savedSessionId = localStorage.getItem('currentAIChatSessionId');
+    if (savedSessionId && !currentSessionId) {
+      setCurrentSessionId(savedSessionId);
+      sessionIdRef.current = savedSessionId;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const createNewSession = async (): Promise<string | null> => {
     try {
@@ -188,8 +228,8 @@ export default function AiChatClient() {
         localStorageService.saveAIChatSession({
           sessionId,
           userId: "guest",
-          subject: currentSubject,
-          title: `AI Tutor - ${currentSubject}`,
+          subject: currentSubjectRef.current,
+          title: `AI Tutor - ${currentSubjectRef.current}`,
           messages: [],
           lastMessageAt: new Date().toISOString(),
         });
@@ -204,24 +244,29 @@ export default function AiChatClient() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            subject: currentSubject,
+            subject: currentSubjectRef.current,
             userId: session.user.id,
+            title: `AI Tutor - ${currentSubjectRef.current}`,
           }),
         });
 
         if (response.ok) {
           const data = await response.json();
           return data.sessionId;
+        } else {
+          // Response not ok, fallback to localStorage
         }
-      } catch {}
+      } catch {
+        // Fallback to localStorage on error
+      }
 
       // Fallback to localStorage if Supabase fails
       const sessionId = `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       localStorageService.saveAIChatSession({
         sessionId,
         userId: session.user.id,
-        subject: currentSubject,
-        title: `AI Tutor - ${currentSubject}`,
+        subject: currentSubjectRef.current,
+        title: `AI Tutor - ${currentSubjectRef.current}`,
         messages: [],
         lastMessageAt: new Date().toISOString(),
       });
@@ -301,8 +346,12 @@ export default function AiChatClient() {
 
           if (response.ok) {
             return; // Successfully saved to Supabase
+          } else {
+            // Response not ok, fallback to localStorage
           }
-        } catch {}
+        } catch {
+          // Fallback to localStorage on error
+        }
       }
 
       // Fallback to localStorage if Supabase fails or user is guest
@@ -329,7 +378,7 @@ export default function AiChatClient() {
     }
   };
 
-  const loadSessionMessages = async (sessionId: string) => {
+  const loadSessionMessages = async (sessionId: string): Promise<Message[]> => {
     try {
       // Try to load from Supabase first
       let userId: string | null = null;
@@ -367,9 +416,20 @@ export default function AiChatClient() {
                 content: msg.content,
               }),
             );
-            setMessages(formattedMessages);
+
+            // Add initial message with correct subject from session data
+            const messagesWithInit = [
+              {
+                id: "init",
+                role: "assistant" as const,
+                content: `Merhaba! Ben AkılHane AI Tutor'ınız. ${data.subject || currentSubjectRef.current} dersiyle ilgili aklınıza takılan her şeyi sorabilirsiniz. Hadi başlayalım!`,
+              },
+              ...formattedMessages,
+            ];
+
+            setMessages(messagesWithInit);
             setCurrentSessionId(sessionId);
-            return;
+            return formattedMessages;
           } else {
           }
         } catch {}
@@ -387,19 +447,47 @@ export default function AiChatClient() {
               ...(msg.image && { image: msg.image }), // Only include image if it exists
             }),
           );
-          setMessages(formattedMessages);
+
+          // Add initial message if session has messages, with correct subject
+          const messagesWithInit = [
+            {
+              id: "init",
+              role: "assistant" as const,
+              content: `Merhaba! Ben AkılHane AI Tutor'ınız. ${localSession.subject} dersiyle ilgili aklınıza takılan her şeyi sorabilirsiniz. Hadi başlayalım!`,
+            },
+            ...formattedMessages,
+          ];
+
+          setMessages(messagesWithInit);
           setCurrentSessionId(sessionId);
+          return formattedMessages;
         } else {
-          // Set empty messages but keep the session ID
-          setMessages([]);
+          // Set empty messages but keep the session ID - with correct subject
+          setMessages([
+            {
+              id: "init",
+              role: "assistant",
+              content: `Merhaba! Ben AkılHane AI Tutor'ınız. ${currentSubjectRef.current} dersiyle ilgili aklınıza takılan her şeyi sorabilirsiniz. Hadi başlayalım!`,
+            },
+          ]);
           setCurrentSessionId(sessionId);
+          return [];
         }
       } catch {
-        // Set empty messages but keep the session ID
-        setMessages([]);
+        // Set empty messages but keep the session ID - with correct subject
+        setMessages([
+          {
+            id: "init",
+            role: "assistant",
+            content: `Merhaba! Ben AkılHane AI Tutor'ınız. ${currentSubjectRef.current} dersiyle ilgili aklınıza takılan her şeyi sorabilirsiniz. Hadi başlayalım!`,
+          },
+        ]);
         setCurrentSessionId(sessionId);
+        return [];
       }
-    } catch {}
+    } catch {
+      return [];
+    }
   };
 
   const handleSessionSelect = (sessionId: string) => {
@@ -434,40 +522,79 @@ export default function AiChatClient() {
       return;
   }
 
+    // Sync subject state with ref if they're out of sync
+    if (currentSubject !== currentSubjectRef.current) {
+      setCurrentSubject(currentSubjectRef.current);
+    }
+
     // Create new session if no current session (for both authenticated and guest users)
-    let sessionIdToUse = currentSessionId;
-    if (!currentSessionId) {
+    // Check both state and ref, also localStorage as fallback
+    const existingSessionId = currentSessionId || sessionIdRef.current || localStorage.getItem('currentAIChatSessionId');
+    let sessionIdToUse = existingSessionId;
+
+    if (!existingSessionId) {
       const newSessionId = await createNewSession();
       if (newSessionId) {
         setCurrentSessionId(newSessionId);
+        sessionIdRef.current = newSessionId; // Also store in ref for immediate access
+        localStorage.setItem('currentAIChatSessionId', newSessionId); // Persist to localStorage
         sessionIdToUse = newSessionId;
       } else {
+        return; // Exit if session creation fails
       }
     } else {
+      // Sync the state if it was loaded from ref/localStorage
+      if (!currentSessionId) {
+        setCurrentSessionId(existingSessionId);
+        sessionIdRef.current = existingSessionId;
+        // Load existing messages when setting session for the first time
+        const existingMessages = await loadSessionMessages(existingSessionId);
+
+        const newUserMessage: Message = {
+          id: Date.now().toString(),
+          role: "user",
+          content: messageContent,
+        };
+
+        const updatedMessages = [...existingMessages, newUserMessage];
+        setMessages(updatedMessages);
+        setIsLoading(true);
+        setSuggestions(null);
+
+        // Save user message to history if session exists
+        if (existingSessionId) {
+          await saveMessageToHistory("user", messageContent, existingSessionId);
+        }
+
+        sessionIdToUse = existingSessionId;
+      } else {
+        sessionIdToUse = existingSessionId;
+      }
     }
 
-    const newUserMessage: Message = {
-      id: Date.now().toString(),
-      role: "user",
-      content: messageContent,
-    };
+    // Only create newUserMessage and updatedMessages if we didn't handle it above
+    if (currentSessionId || !existingSessionId) {
+      const newUserMessage: Message = {
+        id: Date.now().toString(),
+        role: "user",
+        content: messageContent,
+      };
 
-    const updatedMessages = [...messages, newUserMessage];
+      const updatedMessages = [...messages, newUserMessage];
+      setMessages(updatedMessages);
+      setIsLoading(true);
+      setSuggestions(null);
 
-    setMessages(updatedMessages);
-    setIsLoading(true);
-    setSuggestions(null);
-
-    // Save user message to history if session exists
-    if (sessionIdToUse) {
-      await saveMessageToHistory("user", messageContent, sessionIdToUse);
-    } else {
+      // Save user message to history if session exists
+      if (sessionIdToUse) {
+        await saveMessageToHistory("user", messageContent, sessionIdToUse);
+      }
     }
 
     const chatInput: AiChatInput = {
       message: messageContent,
-      subject: currentSubject,
-      conversationHistory: updatedMessages.map((m) => ({
+      subject: currentSubjectRef.current,
+      conversationHistory: messages.map((m) => ({
         role: m.role,
         content: m.content,
         timestamp: new Date().toISOString(),
@@ -573,23 +700,10 @@ export default function AiChatClient() {
     // Update last transcript to prevent duplicates
     lastTranscriptRef.current = voiceTranscript;
 
-    // Set input field to show what will be sent
-    setInput(voiceTranscript);
-
-    // Clear previous timeout to prevent multiple sends
-    if (transcriptTimeoutRef.current) {
-      clearTimeout(transcriptTimeoutRef.current);
-    }
-
-    // Debounced auto-send using captured transcript
-    transcriptTimeoutRef.current = setTimeout(() => {
-      // Double-check that we haven't received a newer transcript
-      if (voiceTranscript === lastTranscriptRef.current) {
-        handleSendMessage(voiceTranscript);
-        setInput("");
-        lastTranscriptRef.current = ""; // Reset for next input
-      }
-    }, 1200); // Increased delay for better stability
+    // Directly send the message without additional timeout since Voice Assistant already handles timing
+    handleSendMessage(voiceTranscript);
+    setInput("");
+    lastTranscriptRef.current = ""; // Reset for next input
   };
 
   const handleVoiceCommand = (command: string) => {
@@ -697,7 +811,7 @@ export default function AiChatClient() {
 
   return (
     <div className="flex flex-col justify-center items-center min-h-screen bg-gray-50 dark:bg-gray-900 p-2 sm:p-4 pt-0">
-      <Card className="w-full max-w-[87.5rem] h-[calc(100vh-6rem)] flex flex-col shadow-2xl mt-2 border-gradient-question p-0">
+      <Card className="w-full max-w-[96.25rem] h-[calc(100vh-6rem)] flex flex-col shadow-2xl mt-2 border-gradient-question p-0">
         <CardHeader className="border-b">
           <CardTitle className="flex items-center justify-between text-lg md:text-xl">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
@@ -727,7 +841,7 @@ export default function AiChatClient() {
 
                   {/* Subject Selector Dropdown */}
                   {showSubjectSelector && (
-                    <div className="absolute top-full left-0 mt-1 w-48 sm:w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+                    <div className="absolute top-full left-0 mt-1 w-60 sm:w-[25.6rem] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
                       <div className="p-2">
                         <div className="text-xs font-medium text-gray-500 dark:text-gray-400 px-2 py-1 mb-2">
                           Ders Seçin
@@ -772,9 +886,8 @@ export default function AiChatClient() {
                           >
                             <BookOpen className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                             <div className="flex-1 text-left">
-                              <div className="font-medium">{subject.name}</div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                                {subject.description}
+                              <div className="font-medium truncate" title={subject.name}>
+                                {subject.name?.split(':')[0]?.trim() || 'Unknown'}
                               </div>
                             </div>
                           </Button>
@@ -814,14 +927,24 @@ export default function AiChatClient() {
                     variant="outline"
                     size="sm"
                     onClick={() => {
+
+                      // Clear all session references
                       setCurrentSessionId(null);
+                      sessionIdRef.current = null;
+                      localStorage.removeItem('currentAIChatSessionId');
+
+                      // Use current state value instead of ref for UI consistency
+                      const subjectToUse = currentSubject;
+
+                      // Reset messages with current subject
                       setMessages([
                         {
                           id: "init",
                           role: "assistant",
-                          content: `Merhaba! Ben AkılHane AI Tutor&apos;ınız. ${currentSubject} dersiyle ilgili aklınıza takılan her şeyi sorabilirsiniz. Hadi başlayalım!`,
+                          content: `Merhaba! Ben AkılHane AI Tutor'ınız. ${subjectToUse} dersiyle ilgili aklınıza takılan her şeyi sorabilirsiniz. Hadi başlayalım!`,
                         },
                       ]);
+
                     }}
                     className="gap-1 sm:gap-2 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0 text-xs sm:text-sm h-8 sm:h-9"
                   >
@@ -1086,7 +1209,7 @@ export default function AiChatClient() {
       </Card>
 
       {/* FeatureCards - Added BELOW the main chat container */}
-      <div className="w-full max-w-[87.5rem] mt-8">
+      <div className="w-full max-w-[96.25rem] mt-8">
         <FeatureCards
           title="AI Chat Özellikleri"
           features={aiChatFeatures}

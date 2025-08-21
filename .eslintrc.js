@@ -52,7 +52,7 @@ module.exports = {
     // Object/Array Rules
     'no-array-constructor': 'error',
     'no-new-object': 'error',
-    'object-shorthand': ['error', 'always'],
+    'object-shorthand': 'warn',
     'prefer-object-spread': 'error',
     'prefer-spread': 'error',
     'prefer-template': 'error',
@@ -75,10 +75,10 @@ module.exports = {
     // 'max-params': ['error', { max: 4 }],
 
     // Code Style Rules
-    'no-trailing-spaces': 'error',
+    'no-trailing-spaces': 'off',
     'no-multiple-empty-lines': ['error', { max: 1 }],
     'eol-last': ['error', 'always'],
-    'comma-dangle': ['error', 'always-multiline'],
+    'comma-dangle': 'off',
     'semi': ['error', 'always'],
     'quotes': 'off',
 

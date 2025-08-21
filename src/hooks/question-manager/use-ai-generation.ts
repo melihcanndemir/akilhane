@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { QuestionService } from "@/services/supabase-service";
 import { UnifiedStorageService } from "@/services/unified-storage-service";
-import type { Question } from "@/lib/types";
+import type { Question, Answer } from "@/lib/types";
 import type { InsertTables } from "@/lib/supabase";
 import type { AIGeneratedQuestion, AIGenerationResult, Subject } from "@/types/question-manager";
 
@@ -13,9 +13,10 @@ export const useAIGeneration = (
   setAIGenerationResult: (result: AIGenerationResult | null) => void,
   setIsGeneratingAI: (loading: boolean) => void,
   setIsCreating: (creating: boolean) => void,
-  loadQuestions: () => Promise<void>,
+  _loadQuestions: (selectedSubject?: string) => Promise<void>,
   subjects: Subject[],
   setSubjects: (subjects: Subject[]) => void,
+  setQuestions: (questions: Question[] | ((prev: Question[]) => Question[])) => void,
   calculateRealQuestionCount: (subjects: Subject[]) => Promise<Subject[]>,
 ) => {
   const { toast } = useToast();
@@ -90,7 +91,8 @@ export const useAIGeneration = (
     } finally {
       setIsGeneratingAI(false);
     }
-  }, [questions, setAIGeneratedQuestions, setAIGenerationResult, setIsGeneratingAI, toast]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [questions, toast]); // Removed stable setter functions
 
   // Approve AI questions
   const approveAIQuestions = useCallback(async (
@@ -111,34 +113,71 @@ export const useAIGeneration = (
         formula: q.formula || "",
       }));
 
+      const createdQuestions: Question[] = [];
+
       for (const question of newQuestions) {
         if (isAuthenticated) {
           try {
             // Convert to database format
+            // Find the subject ID from the subjects list
+            const subjectObj = subjects.find(s => s.name === subject);
+            const subjectId = subjectObj?.id || `subject_${subject.toLowerCase().replace(/[^a-z0-9]/g, "_")}_${Date.now()}`;
+
             const dbQuestion: InsertTables<"questions"> = {
-              subject_id: subject,
+              subject_id: subjectId,
               subject: question.subject,
               topic: question.topic || "",
               type: question.type,
               difficulty: question.difficulty,
               text: question.text,
               options: JSON.stringify(question.options),
-              correct_answer: question.options.find(opt => opt.isCorrect)?.text || "",
+              correct_answer: question.options.find(opt => opt.isCorrect)?.text || question.options[0]?.text || "",
               explanation: question.explanation,
               formula: question.formula || "",
             };
-            await QuestionService.createQuestion(dbQuestion);
+
+            // Add timeout to prevent hanging
+            const createQuestionWithTimeout = async () => Promise.race([
+                QuestionService.createQuestion(dbQuestion),
+                new Promise((_, reject) =>
+                  setTimeout(() => reject(new Error('Supabase request timeout after 10 seconds')), 10000),
+                ),
+              ]);
+
+            const result = await createQuestionWithTimeout() as Question | null;
+
+            if (result) {
+              // Convert database result to local Question type
+              const createdQuestion: Question = {
+                id: result.id,
+                subject: result.subject,
+                type: result.type as "multiple-choice" | "true-false" | "calculation" | "case-study",
+                difficulty: result.difficulty,
+                text: result.text,
+                options: (typeof result.options === 'string' ? JSON.parse(result.options || "[]") : result.options || []) as Answer[],
+                explanation: result.explanation,
+                topic: result.topic || "",
+                formula: result.formula || "",
+              };
+              createdQuestions.push(createdQuestion);
+            } else {
+              // Fallback to unified storage
+              const createdQuestion = UnifiedStorageService.addQuestion(question);
+              createdQuestions.push(createdQuestion);
+            }
           } catch {
             // Fallback to unified storage on Supabase error
-            UnifiedStorageService.addQuestion(question);
+            const createdQuestion = UnifiedStorageService.addQuestion(question);
+            createdQuestions.push(createdQuestion);
           }
         } else {
-          UnifiedStorageService.addQuestion(question);
+          const createdQuestion = UnifiedStorageService.addQuestion(question);
+          createdQuestions.push(createdQuestion);
         }
       }
 
-      // Reload questions
-      await loadQuestions();
+      // Update questions state with new questions
+      setQuestions((prev: Question[]) => [...prev, ...createdQuestions]);
 
       // Recalculate question count for subjects
       const updatedSubjects = await calculateRealQuestionCount(subjects);
@@ -160,7 +199,8 @@ export const useAIGeneration = (
     } finally {
       setIsCreating(false);
     }
-  }, [isAuthenticated, loadQuestions, subjects, setSubjects, calculateRealQuestionCount, setIsCreating, toast]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, subjects, calculateRealQuestionCount, toast]); // Removed loadQuestions to prevent infinite loop
 
   return {
     generateQuestions,

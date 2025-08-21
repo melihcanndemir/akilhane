@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import SubjectManager from "@/components/subject-manager";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,9 +33,7 @@ export default function SubjectManagerPage() {
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  useEffect(() => {
-    loadStats();
-  }, []);
+  // loadStats will be called by SubjectManager's onRefresh after initial load
 
   const loadStats = async () => {
     try {
@@ -69,11 +67,11 @@ export default function SubjectManagerPage() {
         if (localSubjects.length > 0) {
           // Use localStorage data
           const totalSubjects = localSubjects.length;
-          const totalQuestions = localSubjects.reduce(
-            (sum: number, subject: Subject) =>
-              sum + (subject.questionCount || 0),
-            0,
-          );
+
+          // Calculate real question count from actual questions
+          const allQuestions = UnifiedStorageService.getQuestions();
+          const totalQuestions = allQuestions.length;
+
           const categories = new Set(
             localSubjects.map((subject: Subject) => subject.category),
           );
@@ -91,10 +89,11 @@ export default function SubjectManagerPage() {
             const subjects: Subject[] = await response.json();
 
             const totalSubjects = subjects.length;
-            const totalQuestions = subjects.reduce(
-              (sum, subject) => sum + subject.questionCount,
-              0,
-            );
+
+            // Calculate real question count from actual questions
+            const allQuestions = UnifiedStorageService.getQuestions();
+            const totalQuestions = allQuestions.length;
+
             const categories = new Set(
               subjects.map((subject) => subject.category),
             );
@@ -174,7 +173,7 @@ export default function SubjectManagerPage() {
                       Ders Yöneticisi
                       {isDemoMode && (
                         <Badge className="ml-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-                          BTK Demo
+                          Demo
                         </Badge>
                       )}
                     </CardTitle>
@@ -248,7 +247,7 @@ export default function SubjectManagerPage() {
           </Card>
 
           {/* Subject Manager Component */}
-          <SubjectManager key={refreshKey} onRefresh={() => void loadStats()} />
+          <SubjectManager onRefresh={() => void loadStats()} refreshTrigger={refreshKey} />
 
           {/* Subject Manager Özellikleri */}
           <FeatureCards

@@ -157,11 +157,11 @@ export default function DemoPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen overflow-x-hidden">
       <MobileNav />
-      <main className="flex-1 bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <main className="flex-1 bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 overflow-x-hidden">
         {/* Header */}
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-8 overflow-x-hidden">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -280,7 +280,7 @@ export default function DemoPage() {
           )}
 
           {/* All Features Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 items-stretch">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 items-stretch max-w-full overflow-x-hidden">
             {demoSteps.map((step, index) => (
               <motion.div
                 key={step.id}

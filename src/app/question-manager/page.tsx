@@ -2,11 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import QuestionManagerMain from "./components/question-manager-main";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Database, BookOpen, Brain, GraduationCap, Plus, Sparkles } from "lucide-react";
-import Link from "next/link";
 import MobileNav from "@/components/mobile-nav";
 import LoadingSpinner from "@/components/loading-spinner";
 import { useQuestionManagerState } from "@/hooks/question-manager/use-question-manager-state";
@@ -15,6 +10,7 @@ import { useSubjectManagement } from "@/hooks/question-manager/use-subject-manag
 import { useQuestionCRUD } from "@/hooks/question-manager/use-question-crud";
 import { useAIGeneration } from "@/hooks/question-manager/use-ai-generation";
 import { useFormManagement } from "@/hooks/question-manager/use-form-management";
+import { shouldUseDemoData } from "@/data/demo-data";
 import type { Question } from "@/lib/types";
 import type { AIGeneratedQuestion } from "@/types/question-manager";
 
@@ -78,6 +74,14 @@ export default function QuestionManager() {
     totalCategories: 0,
   });
 
+  // Demo mode state
+  const [isDemoMode, setIsDemoMode] = useState(false);
+
+  // Check demo mode on mount
+  useEffect(() => {
+    setIsDemoMode(shouldUseDemoData());
+  }, []);
+
   // Calculate stats when subjects or questions change
   useEffect(() => {
     const totalSubjects = subjects.length;
@@ -122,6 +126,7 @@ export default function QuestionManager() {
     () => loadQuestions(selectedSubject),
     subjects,
     setSubjects,
+    setQuestions,
     calculateRealQuestionCount,
   );
 
@@ -216,6 +221,7 @@ export default function QuestionManager() {
       aiGenerationResult={aiGenerationResult}
       formData={formData}
       stats={stats}
+      isDemoMode={isDemoMode}
       onSubjectChange={setSelectedSubject}
       onSearchChange={setSearchTerm}
       onDifficultyFilterChange={setFilterDifficulty}

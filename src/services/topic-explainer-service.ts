@@ -1,4 +1,4 @@
-// Topic Explainer LocalStorage Service
+// Topic Explainer LocalStorage Service - Now using UnifiedStorageService
 export interface TopicStepData {
   id: string;
   title: string;
@@ -21,86 +21,43 @@ export interface SavedTopicContent {
   stepData?: TopicStepData[];
 }
 
+// Import UnifiedStorageService
+import { UnifiedStorageService } from "./unified-storage-service";
+
 class TopicExplainerLocalStorageService {
-  private static readonly STORAGE_KEY = "akilhane_topic_explainer_content";
+  // Now using UnifiedStorageService methods
 
   static getSavedTopics(): SavedTopicContent[] {
-    if (typeof window === "undefined") {
-      return [];
-    }
-    try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
+    return UnifiedStorageService.getSavedTopics();
   }
 
   static saveTopic(topic: string, subject: string, content: string, stepData?: TopicStepData[]): SavedTopicContent {
-    const savedTopic: SavedTopicContent = {
-      id: `topic_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      topic,
-      subject,
-      content,
-      ...(stepData && { stepData }),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    const topics = this.getSavedTopics();
-    topics.push(savedTopic);
-    this.saveTopics(topics);
-    return savedTopic;
+    return UnifiedStorageService.saveTopic(topic, subject, content, stepData);
   }
 
   static updateTopic(id: string, updates: Partial<Omit<SavedTopicContent, 'id'>>): boolean {
-    const topics = this.getSavedTopics();
-    const index = topics.findIndex((t) => t.id === id);
-    if (index === -1) {
-      return false;
-    }
-
-    topics[index] = {
-      ...topics[index],
-      ...updates,
-      updatedAt: new Date().toISOString(),
-    } as SavedTopicContent;
-    this.saveTopics(topics);
-    return true;
+    return UnifiedStorageService.updateTopic(id, updates);
   }
 
   static deleteTopic(id: string): boolean {
-    const topics = this.getSavedTopics();
-    const filtered = topics.filter((t) => t.id !== id);
-    if (filtered.length === topics.length) {
-      return false;
-    }
-    this.saveTopics(filtered);
-    return true;
+    return UnifiedStorageService.deleteTopic(id);
   }
 
   static getTopicById(id: string): SavedTopicContent | null {
-    const topics = this.getSavedTopics();
-    return topics.find((t) => t.id === id) || null;
+    return UnifiedStorageService.getTopicById(id);
   }
 
   static getTopicsBySubject(subject: string): SavedTopicContent[] {
-    const topics = this.getSavedTopics();
-    return topics.filter((t) => t.subject === subject);
+    return UnifiedStorageService.getTopicsBySubject(subject);
   }
 
   static getTopicsByTopic(topic: string): SavedTopicContent[] {
-    const topics = this.getSavedTopics();
-    return topics.filter((t) => t.topic === topic);
+    return UnifiedStorageService.getTopicsByTopic(topic);
   }
 
-  private static saveTopics(topics: SavedTopicContent[]): void {
-    if (typeof window === "undefined") {
-      return;
-    }
-    try {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(topics));
-    } catch {}
+  // Additional method to clear topics by subject
+  static clearTopicsBySubject(subject: string): number {
+    return UnifiedStorageService.clearTopicsBySubject(subject);
   }
 }
 

@@ -2,9 +2,9 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sparkles, BookOpen, Target, Brain, Database, GraduationCap } from "lucide-react";
-import MobileNav from "@/components/mobile-nav";
 import FeatureCards from "@/components/ui/feature-cards";
 import { questionManagerFeatures } from "@/data/feature-cards-data";
 import QuestionForm from "./question-form";
@@ -13,6 +13,7 @@ import AIQuestionDialog from "./ai-question-dialog";
 import EditQuestionDialog from "./edit-question-dialog";
 import Link from "next/link";
 import LoadingSpinner from "@/components/loading-spinner";
+import MobileNav from "@/components/mobile-nav";
 import type {
   Subject,
   AIGeneratedQuestion,
@@ -55,6 +56,7 @@ interface QuestionManagerMainProps {
   aiGenerationResult: AIGenerationResult | null;
   formData: QuestionFormData;
   stats: Stats;
+  isDemoMode?: boolean;
   onSubjectChange: (subject: string) => void;
   onSearchChange: (term: string) => void;
   onDifficultyFilterChange: (difficulty: string) => void;
@@ -94,6 +96,7 @@ export default function QuestionManagerMain({
   aiGenerationResult,
   formData,
   stats,
+  isDemoMode = false,
   onSubjectChange,
   onSearchChange,
   onDifficultyFilterChange,
@@ -118,6 +121,9 @@ export default function QuestionManagerMain({
 
   return (
     <div className="space-y-6">
+      {/* Mobile Navigation */}
+      <MobileNav />
+      
       <div className="p-4">
         <div className="max-w-7xl mx-auto">
           {/* Header Info */}
@@ -131,6 +137,11 @@ export default function QuestionManagerMain({
                   <div>
                     <CardTitle className="text-xl sm:text-2xl flex items-center gap-2">
                       Soru Yöneticisi
+                      {isDemoMode && (
+                        <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+                          Demo
+                        </Badge>
+                      )}
                     </CardTitle>
                     <p className="text-muted-foreground">
                       Soruları ekleyin, düzenleyin ve yönetin. Her ders için

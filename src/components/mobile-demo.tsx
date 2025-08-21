@@ -218,9 +218,14 @@ export default function MobileDemo() {
               >
                 <Card className="h-full w-full border-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20 rounded-[11px]">
                   <CardHeader className="text-center">
-                    <div
-                      className={`w-12 h-12 bg-gradient-to-br from-${feature.color}-600 to-${feature.color}-700 rounded-lg flex items-center justify-center mb-4 mx-auto`}
-                    >
+                                         <div
+                       className={`w-12 h-12 ${
+                         feature.color === 'green' ? 'bg-green-600' :
+                         feature.color === 'blue' ? 'bg-blue-600' :
+                         feature.color === 'purple' ? 'bg-purple-600' :
+                         feature.color === 'orange' ? 'bg-orange-600' : 'bg-gray-600'
+                       } rounded-lg flex items-center justify-center mb-4 mx-auto`}
+                     >
                       <feature.icon className="h-6 w-6 text-white" />
                     </div>
                     <CardTitle className="text-lg font-semibold text-foreground">

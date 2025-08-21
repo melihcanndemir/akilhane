@@ -129,18 +129,13 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
       return;
     }
 
-         recognition.continuous = false; // Start with non-continuous for better control
+         recognition.continuous = true; // Always use continuous mode for stability
      recognition.interimResults = true;
      recognition.lang = "tr-TR";
 
          recognition.onstart = () => {
        setRecognitionState("active");
        onListeningChange?.(true);
-
-       // Enable continuous mode only when actively listening
-       if (recognitionRef.current) {
-         recognitionRef.current.continuous = true;
-       }
      };
 
          recognition.onresult = (event: SpeechRecognitionEvent) => {
@@ -159,31 +154,32 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
          }
        }
 
-       // Show interim results for better user feedback
-       if (interimTranscript) {
-         setTranscript(interimTranscript);
-       }
+       // Get the most recent transcript (either final or interim)
+       const currentTranscript = finalTranscript || interimTranscript;
 
-       if (finalTranscript) {
-         const cleanTranscript = finalTranscript.trim().toLowerCase();
+       if (currentTranscript) {
+         const cleanTranscript = currentTranscript.trim();
 
-         if (cleanTranscript === lastProcessedTranscript.current) {
-           return;
-         }
+         // Show current transcript for user feedback
+         setTranscript(cleanTranscript);
 
+         // Clear any existing timeout
          if (transcriptProcessingTimeout.current) {
            clearTimeout(transcriptProcessingTimeout.current);
          }
 
-         setTranscript(cleanTranscript);
-
-                   transcriptProcessingTimeout.current = setTimeout(() => {
-            // Double-check to prevent duplicates
-            if (cleanTranscript !== lastProcessedTranscript.current) {
-              lastProcessedTranscript.current = cleanTranscript;
-              handleCommand(cleanTranscript);
-            }
-          }, 2000); // 2 seconds timeout for comfortable speaking time
+         // Only process if we have meaningful content and it's different from last processed
+         if (cleanTranscript.length > 1 && cleanTranscript.toLowerCase() !== lastProcessedTranscript.current.toLowerCase()) {
+           // Set timeout to send after silence (2 seconds as requested)
+           transcriptProcessingTimeout.current = setTimeout(() => {
+             // Double-check to prevent duplicates (remove isListening check for continuous mode)
+             if (cleanTranscript.toLowerCase() !== lastProcessedTranscript.current.toLowerCase()) {
+               lastProcessedTranscript.current = cleanTranscript; // Store original case
+               handleCommand(cleanTranscript); // Send original case to handleCommand
+               setTranscript(""); // Clear transcript after sending
+             }
+           }, 2000); // 2 seconds timeout as requested
+         }
        }
      };
 
@@ -241,43 +237,13 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
     };
 
          recognition.onend = () => {
-       // ✅ Only restart if explicitly supposed to be listening and not stopping
-               // Check if we&apos;re in stopping state or if user manually stopped
+       // Simple onend handler - don't auto-restart to prevent multiple instances
        if (recognitionState === "stopping" || !isListening) {
-         // User stopped or we&apos;re stopping - don&apos;t restart
-         if (recognitionRef.current) {
-           recognitionRef.current.continuous = false;
-         }
          setRecognitionState("idle");
          onListeningChange?.(false);
          setTranscript("");
-         return;
-       }
-
-               // Only restart if we&apos;re actively listening and not in stopping state
-       if (recognitionState === "active" && isListening) {
-         try {
-           // Longer delay for better stability in continuous mode
-           setTimeout(() => {
-             // Double-check state before restarting
-             if (
-               recognitionRef.current &&
-               recognitionState === "active" &&
-               isListening
-             ) {
-               recognitionRef.current.start();
-             }
-           }, 500); // Increased delay for better stability
-         } catch {
-           // If restart fails, go to idle state
-           setRecognitionState("idle");
-           onListeningChange?.(false);
-         }
        } else {
-         // Reset to idle state and disable continuous mode
-         if (recognitionRef.current) {
-           recognitionRef.current.continuous = false;
-         }
+         // If unexpectedly ended but should still be listening, just reset state
          setRecognitionState("idle");
          onListeningChange?.(false);
          setTranscript("");
@@ -528,6 +494,14 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
          setRecognitionState("starting");
          onListeningChange?.(true);
 
+         // Clear any previous transcript and timeout
+         setTranscript("");
+         lastProcessedTranscript.current = "";
+         if (transcriptProcessingTimeout.current) {
+           clearTimeout(transcriptProcessingTimeout.current);
+           transcriptProcessingTimeout.current = null;
+         }
+
          try {
            recognitionRef.current.start();
          } catch {
@@ -536,29 +510,16 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
            onListeningChange?.(false);
          }
        }
-     } catch (error) {
-       // Handle case where recognition state is inconsistent
-       if (error instanceof Error && error.message.includes("already started")) {
-         // If already started but we thought it was idle, just stop it
-         setRecognitionState("stopping");
-         onListeningChange?.(false);
-         try {
-           recognitionRef.current.stop();
-         } catch {
-           setRecognitionState("idle");
-           onListeningChange?.(false);
-         }
-       } else if (
-         error instanceof Error &&
-         error.message.includes("not started")
-       ) {
-         // If not started but we thought it was active, reset to idle
-         setRecognitionState("idle");
-         onListeningChange?.(false);
-       } else {
-         // Reset to idle state on any other error
-         setRecognitionState("idle");
-         onListeningChange?.(false);
+     } catch {
+       // Handle any unexpected errors by resetting to clean state
+       setRecognitionState("idle");
+       onListeningChange?.(false);
+       setTranscript("");
+
+       // Clean up any pending timeouts
+       if (transcriptProcessingTimeout.current) {
+         clearTimeout(transcriptProcessingTimeout.current);
+         transcriptProcessingTimeout.current = null;
        }
      }
    };

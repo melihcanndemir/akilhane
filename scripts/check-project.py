@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 AkılHane Project Checker
-Hackathon için proje kalite kontrolü
+Proje kalite kontrolü ve validasyon
 """
 
 import subprocess
@@ -25,7 +25,7 @@ def print_header():
     print(f"{Colors.HEADER}{Colors.BOLD}")
     print("╔══════════════════════════════════════════════════════════════╗")
     print("║                    🧠 AKILHANE CHECKER 🧠                    ║")
-    print("║                Hackathon Project Validator                   ║")
+    print("║                   Project Quality Validator                  ║")
     print("╚══════════════════════════════════════════════════════════════╝")
     print(f"{Colors.ENDC}")
     print(f"{Colors.OKCYAN}🕐 Başlangıç: {datetime.now().strftime('%H:%M:%S')}{Colors.ENDC}")
@@ -116,7 +116,7 @@ def main():
     print(f"\n{Colors.BOLD}🎯 FİNAL DURUM{Colors.ENDC}")
     if all_passed:
         print(f"{Colors.OKGREEN}🎉 TEBRİKLER! Tüm kontroller başarılı!{Colors.ENDC}")
-        print(f"{Colors.OKGREEN}🚀 Proje hackathon'a hazır!{Colors.ENDC}")
+        print(f"{Colors.OKGREEN}🚀 Proje production'a hazır!{Colors.ENDC}")
         print(f"{Colors.OKCYAN}⏰ Bitiş: {datetime.now().strftime('%H:%M:%S')}{Colors.ENDC}")
         sys.exit(0)
     else:

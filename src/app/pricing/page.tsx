@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Check, X, Star, Zap, Crown, Building, Users, MessageSquare } from "lucide-react";
 import MobileNav from "@/components/mobile-nav";
+import Link from "next/link";
 
 interface PricingPlan {
   id: string;
@@ -54,7 +55,7 @@ export default function PricingPage() {
       id: "premium",
       name: "Premium",
       description: "Gelişmiş özellikler ve sınırsız AI erişimi",
-      price: { monthly: 49, yearly: 490 },
+      price: { monthly: 499, yearly: 4990 },
       features: [
         "Sınırsız AI soru sorma",
         "Gelişmiş quiz sistemi",
@@ -77,7 +78,7 @@ export default function PricingPage() {
       id: "enterprise",
       name: "Kurumsal",
       description: "Okullar ve şirketler için özel çözümler",
-      price: { monthly: 199, yearly: 1990 },
+      price: { monthly: 999, yearly: 9990 },
       features: [
         "Tüm Premium özellikler",
         "Toplu kullanıcı yönetimi",
@@ -139,7 +140,7 @@ export default function PricingPage() {
               Yıllık
             </Label>
             {isYearly && (
-              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+              <Badge variant="success">
                 %20 Tasarruf
               </Badge>
             )}
@@ -159,7 +160,7 @@ export default function PricingPage() {
             >
               {plan.popular && (
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-1">
+                  <Badge variant="purple" className="px-4 py-1">
                     <Crown className="h-3 w-3 mr-1" />
                     En Popüler
                   </Badge>
@@ -387,16 +388,20 @@ export default function PricingPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button className="bg-gradient-to-r from-blue-600 to-purple-600">
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  İletişime Geç
-                </Button>
-                <Button variant="outline">
-                  <Zap className="h-4 w-4 mr-2" />
-                  Demo İste
-                </Button>
-              </div>
+                             <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                 <Link href="/contact">
+                   <Button className="bg-gradient-to-r from-blue-600 to-purple-600">
+                     <MessageSquare className="h-4 w-4 mr-2" />
+                     İletişime Geç
+                   </Button>
+                 </Link>
+                                                     <Link href="/contact">
+                     <Button variant="outline" className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-transparent transition-all duration-300">
+                       <Zap className="h-4 w-4 mr-2" />
+                       Demo İste
+                     </Button>
+                   </Link>
+               </div>
             </CardContent>
           </Card>
         </div>

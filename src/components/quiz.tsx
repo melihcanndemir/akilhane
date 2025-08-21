@@ -13,6 +13,20 @@ import MobileNav from "./mobile-nav";
 import { QuizResult } from "./quiz-result";
 import LoadingSpinner from "./loading-spinner";
 import { useToast } from "@/hooks/use-toast";
+import { QuestionService } from "@/services/supabase-service";
+import { getDemoQuestions } from "@/data/demo-data";
+
+interface DemoQuestion {
+  id: string;
+  subjectId: string;
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  explanation: string;
+  difficulty: string;
+  tags: string[];
+  createdAt: string;
+}
 
 interface Question {
   id: string;
@@ -171,373 +185,25 @@ const QuizComponent: React.FC<QuizProps> = ({
             localStorage.getItem("btk_demo_mode") === "true");
 
         if (demoModeActive) {
-          // Demo questions based on selected subject
-          const getDemoQuestions = (selectedSubject: string): Question[] => {
-            switch (selectedSubject) {
-              case "Fizik":
-                return [
-                  {
-                    id: "demo_physics_1",
-                    subject: "Fizik",
-                    type: "multiple-choice",
-                    difficulty: "Medium",
-                    text: "Bir cismin hızı 20 m/s ise, 5 saniye sonra kaç metre yol alır?",
-                    topic: "Hareket",
-                    options: [
-                      { text: "100 m", isCorrect: true },
-                      { text: "80 m", isCorrect: false },
-                      { text: "120 m", isCorrect: false },
-                      { text: "60 m", isCorrect: false },
-                    ],
-                    explanation:
-                      "Hız = Yol / Zaman → Yol = Hız × Zaman = 20 × 5 = 100 m",
-                  },
-                  {
-                    id: "demo_physics_2",
-                    subject: "Fizik",
-                    type: "multiple-choice",
-                    difficulty: "Medium",
-                    text: "Yerçekimi ivmesi kaç m/s²&apos;dir?",
-                    topic: "Kuvvet ve Hareket",
-                    options: [
-                      { text: "9.8 m/s²", isCorrect: true },
-                      { text: "8.9 m/s²", isCorrect: false },
-                      { text: "10 m/s²", isCorrect: false },
-                      { text: "9 m/s²", isCorrect: false },
-                    ],
-                    explanation:
-                      "Dünya&apos;da yerçekimi ivmesi yaklaşık 9.8 m/s²&apos;dir.",
-                  },
-                  {
-                    id: "demo_physics_3",
-                    subject: "Fizik",
-                    type: "multiple-choice",
-                    difficulty: "Hard",
-                    text: "Bir cismin kinetik enerjisi 100 J ise, kütlesi 2 kg olan cismin hızı kaç m/s&apos;dir?",
-                    topic: "Enerji",
-                    options: [
-                      { text: "10 m/s", isCorrect: true },
-                      { text: "5 m/s", isCorrect: false },
-                      { text: "15 m/s", isCorrect: false },
-                      { text: "20 m/s", isCorrect: false },
-                    ],
-                    explanation:
-                      "Kinetik Enerji = ½ × m × v² → 100 = ½ × 2 × v² → v² = 100 → v = 10 m/s",
-                  },
-                ];
-              case "Kimya":
-                return [
-                  {
-                    id: "demo_chemistry_1",
-                    subject: "Kimya",
-                    type: "multiple-choice",
-                    difficulty: "Medium",
-                    text: "H₂O molekülünde kaç hidrojen atomu vardır?",
-                    topic: "Moleküller",
-                    options: [
-                      { text: "2", isCorrect: true },
-                      { text: "1", isCorrect: false },
-                      { text: "3", isCorrect: false },
-                      { text: "0", isCorrect: false },
-                    ],
-                    explanation:
-                      "H₂O su molekülünde 2 hidrojen (H) ve 1 oksijen (O) atomu vardır.",
-                  },
-                  {
-                    id: "demo_chemistry_2",
-                    subject: "Kimya",
-                    type: "multiple-choice",
-                    difficulty: "Medium",
-                    text: "Periyodik tabloda kaç periyot vardır?",
-                    topic: "Periyodik Tablo",
-                    options: [
-                      { text: "7", isCorrect: true },
-                      { text: "6", isCorrect: false },
-                      { text: "8", isCorrect: false },
-                      { text: "5", isCorrect: false },
-                    ],
-                    explanation: "Periyodik tabloda 7 periyot bulunmaktadır.",
-                  },
-                  {
-                    id: "demo_chemistry_3",
-                    subject: "Kimya",
-                    type: "multiple-choice",
-                    difficulty: "Hard",
-                    text: "pH değeri 3 olan bir çözelti asidik mi, bazik mi?",
-                    topic: "Asitler ve Bazlar",
-                    options: [
-                      { text: "Asidik", isCorrect: true },
-                      { text: "Bazik", isCorrect: false },
-                      { text: "Nötr", isCorrect: false },
-                      { text: "Belirsiz", isCorrect: false },
-                    ],
-                    explanation:
-                      "pH < 7 asidik, pH = 7 nötr, pH > 7 bazik çözeltilerdir.",
-                  },
-                ];
-              case "Matematik":
-                return [
-                  {
-                    id: "demo_math_1",
-                    subject: "Matematik",
-                    type: "multiple-choice",
-                    difficulty: "Medium",
-                    text: "2x + 5 = 13 denkleminin çözümü nedir?",
-                    topic: "Cebir",
-                    options: [
-                      { text: "x = 4", isCorrect: true },
-                      { text: "x = 3", isCorrect: false },
-                      { text: "x = 5", isCorrect: false },
-                      { text: "x = 6", isCorrect: false },
-                    ],
-                    explanation: "2x + 5 = 13 → 2x = 8 → x = 4",
-                  },
-                  {
-                    id: "demo_math_2",
-                    subject: "Matematik",
-                    type: "multiple-choice",
-                    difficulty: "Medium",
-                    text: "Bir üçgenin iç açıları toplamı kaç derecedir?",
-                    topic: "Geometri",
-                    options: [
-                      { text: "180°", isCorrect: true },
-                      { text: "90°", isCorrect: false },
-                      { text: "270°", isCorrect: false },
-                      { text: "360°", isCorrect: false },
-                    ],
-                    explanation:
-                      "Bir üçgenin iç açıları toplamı her zaman 180 derecedir.",
-                  },
-                  {
-                    id: "demo_math_3",
-                    subject: "Matematik",
-                    type: "multiple-choice",
-                    difficulty: "Hard",
-                    text: "x² - 4x + 4 = 0 denkleminin çözümü nedir?",
-                    topic: "Cebir",
-                    options: [
-                      { text: "x = 2", isCorrect: true },
-                      { text: "x = -2", isCorrect: false },
-                      { text: "x = 4", isCorrect: false },
-                      { text: "x = -4", isCorrect: false },
-                    ],
-                    explanation: "x² - 4x + 4 = (x-2)² = 0 → x = 2",
-                  },
-                ];
-              case "Tarih":
-                return [
-                  {
-                    id: "demo_history_1",
-                    subject: "Tarih",
-                    type: "multiple-choice",
-                    difficulty: "Easy",
-                    text: "Osmanlı İmparatorluğu'nun kurucusu kimdir?",
-                    topic: "Osmanlı Tarihi",
-                    options: [
-                      { text: "Osman Bey", isCorrect: true },
-                      { text: "Fatih Sultan Mehmet", isCorrect: false },
-                      { text: "Yavuz Sultan Selim", isCorrect: false },
-                      { text: "Kanuni Sultan Süleyman", isCorrect: false },
-                    ],
-                    explanation: "Osmanlı İmparatorluğu 1299 yılında Osman Bey tarafından kurulmuştur.",
-                  },
-                  {
-                    id: "demo_history_2",
-                    subject: "Tarih",
-                    type: "multiple-choice",
-                    difficulty: "Easy",
-                    text: "İstanbul'un fethi hangi yılda gerçekleşmiştir?",
-                    topic: "Osmanlı Tarihi",
-                    options: [
-                      { text: "1453", isCorrect: true },
-                      { text: "1454", isCorrect: false },
-                      { text: "1452", isCorrect: false },
-                      { text: "1455", isCorrect: false },
-                    ],
-                    explanation: "İstanbul, Fatih Sultan Mehmet tarafından 29 Mayıs 1453'te fethedilmiştir.",
-                  },
-                  {
-                    id: "demo_history_3",
-                    subject: "Tarih",
-                    type: "multiple-choice",
-                    difficulty: "Medium",
-                    text: "Türkiye Cumhuriyeti hangi yılda kurulmuştur?",
-                    topic: "Çağdaş Tarih",
-                    options: [
-                      { text: "1923", isCorrect: true },
-                      { text: "1922", isCorrect: false },
-                      { text: "1924", isCorrect: false },
-                      { text: "1925", isCorrect: false },
-                    ],
-                    explanation: "Türkiye Cumhuriyeti 29 Ekim 1923'te Mustafa Kemal Atatürk önderliğinde kurulmuştur.",
-                  },
-                ];
-              case "Biyoloji":
-                return [
-                  {
-                    id: "demo_biology_1",
-                    subject: "Biyoloji",
-                    type: "multiple-choice",
-                    difficulty: "Medium",
-                    text: "İnsan vücudunda kaç kemik bulunur?",
-                    topic: "İnsan Anatomisi",
-                    options: [
-                      { text: "206", isCorrect: true },
-                      { text: "200", isCorrect: false },
-                      { text: "210", isCorrect: false },
-                      { text: "195", isCorrect: false },
-                    ],
-                    explanation: "Yetişkin bir insan vücudunda 206 kemik bulunur.",
-                  },
-                  {
-                    id: "demo_biology_2",
-                    subject: "Biyoloji",
-                    type: "multiple-choice",
-                    difficulty: "Medium",
-                    text: "DNA'nın açılımı nedir?",
-                    topic: "Genetik",
-                    options: [
-                      { text: "Deoksiribo Nükleik Asit", isCorrect: true },
-                      { text: "Deoksiribo Nitrik Asit", isCorrect: false },
-                      { text: "Deoksiribo Nüklear Asit", isCorrect: false },
-                      { text: "Deoksiribo Nitro Asit", isCorrect: false },
-                    ],
-                    explanation: "DNA, Deoksiribo Nükleik Asit'in kısaltmasıdır.",
-                  },
-                  {
-                    id: "demo_biology_3",
-                    subject: "Biyoloji",
-                    type: "multiple-choice",
-                    difficulty: "Hard",
-                    text: "Mitokondri organelinin ana görevi nedir?",
-                    topic: "Hücre Biyolojisi",
-                    options: [
-                      { text: "Enerji üretimi", isCorrect: true },
-                      { text: "Protein sentezi", isCorrect: false },
-                      { text: "Hücre bölünmesi", isCorrect: false },
-                      { text: "Atık temizleme", isCorrect: false },
-                    ],
-                    explanation: "Mitokondri, hücrenin enerji santrali olarak bilinir ve ATP üretir.",
-                  },
-                ];
-              case "Türk Dili ve Edebiyatı":
-                return [
-                  {
-                    id: "demo_literature_1",
-                    subject: "Türk Dili ve Edebiyatı",
-                    type: "multiple-choice",
-                    difficulty: "Medium",
-                    text: "Türkçe hangi dil ailesine aittir?",
-                    topic: "Dil Bilgisi",
-                    options: [
-                      { text: "Ural-Altay", isCorrect: true },
-                      { text: "Hint-Avrupa", isCorrect: false },
-                      { text: "Sami", isCorrect: false },
-                      { text: "Çin-Tibet", isCorrect: false },
-                    ],
-                    explanation: "Türkçe, Ural-Altay dil ailesinin Altay koluna aittir.",
-                  },
-                  {
-                    id: "demo_literature_2",
-                    subject: "Türk Dili ve Edebiyatı",
-                    type: "multiple-choice",
-                    difficulty: "Medium",
-                    text: "Divan edebiyatının en ünlü şairi kimdir?",
-                    topic: "Klasik Edebiyat",
-                    options: [
-                      { text: "Fuzuli", isCorrect: true },
-                      { text: "Baki", isCorrect: false },
-                      { text: "Nefi", isCorrect: false },
-                      { text: "Nabi", isCorrect: false },
-                    ],
-                    explanation: "Fuzuli, Divan edebiyatının en önemli şairlerinden biridir.",
-                  },
-                  {
-                    id: "demo_literature_3",
-                    subject: "Türk Dili ve Edebiyatı",
-                    type: "multiple-choice",
-                    difficulty: "Hard",
-                    text: "Türkçede kaç ünlü harf vardır?",
-                    topic: "Dil Bilgisi",
-                    options: [
-                      { text: "8", isCorrect: true },
-                      { text: "7", isCorrect: false },
-                      { text: "9", isCorrect: false },
-                      { text: "6", isCorrect: false },
-                    ],
-                    explanation: "Türkçede 8 ünlü harf bulunur: a, e, ı, i, o, ö, u, ü",
-                  },
-                ];
-              case "İngilizce":
-                return [
-                  {
-                    id: "demo_english_1",
-                    subject: "İngilizce",
-                    type: "multiple-choice",
-                    difficulty: "Medium",
-                    text: "Present Perfect tense hangi durumlarda kullanılır?",
-                    topic: "Grammar",
-                    options: [
-                      { text: "Geçmişte başlayıp şimdi devam eden eylemler", isCorrect: true },
-                      { text: "Sadece gelecekteki eylemler", isCorrect: false },
-                      { text: "Sadece geçmişteki eylemler", isCorrect: false },
-                      { text: "Sadece şimdiki eylemler", isCorrect: false },
-                    ],
-                    explanation: "Present Perfect, geçmişte başlayıp şimdi devam eden veya etkisi devam eden eylemler için kullanılır.",
-                  },
-                  {
-                    id: "demo_english_2",
-                    subject: "İngilizce",
-                    type: "multiple-choice",
-                    difficulty: "Medium",
-                    text: "İngilizce'de 'book' kelimesinin çoğulu nedir?",
-                    topic: "Vocabulary",
-                    options: [
-                      { text: "books", isCorrect: true },
-                      { text: "bookes", isCorrect: false },
-                      { text: "bookies", isCorrect: false },
-                      { text: "booken", isCorrect: false },
-                    ],
-                    explanation: "İngilizce'de çoğul yapmak için genellikle kelimenin sonuna 's' eklenir.",
-                  },
-                  {
-                    id: "demo_english_3",
-                    subject: "İngilizce",
-                    type: "multiple-choice",
-                    difficulty: "Hard",
-                    text: "Which sentence is grammatically correct?",
-                    topic: "Grammar",
-                    options: [
-                      { text: "I have been to Paris twice.", isCorrect: true },
-                      { text: "I have been in Paris twice.", isCorrect: false },
-                      { text: "I have been at Paris twice.", isCorrect: false },
-                      { text: "I have been on Paris twice.", isCorrect: false },
-                    ],
-                    explanation: "Present Perfect tense ile 'have been to' yapısı kullanılır.",
-                  },
-                ];
-              default:
-                return [
-                  {
-                    id: "demo_general_1",
-                    subject: "Genel",
-                    type: "multiple-choice",
-                    difficulty: "Medium",
-                    text: "Genel bilgi sorusu",
-                    topic: "Genel",
-                    options: [
-                      { text: "Genel cevap", isCorrect: true },
-                      { text: "Yanlış cevap 1", isCorrect: false },
-                      { text: "Yanlış cevap 2", isCorrect: false },
-                      { text: "Yanlış cevap 3", isCorrect: false },
-                    ],
-                    explanation: "Bu bir genel bilgi sorusudur.",
-                  },
-                ];
-            }
-          };
+          // Load demo questions from demo-data.ts
+          const demoQuestionsFromData = getDemoQuestions(subject) as DemoQuestion[];
+          
+          // Convert demo questions to Quiz component format
+          const convertedDemoQuestions: Question[] = demoQuestionsFromData.map(q => ({
+            id: q.id,
+            subject, // Use the selected subject name directly
+            type: "multiple-choice",
+            difficulty: q.difficulty === "Başlangıç" ? "Easy" : q.difficulty === "Orta" ? "Medium" : "Hard",
+            text: q.question,
+            topic: (q.tags && q.tags.length > 0 ? q.tags[0] : "Genel") as string,
+            options: q.options.map((option, index) => ({
+              text: option,
+              isCorrect: index === q.correctAnswer
+            })),
+            explanation: q.explanation
+          }));
 
-          const demoQuestions = getDemoQuestions(subject);
+          const demoQuestions = convertedDemoQuestions;
 
           // Get real question count from actual demo questions
           const realQuestionCount = demoQuestions.length; // Real count from actual demo questions
@@ -566,27 +232,67 @@ const QuizComponent: React.FC<QuizProps> = ({
 
         // USE DIRECT LOCALSTORAGE
 
-        // LocalStorage service for questions
-        const getQuestionsFromStorage = (): Question[] => {
+        // Load questions from both localStorage and Supabase
+        const getQuestionsFromAllSources = async (): Promise<Question[]> => {
           if (typeof window === "undefined") {
             return [];
           }
+
+          let allQuestions: Question[] = [];
+
           try {
+            // Check authentication
+            const guestUser = localStorage.getItem("guestUser");
+            const supabaseToken = localStorage.getItem("sb-gjdjjwvhxlhlftjwykcj-auth-token");
+            const isAuthenticated = Boolean(guestUser || supabaseToken);
+
+            // Try to load from Supabase if authenticated
+            if (isAuthenticated) {
+              try {
+                const dbQuestions = await QuestionService.getQuestionsBySubject(subject);
+                const cloudQuestions = dbQuestions.map(question => ({
+                  id: question.id,
+                  subject: question.subject,
+                  type: question.type,
+                  difficulty: question.difficulty,
+                  text: question.text,
+                  options: JSON.parse(question.options || "[]"),
+                  explanation: question.explanation,
+                  topic: question.topic || "",
+                }));
+                allQuestions = [...cloudQuestions];
+
+              } catch {
+                //do nothing
+              }
+            }
+
+            // Also check localStorage and merge
             const stored = localStorage.getItem("akilhane_questions");
-            const questions = stored ? JSON.parse(stored) : [];
-            return questions.filter(
-              (q: unknown) =>
-                typeof q === "object" &&
-                q !== null &&
-                "subject" in q &&
-                q.subject === subject,
-            ) as Question[];
+            if (stored) {
+              const localQuestions = JSON.parse(stored).filter(
+                (q: unknown) =>
+                  typeof q === "object" &&
+                  q !== null &&
+                  "subject" in q &&
+                  q.subject === subject,
+              ) as Question[];
+
+              // Add local questions that don't exist in cloud questions
+              localQuestions.forEach(localQ => {
+                if (!allQuestions.find(cloudQ => cloudQ.id === localQ.id)) {
+                  allQuestions.push(localQ);
+                }
+              });
+
+            }
+            return allQuestions;
           } catch {
             return [];
           }
         };
 
-        const localQuestions = getQuestionsFromStorage();
+        const localQuestions = await getQuestionsFromAllSources();
 
         if (localQuestions.length === 0) {
           // Show error message and redirect to home page
@@ -1075,14 +781,14 @@ const QuizComponent: React.FC<QuizProps> = ({
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-4">
-            <Link href="/dashboard">
+            <Link href="/quiz">
               <Button
                 variant="outline"
                 size="sm"
                 className="flex items-center gap-2 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Dashboard&apos;a Dön
+                Test Sayfasına Dön
               </Button>
             </Link>
             <h1 className="text-3xl font-headline font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">

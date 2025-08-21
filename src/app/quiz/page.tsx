@@ -36,66 +36,76 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { shouldUseDemoData } from "@/data/demo-data";
+import { UnifiedStorageService } from "@/services/unified-storage-service";
+import { QuestionService, SubjectService } from "@/services/supabase-service";
+import type { Subject } from "@/types/question-manager";
+import type { Question } from "@/lib/types";
 
-interface Subject {
-  id: string;
-  name: string;
-  category: string;
-  difficulty: string;
-  isActive: boolean;
+interface QuizSubject extends Subject {
   questionCount: number;
-}
-
-// LocalStorage service for subjects
-class SubjectLocalStorageService {
-  private static readonly STORAGE_KEY = "akilhane_subjects";
-
-  static getSubjects(): Subject[] {
-    if (typeof window === "undefined") {
-      return [];
-    }
-    try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  }
-}
-
-// LocalStorage service for questions
-class QuestionLocalStorageService {
-  private static readonly STORAGE_KEY = "akilhane_questions";
-
-  static getQuestions(): unknown[] {
-    if (typeof window === "undefined") {
-      return [];
-    }
-    try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  }
-
-  static getQuestionsBySubject(subject: string): unknown[] {
-    const questions = this.getQuestions();
-    return questions.filter(
-      (q: unknown) => (q as { subject: string }).subject === subject,
-    );
-  }
 }
 
 function QuizPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const subject = searchParams.get("subject");
-  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [subjects, setSubjects] = useState<QuizSubject[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSubject, setSelectedSubject] = useState("");
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [defaultSubject, setDefaultSubject] = useState("");
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = () => {
+      const guestUser = localStorage.getItem("guestUser");
+      const supabaseToken = localStorage.getItem("sb-gjdjjwvhxlhlftjwykcj-auth-token");
+      setIsAuthenticated(Boolean(guestUser || supabaseToken));
+    };
+
+    checkAuth();
+  }, []);
+
+  // Load questions from both localStorage and Supabase
+  const loadAllQuestions = async (): Promise<Question[]> => {
+    let allQuestions: Question[] = [];
+
+    try {
+      if (isAuthenticated) {
+        // Try to load from Supabase first
+        try {
+          const dbQuestions = await QuestionService.getQuestions();
+          const cloudQuestions = dbQuestions.map(question => ({
+            id: question.id,
+            subject: question.subject,
+            type: question.type as "multiple-choice" | "true-false" | "calculation" | "case-study",
+            difficulty: question.difficulty as "Easy" | "Medium" | "Hard",
+            text: question.text,
+            options: JSON.parse(question.options || "[]"),
+            explanation: question.explanation,
+            topic: question.topic || "",
+            formula: question.formula || "",
+          }));
+          allQuestions = [...cloudQuestions];
+        } catch {
+          // Silently handle Supabase errors and fallback to localStorage
+        }
+      }
+
+      // Also get local questions and merge
+      const localQuestions = UnifiedStorageService.getQuestions();
+      localQuestions.forEach(localQ => {
+        if (!allQuestions.find(cloudQ => cloudQ.id === localQ.id)) {
+          allQuestions.push(localQ);
+        }
+      });
+
+      return allQuestions;
+            } catch {
+          return UnifiedStorageService.getQuestions();
+        }
+  };
 
   useEffect(() => {
     const loadSubjects = async () => {
@@ -129,7 +139,7 @@ function QuizPageContent() {
             
             return {
               ...subject,
-              questionCount: questionCount
+              questionCount
             };
           });
           
@@ -137,17 +147,51 @@ function QuizPageContent() {
           return;
         }
 
-        // Directly use localStorage
-        const localSubjects = SubjectLocalStorageService.getSubjects();
+        // Load subjects from both localStorage and Supabase (like Subject Manager does)
+        let loadedSubjects: Subject[] = [];
 
-        // Calculate question count for each subject
-        const subjectsWithQuestionCount = localSubjects.map((subject) => {
-          const questions = QuestionLocalStorageService.getQuestionsBySubject(
-            subject.name,
-          );
+        if (isAuthenticated) {
+          try {
+            const dbSubjects = await SubjectService.getSubjects();
+
+            // If there are subjects in Supabase, use them, otherwise load from localStorage
+            if (dbSubjects && dbSubjects.length > 0) {
+              loadedSubjects = dbSubjects.map(subject => ({
+                id: subject.id,
+                name: subject.name,
+                description: subject.description,
+                category: subject.category,
+                difficulty: subject.difficulty,
+                questionCount: subject.question_count,
+                isActive: subject.is_active,
+              }));
+            } else {
+              loadedSubjects = UnifiedStorageService.getSubjects();
+            }
+          } catch {
+            // Fallback to localStorage on Supabase error
+            loadedSubjects = UnifiedStorageService.getSubjects();
+          }
+        } else {
+          loadedSubjects = UnifiedStorageService.getSubjects();
+        }
+
+        // Load all questions (from both localStorage and Supabase)
+        const allQuestions = await loadAllQuestions();
+
+        // Calculate question count for each subject using all questions
+        const subjectsWithQuestionCount = loadedSubjects.map((subject) => {
+          // Filter questions by subject name
+          const subjectQuestions = allQuestions.filter(q => {
+            const normalizedQuestionSubject = q.subject.trim().toLowerCase();
+            const normalizedSubjectName = subject.name.trim().toLowerCase();
+            return normalizedQuestionSubject === normalizedSubjectName;
+          });
+
+          // Calculate question count for this subject
           return {
             ...subject,
-            questionCount: questions.length,
+            questionCount: subjectQuestions.length,
           };
         });
 
@@ -183,26 +227,37 @@ function QuizPageContent() {
       }
     };
 
-    loadSubjects();
-  }, [searchParams]);
+    // Only load subjects when authentication status is determined
+    if (isAuthenticated !== null) {
+      loadSubjects();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, isAuthenticated]);
 
   const handleStartQuiz = () => {
     if (selectedSubject) {
-      // Check if there are real questions for this subject
-      const questionsForSubject =
-        QuestionLocalStorageService.getQuestionsBySubject(selectedSubject);
-      const hasRealQuestions = questionsForSubject.length > 0;
+      // Check if there are real questions for this subject using both sources
+      loadAllQuestions().then(allQuestions => {
+        const questionsForSubject = allQuestions.filter(q => {
+          const normalizedQuestionSubject = q.subject.trim().toLowerCase();
+          const normalizedSelectedSubject = selectedSubject.trim().toLowerCase();
+          return normalizedQuestionSubject === normalizedSelectedSubject;
+        });
 
-      if (hasRealQuestions) {
-        // Use real questions - don't set demo mode
-        const quizUrl = `/quiz?subject=${encodeURIComponent(selectedSubject)}`;
-        router.push(quizUrl);
-      } else {
-        // No real questions - use demo mode
-        localStorage.setItem("btk_demo_mode", "true");
-        const quizUrl = `/quiz?subject=${encodeURIComponent(selectedSubject)}&demo=true`;
-        router.push(quizUrl);
-      }
+        const hasRealQuestions = questionsForSubject.length > 0;
+
+        if (hasRealQuestions) {
+          // Use real questions - don't set demo mode and remove any existing demo flag
+          localStorage.removeItem("btk_demo_mode");
+          const quizUrl = `/quiz?subject=${encodeURIComponent(selectedSubject)}`;
+          router.push(quizUrl);
+        } else {
+          // No real questions - use demo mode
+          localStorage.setItem("btk_demo_mode", "true");
+          const quizUrl = `/quiz?subject=${encodeURIComponent(selectedSubject)}&demo=true`;
+          router.push(quizUrl);
+        }
+      });
     }
   };
 
@@ -236,7 +291,7 @@ function QuizPageContent() {
             </h1>
             {isDemoMode && (
               <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-                BTK Demo
+                Demo
               </Badge>
             )}
           </div>
@@ -274,19 +329,61 @@ function QuizPageContent() {
                 <div className="space-y-2">
                   <Button
                     onClick={() => router.push("/subject-manager")}
-                    className="mr-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0 hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0"
                   >
                     <GraduationCap className="w-4 h-4 mr-2" />
                     Ders Ekle
                   </Button>
+                </div>
+
+                <div className="shadow-lg border-dashed border-2 border-gray-300 dark:border-gray-600 hover:border-green-400 dark:hover:border-green-500 transition-all duration-300 rounded-lg p-8 text-center">
+                  <div className="mb-4 flex justify-center">
+                    <div className="w-16 h-16 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900 dark:to-emerald-900 rounded-full flex items-center justify-center">
+                      <BookOpen className="w-8 h-8 text-green-600 dark:text-green-400" />
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Soru Yönetimi
+                  </h3>
+                  <p className="text-gray-500 dark:text-gray-400 mb-6">
+                    Derslere soru ekleyerek quiz içeriklerini oluşturun.
+                  </p>
                   <Button
                     onClick={() => router.push("/question-manager")}
                     variant="outline"
-                    className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 hover:text-white hover:border-0"
+                    className="w-full hover:bg-gradient-to-r hover:from-green-600 hover:to-emerald-600 hover:text-white hover:border-0"
                   >
                     <BookOpen className="w-4 h-4 mr-2" />
                     Soru Ekle
                   </Button>
+                </div>
+
+                <div className="shadow-lg border-dashed border-2 border-gray-300 dark:border-gray-600 hover:border-purple-400 dark:hover:border-purple-500 transition-all duration-300 rounded-lg p-8 text-center">
+                  <div className="mb-4 flex justify-center">
+                    <div className="w-16 h-16 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 rounded-full flex items-center justify-center">
+                      <Play className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Quiz Süreci
+                  </h3>
+                  <p className="text-gray-500 dark:text-gray-400 mb-6">
+                    Sorular eklendikten sonra quiz yapmaya başlayabilirsiniz.
+                  </p>
+                  <div className="text-sm text-gray-400 dark:text-gray-500">
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <span className="w-4 h-4 bg-blue-500 rounded-full"></span>
+                      <span>Ders Ekle</span>
+                    </div>
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <span className="w-4 h-4 bg-green-500 rounded-full"></span>
+                      <span>Soru Ekle</span>
+                    </div>
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="w-4 h-4 bg-purple-500 rounded-full"></span>
+                      <span>Quiz Yap</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -377,23 +474,28 @@ function QuizPageContent() {
                   onClick={() => {
                     setSelectedSubject(subject.name);
 
-                    // Check if there are real questions for this subject
-                    const questionsForSubject =
-                      QuestionLocalStorageService.getQuestionsBySubject(
-                        subject.name,
-                      );
-                    const hasRealQuestions = questionsForSubject.length > 0;
+                    // Check if there are real questions for this subject using both sources
+                    loadAllQuestions().then(allQuestions => {
+                      const questionsForSubject = allQuestions.filter(q => {
+                        const normalizedQuestionSubject = q.subject.trim().toLowerCase();
+                        const normalizedSubjectName = subject.name.trim().toLowerCase();
+                        return normalizedQuestionSubject === normalizedSubjectName;
+                      });
 
-                    if (hasRealQuestions) {
-                      // Use real questions - don't set demo mode
-                      const quizUrl = `/quiz?subject=${encodeURIComponent(subject.name)}`;
-                      router.push(quizUrl);
-                    } else {
-                      // No real questions - use demo mode
-                      localStorage.setItem("btk_demo_mode", "true");
-                      const quizUrl = `/quiz?subject=${encodeURIComponent(subject.name)}&demo=true`;
-                      router.push(quizUrl);
-                    }
+                      const hasRealQuestions = questionsForSubject.length > 0;
+
+                      if (hasRealQuestions) {
+                        // Use real questions - don't set demo mode and remove any existing demo flag
+                        localStorage.removeItem("btk_demo_mode");
+                        const quizUrl = `/quiz?subject=${encodeURIComponent(subject.name)}`;
+                        router.push(quizUrl);
+                      } else {
+                        // No real questions - use demo mode
+                        localStorage.setItem("btk_demo_mode", "true");
+                        const quizUrl = `/quiz?subject=${encodeURIComponent(subject.name)}&demo=true`;
+                        router.push(quizUrl);
+                      }
+                    });
                   }}
                 >
                   <CardContent className="p-4">

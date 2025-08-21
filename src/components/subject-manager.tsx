@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import type { Question } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -28,6 +30,8 @@ import {
   EyeOff,
   BookOpen,
   GraduationCap,
+  Target,
+  Brain,
 } from "lucide-react";
 import { shouldUseDemoData, demoSubjects } from "@/data/demo-data";
 import { SubjectService } from "@/services/supabase-service";
@@ -42,13 +46,17 @@ interface Subject {
   difficulty: string;
   questionCount: number;
   isActive: boolean;
+  createdBy?: string | undefined;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface SubjectManagerProps {
   onRefresh?: () => void;
+  refreshTrigger?: number;
 }
 
-const SubjectManager = ({ onRefresh }: SubjectManagerProps) => {
+const SubjectManager = ({ onRefresh, refreshTrigger }: SubjectManagerProps) => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -113,29 +121,59 @@ const SubjectManager = ({ onRefresh }: SubjectManagerProps) => {
         setUseSupabase(false);
         const localSubjects = UnifiedStorageService.getSubjects();
 
-        // Calculate real question count
-        const getQuestionsFromStorage = () => {
-          if (typeof window === "undefined") {
-            return [];
-          }
+        // Calculate real question count using both localStorage and Supabase
+        const getAllQuestions = async () => {
+          let allQuestions: Question[] = [];
+
           try {
+            // Check authentication
+            const guestUser = localStorage.getItem("guestUser");
+            const supabaseToken = localStorage.getItem("sb-gjdjjwvhxlhlftjwykcj-auth-token");
+            const isAuth = Boolean(guestUser || supabaseToken);
+
+            if (isAuth) {
+              try {
+                // Try to load from Supabase first
+                const response = await fetch('/api/questions');
+                if (response.ok) {
+                  const dbQuestions = await response.json();
+                  allQuestions = [...dbQuestions];
+                }
+              } catch {
+                //do nothing
+              }
+            }
+
+            // Also get local questions and merge
+            const stored = localStorage.getItem("akilhane_questions");
+            if (stored) {
+              const localQuestions = JSON.parse(stored);
+              localQuestions.forEach((localQ: Question) => {
+                if (!allQuestions.find((cloudQ: Question) => cloudQ.id === localQ.id)) {
+                  allQuestions.push(localQ);
+                }
+              });
+            }
+
+            return allQuestions;
+          } catch {
+            // Fallback to localStorage only
             const stored = localStorage.getItem("akilhane_questions");
             return stored ? JSON.parse(stored) : [];
-          } catch {
-            return [];
           }
         };
 
-        const questions = getQuestionsFromStorage();
-
+        const questions = await getAllQuestions();
         // Calculate real question count for each subject
         const updatedSubjects = localSubjects.map((subject) => {
-          const questionCount = questions.filter(
-            (q: { subject: string }) => q.subject === subject.name,
-          ).length;
+          const subjectQuestions = questions.filter((q: Question) => {
+            const normalizedQuestionSubject = q.subject?.trim().toLowerCase();
+            const normalizedSubjectName = subject.name.trim().toLowerCase();
+            return normalizedQuestionSubject === normalizedSubjectName;
+          });
           return {
             ...subject,
-            questionCount,
+            questionCount: subjectQuestions.length,
           };
         });
 
@@ -155,6 +193,9 @@ const SubjectManager = ({ onRefresh }: SubjectManagerProps) => {
         difficulty: s.difficulty,
         questionCount: s.question_count,
         isActive: s.is_active,
+        createdBy: s.created_by,
+        createdAt: s.created_at,
+        updatedAt: s.updated_at,
       }));
 
       // Merge localStorage and Supabase data
@@ -190,16 +231,45 @@ const SubjectManager = ({ onRefresh }: SubjectManagerProps) => {
 
       const questions = getQuestionsFromStorage();
 
-      // Calculate real question count for each subject
-      const updatedMergedSubjects = mergedSubjects.map((subject) => {
-        const questionCount = questions.filter(
-          (q: { subject: string }) => q.subject === subject.name,
-        ).length;
-        return {
-          ...subject,
-          questionCount,
-        };
-      });
+      // Calculate real question count for each subject from Supabase or localStorage fallback
+      const updatedMergedSubjects = await Promise.all(
+        mergedSubjects.map(async (subject) => {
+          try {
+            // Check if user is authenticated
+            const { data: { session } } = await supabase.auth.getSession();
+
+            if (session) {
+              // Authenticated user - get from Supabase
+              const { count } = await supabase
+                .from('questions')
+                .select('*', { count: 'exact', head: true })
+                .eq('subject', subject.name);
+
+              return {
+                ...subject,
+                questionCount: count || 0,
+              };
+            } else {
+              // Guest user - use localStorage fallback
+              const questionCount = questions.filter(
+                (q: { subject: string }) => q.subject === subject.name,
+              ).length;
+
+              return {
+                ...subject,
+                questionCount,
+              };
+            }
+          } catch {
+            // Fallback to localStorage on error
+            const questionCount = questions.filter(
+              (q: { subject: string }) => q.subject === subject.name,
+            ).length;
+
+            return { ...subject, questionCount };
+          }
+        }),
+      );
 
       setSubjects(updatedMergedSubjects);
 
@@ -255,6 +325,9 @@ const SubjectManager = ({ onRefresh }: SubjectManagerProps) => {
             difficulty: result.difficulty,
             questionCount: result.question_count,
             isActive: result.is_active,
+            createdBy: result.created_by,
+            createdAt: result.created_at,
+            updatedAt: result.updated_at,
           };
           setSubjects((prev) => [mappedSubject, ...prev]);
         }
@@ -318,6 +391,9 @@ const SubjectManager = ({ onRefresh }: SubjectManagerProps) => {
             difficulty: result.difficulty,
             questionCount: result.question_count,
             isActive: result.is_active,
+            createdBy: result.created_by,
+            createdAt: result.created_at,
+            updatedAt: result.updated_at,
           };
           setSubjects((prev) =>
             prev.map((s) => (s.id === subject.id ? mappedSubject : s)),
@@ -470,8 +546,21 @@ const SubjectManager = ({ onRefresh }: SubjectManagerProps) => {
   };
 
   useEffect(() => {
-    loadSubjects();
+    loadSubjects().then(() => {
+      // Notify parent after initial load
+      if (onRefresh) {
+        onRefresh();
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Refresh when refreshTrigger changes
+  useEffect(() => {
+    if (refreshTrigger !== undefined && refreshTrigger > 0) {
+      loadSubjects();
+    }
+  }, [refreshTrigger]);
 
   if (isLoading) {
     return (
@@ -722,23 +811,89 @@ const SubjectManager = ({ onRefresh }: SubjectManagerProps) => {
         </div>
 
         {subjects.length === 0 && (
-          <div className="text-center py-8 sm:py-12 mx-6 sm:mx-0">
-            <div className="mb-4 flex justify-center">
-              <GraduationCap className="w-16 h-16 text-gray-400" />
-            </div>
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Henüz ders eklenmemiş
-            </h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm sm:text-base">
-              İlk dersinizi ekleyerek başlayın!
-            </p>
-            <Button
-              onClick={openAddDialog}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white w-full sm:w-auto"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              İlk Dersi Ekle
-            </Button>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Card className="border-gradient-question shadow-lg border-dashed border-2 border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300">
+              <CardContent className="p-8 text-center">
+                <div className="mb-4 flex justify-center">
+                  <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 rounded-full flex items-center justify-center">
+                    <Plus className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                  </div>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  İlk Dersinizi Ekleyin
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400 mb-6">
+                  Ders ekleyerek öğrenme yolculuğunuza başlayın!
+                </p>
+                <Button
+                  onClick={openAddDialog}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white w-full"
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  Ders Ekle
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="border-gradient-question shadow-lg border-dashed border-2 border-gray-300 dark:border-gray-600 hover:border-green-400 dark:hover:border-green-500 transition-all duration-300">
+              <CardContent className="p-8 text-center">
+                <div className="mb-4 flex justify-center">
+                  <div className="w-16 h-16 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900 dark:to-emerald-900 rounded-full flex items-center justify-center">
+                    <BookOpen className="w-8 h-8 text-green-600 dark:text-green-400" />
+                  </div>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  Ders Yönetimi Nasıl Çalışır?
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400 mb-6">
+                  Dersleri kategorilere göre organize edin ve yönetin.
+                </p>
+                <div className="text-sm text-gray-400 dark:text-gray-500">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <BookOpen className="w-4 h-4" />
+                    <span>Ders Ekle</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <Target className="w-4 h-4" />
+                    <span>Kategori Belirle</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-2">
+                    <Brain className="w-4 h-4" />
+                    <span>AI Destekli</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-gradient-question shadow-lg border-dashed border-2 border-gray-300 dark:border-gray-600 hover:border-purple-400 dark:hover:border-purple-500 transition-all duration-300">
+              <CardContent className="p-8 text-center">
+                <div className="mb-4 flex justify-center">
+                  <div className="w-16 h-16 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 rounded-full flex items-center justify-center">
+                    <GraduationCap className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+                  </div>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  Öğrenme Süreci
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400 mb-6">
+                  Her ders için özelleştirilmiş öğrenme yolları ve ilerleme takibi.
+                </p>
+                <div className="text-sm text-gray-400 dark:text-gray-500">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <span className="w-4 h-4 bg-blue-500 rounded-full"></span>
+                    <span>Ders Ekle</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <span className="w-4 h-4 bg-green-500 rounded-full"></span>
+                    <span>Sorular Ekle</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-2">
+                    <span className="w-4 h-4 bg-purple-500 rounded-full"></span>
+                    <span>Öğrenmeye Başla</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         )}
       </div>
