@@ -66,36 +66,12 @@ export const useSubjectManagement = (
     }
   };
 
-  // Sync localStorage subjects to Supabase
-  const syncLocalStorageSubjectsToSupabase = async (localSubjects: Subject[]) => {
-    try {
-      for (const subject of localSubjects) {
-        try {
-          // Add subject to Supabase
-          const dbSubject = {
-            name: subject.name,
-            description: subject.description,
-            category: subject.category,
-            difficulty: subject.difficulty,
-            is_active: subject.isActive,
-          };
-
-          const result = await SubjectService.createSubject(dbSubject);
-          if (result) {
-            // Subject synced to Supabase
-          }
-        } catch {
-          // Silent fail for subject sync errors
-        }
-      }
-    } catch {
-      // Silent fail for sync errors
-    }
-  };
-
-  // Load subjects
+  // Load subjects - Use same simple logic as Subject Manager
   const loadSubjects = useCallback(async () => {
     try {
+      console.log("🔄 useSubjectManagement: loadSubjects started");
+      console.log("🔄 useSubjectManagement: isAuthenticated:", isAuthenticated);
+      
       setIsLoadingSubjects(true);
       let loadedSubjects: Subject[] = [];
 
@@ -115,9 +91,9 @@ export const useSubjectManagement = (
       } else if (isAuthenticated) {
         try {
           const dbSubjects = await SubjectService.getSubjects();
-
-          // If there are subjects in Supabase, use them, otherwise load from localStorage
+          console.log("🔄 useSubjectManagement: dbSubjects from Supabase:", dbSubjects);
           if (dbSubjects && dbSubjects.length > 0) {
+            // Convert Supabase format to local format
             loadedSubjects = dbSubjects.map(subject => ({
               id: subject.id,
               name: subject.name,
@@ -127,22 +103,16 @@ export const useSubjectManagement = (
               questionCount: subject.question_count,
               isActive: subject.is_active,
             }));
-          } else {
-            loadedSubjects = UnifiedStorageService.getSubjects();
-
-            // Sync localStorage subjects to Supabase
-            if (loadedSubjects.length > 0) {
-              syncLocalStorageSubjectsToSupabase(loadedSubjects);
-            }
+            
+            // Save to localStorage for future use
+            localStorage.setItem("akilhane_subjects", JSON.stringify(loadedSubjects));
+            console.log("🔄 useSubjectManagement: Saved to localStorage:", loadedSubjects);
           }
-        } catch {
-          // Fallback to localStorage on Supabase error
-          loadedSubjects = UnifiedStorageService.getSubjects();
+        } catch (error) {
+          console.error("🔄 useSubjectManagement: Supabase error:", error);
+          // Silent fail - continue with empty subjects
         }
-      } else {
-        loadedSubjects = UnifiedStorageService.getSubjects();
       }
-
       // Calculate real question count for all subjects (skip in demo mode)
       if (isDemoMode) {
         // In demo mode, use the predefined question counts

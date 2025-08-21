@@ -205,15 +205,19 @@ const QuizComponent: React.FC<QuizProps> = ({
 
           const demoQuestions = convertedDemoQuestions;
 
-          // Apply user settings for question count
+          // Get real question count from actual demo questions
+          const realQuestionCount = demoQuestions.length; // Real count from actual demo questions
+
+          // Apply user settings for question count, but respect demo data limit
           const questionCount = Math.min(
             userSettings.studyPreferences.questionsPerQuiz,
-            demoQuestions.length,
+            realQuestionCount,
+            demoQuestions.length // Don't exceed available demo questions
           );
           const selectedQuestions = demoQuestions.slice(0, questionCount);
 
           setQuestions(selectedQuestions);
-          setTotalQuestions(selectedQuestions.length);
+          setTotalQuestions(realQuestionCount); // Show real count from demo data
           setStartTime(new Date());
 
           // Set time limit if configured
